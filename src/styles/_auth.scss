@@ -1,0 +1,12 @@
+.public_view{
+    background: $green-100 url('../img/main-background.jpg') repeat-x;
+    background-size: contain;
+    background-position: bottom;
+    height: 100vh;
+    text-align: center;
+
+    &.login_view{
+        .banner{margin: 90px 0px;}
+        form{margin-top: 50px;}
+    }
+}

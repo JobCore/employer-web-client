@@ -1,0 +1,16 @@
+.icon{
+    min-width: 20px;
+    min-height: 20px;
+    width: 80px;
+    height: 80px;
+    display: inline-block;
+    background: blue;
+    .icon-server{ background: url('../img/icons/server.svg') no-repeat top left; }
+}
+
+.svg_img{
+    width: 150px;
+    height: 70px;
+    display: inline-block;
+    background-color: blue;
+}
