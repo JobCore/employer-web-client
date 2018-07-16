@@ -4,13 +4,23 @@
     width: 80px;
     height: 80px;
     display: inline-block;
-    background: blue;
-    .icon-server{ background: url('../img/icons/server.svg') no-repeat top left; }
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    &.icon-favorite{ background-image: url('../img/icons/favorite_color.png'); }
+    &.icon-applications{ background-image: url('../img/icons/applications_color.png'); }
+    &.icon-companyprofile{ background-image: url('../img/icons/company_profile_color.png'); }
+    &.icon-dashboard{ background-image: url('../img/icons/dashboard_color.png'); }
+    &.icon-shifts{ background-image: url('../img/icons/shifts_color.png'); }
+    &.icon-talents{ background-image: url('../img/icons/talents_color.png'); }
+    &.icon-logout{ background-image: url('../img/icons/logout_color.png'); }
 }
 
 .svg_img{
     width: 150px;
     height: 70px;
     display: inline-block;
-    background-color: blue;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
 }

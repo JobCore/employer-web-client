@@ -1,13 +1,14 @@
 import React from 'react';
-import {ShiftCard} from './ShiftComponents.jsx';
+import {ShiftCard} from './shifts';
+import {Link} from "react-router-dom";
 import PropTypes from 'prop-types';
 
-export const DashboardBox = ({shifts}) => {
-    const shiftsHTML = shifts.map((s,i) => (<ShiftCard key={i} position={s.position} location={s.location} price={s.price} start={s.start} end={s.end} />));
+export const DashboardBox = ({shifts, title, status}) => {
+    const shiftsHTML = shifts.map((s,i) => (<ShiftCard key={i} shift={s} />));
     return (<div className="dashboard_box">
         <div className="row header">
             <div className="col-4 text-center">
-                <button className="btn btn-primary btn-lg">Create Shifts</button>
+                <button className="btn btn-primary btn-lg">{title}</button>
             </div>
             <div className="col-8">
                 <span className="bar mt-2"></span>
@@ -18,14 +19,16 @@ export const DashboardBox = ({shifts}) => {
                 <ul>{shiftsHTML}</ul>
             </div>
             <div className="col-3 text-center">
-                <p>Unpublished shifts</p>
+                <p>{title}</p>
                 <p className="kpi">6</p>
-                <button className="btn btn-success">Publish all</button>
+                <Link className="btn btn-success" to={"/shifts?status="+status}>View all</Link>
             </div>
         </div>
     </div>);
 };
 
 DashboardBox.propTypes = {
-  shifts: PropTypes.array.isRequired
+    status: PropTypes.string.isRequired,
+    shifts: PropTypes.array.isRequired,
+    title: PropTypes.string.isRequired
 };

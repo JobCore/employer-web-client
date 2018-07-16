@@ -1,18 +1,26 @@
 /* global localStorage, fetch */
 import {logout} from '../actions';
-import {SessionStore} from '../utils/session';
+import {Session} from '../utils/session';
 
 const rootAPIendpoint = process.env.apiHost+'/api';
 
-const HEADERS = {
-  'Content-Type': 'application/json',
+let HEADERS = {
+  'Content-Type': 'application/json'
 };
 
 const getToken = () => {
-  if (SessionStore) {
-    return SessionStore.getSession().access_token;
+  if (Session) {
+    const token = Session.store.getSession().access_token;
+    return token;
   }
   return null;
+};
+
+const appendCompany = (data) => {
+  if (Session && data) {
+    data.employer = Session.store.getSession().user.profile.employer;
+    return data;
+  }
 };
 
 /* AVAILABLE MODELS
@@ -39,8 +47,8 @@ export const GET = async (model, id = '', extraHeaders = {}) => {
     headers: new Headers({
       ...HEADERS,
       ...extraHeaders,
-      Authorization: `Bearer ${getToken()}`,
-    }),
+      Authorization: `JWT ${getToken()}`
+    })
   }).catch(err => {
     throw new Error(`Could not GET models from API due to -> ${err}`);
   });
@@ -52,24 +60,32 @@ export const GET = async (model, id = '', extraHeaders = {}) => {
   return data;
 };
 
-export const POST = async (model, postData, extraHeaders = {}) => {
-  const response = await fetch(`${rootAPIendpoint}/${model}/`, {
+export const POST = (model, postData, extraHeaders = {}) => {
+  
+  if(['register', 'login'].indexOf(model) == -1){
+    HEADERS['Authorization'] = `JWT ${getToken()}`;
+    postData = appendCompany(postData);
+  } 
+  const REQ = {
     method: 'POST',
-    headers: new Headers({
-      ...HEADERS,
-      ...extraHeaders,
-      Authorization: `Bearer ${getToken()}`,
-    }),
-    body: JSON.stringify(postData),
-  }).catch(err => {
-    throw new Error(`Could not POST model to API due to -> ${err}`);
-  });
-  const data = await response.json();
-  if (data.detail) {
-    logout();
-    return 0;
-  }
-  return data;
+    headers: Object.assign(HEADERS,extraHeaders),
+    body: JSON.stringify(postData)
+  };
+  
+  const response = fetch(`${rootAPIendpoint}/${model}/`, REQ)
+    .then((resp) => {
+      if(resp.status == 400) throw new Error('Bad Request');
+      const data = resp.json();
+      return data;
+    })
+    .catch(err => {
+      throw new Error(`Could not POST model to API due to -> ${err}`);
+    });
+  // if (data.detail) {
+  //   logout();
+  //   return 0;
+  // }
+  return response;
 };
 
 export const PUT = async (model, id, putData, extraHeaders = {}) => {
@@ -78,9 +94,9 @@ export const PUT = async (model, id, putData, extraHeaders = {}) => {
     headers: new Headers({
       ...HEADERS,
       ...extraHeaders,
-      Authorization: `Bearer ${getToken()}`,
+      Authorization: `JWT ${getToken()}`
     }),
-    body: putData,
+    body: putData
   }).catch(err => {
     throw new Error(`Could not UPDATE model on API due to -> ${err}`);
   });
@@ -98,9 +114,9 @@ export const PATCH = async (model, id, putData, extraHeaders = {}) => {
     headers: new Headers({
       ...HEADERS,
       ...extraHeaders,
-      Authorization: `Bearer ${getToken()}`,
+      Authorization: `JWT ${getToken()}`
     }),
-    body: putData,
+    body: putData
   }).catch(err => {
     throw new Error(`Could not UPDATE model on API due to -> ${err}`);
   });
@@ -117,8 +133,8 @@ export const DELETE = async (model, id = '', extraHeaders = {}) => {
     method: 'DELETE',
     headers: new Headers({
       ...HEADERS,
-      extraHeaders,
-    }),
+      extraHeaders
+    })
   }).catch(err => {
     throw new Error(`Could not GET models from API due to -> ${err}`);
   });

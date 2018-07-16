@@ -52,6 +52,7 @@ export class Signup extends React.Component{
                 <form className="col-10 col-sm-8 col-md-4 col-lg-4 mx-auto"
                     onSubmit={(e)=> {
                         e.preventDefault();
+                        actions.signup(this.state.email, this.state.password, this.state.company);
                     }}
                 >
                     <div className="form-group">
