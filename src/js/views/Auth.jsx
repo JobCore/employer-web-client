@@ -1,6 +1,7 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 import * as actions from '../actions';
+import {Notifier} from '../utils/notifier';
 import loginBanner from '../../img/login-banner.png';
 
 export class Login extends React.Component{
@@ -12,6 +13,7 @@ export class Login extends React.Component{
         return (
             <div className="public_view login_view">
                 <img className="banner" src={loginBanner} />
+                <Notifier />
                 <form className="col-10 col-sm-5 col-md-4 col-lg-3 mx-auto"
                     onSubmit={(e)=> {
                         e.preventDefault();
@@ -49,6 +51,7 @@ export class Signup extends React.Component{
         return (
             <div className="public_view login_view">
                 <img className="banner" src={loginBanner} />
+                <Notifier />
                 <form className="col-10 col-sm-8 col-md-4 col-lg-4 mx-auto"
                     onSubmit={(e)=> {
                         e.preventDefault();
@@ -91,6 +94,7 @@ export class Forgot extends React.Component{
         return (
             <div className="public_view login_view">
                 <img className="banner" src={loginBanner} />
+                <Notifier />
                 <form className="col-10 col-sm-5 col-md-4 col-lg-3 mx-auto"
                     onSubmit={(e)=> {
                         e.preventDefault();

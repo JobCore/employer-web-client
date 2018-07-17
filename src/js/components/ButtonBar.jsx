@@ -15,25 +15,31 @@ class ButtonBar extends React.Component {
                 shifts: [
                     { slug: "create_shift", title: 'Create shifts', to: 'shifts'},
                     { slug: "filter_shift", title: 'Filter shifts', to: 'shifts'}
+                ],
+                applicants: [
+                    { slug: "filter_applicants", title: 'Filter Applicants', to: 'applicants'}
+                ],
+                talents: [
+                    { slug: "filter_shift", title: 'Filter Talents', to: 'talents'}
                 ]
             },
             currentButtons: []
         };
-        this.historyListener = null;
+        this.removeHistoryListener = null;
     }
     
     componentDidMount(){
         let key = this.props.history.location.pathname.replace('/','');
         if(key=='') key='home';
         this.setState({currentButtons: this.state.buttonBarActions[key] || [] });
-        this.historyListener = this.props.history.listen((data) => {
-            let key = data.pathname.replace('/','');
+        this.removeHistoryListener = this.props.history.listen((data) => {
+            let key = data.pathname.replace('/','').replace('#','');
             this.setState({currentButtons: this.state.buttonBarActions[key] || [] });
         });
     }
     
     componentWillUnmount(){
-        if(this.historyListener) this.historyListener.remove();
+        if(this.removeHistoryListener) this.removeHistoryListener();
     }
 
     render(){

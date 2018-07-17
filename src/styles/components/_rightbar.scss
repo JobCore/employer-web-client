@@ -4,9 +4,16 @@
     width: 370px;
     height: 100vh;
     position: fixed;
+    background: $green-000;
     bottom: 0;
     right: 0;
     .btn-bar{
         margin-top: 20px;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        .btn{
+            margin: 3px;
+        }
     }
 }

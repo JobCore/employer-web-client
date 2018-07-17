@@ -1,6 +1,7 @@
 /* global localStorage, fetch */
 import {logout} from '../actions';
 import {Session} from '../utils/session';
+import {Notify} from '../utils/notifier';
 
 const rootAPIendpoint = process.env.apiHost+'/api';
 
@@ -74,7 +75,8 @@ export const POST = (model, postData, extraHeaders = {}) => {
   
   const response = fetch(`${rootAPIendpoint}/${model}/`, REQ)
     .then((resp) => {
-      if(resp.status == 400) throw new Error('Bad Request');
+      if(resp.status == 400) Notify.error("There was an error with the "+model);
+      if(resp.status == 401) logout();
       const data = resp.json();
       return data;
     })
@@ -88,8 +90,8 @@ export const POST = (model, postData, extraHeaders = {}) => {
   return response;
 };
 
-export const PUT = async (model, id, putData, extraHeaders = {}) => {
-  const response = await fetch(`${rootAPIendpoint}/${model}/${id}`, {
+export const PUT = (model, id, putData, extraHeaders = {}) => {
+  const response = fetch(`${rootAPIendpoint}/${model}/${id}`, {
     method: 'PUT',
     headers: new Headers({
       ...HEADERS,
@@ -97,15 +99,25 @@ export const PUT = async (model, id, putData, extraHeaders = {}) => {
       Authorization: `JWT ${getToken()}`
     }),
     body: putData
-  }).catch(err => {
+  })
+  .then((resp) => {
+      if(resp.status == 400) throw new Error('Bad Request');
+      if(resp.status == 401) logout();
+      const data = resp.json();
+      return data;
+  })
+  .then((data) => {
+    if (data.detail) {
+      logout();
+      return 0;
+    }
+    return data;
+  })
+  .catch(err => {
     throw new Error(`Could not UPDATE model on API due to -> ${err}`);
   });
-  const data = await response.json();
-  if (data.detail) {
-    logout();
-    return 0;
-  }
-  return data;
+  
+  return response;
 };
 
 export const PATCH = async (model, id, putData, extraHeaders = {}) => {

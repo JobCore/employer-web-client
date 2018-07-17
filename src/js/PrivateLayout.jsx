@@ -5,7 +5,10 @@ import {logout, fetchAll} from './actions';
 import Home from './views/Home';
 import RightBar from './components/RightBar';
 import ButtonBar from './components/ButtonBar';
-import {AddShift, ManageShifts, FilterShifts, ShiftApplicants} from './components/shifts';
+import {AddShift, ManageShifts, FilterShifts, ShiftApplicants, ShiftDetails} from './components/shifts';
+import {ManageApplicants, ApplicationDetails} from './components/applicants';
+import {ManageTalents} from './components/talents';
+import {ManageFavorites} from './components/favorites';
 import {store, PrivateProvider} from './actions';
 import {Notifier} from './utils/notifier';
 import logoURL from '../img/logo.png';
@@ -22,6 +25,7 @@ class PrivateLayout extends Flux.DashView{
             showRightBar: false,
             showButtonBar: true,
             rightBarComponent: null,
+            rightBarOption: null,
             catalog:{
                 positions: [],
                 venues: [],
@@ -37,21 +41,40 @@ class PrivateLayout extends Flux.DashView{
                             this.showRightBar(FilterShifts, option);
                         break;
                         case 'show_shift_applicants':
-                            this.showRightBar(ShiftApplicants, option, {applicants: option.data.candidates});
+                            this.showRightBar(ShiftApplicants, option, {applicants: option.data.candidates, shift: option.data});
+                        break;
+                        case 'show_single_applicant':
+                            this.showRightBar(ApplicationDetails, option, {applicant: option.data});
+                        break;
+                        case 'show_single_shift':
+                            this.showRightBar(ShiftDetails, option, {shift: option.data});
                         break;
                         default:
                             this.history.push(option.to);
                         break;
                     }
-                }
+                },
+                close: () => this.closeRightBar()
             }
         };
     }
     
     componentDidMount(){
-        fetchAll(['shifts','positions','venues']);
+        fetchAll(['shifts','positions','venues', 'employees', 'favlists']);
+        
         this.subscribe(store, 'venues', (venues) => this.setCatalog({venues}));
         this.subscribe(store, 'positions', (positions) => this.setCatalog({positions}));
+        this.subscribe(store, 'shifts', (shifts) => {
+            
+            if(this.state.showRightBar && this.state.rightBarOption){
+                if(this.state.rightBarOption.slug == 'show_shift_applicants'){
+                    const newRightBarOpt = Object.assign(this.state.rightBarOption, {
+                        data: store.get('shifts', this.state.rightBarOption.data.id)
+                    });
+                    this.state.bar.show(newRightBarOpt);
+                }
+            }
+        });
         //this.showRightBar(AddShift);
     }
     
@@ -62,6 +85,13 @@ class PrivateLayout extends Flux.DashView{
             rightBarComponent: component,
             rightBarOption: option,
             catalog
+        });
+    }
+    closeRightBar(){
+        this.setState({
+            showRightBar: false,
+            rightBarComponent: null,
+            rightBarOption: null
         });
     }
     
@@ -80,11 +110,11 @@ class PrivateLayout extends Flux.DashView{
                             <li><Link to="/home">HOME</Link></li>
                             <li><Link to="/favorites"><i className="icon icon-favorite"></i>Favorites</Link></li>
                             <li><Link to="/profile"><i className="icon icon-companyprofile"></i>Company Profile</Link></li>
-                            <li><Link to="/applications"><i className="icon icon-applications"></i>Applications</Link></li>
+                            <li><Link to="/applicants"><i className="icon icon-applications"></i>Applications</Link></li>
                             <li><Link to="/shifts"><i className="icon icon-shifts"></i>Shifts</Link></li>
                             <li><Link to="/talents"><i className="icon icon-talents"></i>Talents</Link></li>
-                            <li><Link to="/dashboard"><i className="icon icon-dashboard"></i>Dashboard</Link></li>
-                            <li><button className="btn" onClick={()=>logout()}><i className="icon icon-logout icon-sm"></i>Logout</button></li>
+                            <li><Link to="/home"><i className="icon icon-dashboard"></i>Dashboard</Link></li>
+                            <li><a href="#" onClick={()=>logout()}><i className="icon icon-logout icon-sm"></i>Logout</a></li>
                         </ul>
                     </div>
                     <div className="right_pane">
@@ -96,7 +126,9 @@ class PrivateLayout extends Flux.DashView{
                         </div>
                         <Switch>
                             <Route exact path='/shifts' component={ManageShifts} />
-                            <Route exact path='/favorites' component={Home} />
+                            <Route exact path='/applicants' component={ManageApplicants} />
+                            <Route exact path='/talents' component={ManageTalents} />
+                            <Route exact path='/favorites' component={ManageFavorites} />
                             <Route exact path='/home' component={Home} />
                             <Route exact path='/' component={Home} />
                         </Switch>    

@@ -15,10 +15,10 @@ export const DashboardBox = ({shifts, title, status}) => {
             </div>
         </div>
         <div className="row">
-            <div className="col-9 content">
+            <div className="col-10 content">
                 <ul>{shiftsHTML}</ul>
             </div>
-            <div className="col-3 text-center">
+            <div className="col-2 text-center">
                 <p>{title}</p>
                 <p className="kpi">6</p>
                 <Link className="btn btn-success" to={"/shifts?status="+status}>View all</Link>

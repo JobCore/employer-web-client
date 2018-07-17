@@ -16,7 +16,10 @@
         display: block;
     }
     .content{
-        padding: 10px 20px;
+        padding: 10px 0px 10px 20px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        max-height: 130px;
     }
     .bar{
         border-bottom: 1px solid $green-600;

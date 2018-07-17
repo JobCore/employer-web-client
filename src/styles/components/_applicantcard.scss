@@ -1,0 +1,30 @@
+.aplicantcard{
+    list-style: none;
+    position: relative;
+    padding: 5px 70px 5px 55px;
+    border-radius: 30px;
+    p{margin: 0;}
+    a,span{
+        &.shift-position{color: $fuchsia;}
+        &.shift-location{color: $green-600;}
+        &.shift-date{color: $black;}
+        &.shift-price{color: $red;}
+    }
+    .starrating{
+        font-size: 14px;
+    }
+    .avatar{
+        position: absolute;
+        left: 8px;
+        top: 8px;
+    }
+    .accept-reject{
+        position: absolute;
+        right: 8px;
+        top: 8px;
+    }
+    &:hover{
+        background: $green-000;
+        cursor: pointer;
+    }
+}

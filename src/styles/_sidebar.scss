@@ -34,4 +34,7 @@
     background: $green-100 url('../img/main-background.jpg') repeat-x;
     background-size: contain;
     background-position: bottom;
+    .listcontents{
+        max-width: 700px;
+    }
 }

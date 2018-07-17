@@ -1,8 +1,13 @@
 .buttonbar{
     position: fixed;
-    top: 10px;
+    top: 150px;
     right: 20px;
-    .btn-bar{
-        margin-top: 20px;
+    ul{
+        display: flex;
+        flex-direction:  column;
+        justify-content: right;
+        .btn{
+            width: 100%;
+        }
     }
 }
