@@ -2,6 +2,7 @@
 import {logout} from '../actions';
 import {Session} from '../utils/session';
 import {Notify} from '../utils/notifier';
+import {ValidationError} from '../utils/validation';
 
 const rootAPIendpoint = process.env.apiHost+'/api';
 
@@ -42,8 +43,12 @@ const appendCompany = (data) => {
  * @param {string} model Model data to be fetched. **Must be plural**
  * @returns {data}
  */
-export const GET = async (model, id = '', extraHeaders = {}) => {
-  const response = await fetch(`${rootAPIendpoint}/${model}/${id}`, {
+export const GET = async (model, id = null, queryString = null, extraHeaders = {}) => {
+  let url = `${rootAPIendpoint}/${model}/`;
+  if(id) url += id;
+  if(queryString) url += queryString;
+  
+  const response = await fetch(url, {
     method: 'GET',
     headers: new Headers({
       ...HEADERS,
@@ -75,7 +80,7 @@ export const POST = (model, postData, extraHeaders = {}) => {
   
   const response = fetch(`${rootAPIendpoint}/${model}/`, REQ)
     .then((resp) => {
-      if(resp.status == 400) Notify.error("There was an error with the "+model);
+      if(resp.status == 400) throw new ValidationError('Invalid parameters for create '+model.substring(0, model.length - 1));
       if(resp.status == 401) logout();
       const data = resp.json();
       return data;
@@ -98,7 +103,7 @@ export const PUT = (model, id, putData, extraHeaders = {}) => {
       ...extraHeaders,
       Authorization: `JWT ${getToken()}`
     }),
-    body: putData
+    body: JSON.stringify(putData)
   })
   .then((resp) => {
       if(resp.status == 400) throw new Error('Bad Request');

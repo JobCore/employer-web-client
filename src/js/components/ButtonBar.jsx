@@ -20,7 +20,7 @@ class ButtonBar extends React.Component {
                     { slug: "filter_applicants", title: 'Filter Applicants', to: 'applicants'}
                 ],
                 talents: [
-                    { slug: "filter_shift", title: 'Filter Talents', to: 'talents'}
+                    { slug: "filter_talent", title: 'Filter Talents', to: 'talents'}
                 ]
             },
             currentButtons: []

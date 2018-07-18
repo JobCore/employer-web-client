@@ -106,7 +106,7 @@ export class ManageApplicants extends Flux.DashView {
     }
     
     render() {
-        const applicansHTML = this.state.applicants.map((s,i) => (<ApplicantExtendedCard key={i} applicant={s} hover={true} />));
+        const applicansHTML = this.state.applicants.map((a,i) => (<ApplicantExtendedCard key={i} applicant={a} shift={a.shift} hover={true} />));
         return (<div className="p-5 listcontents">
             <h1>Applicant Details</h1>
             {
@@ -151,8 +151,8 @@ export const ApplicantCard = (props) => {
             (<li className="aplicantcard">
                 <Avatar url={props.applicant.profile.picture} />
                 <AcceptReject
-                    onAccept={() => acceptCandidate(props.applicant.shift.id, props.applicant)} 
-                    onReject={() => rejectCandidate(props.applicant.shift.id, props.applicant)} 
+                    onAccept={() => acceptCandidate(props.shift.id, props.applicant)} 
+                    onReject={() => rejectCandidate(props.shift.id, props.applicant)} 
                 />
                 <a href="#" className="shift-position">{props.applicant.profile.user.first_name + " " + props.applicant.profile.user.last_name}</a>
                 <StartRating rating={Number(props.applicant.rating)}  />
@@ -168,9 +168,9 @@ ApplicantCard.propTypes = {
  * Applican Card
  */
 export const ApplicantExtendedCard = (props) => {
-    const startDate = props.applicant.shift.date.format('ll');
-    const startTime = props.applicant.shift.start_time.format('LT');
-    const endTime = props.applicant.shift.finish_time.format('LT');
+    const startDate = props.shift.date.format('ll');
+    const startTime = props.shift.start_time.format('LT');
+    const endTime = props.shift.finish_time.format('LT');
     return (<PrivateConsumer>
         {({bar}) => 
             (<li className="aplicantcard"
@@ -178,19 +178,19 @@ export const ApplicantExtendedCard = (props) => {
                 >
                 <Avatar url={props.applicant.employee.profile.picture} />
                 <AcceptReject
-                    onAccept={() => acceptCandidate(props.applicant.shift.id, props.applicant.employee)} 
-                    onReject={() => rejectCandidate(props.applicant.shift.id, props.applicant.employee)} 
+                    onAccept={() => acceptCandidate(props.shift.id, props.applicant.employee)} 
+                    onReject={() => rejectCandidate(props.shift.id, props.applicant.employee)} 
                 />
                 <p>
                     <a href="#" className="shift-position">{props.applicant.employee.profile.user.first_name + " " + props.applicant.employee.profile.user.last_name} </a>
-                    is applying for the {props.applicant.shift.position.title} position
-                    at the <a href="#" className="shift-location"> {props.applicant.shift.venue.title}</a> 
+                    is applying for the {props.shift.position.title} position
+                    at the <a href="#" className="shift-location"> {props.shift.venue.title}</a> 
                     <span className="shift-date"> {startDate} from {startTime} to {endTime} </span>
                     {
-                        (typeof props.applicant.shift.price == 'string') ? 
-                            <span className="shift-price"> ${props.applicant.shift.price}/hr.</span>
+                        (typeof props.shift.price == 'string') ? 
+                            <span className="shift-price"> ${props.shift.price}/hr.</span>
                         :
-                            <span className="shift-price"> {props.applicant.shift.price.currencySymbol}{props.applicant.shift.price.amount}/{props.applicant.shift.price.timeframe}.</span>
+                            <span className="shift-price"> {props.shift.price.currencySymbol}{props.shift.price.amount}/{props.shift.price.timeframe}.</span>
                     }
                 </p>
                 <StartRating rating={Number(props.applicant.employee.rating)}  />
@@ -198,7 +198,8 @@ export const ApplicantExtendedCard = (props) => {
     </PrivateConsumer>);
 };
 ApplicantExtendedCard.propTypes = {
-  applicant: PropTypes.object.isRequired
+  applicant: PropTypes.object.isRequired,
+  shift: PropTypes.object.isRequired
 };
 
 

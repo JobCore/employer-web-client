@@ -1,10 +1,12 @@
 .shiftcard{
     position: relative;
     color: #BDBDBD;
+    display: inline-block;
+    max-width: 620px;
     list-style: none;
     padding: 10px 15px;
     margin-left: -10px;
-    width: 620px;
+    max-width: 620px;
     a,span{
         &.shift-position{color: $fuchsia;}
         &.shift-location{color: $green-600;}
@@ -14,7 +16,7 @@
     .btn-group{
         display: none;
         position: absolute;
-        right: -80px;
+        right: -115px;
         top: 2px;
         .icon{
             width: 20px;
@@ -49,5 +51,14 @@
         border-radius: 20px;
         cursor: pointer;
         margin-bottom: 10px;
+    }
+}
+
+.shift-option{
+    a,span{
+        &.shift-position{color: $fuchsia;}
+        &.shift-location{color: $green-600;}
+        &.shift-date{color: $black;}
+        &.shift-price{color: $red;}
     }
 }

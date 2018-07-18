@@ -54,17 +54,43 @@ export const fetchAll = (entities) => {
     );
 };
 
-export const add = (entity, data) => POST(entity, data)
+export const search = (entity, queryString) => {
+    GET(entity, null, queryString)
+        .then(function(list){
+            if(typeof entity.callback == 'function') entity.callback();
+            Flux.dispatchEvent(entity.slug || entity, list);
+        })
+        .catch(function(error) {
+            Notify.error(error.message || error);
+            //console.error(error);
+        });
+};
+
+export const create = (entity, data) => POST(entity, data)
     .then(function(data){
         let entities = store.getState(entity);
         if(!entities || !Array.isArray(entities)) entities = [];
         Flux.dispatchEvent(entity, entities.concat([data]));
-        Notify.success("The "+entity+" was created successfully");
+        Notify.success("The "+entity.substring(0, entity.length - 1)+" was created successfully");
     })
     .catch(function(error) {
         Notify.error(error.message || error);
         //console.error(error);
     });
+    
+export const update = (entity, data) => {
+    PUT(entity, data.id, data)
+        .then(function(data){
+            let entities = store.getState(entity);
+            if(!entities || !Array.isArray(entities)) entities = [];
+            Flux.dispatchEvent(entity, entities.concat([data]));
+            Notify.success("The "+entity.substring(0, entity.length - 1)+" was updated successfully");
+        })
+        .catch(function(error) {
+            Notify.error(error.message || error);
+            //console.error(error);
+        });
+};
 
 export const rejectCandidate = (shiftId, applicant) => {
     const shifts = store.getState('shifts');
@@ -93,7 +119,12 @@ export const rejectCandidate = (shiftId, applicant) => {
 
     if(shiftData){
         PUT('shifts', shiftId, JSON.stringify(shiftData)).then(() => {
+            
             Flux.dispatchEvent('shifts', newShifts);
+            
+            const applicants = store.remove("applicants", applicant.id);
+            Flux.dispatchEvent('applicants', applicants);
+            
             Notify.success("The candidate was successfully rejected");
         });
     }
@@ -134,6 +165,7 @@ class _Store extends Flux.DashStore{
         this.addEvent('venues');
         this.addEvent('employees');
         this.addEvent('favlists');
+        this.addEvent('badges');
         this.addEvent('applicants', (applicants) => {
             return (!applicants || (Object.keys(applicants).length === 0 && applicants.constructor === Object)) ? [] : applicants.map(app => {
                 app.shift = store.get('shifts', app.shift.id);
@@ -151,9 +183,9 @@ class _Store extends Flux.DashStore{
                 const tempDate = new Date(shift.date).toLocaleDateString("en-US");
                 if(typeof shift.position != 'object') shift.position = this.get('positions', shift.position);
                 if(typeof shift.venue != 'object') shift.venue = this.get('venues', shift.venue);
-                shift.start_time = moment(tempDate+" "+shift.start_time);
-                shift.finish_time = moment(tempDate+" "+shift.finish_time);
-                shift.date = moment(shift.date);
+                if(!moment.isMoment(shift.start_time)) shift.start_time = moment(tempDate+" "+shift.start_time);
+                if(!moment.isMoment(shift.finish_time)) shift.finish_time = moment(tempDate+" "+shift.finish_time);
+                if(!moment.isMoment(shift.date)) shift.date = moment(shift.date);
                 shift.price = {
                     currency: 'usd',
                     currencySymbol: '$',
@@ -183,6 +215,13 @@ class _Store extends Flux.DashStore{
             return item;
         });
         else throw new Error("No item found in "+type);
+    }
+    remove(type, id){
+        const entities = this.getState(type);
+        if(entities) return entities.filter(ent => {
+            return (ent.id != id);
+        });
+        else throw new Error("No items found in "+entities);
     }
 }
 export const store = new _Store();

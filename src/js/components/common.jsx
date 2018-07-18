@@ -28,7 +28,10 @@ export const StartRating = ({ rating , jobCount}) => {
             (decimalPart > 0) ? <i className="fas fa-star-half"></i> : ''
         }
         {
-            //<span className="jobs">in 34 jobs</span>
+            (jobCount) ? 
+                <span className="jobs">in {jobCount} jobs completed</span>
+            :
+                ''
         }
     </div>);
 };

@@ -5,9 +5,9 @@ import {logout, fetchAll} from './actions';
 import Home from './views/Home';
 import RightBar from './components/RightBar';
 import ButtonBar from './components/ButtonBar';
-import {AddShift, ManageShifts, FilterShifts, ShiftApplicants, ShiftDetails} from './components/shifts';
+import {AddShift, ManageShifts, FilterShifts, ShiftApplicants, ShiftDetails, Shift, getShiftInitialFilters} from './components/shifts';
 import {ManageApplicants, ApplicationDetails} from './components/applicants';
-import {ManageTalents} from './components/talents';
+import {ManageTalents, FilterTalents, getTalentInitialFilters, InviteTalent, TalentDetails} from './components/talents';
 import {ManageFavorites} from './components/favorites';
 import {store, PrivateProvider} from './actions';
 import {Notifier} from './utils/notifier';
@@ -37,8 +37,11 @@ class PrivateLayout extends Flux.DashView{
                         case 'create_shift':
                             this.showRightBar(AddShift, option);
                         break;
+                        case 'filter_talent':
+                            this.showRightBar(FilterTalents, option, {formData: getTalentInitialFilters(this.state.catalog)});
+                        break;
                         case 'filter_shift':
-                            this.showRightBar(FilterShifts, option);
+                            this.showRightBar(FilterShifts, option, {formData: getShiftInitialFilters(this.state.catalog)});
                         break;
                         case 'show_shift_applicants':
                             this.showRightBar(ShiftApplicants, option, {applicants: option.data.candidates, shift: option.data});
@@ -46,8 +49,14 @@ class PrivateLayout extends Flux.DashView{
                         case 'show_single_applicant':
                             this.showRightBar(ApplicationDetails, option, {applicant: option.data});
                         break;
-                        case 'show_single_shift':
-                            this.showRightBar(ShiftDetails, option, {shift: option.data});
+                        case 'update_shift':
+                            this.showRightBar(ShiftDetails, option, {formData: Shift(option.data).getFormData()});
+                        break;
+                        case 'invite_talent':
+                            this.showRightBar(InviteTalent, option);
+                        break;
+                        case 'show_single_talent':
+                            this.showRightBar(TalentDetails, option, {employee: option.data});
                         break;
                         default:
                             this.history.push(option.to);
@@ -60,12 +69,15 @@ class PrivateLayout extends Flux.DashView{
     }
     
     componentDidMount(){
-        fetchAll(['shifts','positions','venues', 'employees', 'favlists']);
+        fetchAll(['shifts','positions','venues', 'favlists', 'badges']);
         
         this.subscribe(store, 'venues', (venues) => this.setCatalog({venues}));
         this.subscribe(store, 'positions', (positions) => this.setCatalog({positions}));
+        this.subscribe(store, 'badges', (badges) => this.setCatalog({badges}));
+        this.subscribe(store, 'favlists', (favlists) => this.setCatalog({favlists}));
         this.subscribe(store, 'shifts', (shifts) => {
             
+            this.setCatalog({shifts});
             if(this.state.showRightBar && this.state.rightBarOption){
                 if(this.state.rightBarOption.slug == 'show_shift_applicants'){
                     const newRightBarOpt = Object.assign(this.state.rightBarOption, {
@@ -84,7 +96,8 @@ class PrivateLayout extends Flux.DashView{
             showRightBar: true,
             rightBarComponent: component,
             rightBarOption: option,
-            catalog
+            catalog,
+            formData: incomingCatalog.formData || null
         });
     }
     closeRightBar(){
@@ -139,6 +152,7 @@ class PrivateLayout extends Flux.DashView{
                             <RightBar 
                                 catalog={this.state.catalog}
                                 option={this.state.rightBarOption}
+                                formData={this.state.formData}
                                 component={this.state.rightBarComponent} 
                                 onClose={() => this.setState({showRightBar: false, rightBarComponent: null})}
                             />:''
