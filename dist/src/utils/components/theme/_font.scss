@@ -1,0 +1,11 @@
+body{
+    color: $green-600;
+    font-size: 14px;
+}
+h1{ font-size: 1.9rem;}
+h2{ font-size: 1.5rem;}
+input.form-control{color: $green-600;}
+input.form-control:placeholder{color: $green-500;}
+a{color: $green-600;
+    &:hover{color: $green-400; text-decoration: none;}
+}

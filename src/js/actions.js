@@ -1,7 +1,7 @@
 import React from 'react';
 import Flux from '@4geeksacademy/react-flux-dash';
-import {Session} from './utils/session';
-import {Notify} from './utils/notifier';
+import {Session} from '@breathecode/react-session';
+import {Notify} from '@breathecode/react-notifier';
 import moment from 'moment';
 import {POST, GET, PUT} from './utils/api_wrapper';
 
@@ -113,7 +113,7 @@ export const rejectCandidate = (shiftId, applicant) => {
     
         return Object.assign(shift, {
           employees,
-          candidates,
+          candidates
         });
     });
 
@@ -163,6 +163,7 @@ class _Store extends Flux.DashStore{
         super();
         this.addEvent('positions');
         this.addEvent('venues');
+        this.addEvent('jobcore-invites');
         this.addEvent('employees');
         this.addEvent('favlists');
         this.addEvent('badges');
@@ -225,10 +226,3 @@ class _Store extends Flux.DashStore{
     }
 }
 export const store = new _Store();
-
-
-const _Context = React.createContext({
-  bar: {}
-});
-export const PrivateProvider = _Context.Provider; 
-export const PrivateConsumer = _Context.Consumer; 

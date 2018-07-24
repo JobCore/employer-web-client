@@ -1,0 +1,11 @@
+@import '../theme/style.scss';
+$avatarDefaultSize: 35px;
+.avatar{
+    min-height: $avatarDefaultSize;
+    min-width: $avatarDefaultSize;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    border-radius: $avatarDefaultSize;
+    display: inline-block;
+}

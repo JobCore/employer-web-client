@@ -1,7 +1,7 @@
 /* global localStorage, fetch */
 import {logout} from '../actions';
-import {Session} from '../utils/session';
-import {Notify} from '../utils/notifier';
+import {Session} from '@breathecode/react-session';
+import {Notify} from '@breathecode/react-notifier';
 import {ValidationError} from '../utils/validation';
 
 const rootAPIendpoint = process.env.apiHost+'/api';

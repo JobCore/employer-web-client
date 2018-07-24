@@ -1,9 +1,9 @@
 import React from 'react';
 import Flux from '@4geeksacademy/react-flux-dash';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
-import {Login, Signup, Forgot} from './views/Auth';
+import {Login, Signup, Forgot} from './views/auth';
 import PrivateLayout from './PrivateLayout';
-import {PrivateRoute} from './utils/session';
+import {PrivateRoute} from '@breathecode/react-session';
 
 class Layout extends Flux.View{
     

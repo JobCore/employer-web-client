@@ -1,0 +1,70 @@
+@import '../theme/style.scss';
+.aplicantcard{
+    list-style: none;
+    position: relative;
+    padding: 5px 70px 5px 55px;
+    border-radius: 30px;
+    p{margin: 0;}
+    a,span{
+        &.shift-position{color: $fuchsia;}
+        &.shift-location{color: $green-600;}
+        &.shift-date{color: $black;}
+        &.shift-price{color: $red;}
+    }
+    .starrating{
+        font-size: 14px;
+    }
+    .avatar{
+        position: absolute;
+        left: 8px;
+        top: 8px;
+    }
+    .accept-reject{
+        position: absolute;
+        right: 8px;
+        top: 8px;
+    }
+    &:hover{
+        background: $green-000;
+        cursor: pointer;
+    }
+    .btn-group{
+        display: none;
+        position: absolute;
+        right: 0px;
+        top: 25px;
+        .icon{
+            width: 20px;
+            height: 20px;
+            color: white;
+        }
+        .btn{
+            position: relative;
+            border-radius: 30px !important;
+            padding: 5px 8px;
+            background: $green-400;
+            border: none;
+            color: $green-600;
+            margin: 0px 10px;
+        }
+        label{
+            position: absolute;
+            font-size: 75%;
+            top: -15px;
+            right: 0;
+            left: 0;
+        }
+    }
+    &.aplicantcard-hover:hover{
+        .btn-group{
+            display: inline-block;
+        }
+        -webkit-box-shadow: 1px 0px 25px 3px rgba(0,0,0,0.2);
+        -moz-box-shadow: 1px 0px 25px 3px rgba(0,0,0,0.2);
+        box-shadow: 1px 0px 25px 3px rgba(0,0,0,0.2);
+        background: white;
+        border-radius: 20px;
+        cursor: pointer;
+        margin-bottom: 10px;
+    }
+}

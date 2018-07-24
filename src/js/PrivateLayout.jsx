@@ -2,15 +2,16 @@ import React from 'react';
 import Flux from '@4geeksacademy/react-flux-dash';
 import { Route, Switch, Link } from 'react-router-dom';
 import {logout, fetchAll} from './actions';
-import Home from './views/Home';
-import RightBar from './components/RightBar';
-import ButtonBar from './components/ButtonBar';
-import {AddShift, ManageShifts, FilterShifts, ShiftApplicants, ShiftDetails, Shift, getShiftInitialFilters} from './components/shifts';
-import {ManageApplicants, ApplicationDetails} from './components/applicants';
-import {ManageTalents, FilterTalents, getTalentInitialFilters, InviteTalent, TalentDetails} from './components/talents';
-import {ManageFavorites} from './components/favorites';
-import {store, PrivateProvider} from './actions';
-import {Notifier} from './utils/notifier';
+import Dashboard from './views/Dashboard';
+import RightBar from './views/RightBar';
+import ButtonBar from './views/ButtonBar';
+import {ShiftDetails, Theme} from './components/index';
+import {AddShift, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters} from './views/shifts';
+import {ManageApplicants, ApplicationDetails} from './views/applicants';
+import {ManageTalents, FilterTalents, getTalentInitialFilters, InviteTalentToShift, InviteTalentToJobcore, TalentDetails} from './views/talents';
+import {ManageFavorites} from './views/favorites';
+import {store} from './actions';
+import {Notifier} from '@breathecode/react-notifier';
 import logoURL from '../img/logo.png';
 
 const logoStyles = {
@@ -53,7 +54,10 @@ class PrivateLayout extends Flux.DashView{
                             this.showRightBar(ShiftDetails, option, {formData: Shift(option.data).getFormData()});
                         break;
                         case 'invite_talent':
-                            this.showRightBar(InviteTalent, option);
+                            this.showRightBar(InviteTalentToShift, option);
+                        break;
+                        case 'invite_talent_to_jobcore':
+                            this.showRightBar(InviteTalentToJobcore, option);
                         break;
                         case 'show_single_talent':
                             this.showRightBar(TalentDetails, option, {employee: option.data});
@@ -116,7 +120,7 @@ class PrivateLayout extends Flux.DashView{
     render() {
         const Logo = () => (<span className="svg_img" style={logoStyles} />);
         return (
-            <PrivateProvider value={{bar: this.state.bar}}>
+            <Theme.Provider value={{bar: this.state.bar}}>
                 <div className="row sidebar">
                     <div className="left_pane">
                         <ul>
@@ -142,8 +146,8 @@ class PrivateLayout extends Flux.DashView{
                             <Route exact path='/applicants' component={ManageApplicants} />
                             <Route exact path='/talents' component={ManageTalents} />
                             <Route exact path='/favorites' component={ManageFavorites} />
-                            <Route exact path='/home' component={Home} />
-                            <Route exact path='/' component={Home} />
+                            <Route exact path='/home' component={Dashboard} />
+                            <Route exact path='/' component={Dashboard} />
                         </Switch>    
                     </div>
                     <ButtonBar onClick={(option) => this.state.bar.show(option)} />
@@ -158,7 +162,7 @@ class PrivateLayout extends Flux.DashView{
                             />:''
                     }
                 </div>
-            </PrivateProvider>
+            </Theme.Provider>
         );
     }
     
