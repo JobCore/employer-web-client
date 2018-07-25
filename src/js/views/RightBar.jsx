@@ -41,6 +41,11 @@ class RightBar extends React.Component {
                         this.props.onClose();
                     }
                 break;
+                case 'invite_talent':{
+                        sendInvite('jobcore-invites', this.state.formData);
+                        this.props.onClose();
+                    }
+                break;
                 case 'filter_talent':{
                         const stringified = queryString.stringify(Talent(this.state.formData).filters());
                         this.props.history.push('/talents?'+stringified);
@@ -60,6 +65,17 @@ class RightBar extends React.Component {
     
     componentDidMount(){
         if(this.props.formData) this.setState({ formData: this.props.formData });
+    }
+    
+    static getDerivedStateFromProps(nextProps, prevState) {
+        if (nextProps.formData && prevState.formData !== nextProps.formData) {
+            return {
+                formData: nextProps.formData,
+            };
+        }
+        
+        // Return null to indicate no change to state.
+        return null;
     }
     
     onChange(incoming){

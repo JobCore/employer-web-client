@@ -54,6 +54,17 @@ export const fetchAll = (entities) => {
     );
 };
 
+export const invite = (jobs) => {
+     POST('job-invite', jobs)
+    .then(function(data){
+        console.log("The invite was sent");
+    })
+    .catch(function(error) {
+        Notify.error(error.message || error);
+        //console.error(error);
+    });  
+};
+
 export const search = (entity, queryString) => {
     GET(entity, null, queryString)
         .then(function(list){
@@ -67,7 +78,7 @@ export const search = (entity, queryString) => {
 };
 
 export const create = (entity, data) => POST(entity, data)
-    .then(function(data){
+    .then(function(incomingShift){
         let entities = store.getState(entity);
         if(!entities || !Array.isArray(entities)) entities = [];
         Flux.dispatchEvent(entity, entities.concat([data]));
@@ -80,10 +91,9 @@ export const create = (entity, data) => POST(entity, data)
     
 export const update = (entity, data) => {
     PUT(entity, data.id, data)
-        .then(function(data){
-            let entities = store.getState(entity);
-            if(!entities || !Array.isArray(entities)) entities = [];
-            Flux.dispatchEvent(entity, entities.concat([data]));
+        .then(function(incomingShift){
+            let entities = store.replace(entity, data.id, data);
+            Flux.dispatchEvent(entity, entities);
             Notify.success("The "+entity.substring(0, entity.length - 1)+" was updated successfully");
         })
         .catch(function(error) {
@@ -209,8 +219,14 @@ class _Store extends Flux.DashStore{
         if(entities) return entities.find(ent => ent.id == id);
         else return null;
     }
-    replace(type, id, item){
+    add(type, item){
         const entities = this.getState(type);
+        if(item) return entities.concat([item]);
+        //else return entities;
+        else throw new Error('Trying to add a null item into '+type);
+    }
+    replace(type, id, item){
+        const entities = this.getState(type).concat([]);
         if(entities) return entities.map(ent => {
             if(ent.id != id) return ent;
             return item;
