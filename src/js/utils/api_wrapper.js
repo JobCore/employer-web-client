@@ -1,7 +1,7 @@
 /* global localStorage, fetch */
 import {logout} from '../actions';
 import {Session} from '@breathecode/react-session';
-import {Notify} from '@breathecode/react-notifier';
+import {Notify} from './notifier';
 import {ValidationError} from '../utils/validation';
 
 const rootAPIendpoint = process.env.apiHost+'/api';
@@ -80,13 +80,19 @@ export const POST = (model, postData, extraHeaders = {}) => {
   
   const response = fetch(`${rootAPIendpoint}/${model}/`, REQ)
     .then((resp) => {
-      if(resp.status == 400) throw new ValidationError('Invalid parameters for create '+model.substring(0, model.length - 1));
-      if(resp.status == 401) logout();
-      const data = resp.json();
-      return data;
+      if(resp.status >= 200 && resp.status < 300){
+        const data = resp.json();
+        return data;
+      }
+      else if(resp.status == 400) throw new ValidationError('Invalid parameters for create '+model.substring(0, model.length - 1));
+      else if(resp.status == 401) logout();
+      else{
+        throw new Error("There has been an error");
+      }
+      
     })
     .catch(err => {
-      throw new Error(`Could not POST model to API due to -> ${err}`);
+      throw new Error(`Could not POST model to API due to -> ${err.message || err}`);
     });
   // if (data.detail) {
   //   logout();
@@ -96,31 +102,33 @@ export const POST = (model, postData, extraHeaders = {}) => {
 };
 
 export const PUT = (model, id, putData, extraHeaders = {}) => {
-  const response = fetch(`${rootAPIendpoint}/${model}/${id}`, {
+  
+  if(['register', 'login'].indexOf(model) == -1){
+    HEADERS['Authorization'] = `JWT ${getToken()}`;
+  } 
+  const REQ = {
     method: 'PUT',
-    headers: new Headers({
-      ...HEADERS,
-      ...extraHeaders,
-      Authorization: `JWT ${getToken()}`
-    }),
+    headers: Object.assign(HEADERS,extraHeaders),
     body: JSON.stringify(putData)
-  })
-  .then((resp) => {
-      if(resp.status == 400) throw new Error('Bad Request');
-      if(resp.status == 401) logout();
-      const data = resp.json();
+  };
+  
+  const response = fetch(`${rootAPIendpoint}/${model}/${id}`, REQ)
+    .then((resp) => {
+        if(resp.status == 400) throw new Error('Bad Request');
+        if(resp.status == 401) logout();
+        const data = resp.json();
+        return data;
+    })
+    .then((data) => {
+      if (data.detail) {
+        logout();
+        return 0;
+      }
       return data;
-  })
-  .then((data) => {
-    if (data.detail) {
-      logout();
-      return 0;
-    }
-    return data;
-  })
-  .catch(err => {
-    throw new Error(`Could not UPDATE model on API due to -> ${err}`);
-  });
+    })
+    .catch(err => {
+      throw new Error(`Could not UPDATE model on API due to -> ${err}`);
+    });
   
   return response;
 };

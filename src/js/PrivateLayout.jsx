@@ -5,13 +5,13 @@ import {logout, fetchAll} from './actions';
 import Dashboard from './views/Dashboard';
 import RightBar from './views/RightBar';
 import ButtonBar from './views/ButtonBar';
-import {ShiftDetails, Theme} from './components/index';
-import {AddShift, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters} from './views/shifts';
+import {Theme} from './components/index';
+import {ShiftDetails, AddShift, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters} from './views/shifts';
 import {ManageApplicants, ApplicationDetails} from './views/applicants';
-import {ManageTalents, FilterTalents, getTalentInitialFilters, InviteTalentToShift, InviteTalentToJobcore, TalentDetails} from './views/talents';
-import {ManageFavorites} from './views/favorites';
+import {Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilters, InviteTalentToShift, InviteTalentToJobcore, TalentDetails} from './views/talents';
+import {ManageFavorites, AddTalentToFavlist} from './views/favorites';
 import {store} from './actions';
-import {Notifier} from '@breathecode/react-notifier';
+import {Notifier} from './utils/notifier';
 import logoURL from '../img/logo.png';
 
 const logoStyles = {
@@ -54,13 +54,16 @@ class PrivateLayout extends Flux.DashView{
                             this.showRightBar(ShiftDetails, option, {formData: Shift(option.data).getFormData()});
                         break;
                         case 'invite_talent':
-                            this.showRightBar(InviteTalentToShift, option);
+                            this.showRightBar(InviteTalentToShift, option, {formData: ShiftInvite(option.data).getFormData()});
                         break;
                         case 'invite_talent_to_jobcore':
                             this.showRightBar(InviteTalentToJobcore, option);
                         break;
                         case 'show_single_talent':
                             this.showRightBar(TalentDetails, option, {employee: option.data});
+                        break;
+                        case 'add_to_favlist':
+                            this.showRightBar(AddTalentToFavlist, option, {formData: Talent(option.data).getFormData()});
                         break;
                         default:
                             this.history.push(option.to);

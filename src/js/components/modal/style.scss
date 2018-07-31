@@ -1,0 +1,15 @@
+@import '../theme/style.scss';
+
+.bc-modal{
+    width: 100vw;
+    background: #ffffff;
+    position: fixed;
+    z-index: 10;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    display: inline-block;
+    .modal-content{
+        border: 0;
+    }
+}

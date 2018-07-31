@@ -6,6 +6,9 @@ import {EmployeeExtendedCard, ShiftOption, Avatar, Stars, Theme} from '../compon
 import Select from 'react-select';
 import queryString from 'query-string';
 
+import {Session} from '@breathecode/react-session';
+const user = Session.store.getSession().user;
+
 //gets the querystring and creats a formData object to be used when opening the rightbar
 export const getTalentInitialFilters = (catalog) => {
     let query = queryString.parse(window.location.search);
@@ -32,6 +35,7 @@ export const Talent = (data) => {
             
             const newShift = {
                 //foo: 'bar'
+                favoritelist_set: data.favoriteLists.map(fav => fav.value)
             };
             
             return Object.assign(this, newShift);
@@ -49,7 +53,8 @@ export const Talent = (data) => {
         },
         getFormData: () => {
             const _formShift = {
-                //foo: _entity.bar
+                id: _entity.id,
+                favoriteLists: _entity.favoriteLists.map(fav => ({ label: fav.title, value: fav.id }))
             };
             return _formShift;
         },
@@ -57,6 +62,47 @@ export const Talent = (data) => {
             const _filters = {
                 positions: _entity.positions.map( item => item.value ),
                 badges: _entity.badges.map( item => item.value )
+            };
+            for(let key in _entity) if(typeof _entity[key] == 'function') delete _entity[key];
+            return Object.assign(_entity, _filters);
+        }
+    };
+};
+
+export const ShiftInvite = (data) => {
+    
+    const _defaults = {
+        //foo: 'bar',
+        serialize: function(){
+            
+            const newShift = {
+                //foo: 'bar'
+                sender: user.id,
+                shifts: data.shifts.map(s => s.id || s.value.id)
+            };
+            
+            return Object.assign(this, newShift);
+        }
+    };
+    
+    let _entity = Object.assign(_defaults, data);
+    return {
+        validate: () => {
+            
+            return _entity;
+        },
+        defaults: () => {
+            return _defaults;
+        },
+        getFormData: () => {
+            const _formShift = {
+                employee: _entity.id,
+            };
+            return _formShift;
+        },
+        filters: () => {
+            const _filters = {
+                //positions: _entity.positions.map( item => item.value ),
             };
             for(let key in _entity) if(typeof _entity[key] == 'function') delete _entity[key];
             return Object.assign(_entity, _filters);
@@ -177,7 +223,7 @@ export const TalentDetails = (props) => {
                         onClick={() => bar.show({ slug: "invite_talent", data: employee, title: "Invite Talent" })}
                     >Invite</button>
                     <button type="button" className="btn btn-success" 
-                        onClick={() => bar.show({ slug: "add_to_favorites", data: employee, title: "Add to favorites" })}
+                        onClick={() => bar.show({ slug: "add_to_favlist", data: employee, title: "Add to favorites" })}
                     >Add to favorites</button>
                     <button type="button" className="btn btn-secondary" onClick={() => bar.close()}>Close</button>
                 </div>
@@ -193,7 +239,7 @@ TalentDetails.propTypes = {
  */
 export const InviteTalentToShift = (props) => {
     
-    const shifts = props.catalog.shifts.map(item => ({ value: item, label: '' }));
+    const shifts = props.catalog.shifts.filter(s => s.status == 'OPEN').map(item => ({ value: item, label: '' }));
     return (<form>
         <div className="row">
             <div className="col-12">

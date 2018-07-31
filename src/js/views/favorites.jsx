@@ -1,9 +1,10 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import {store} from '../actions.js';
-import {Avatar, Stars, Theme} from '../components/index';
+import {store, create} from '../actions.js';
+import {Avatar, Stars, Theme, Modal} from '../components/index';
 import queryString from 'query-string';
+import Select from 'react-select';
 import moment from 'moment';
 
 export class ManageFavorites extends Flux.DashView {
@@ -127,4 +128,59 @@ export const EmployeeExtendedCard = (props) => {
 };
 EmployeeExtendedCard.propTypes = {
   employee: PropTypes.object.isRequired
+};
+
+/**
+ * Add To Favorite List
+ */
+export const AddTalentToFavlist = (props) => {
+    
+    const favlists = props.catalog.favlists.map(item => ({ value: item.id, label: item.title }));
+    return (<form>
+        <div className="row">
+            <div className="col-12">
+                <label>Pick your favorite lists:</label>
+                <Select multi className="select-favlists"
+                    value={props.formData.favoriteLists}
+                    onChange={(selectedOption) => props.onChange({favoriteLists: selectedOption})} 
+                    options={favlists.concat([{ value: 'new_favlist', label: "Add to new list" }])}
+                >
+                </Select>
+            </div>
+        </div>
+        <p>Click on invite add the talent to your favorite lists</p>
+        <div className="btn-bar">
+            <button type="button" className="btn btn-primary" onClick={() => props.onSave()}>Save</button>
+            <button type="button" className="btn btn-secondary" onClick={() => props.onCancel()}>Cancel</button>
+        </div>
+    </form>);
+};
+AddTalentToFavlist.propTypes = {
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  formData: PropTypes.object,
+  catalog: PropTypes.object //contains the data needed for the form to load
+};
+
+export class AddFavlist extends React.Component{
+    constructor(){
+        super();
+        this.state = { listName: '' };
+    }
+    render(){
+        return (<Modal>
+            <h1>Please speficy the name of your new favorite list</h1>
+            <input type="text" value={this.state.listName} onChange={(e)=> this.setState({listName: e.target.value})} />
+            <p>
+                <button className="btn btn-light" onClick={() => this.props.onConfirm(false)}>Cancel</button>
+                <button className="btn btn-success ml-2" onClick={() => create('favlists', { title: this.state.listName }).then(() => this.props.onConfirm(true))}>
+                    Confirm
+                </button>
+            </p>
+        </Modal>);
+    }
+}
+AddFavlist.propTypes = {
+  onConfirm: PropTypes.func
 };

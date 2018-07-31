@@ -6,6 +6,8 @@ import './style.scss';
  * ShiftCard
  */
 const ShiftCard = (props) => {
+    const totalCandidates = (Array.isArray(props.shift.candidates)) ? props.shift.candidates.length : 0;
+    const openVacancys = props.shift.maximum_allowed_employees;
     const startDate = props.shift.date.format('ll');
     const startTime = props.shift.start_time.format('LT');
     const endTime = props.shift.finish_time.format('LT');
@@ -13,6 +15,13 @@ const ShiftCard = (props) => {
         {({bar}) => 
             (<li className={`shiftcard ${(props.hover) ? 'shiftcard-hover':''}`}>
                 <div className="shift-details">
+                    {
+                        (props.shift.status == 'DRAFT') ? 
+                            <span href="#" className="badge badge-secondary">D</span> :
+                                (openVacancys == totalCandidates) ? 
+                                    <span href="#" className="badge">{totalCandidates}/{openVacancys}</span> :
+                                    <span href="#" className="badge badge-danger">{totalCandidates}/{openVacancys}</span>
+                    }
                     <a href="#" className="shift-position">{props.shift.position.title}</a> @ 
                     <a href="#" className="shift-location"> {props.shift.venue.title}</a> 
                     <span className="shift-date"> {startDate} from {startTime} to {endTime} </span>

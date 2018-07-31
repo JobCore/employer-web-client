@@ -8,13 +8,15 @@ import {Avatar, Stars, Theme} from '../index';
  */
 const EmployeeExtendedCard = (props) => {
     const badgesHTML = props.employee.badges.map((b, i) => (<span key={i} className="badge">{b.title}</span>));
+    const favoriteCount = props.employee.favoriteLists.length;
     return (<Theme.Consumer>
         {({bar}) => 
             (<li className="aplicantcard aplicantcard-hover">
                 <Avatar url={props.employee.profile.picture} />
                 <a href="#"><b>{props.employee.profile.user.first_name + " " + props.employee.profile.user.last_name}</b></a>
                 <Stars rating={Number(props.employee.rating)} jobCount={props.employee.positions.length}  />
-                <p href="#">{badgesHTML}</p>
+                
+                <p href="#">{ (favoriteCount > 0) ? <span className="badge badge-warning"><i className="fas fa-star"></i> {favoriteCount} Lists</span> : '' } {badgesHTML}</p>
                 
                 <div className="btn-group" role="group" aria-label="Basic example">
                     <button type="button" className="btn btn-secondary"

@@ -1,12 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {create, update} from '../actions';
+import {create, update, invite, updateTalentList} from '../actions';
 import {withRouter} from 'react-router-dom';
 import queryString from 'query-string';
 import {Shift} from '../views/shifts';
 import {Invite} from '../views/invites';
-import {Talent} from '../views/talents';
+import {Talent, ShiftInvite} from '../views/talents';
+import {AddFavlist} from '../views/favorites';
 import {ValidationError} from '../utils/validation';
+import {Notify} from '../utils/notifier';
 
 class RightBar extends React.Component {
     
@@ -19,7 +21,7 @@ class RightBar extends React.Component {
         };
     }
 
-    onSave(){
+    onSave(data={}){
         this.setState({ error: null });
         try{
             switch (this.props.option.slug) {
@@ -28,7 +30,7 @@ class RightBar extends React.Component {
                     this.props.onClose();
                 break;
                 case 'update_shift':
-                    update('shifts', Shift(this.state.formData).validate().serialize());
+                    update('shifts', Shift(Object.assign(this.state.formData,data)).validate().serialize());
                     this.props.onClose();
                 break;
                 case 'filter_shift':{
@@ -42,7 +44,14 @@ class RightBar extends React.Component {
                     }
                 break;
                 case 'invite_talent':{
-                        sendInvite('jobcore-invites', this.state.formData);
+                        create('shiftinvites', ShiftInvite(this.state.formData).validate().serialize());
+                        this.props.onClose();
+                    }
+                break;
+                case 'add_to_favlist':{
+                        this.state.formData.favoriteLists.forEach((list)=>{
+                            update("employees", Talent(this.state.formData).validate().serialize());
+                        });
                         this.props.onClose();
                     }
                 break;
@@ -79,8 +88,22 @@ class RightBar extends React.Component {
     }
     
     onChange(incoming){
-        const data = Object.assign(this.state.formData, incoming);
-        this.setState({ formData: data });
+        if(this.noNewFavlist(incoming)){
+            const data = Object.assign(this.state.formData, incoming);
+            this.setState({ formData: data });
+        }
+        else{
+            let noti = Notify.add('info', AddFavlist, (proceed)=>{
+                if(proceed) noti.remove();
+            }, 9999999999999);
+        }
+    }
+    
+    noNewFavlist(incomingFormData){
+        if(typeof incomingFormData.favoriteLists == 'undefined') return true;
+        if(!incomingFormData.favoriteLists.find(fav => fav.value == "new_favlist")) return true;
+        
+        
     }
     
     render(){

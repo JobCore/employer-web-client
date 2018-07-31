@@ -1,7 +1,7 @@
 import React from 'react';
 import Flux from '@4geeksacademy/react-flux-dash';
 import {Session} from '@breathecode/react-session';
-import {Notify} from '@breathecode/react-notifier';
+import {Notify} from './utils/notifier';
 import moment from 'moment';
 import {POST, GET, PUT} from './utils/api_wrapper';
 
@@ -54,17 +54,6 @@ export const fetchAll = (entities) => {
     );
 };
 
-export const invite = (jobs) => {
-     POST('job-invite', jobs)
-    .then(function(data){
-        console.log("The invite was sent");
-    })
-    .catch(function(error) {
-        Notify.error(error.message || error);
-        //console.error(error);
-    });  
-};
-
 export const search = (entity, queryString) => {
     GET(entity, null, queryString)
         .then(function(list){
@@ -92,7 +81,7 @@ export const create = (entity, data) => POST(entity, data)
 export const update = (entity, data) => {
     PUT(entity, data.id, data)
         .then(function(incomingShift){
-            let entities = store.replace(entity, data.id, data);
+            let entities = store.replaceMerged(entity, data.id, data);
             Flux.dispatchEvent(entity, entities);
             Notify.success("The "+entity.substring(0, entity.length - 1)+" was updated successfully");
         })
@@ -168,13 +157,49 @@ export const acceptCandidate = (shiftId, applicant) => {
     else Notify.error("Shift not found");
 };
 
+export const updateTalentList = (action, employeeId, listId) => {
+    const favoriteList = store.get("favlists", listId);
+    if(favoriteList){
+        
+        let employeeIdsArr = favoriteList.employees.map(employee => employee.id);
+    
+        if (action === 'add') {
+          employeeIdsArr.push(employeeId);
+        } else {
+          employeeIdsArr = employeeIdsArr.filter((id) => id != employeeId);
+        }
+        PUT('favlists', listId, { employees: employeeIdsArr }).then((updatedFavlist) => {
+            Flux.dispatchEvent('favlists', store.replace("favlists", updatedFavlist.id, updatedFavlist));
+            Notify.success("The talent was successfully added to the favorite list");
+        });
+    }
+    else{
+        Notify.error("Favorite list not found");
+    }
+};
+
 class _Store extends Flux.DashStore{
     constructor(){
         super();
         this.addEvent('positions');
         this.addEvent('venues');
+        this.addEvent('shiftinvites');
         this.addEvent('jobcore-invites');
-        this.addEvent('employees');
+        this.addEvent('employees', (employees) => {
+            
+            if(!Array.isArray(employees)) return [];
+            
+            const session = Session.store.getSession();
+            return employees.map((em) => {
+                if(typeof session.user.profile.employer != 'undefined'){
+                    if(typeof em.favoriteLists =='undefined') em.favoriteLists = em.favoritelist_set.filter(fav => fav.employer == session.user.profile.employer);
+                    else{
+                        em.favoriteLists = em.favoritelist_set.map(fav => store.get('favlists', fav.id || fav));
+                    }
+                }
+                return em;
+            });
+        });
         this.addEvent('favlists');
         this.addEvent('badges');
         this.addEvent('applicants', (applicants) => {
@@ -230,6 +255,14 @@ class _Store extends Flux.DashStore{
         if(entities) return entities.map(ent => {
             if(ent.id != id) return ent;
             return item;
+        });
+        else throw new Error("No item found in "+type);
+    }
+    replaceMerged(type, id, item){
+        const entities = this.getState(type).concat([]);
+        if(entities) return entities.map(ent => {
+            if(ent.id != id) return ent;
+            return Object.assign(ent, item);
         });
         else throw new Error("No item found in "+type);
     }
