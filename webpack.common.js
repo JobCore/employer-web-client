@@ -1,4 +1,3 @@
-const Dotenv = require('dotenv-webpack');
 const webpack = require('webpack');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -8,7 +7,7 @@ module.exports = {
     './src/js/index.js',  
   ],
   output: {
-    filename: 'bundle.js',
+    filename: '[name].bundle.js',
     path: path.resolve(__dirname, 'public'),
     publicPath: path.resolve(__dirname, '/')
   },
@@ -61,21 +60,20 @@ module.exports = {
   resolve: {
     extensions: ['*', '.js', '.jsx'],
   },
-  devtool: "source-map",
-  devServer: {
-    contentBase:  './dist',
-    hot: true,
-    disableHostCheck: true,
-    historyApiFallback: true
+  optimization: {
+      splitChunks: {
+          cacheGroups: {
+              vendor: {
+                  test: /node_modules/, // you may add "vendor.js" here if you want to
+                  name: "vendor",
+                  chunks: "initial",
+                  enforce: true
+              }
+          }
+      }
   },
   plugins: [
-    new Dotenv({ path: './.env.dev'}),
     new webpack.HotModuleReplacementPlugin(),
-    new webpack.ProvidePlugin({
-      // In case you imported plugins individually, you must also require them here:
-      Util: "exports-loader?Util!bootstrap/js/dist/util",
-      Dropdown: "exports-loader?Dropdown!bootstrap/js/dist/dropdown",
-    }),
     new HtmlWebpackPlugin({
         favicon: '4geeks.ico',
         template: 'template.html'

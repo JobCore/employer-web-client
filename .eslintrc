@@ -11,6 +11,7 @@
   },
   "rules": {
     "strict":0,
+    "no-debugger":0,
     "no-unused-vars": 0,
     "no-process-env": 0,
     "no-console": 1,

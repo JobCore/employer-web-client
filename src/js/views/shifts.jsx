@@ -4,6 +4,7 @@ import {store} from '../actions.js';
 import {ApplicantCard} from './applicants';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import Select from 'react-select';
 import {Notify} from '../utils/notifier';
 import queryString from 'query-string';
 import {ShiftCard} from '../components/index';
@@ -28,6 +29,7 @@ export const Shift = (data) => {
         date: NOW,
         start_time: '12:00 am',
         finish_time: '12:00 am',
+        allowed_from_list: [],
         minimum_allowed_rating: '1',
         venue: '',
         status: 'DRAFT',
@@ -36,7 +38,8 @@ export const Shift = (data) => {
             const newShift = {
                 date: (moment.isMoment(this.date)) ? this.date.format(DATE_FORMAT) : this.date,
                 start_time: (moment.isMoment(this.start_time)) ? this.start_time.format(TIME_FORMAT) : this.start_time,
-                finish_time: (moment.isMoment(this.finish_time)) ? this.finish_time.format(TIME_FORMAT) : this.finish_time
+                finish_time: (moment.isMoment(this.finish_time)) ? this.finish_time.format(TIME_FORMAT) : this.finish_time,
+                allowed_from_list: data.allowedFavlists.map(f => f.value)
             };
             
             return Object.assign(this, newShift);
@@ -72,6 +75,7 @@ export const Shift = (data) => {
                 minimum_hourly_rate: _shift.minimum_hourly_rate.toString(),
                 date: _shift.date,
                 status: _shift.status,
+                allowedFavlists: _shift.allowedFavlists,
                 start_time: (moment.isMoment(_shift.start_time) ) ? _shift.start_time : moment(_shift.date.format("MM/DD/YYYY") + ' ' + _shift.start_time),
                 finish_time: (moment.isMoment(_shift.finish_time) ) ? _shift.finish_time : moment(_shift.date.format("MM/DD/YYYY") + ' ' + _shift.finish_time),
                 minimum_allowed_rating: _shift.minimum_allowed_rating.toString(),
@@ -185,7 +189,7 @@ export class ManageShifts extends Flux.DashView {
             shiftsHTML.push(<div key={date} className="date-group">
                 <p className="date-group-label">{date}</p>
                 <div>
-                    {groupedShifts[date].map((s,i) => (<ShiftCard key={i} shift={s} hover={true} />))}
+                    {groupedShifts[date].map((s,i) => (<ShiftCard key={i} shift={s} showStatus={true} hover={true} />))}
                 </div>
             </div>);
             
@@ -482,19 +486,37 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
             </select>
         </div>
     </div>
-    <div className="row">
+    <div className="row mt-3">
         <div className="col-12">
-            <label>Minimum start rating</label>
+            <h4>Who can apply to this shift?</h4>
+        </div>
+    </div>
+    <div className="row">
+        <div className="col-6">
+            <label>Minimum rating</label>
+        </div>
+        <div className="col-6">
             <select className="form-control" 
                 value={formData.minimum_allowed_rating}
                 onChange={(e)=>onChange({minimum_allowed_rating: e.target.value})} 
             >
                 <option value={1}>1 star</option>
-                <option value={2}>2 star</option>
-                <option value={3}>3 star</option>
-                <option value={4}>4 star</option>
-                <option value={5}>5 star</option>
+                <option value={2}>2 stars</option>
+                <option value={3}>3 stars</option>
+                <option value={4}>4 stars</option>
+                <option value={5}>5 stars</option>
             </select>
+        </div>
+    </div>
+    <div className="row">
+        <div className="col-12">
+            <label>From these favorite lists</label>
+            <Select multi
+                value={formData.allowedFavlists}
+                onChange={(opt)=> onChange({allowedFavlists: opt})} 
+                options={catalog.favlists.map(f => ({value: f.id, label: f.title}))}
+            >
+            </Select>
         </div>
     </div>
     <div className="btn-bar">
@@ -534,4 +556,14 @@ ShiftDetails.propTypes = {
   formData: PropTypes.object,
   catalog: PropTypes.object //contains the data needed for the form to load
 };
-export default ShiftDetails;
+
+
+/**
+ * ShiftDetails
+ */
+export const RateShift = () => (<div className="p-5 listcontents">
+    <h1 className="float-left">Rate a Talent</h1>
+    
+</div>);
+RateShift.propTypes = {
+};

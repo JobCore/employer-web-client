@@ -25,7 +25,7 @@ export default class Home extends Flux.DashView {
                     <div className="col-8">
                         <h1 className="text-right">Dashboard</h1>
                         <DashboardBox shifts={this.state.shifts.filter(s => s.status == 'DRAFT')} title="Draft Shifts" status="DRAFT" />
-                        <DashboardBox shifts={this.state.shifts.filter(s => s.status == 'PUBLISHED')} title="Open Shifts" status="PUBLISHED" />
+                        <DashboardBox shifts={this.state.shifts.filter(s => s.status == 'OPEN')} title="Open Shifts" status="PUBLISHED" />
                         <DashboardBox shifts={this.state.shifts.filter(s => s.status == 'FILLED')} title="Upcoming Shifts" status="FILLED" />
                         <DashboardBox shifts={this.state.shifts.filter(s => s.status == 'UNPAID')} title="Shifts with pending payments" status="UNPAID" />
                     </div>

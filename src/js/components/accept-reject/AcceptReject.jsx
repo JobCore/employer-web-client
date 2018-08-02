@@ -14,11 +14,17 @@ import './style.scss';
  */
 const AcceptReject = (props) => {
     return (<div className={"accept-reject "+props.className}>
-        <button className="btn btn-danger" onClick={() => props.onReject()}>
+        <button className="btn btn-danger" onClick={(e) => {
+            e.stopPropagation();
+            props.onReject();
+        }}>
             <i className="fas fa-times-circle"></i>
             {(props.showLabels) ? <label>Reject</label> : ''}
         </button>
-        <button className="btn btn-success"onClick={() => props.onAccept()}>
+        <button className="btn btn-success"onClick={(e) => {
+            e.stopPropagation();
+            props.onAccept();
+        }}>
             <i className="fas fa-check-circle"></i>
             {(props.showLabels) ? <label>Accept</label> : ''}
         </button>

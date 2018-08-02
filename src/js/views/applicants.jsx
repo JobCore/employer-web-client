@@ -7,6 +7,10 @@ import queryString from 'query-string';
 import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
 import moment from 'moment';
 
+//gets the querystring and creats a formData object to be used when opening the rightbar
+export const getApplicantInitialFilters = () => {
+    return {};
+};
 
 export class ManageApplicants extends Flux.DashView {
     
@@ -202,4 +206,64 @@ export const ApplicationDetails = (props) => {
 };
 ApplicationDetails.propTypes = {
   catalog: PropTypes.object.isRequired
+};
+
+
+/**
+ * AddShift
+ */
+export const FilterApplicants = ({onSave, onCancel, onChange, catalog}) => (<form>
+    <div className="row">
+        <div className="col">
+            <label>Looking for</label>
+            <select className="form-control" onChange={(e)=>onChange({position: e.target.value})} >
+                <option>Select a position</option>
+                {
+                    catalog.positions.map((pos,i)=>(<option key={i} value={pos.id}>{pos.title}</option>))
+                }
+            </select>
+        </div>
+    </div>
+    <div className="row">
+        <div className="col">
+            <label>Price / hour</label>
+            <input type="number" className="form-control" onChange={(e)=>onChange({minimum_hourly_rate: e.target.value})} />
+        </div>
+        <div className="col">
+            <label>Date</label>
+            <input type="date" className="form-control" onChange={(e)=>onChange({date: e.target.value})} />
+        </div>
+    </div>
+    <div className="row">
+        <div className="col">
+            <label>Venue</label>
+            <select className="form-control" onChange={(e)=>onChange({venue: e.target.value})} >
+                <option value={null}>Select a venue</option>
+                {
+                    catalog.venues.map((ven,i)=>(<option key={i} value={ven.id}>{ven.title}</option>))
+                }
+            </select>
+        </div>
+    </div>
+    <div className="row">
+        <div className="col">
+            <label>Status</label>
+            <select className="form-control" onChange={(e)=>onChange({status: e.target.value})} >
+                <option value={null}>Select a status</option>
+                <option value={'DRAFT'}>DRAFT</option>
+                <option value={'OPEN'}>OPEN</option>
+                <option value={'UPCOMING'}>UPCOMING</option>
+            </select>
+        </div>
+    </div>
+    <div className="btn-bar">
+        <button type="button" className="btn btn-primary" onClick={() => onSave()}>Apply Filters</button>
+        <button type="button" className="btn btn-secondary" onClick={() => onCancel()}>Cancel</button>
+    </div>
+</form>);
+FilterApplicants.propTypes = {
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  catalog: PropTypes.object //contains the data needed for the form to load
 };

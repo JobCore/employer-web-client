@@ -16,11 +16,12 @@ const ShiftCard = (props) => {
             (<li className={`shiftcard ${(props.hover) ? 'shiftcard-hover':''}`}>
                 <div className="shift-details">
                     {
-                        (props.shift.status == 'DRAFT') ? 
-                            <span href="#" className="badge badge-secondary">D</span> :
-                                (openVacancys == totalCandidates) ? 
-                                    <span href="#" className="badge">{totalCandidates}/{openVacancys}</span> :
-                                    <span href="#" className="badge badge-danger">{totalCandidates}/{openVacancys}</span>
+                        (!props.showStatus) ? '':
+                            (props.shift.status == 'DRAFT') ? 
+                                <span href="#" className="badge badge-secondary">D</span> :
+                                    (openVacancys == totalCandidates) ? 
+                                        <span href="#" className="badge">{totalCandidates}/{openVacancys}</span> :
+                                        <span href="#" className="badge badge-danger">{totalCandidates}/{openVacancys}</span>
                     }
                     <a href="#" className="shift-position">{props.shift.position.title}</a> @ 
                     <a href="#" className="shift-location"> {props.shift.venue.title}</a> 
@@ -45,9 +46,11 @@ const ShiftCard = (props) => {
 };
 ShiftCard.propTypes = {
     shift: PropTypes.object.isRequired,
-    hover: PropTypes.bool.isRequired
+    hover: PropTypes.bool.isRequired,
+    showStatus: PropTypes.bool
 };
 ShiftCard.defaultProps = {
-  hover: false
+  hover: false,
+  showStatus: false
 };
 export default ShiftCard;

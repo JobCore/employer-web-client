@@ -79,7 +79,7 @@ class RightBar extends React.Component {
     static getDerivedStateFromProps(nextProps, prevState) {
         if (nextProps.formData && prevState.formData !== nextProps.formData) {
             return {
-                formData: nextProps.formData,
+                formData: nextProps.formData
             };
         }
         

@@ -92,37 +92,19 @@ export const update = (entity, data) => {
 };
 
 export const rejectCandidate = (shiftId, applicant) => {
-    const shifts = store.getState('shifts');
-    let shiftData = null;
-    const newShifts = shifts.map(shift => {
-       
-       if(shift.id != shiftId) return shift;
-       
-        let candidates = [...shift.candidates];
-        let employees = [...shift.employees];
-    
-        // Create arrays with only the employee's ids
-        candidates = candidates.filter(candidate => candidate.id != applicant.id);
-        employees = candidates.filter(employee => employee.id != applicant.id);
-    
-        shiftData = {
-          employees: employees.map(emp => emp.id),
-          candidates: candidates.map(cand => cand.id)
+    const shift = store.get('shifts', shiftId);
+    if(shift){
+        const newCandidates = shift.candidates.filter(candidate => candidate.id != applicant.id);
+        const updatedShift = {
+          candidates: newCandidates.map(cand => cand.id)
         };
-    
-        return Object.assign(shift, {
-          employees,
-          candidates
-        });
-    });
-
-    if(shiftData){
-        PUT('shifts', shiftId, JSON.stringify(shiftData)).then(() => {
+        console.log(updatedShift);
+        PUT('shifts', shiftId, updatedShift).then(() => {
             
-            Flux.dispatchEvent('shifts', newShifts);
-            
-            const applicants = store.remove("applicants", applicant.id);
-            Flux.dispatchEvent('applicants', applicants);
+            Flux.dispatchEvent('shifts', store.replaceMerged("shifts", shiftId, {
+              candidates: newCandidates
+            }));
+            Flux.dispatchEvent('applicants', store.remove("applicants", applicant.id));
             
             Notify.success("The candidate was successfully rejected");
         });
@@ -134,21 +116,22 @@ export const acceptCandidate = (shiftId, applicant) => {
     const shift = store.get('shifts', shiftId);
     if(shift){
         if (shift.status !== 'FILLED' || shift.employees.length < shift.maximum_allowed_employees) {
-            let employees = shift.employees.map(emp => emp.id);
-            employees.push(applicant.id);
             
+            const newEmployees = shift.employees.concat([applicant]);
+            const newCandidates = shift.candidates.filter(employee => employee.id != applicant.id);
             const shiftData = { 
-                employees,  
-                candidates: shift.candidates.filter(employee => employee.id != applicant.id).map(can => can.id)
+                employees: newEmployees.map(emp => emp.id),  
+                candidates: newCandidates.map(can => can.id)
             };
-            PUT('shifts', shiftId, JSON.stringify(shiftData)).then((data) => {
+            PUT('shifts', shiftId, shiftData).then((data) => {
                 
-                let newShift = Object.assign({}, shift);
-                newShift.employees.push(applicant);
-                newShift.candidates = newShift.candidates.filter(can => can.id != applicant.id);
-                
-                Flux.dispatchEvent('shifts', store.replace("shifts", newShift.id, newShift));
+                Flux.dispatchEvent('applicants', store.filter("applicants", (item) => (item.shift.id != shiftId || item.employee.id != applicant.id)));
+                Flux.dispatchEvent('shifts', store.replaceMerged("shifts", shiftId.id, {
+                    employees: newEmployees,
+                    candidates: newCandidates
+                }));
                 Notify.success("The candidate was successfully accepted");
+                
             });
         } else {
           Notify.error('This shift is already filled.');
@@ -204,7 +187,8 @@ class _Store extends Flux.DashStore{
         this.addEvent('badges');
         this.addEvent('applicants', (applicants) => {
             return (!applicants || (Object.keys(applicants).length === 0 && applicants.constructor === Object)) ? [] : applicants.map(app => {
-                app.shift = store.get('shifts', app.shift.id);
+                const shift = store.get('shifts', app.shift.id);
+                if(shift) app.shift = shift;
                 return app;
             });
         });
@@ -213,7 +197,9 @@ class _Store extends Flux.DashStore{
             const newShifts = (!shifts || (Object.keys(shifts).length === 0 && shifts.constructor === Object)) ? [] : shifts.map((shift) => {
                 //already transformed
 
-                if(['number','string'].indexOf(typeof shift.date) == -1) return shift;
+                const dataType = typeof shift.date;
+                // TODO: there is an issue with the transformation
+                if(['number','string'].indexOf(dataType) == -1) return shift;
                 
                 
                 const tempDate = new Date(shift.date).toLocaleDateString("en-US");
@@ -228,6 +214,10 @@ class _Store extends Flux.DashStore{
                     amount: shift.minimum_hourly_rate,
                     timeframe: 'hr'
                 };
+                shift.allowedFavlists = shift.allowed_from_list.map(fav => {
+                    const list = store.get('favlists', fav.id || fav);
+                    return {value: list.id, label: list.title};
+                });
 
                 return shift;
             });
@@ -271,6 +261,11 @@ class _Store extends Flux.DashStore{
         if(entities) return entities.filter(ent => {
             return (ent.id != id);
         });
+        else throw new Error("No items found in "+entities);
+    }
+    filter(type, callback){
+        const entities = this.getState(type);
+        if(entities) return entities.filter(callback);
         else throw new Error("No items found in "+entities);
     }
 }

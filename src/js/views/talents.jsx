@@ -96,7 +96,7 @@ export const ShiftInvite = (data) => {
         },
         getFormData: () => {
             const _formShift = {
-                employee: _entity.id,
+                employee: _entity.id
             };
             return _formShift;
         },

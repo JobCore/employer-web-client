@@ -6,8 +6,8 @@ import Dashboard from './views/Dashboard';
 import RightBar from './views/RightBar';
 import ButtonBar from './views/ButtonBar';
 import {Theme} from './components/index';
-import {ShiftDetails, AddShift, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters} from './views/shifts';
-import {ManageApplicants, ApplicationDetails} from './views/applicants';
+import {ShiftDetails, AddShift, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters, RateShift} from './views/shifts';
+import {ManageApplicants, ApplicationDetails,FilterApplicants, getApplicantInitialFilters} from './views/applicants';
 import {Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilters, InviteTalentToShift, InviteTalentToJobcore, TalentDetails} from './views/talents';
 import {ManageFavorites, AddTalentToFavlist} from './views/favorites';
 import {store} from './actions';
@@ -43,6 +43,9 @@ class PrivateLayout extends Flux.DashView{
                         break;
                         case 'filter_shift':
                             this.showRightBar(FilterShifts, option, {formData: getShiftInitialFilters(this.state.catalog)});
+                        break;
+                        case 'filter_applicants':
+                            this.showRightBar(FilterApplicants, option, {formData: getApplicantInitialFilters(this.state.catalog)});
                         break;
                         case 'show_shift_applicants':
                             this.showRightBar(ShiftApplicants, option, {applicants: option.data.candidates, shift: option.data});
@@ -149,6 +152,7 @@ class PrivateLayout extends Flux.DashView{
                             <Route exact path='/applicants' component={ManageApplicants} />
                             <Route exact path='/talents' component={ManageTalents} />
                             <Route exact path='/favorites' component={ManageFavorites} />
+                            <Route exact path='/rate' component={RateShift} />
                             <Route exact path='/home' component={Dashboard} />
                             <Route exact path='/' component={Dashboard} />
                         </Switch>    
