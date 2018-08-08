@@ -67,8 +67,9 @@ export const search = (entity, queryString) => {
 };
 
 export const create = (entity, data) => POST(entity, data)
-    .then(function(incomingShift){
+    .then(function(incoming){
         let entities = store.getState(entity);
+        data.id = incoming.id;
         if(!entities || !Array.isArray(entities)) entities = [];
         Flux.dispatchEvent(entity, entities.concat([data]));
         Notify.success("The "+entity.substring(0, entity.length - 1)+" was created successfully");

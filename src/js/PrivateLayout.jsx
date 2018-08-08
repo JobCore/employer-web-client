@@ -36,7 +36,7 @@ class PrivateLayout extends Flux.DashView{
                 show: (option) => {
                     switch (option.slug) {
                         case 'create_shift':
-                            this.showRightBar(AddShift, option);
+                            this.showRightBar(ShiftDetails, option, {formData: Shift(option.data).defaults()});
                         break;
                         case 'filter_talent':
                             this.showRightBar(FilterTalents, option, {formData: getTalentInitialFilters(this.state.catalog)});

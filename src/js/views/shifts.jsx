@@ -13,7 +13,7 @@ import {validator, ValidationError} from '../utils/validation';
 
 import TimePicker from 'rc-time-picker';
 import moment from 'moment';
-const SHIFT_POSSIBLE_STATUS = ['DRAFT','OPEN','CANCELLED'];
+const SHIFT_POSSIBLE_STATUS = ['UNDEFINED','DRAFT','OPEN','CANCELLED'];
 
 //gets the querystring and creats a formData object to be used when opening the rightbar
 export const getShiftInitialFilters = () => {
@@ -24,22 +24,25 @@ export const Shift = (data) => {
     
     const _defaults = {
         position: '',
-        maximum_allowed_employees: '0',
-        minimum_hourly_rate: '0',
+        maximum_allowed_employees: '1',
+        minimum_hourly_rate: '8',
         date: NOW,
-        start_time: '12:00 am',
-        finish_time: '12:00 am',
+        candidates:[],
+        start_time: NOW,
+        finish_time: NOW,
         allowed_from_list: [],
+        allowedFavlists: [],
         minimum_allowed_rating: '1',
         venue: '',
-        status: 'DRAFT',
+        status: 'UNDEFINED',
         serialize: function(){
             
             const newShift = {
+                status: (this.status == 'UNDEFINED') ? 'DRAFT' : this.status,
                 date: (moment.isMoment(this.date)) ? this.date.format(DATE_FORMAT) : this.date,
                 start_time: (moment.isMoment(this.start_time)) ? this.start_time.format(TIME_FORMAT) : this.start_time,
                 finish_time: (moment.isMoment(this.finish_time)) ? this.finish_time.format(TIME_FORMAT) : this.finish_time,
-                allowed_from_list: data.allowedFavlists.map(f => f.value)
+                allowed_from_list: this.allowedFavlists.map(f => f.value)
             };
             
             return Object.assign(this, newShift);
@@ -201,97 +204,9 @@ export class ManageShifts extends Flux.DashView {
     }
 }
 
-/**
- * AddShift
- */
-export const AddShift = ({onSave, onCancel, onChange, catalog}) => (<form>
-    <div className="row">
-        <div className="col-6">
-            <label>Looking for</label>
-            <select className="form-control" onChange={(e)=>onChange({position: e.target.value})} >
-                <option>Select a position</option>
-                {
-                    catalog.positions.map((pos,i)=>(<option key={i} value={pos.id}>{pos.title}</option>))
-                }
-            </select>
-        </div>
-        <div className="col-6">
-            <label>How many?</label>
-            <input type="number" className="form-control" onChange={(e)=>onChange({maximum_allowed_employees: e.target.value})} />
-        </div>
-    </div>
-    <div className="row">
-        <div className="col-6">
-            <label>Price / hour</label>
-            <input type="number" className="form-control" onChange={(e)=>onChange({minimum_hourly_rate: e.target.value})} />
-        </div>
-        <div className="col-6">
-            <label>Date</label>
-            <input type="date" className="form-control" onChange={(e)=>onChange({date: e.target.value})} />
-        </div>
-    </div>
-    <div className="row">
-        <div className="col-6">
-            <label>From</label>
-            <TimePicker 
-                format={TIME_FORMAT}
-                showSecond={false}
-                minuteStep={15}
-                defaultValue={NOW}
-                use12Hours={true}
-                onChange={(value)=>onChange({start_time: value.format(TIME_FORMAT)})}
-            />
-        </div>
-        <div className="col-6">
-            <label className="d-block">To</label>
-            <TimePicker 
-                format={TIME_FORMAT}
-                showSecond={false}
-                minuteStep={15}
-                defaultValue={NOW}
-                use12Hours={true}
-                onChange={(value)=>onChange({finish_time: value.format(TIME_FORMAT)})}
-            />
-        </div>
-    </div>
-    <div className="row">
-        <div className="col-12">
-            <label>Venue</label>
-            <select className="form-control" onChange={(e)=>onChange({venue: e.target.value})} >
-                <option value={null}>Select a venue</option>
-                {
-                    catalog.venues.map((ven,i)=>(<option key={i} value={ven.id}>{ven.title}</option>))
-                }
-            </select>
-        </div>
-    </div>
-    <div className="row">
-        <div className="col-12">
-            <label>Minimum start rating</label>
-            <select className="form-control" onChange={(e)=>onChange({minimum_allowed_rating: e.target.value})} >
-                <option value={1}>1 star</option>
-                <option value={2}>2 star</option>
-                <option value={3}>3 star</option>
-                <option value={4}>4 star</option>
-                <option value={5}>5 star</option>
-            </select>
-        </div>
-    </div>
-    <div className="btn-bar">
-        <button type="button" className="btn btn-primary" onClick={() => onSave({status: 'draft'})}>Save as draft</button>
-        <button type="button" className="btn btn-success" onClick={() => onSave({status: 'published'})}>Publish</button>
-        <button type="button" className="btn btn-secondary" onClick={() => onCancel()}>Cancel</button>
-    </div>
-</form>);
-AddShift.propTypes = {
-  onSave: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  onChange: PropTypes.func.isRequired,
-  catalog: PropTypes.object //contains the data needed for the form to load
-};
 
 /**
- * AddShift
+ * FilterShifts
  */
 export const FilterShifts = ({onSave, onCancel, onChange, catalog}) => (<form>
     <div className="row">
@@ -374,7 +289,7 @@ FilterShifts.propTypes = {
 };
 
 /**
- * AddShift
+ * ShiftApplicants
  */
 export const ShiftApplicants = ({onCancel, onSave, catalog}) => {
     const htmlApplicants = catalog.applicants.map((apli,i) => (<ApplicantCard key={i} applicant={apli} shift={catalog.shift} />));
@@ -404,7 +319,7 @@ ShiftApplicants.propTypes = {
 export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) => (<form>
     <div className="row">
         <div className="col-12">
-            { (formData.status == 'DRAFT') ?
+            { (formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ?
                 <div className="alert alert-warning">This shift is a draft, it has not been published</div>
                 :
                 <div className="alert alert-success">This shift is published, therefore <strong>it needs to be unpublished</strong> before it can be updated</div>
@@ -520,7 +435,7 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
         </div>
     </div>
     <div className="btn-bar">
-        { (formData.status == 'DRAFT') ? 
+        { (formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ? 
             <button type="button" className="btn btn-success" onClick={() => onSave({status: 'DRAFT'})}>Save as DRAFT</button>:''
         }
         { (formData.status == 'DRAFT') ? 
@@ -530,24 +445,26 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
                     noti.remove();
                 });
             }}>Publish</button>
-            :
-            <button type="button" className="btn btn-primary" onClick={() => {
-                const noti = Notify.info("Are you sure?",(answer) => {
-                    if(answer) onSave({status: 'DRAFT'});
-                    noti.remove();
-                });
-            }}>Back to draft</button>
+            : (formData.status != 'UNDEFINED') ?
+                <button type="button" className="btn btn-primary" onClick={() => {
+                    const noti = Notify.info("Are you sure?",(answer) => {
+                        if(answer) onSave({status: 'DRAFT'});
+                        noti.remove();
+                    });
+            }}>Back to draft</button>:''
         }
         <button type="button" className="btn btn-secondary" onClick={() => onCancel()}>Cancel</button>
     </div>
-    <p className="text-right">
-        <button type="button" className="not-btn text-danger" onClick={() => {
-            const noti = Notify.info("Are you sure you want to cancel this shift?",(answer) => {
-                if(answer) onSave({status: 'CANCELLED'});
-                noti.remove();
-            });
-        }}>cancel this shift</button>
-    </p>
+    {(formData.status != 'UNDEFINED')?
+        <p className="text-right">
+            <button type="button" className="not-btn text-danger" onClick={() => {
+                const noti = Notify.info("Are you sure you want to cancel this shift?",(answer) => {
+                    if(answer) onSave({status: 'CANCELLED'});
+                    noti.remove();
+                });
+            }}>cancel this shift</button>
+        </p>:''
+    }
 </form>);
 ShiftDetails.propTypes = {
   onSave: PropTypes.func.isRequired,
