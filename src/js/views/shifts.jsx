@@ -5,7 +5,7 @@ import {ApplicantCard} from './applicants';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Select from 'react-select';
-import {Notify} from '../utils/notifier';
+import {Notify} from 'bc-react-notifier';
 import queryString from 'query-string';
 import {ShiftCard} from '../components/index';
 import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';

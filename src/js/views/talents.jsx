@@ -6,7 +6,7 @@ import {EmployeeExtendedCard, ShiftOption, Avatar, Stars, Theme} from '../compon
 import Select from 'react-select';
 import queryString from 'query-string';
 
-import {Session} from '@breathecode/react-session';
+import {Session} from 'bc-react-session';
 const user = Session.store.getSession().user;
 
 //gets the querystring and creats a formData object to be used when opening the rightbar

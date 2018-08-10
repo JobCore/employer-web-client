@@ -1,6 +1,6 @@
 /* global localStorage, fetch */
 import {logout} from '../actions';
-import {Session} from '@breathecode/react-session';
+import {Session} from 'bc-react-session';
 import {ValidationError} from '../utils/validation';
 
 const rootAPIendpoint = process.env.apiHost+'/api';
@@ -8,6 +8,9 @@ const rootAPIendpoint = process.env.apiHost+'/api';
 let HEADERS = {
   'Content-Type': 'application/json'
 };
+
+// TODO: implemente a queue for requests and status, also avoid calling the same request twice
+let pending_requests = [];
 
 const getToken = () => {
   if (Session) {

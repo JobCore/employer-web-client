@@ -6,12 +6,12 @@ import Dashboard from './views/Dashboard';
 import RightBar from './views/RightBar';
 import ButtonBar from './views/ButtonBar';
 import {Theme} from './components/index';
-import {ShiftDetails, AddShift, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters, RateShift} from './views/shifts';
+import {ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters, RateShift} from './views/shifts';
 import {ManageApplicants, ApplicationDetails,FilterApplicants, getApplicantInitialFilters} from './views/applicants';
 import {Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilters, InviteTalentToShift, InviteTalentToJobcore, TalentDetails} from './views/talents';
 import {ManageFavorites, AddTalentToFavlist} from './views/favorites';
 import {store} from './actions';
-import {Notifier} from './utils/notifier';
+import {Notifier} from 'bc-react-notifier';
 import logoURL from '../img/logo.png';
 
 const logoStyles = {

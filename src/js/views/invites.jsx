@@ -1,5 +1,5 @@
 import {validator, ValidationError} from '../utils/validation';
-import {Session} from '@breathecode/react-session';
+import {Session} from 'bc-react-session';
 
 export const Invite = (data) => {
     

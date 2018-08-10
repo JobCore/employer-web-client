@@ -1,7 +1,7 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 import * as actions from '../actions';
-import {Notifier} from '@breathecode/react-notifier';
+import {Notifier} from 'bc-react-notifier';
 import loginBanner from '../../img/login-banner.png';
 
 export class Login extends React.Component{

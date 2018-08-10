@@ -8,7 +8,7 @@ import {Invite} from '../views/invites';
 import {Talent, ShiftInvite} from '../views/talents';
 import {AddFavlist} from '../views/favorites';
 import {ValidationError} from '../utils/validation';
-import {Notify} from '../utils/notifier';
+import {Notify} from 'bc-react-notifier';
 
 class RightBar extends React.Component {
     

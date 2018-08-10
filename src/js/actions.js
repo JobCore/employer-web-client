@@ -1,7 +1,7 @@
 import React from 'react';
 import Flux from '@4geeksacademy/react-flux-dash';
-import {Session} from '@breathecode/react-session';
-import {Notify} from './utils/notifier';
+import {Session} from 'bc-react-session';
+import {Notify} from 'bc-react-notifier';
 import {Shift} from './views/shifts';
 import {POST, GET, PUT} from './utils/api_wrapper';
 
