@@ -1,1 +1,1 @@
-export { default } from './ShiftOption';
+export { default } from './ShiftOption.jsx';

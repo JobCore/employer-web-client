@@ -1,7 +1,10 @@
 import React from "react";
 import PropTypes from 'prop-types';
 import './style.scss';
-import {Avatar, Stars, Theme, AcceptReject} from '../index';
+import Avatar from '../avatar';
+import Stars from '../stars';
+import Theme from '../theme';
+import AcceptReject from '../accept-reject';
 /**
  * Applican Card
  */

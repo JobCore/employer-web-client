@@ -1,1 +1,1 @@
-export { default } from './ShiftCard';
+export { default } from './ShiftCard.jsx';

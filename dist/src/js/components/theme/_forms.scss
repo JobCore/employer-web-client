@@ -1,0 +1,25 @@
+input.form-control, select.form-control, .Select-control{
+    background: white;
+    color: $green-600;
+    border: 1px solid $green-600;
+    border-radius: 0px;
+    &:focus{
+        background: white;
+    }
+}
+input.form-control.rounded{
+    background: none;
+    border: $green-600 1px solid;
+    border-radius: 30px;
+    padding: 15px;
+    &:focus{
+        background: none;
+    }
+}
+
+input.rc-time-picker-input{
+    border: 1px solid $green-600;
+    border-radius: 0;
+    font-size: inherit;
+    padding: 5px;
+}

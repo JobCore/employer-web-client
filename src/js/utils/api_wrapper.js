@@ -42,9 +42,8 @@ const appendCompany = (data) => {
  * @param {string} model Model data to be fetched. **Must be plural**
  * @returns {data}
  */
-export const GET = async (model, id = null, queryString = null, extraHeaders = {}) => {
-  let url = `${rootAPIendpoint}/${model}/`;
-  if(id) url += id;
+export const GET = async (endpoint, queryString = null, extraHeaders = {}) => {
+  let url = `${rootAPIendpoint}/${endpoint}`;
   if(queryString) url += queryString;
   
   const response = await fetch(url, {
@@ -65,9 +64,9 @@ export const GET = async (model, id = null, queryString = null, extraHeaders = {
   return data;
 };
 
-export const POST = (model, postData, extraHeaders = {}) => {
+export const POST = (endpoint, postData, extraHeaders = {}) => {
   
-  if(['register', 'login'].indexOf(model) == -1){
+  if(['register', 'login'].indexOf(endpoint) == -1){
     HEADERS['Authorization'] = `JWT ${getToken()}`;
     postData = appendCompany(postData);
   } 
@@ -77,13 +76,13 @@ export const POST = (model, postData, extraHeaders = {}) => {
     body: JSON.stringify(postData)
   };
   
-  const response = fetch(`${rootAPIendpoint}/${model}/`, REQ)
+  const response = fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
     .then((resp) => {
       if(resp.status >= 200 && resp.status < 300){
         const data = resp.json();
         return data;
       }
-      else if(resp.status == 400) throw new ValidationError('Invalid parameters for create '+model.substring(0, model.length - 1));
+      else if(resp.status == 400) throw new ValidationError('Invalid parameters for '+endpoint);
       else if(resp.status == 401) logout();
       else{
         throw new Error("There has been an error");
@@ -100,9 +99,9 @@ export const POST = (model, postData, extraHeaders = {}) => {
   return response;
 };
 
-export const PUT = (model, id, putData, extraHeaders = {}) => {
+export const PUT = (endpoint, putData, extraHeaders = {}) => {
   
-  if(['register', 'login'].indexOf(model) == -1){
+  if(['register', 'login'].indexOf(endpoint) == -1){
     HEADERS['Authorization'] = `JWT ${getToken()}`;
   } 
   const REQ = {
@@ -111,7 +110,7 @@ export const PUT = (model, id, putData, extraHeaders = {}) => {
     body: JSON.stringify(putData)
   };
   
-  const response = fetch(`${rootAPIendpoint}/${model}/${id}`, REQ)
+  const response = fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
     .then((resp) => {
         if(resp.status == 400) throw new Error('Bad Request');
         if(resp.status == 401) logout();
@@ -132,8 +131,8 @@ export const PUT = (model, id, putData, extraHeaders = {}) => {
   return response;
 };
 
-export const PATCH = async (model, id, putData, extraHeaders = {}) => {
-  const response = await fetch(`${rootAPIendpoint}/${model}/${id}`, {
+export const PATCH = async (endpoint, putData, extraHeaders = {}) => {
+  const response = await fetch(`${rootAPIendpoint}/${endpoint}`, {
     method: 'PATCH',
     headers: new Headers({
       ...HEADERS,
@@ -152,8 +151,8 @@ export const PATCH = async (model, id, putData, extraHeaders = {}) => {
   return data;
 };
 
-export const DELETE = async (model, id = '', extraHeaders = {}) => {
-  await fetch(`${rootAPIendpoint}/${model}/${id}`, {
+export const DELETE = async (endpoint, extraHeaders = {}) => {
+  await fetch(`${rootAPIendpoint}/${endpoint}`, {
     method: 'DELETE',
     headers: new Headers({
       ...HEADERS,

@@ -2,7 +2,7 @@ import React from 'react';
 import Flux from '@4geeksacademy/react-flux-dash';
 import {Session} from '@breathecode/react-session';
 import {Notify} from './utils/notifier';
-import moment from 'moment';
+import {Shift} from './views/shifts';
 import {POST, GET, PUT} from './utils/api_wrapper';
 
 export const login = (email, password) => {
@@ -80,7 +80,7 @@ export const create = (entity, data) => POST(entity, data)
     });
     
 export const update = (entity, data) => {
-    PUT(entity, data.id, data)
+    PUT(`${entity}/${data.id}`, data)
         .then(function(incomingShift){
             let entities = store.replaceMerged(entity, data.id, data);
             Flux.dispatchEvent(entity, entities);
@@ -99,8 +99,7 @@ export const rejectCandidate = (shiftId, applicant) => {
         const updatedShift = {
           candidates: newCandidates.map(cand => cand.id)
         };
-        console.log(updatedShift);
-        PUT('shifts', shiftId, updatedShift).then(() => {
+        PUT(`shifts/${shiftId}/candidates`, updatedShift).then(() => {
             
             Flux.dispatchEvent('shifts', store.replaceMerged("shifts", shiftId, {
               candidates: newCandidates
@@ -124,7 +123,7 @@ export const acceptCandidate = (shiftId, applicant) => {
                 employees: newEmployees.map(emp => emp.id),  
                 candidates: newCandidates.map(can => can.id)
             };
-            PUT('shifts', shiftId, shiftData).then((data) => {
+            PUT(`shifts/${shiftId}/candidates`, shiftData).then((data) => {
                 
                 Flux.dispatchEvent('applicants', store.filter("applicants", (item) => (item.shift.id != shiftId || item.employee.id != applicant.id)));
                 Flux.dispatchEvent('shifts', store.replaceMerged("shifts", shiftId.id, {
@@ -175,6 +174,7 @@ class _Store extends Flux.DashStore{
             
             const session = Session.store.getSession();
             return employees.map((em) => {
+                //if the talent has an employer
                 if(typeof session.user.profile.employer != 'undefined'){
                     if(typeof em.favoriteLists =='undefined') em.favoriteLists = em.favoritelist_set.filter(fav => fav.employer == session.user.profile.employer);
                     else{
@@ -188,8 +188,7 @@ class _Store extends Flux.DashStore{
         this.addEvent('badges');
         this.addEvent('applicants', (applicants) => {
             return (!applicants || (Object.keys(applicants).length === 0 && applicants.constructor === Object)) ? [] : applicants.map(app => {
-                const shift = store.get('shifts', app.shift.id);
-                if(shift) app.shift = shift;
+                app.shift = Shift(app.shift).defaults().unserialize();
                 return app;
             });
         });
@@ -197,30 +196,7 @@ class _Store extends Flux.DashStore{
             
             const newShifts = (!shifts || (Object.keys(shifts).length === 0 && shifts.constructor === Object)) ? [] : shifts.map((shift) => {
                 //already transformed
-
-                const dataType = typeof shift.date;
-                // TODO: there is an issue with the transformation
-                if(['number','string'].indexOf(dataType) == -1) return shift;
-                
-                
-                const tempDate = new Date(shift.date).toLocaleDateString("en-US");
-                if(typeof shift.position != 'object') shift.position = this.get('positions', shift.position);
-                if(typeof shift.venue != 'object') shift.venue = this.get('venues', shift.venue);
-                if(!moment.isMoment(shift.start_time)) shift.start_time = moment(tempDate+" "+shift.start_time);
-                if(!moment.isMoment(shift.finish_time)) shift.finish_time = moment(tempDate+" "+shift.finish_time);
-                if(!moment.isMoment(shift.date)) shift.date = moment(shift.date);
-                shift.price = {
-                    currency: 'usd',
-                    currencySymbol: '$',
-                    amount: shift.minimum_hourly_rate,
-                    timeframe: 'hr'
-                };
-                shift.allowedFavlists = shift.allowed_from_list.map(fav => {
-                    const list = store.get('favlists', fav.id || fav);
-                    return {value: list.id, label: list.title};
-                });
-
-                return shift;
+                return Shift(shift).defaults().unserialize();
             });
             
             const applicants = this.getState('applicants');

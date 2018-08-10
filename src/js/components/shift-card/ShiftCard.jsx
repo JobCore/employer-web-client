@@ -1,49 +1,67 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Theme} from '../index';
+import Theme from '../theme';
 import './style.scss';
 /**
  * ShiftCard
  */
-const ShiftCard = (props) => {
-    const totalCandidates = (Array.isArray(props.shift.candidates)) ? props.shift.candidates.length : 0;
-    const openVacancys = props.shift.maximum_allowed_employees;
-    const startDate = props.shift.date.format('ll');
-    const startTime = props.shift.start_time.format('LT');
-    const endTime = props.shift.finish_time.format('LT');
-    return (<Theme.Consumer>
-        {({bar}) => 
-            (<li className={`shiftcard ${(props.hover) ? 'shiftcard-hover':''}`}>
-                <div className="shift-details">
-                    {
-                        (!props.showStatus) ? '':
-                            (props.shift.status == 'DRAFT') ? 
-                                <span href="#" className="badge badge-secondary">D</span> :
-                                    (openVacancys == totalCandidates) ? 
-                                        <span href="#" className="badge">{totalCandidates}/{openVacancys}</span> :
-                                        <span href="#" className="badge badge-danger">{totalCandidates}/{openVacancys}</span>
-                    }
-                    <a href="#" className="shift-position">{props.shift.position.title}</a> @ 
-                    <a href="#" className="shift-location"> {props.shift.venue.title}</a> 
-                    <span className="shift-date"> {startDate} from {startTime} to {endTime} </span>
-                    {
-                        (typeof props.shift.price == 'string') ? 
-                            <span className="shift-price"> ${props.shift.price}/hr.</span>
-                        :
-                            <span className="shift-price"> {props.shift.price.currencySymbol}{props.shift.price.amount}/{props.shift.price.timeframe}.</span>
-                    }
-                    <div className="btn-group" role="group" aria-label="Basic example">
-                        <button type="button" className="btn btn-secondary"
-                            onClick={() => bar.show({ slug: "show_shift_applicants", data: props.shift, title: "Shift Applicants" })}
-                        ><i className="icon icon-favorite icon-xs"></i> <label>Applicants</label></button>
-                        <button type="button" className="btn btn-secondary"
-                            onClick={() => bar.show({ slug: "update_shift", data: props.shift, title: "Shift Details" })}
-                        ><i className="icon icon-favorite icon-xs"></i> <label>Detais</label></button>
+export default class ShiftCard extends React.Component{
+    constructor(){
+        super();
+        this.state = {
+            hoveredClass: ''
+        };
+        this.hasMousedOut = false;
+    }
+    render(){
+        const totalCandidates = (Array.isArray(this.props.shift.candidates)) ? this.props.shift.candidates.length : 0;
+        const openVacancys = this.props.shift.maximum_allowed_employees;
+        const startDate = this.props.shift.date.format('ll');
+        const startTime = this.props.shift.start_time.format('LT');
+        const endTime = this.props.shift.finish_time.format('LT');
+        return (<Theme.Consumer>
+            {({bar}) => 
+                (<li className={"shiftcard "+this.state.hoveredClass} onMouseOver={() => {
+                        if(this.props.hover){
+                            this.setState({ hoveredClass: 'shiftcard-hovered', hasMousedOut: false });
+                            setTimeout(() => {
+                                if(this.state.hasMousedOut) this.setState({hoveredClass: ''});
+                            }, 250);
+                        }
+                    }}
+                    onMouseOut={() => this.setState({ hasMousedOut: true })}
+                >
+                    <div className="shift-details">
+                        {
+                            (!this.props.showStatus) ? '':
+                                (this.props.shift.status == 'DRAFT') ? 
+                                    <span href="#" className="badge badge-secondary">D</span> :
+                                        (openVacancys == totalCandidates) ? 
+                                            <span href="#" className="badge">{totalCandidates}/{openVacancys}</span> :
+                                            <span href="#" className="badge badge-danger">{totalCandidates}/{openVacancys}</span>
+                        }
+                        <a href="#" className="shift-position">{this.props.shift.position.title}</a> @ 
+                        <a href="#" className="shift-location"> {this.props.shift.venue.title}</a> 
+                        <span className="shift-date"> {startDate} from {startTime} to {endTime} </span>
+                        {
+                            (typeof this.props.shift.price == 'string') ? 
+                                <span className="shift-price"> ${this.props.shift.price}/hr.</span>
+                            :
+                                <span className="shift-price"> {this.props.shift.price.currencySymbol}{this.props.shift.price.amount}/{this.props.shift.price.timeframe}.</span>
+                        }
+                        <div className="btn-group" role="group" aria-label="Basic example">
+                            <button type="button" className="btn btn-secondary"
+                                onClick={() => bar.show({ slug: "show_shift_applicants", data: this.props.shift, title: "Shift Applicants" })}
+                            ><i className="icon icon-favorite icon-xs"></i> <label>Applicants</label></button>
+                            <button type="button" className="btn btn-secondary"
+                                onClick={() => bar.show({ slug: "update_shift", data: this.props.shift, title: "Shift Details" })}
+                            ><i className="icon icon-favorite icon-xs"></i> <label>Detais</label></button>
+                        </div>
                     </div>
-                </div>
-            </li>)}
-    </Theme.Consumer>);
-};
+                </li>)}
+        </Theme.Consumer>);
+    }
+}
 ShiftCard.propTypes = {
     shift: PropTypes.object.isRequired,
     hover: PropTypes.bool.isRequired,
@@ -53,4 +71,3 @@ ShiftCard.defaultProps = {
   hover: false,
   showStatus: false
 };
-export default ShiftCard;

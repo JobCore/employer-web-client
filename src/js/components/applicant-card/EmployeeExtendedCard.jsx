@@ -1,8 +1,9 @@
 import './style.scss';
 import React from "react";
 import PropTypes from 'prop-types';
-import {Avatar, Stars, Theme} from '../index';
-
+import Avatar from '../avatar';
+import Stars from '../stars';
+import Theme from '../theme';
 /**
  * Applican Card
  */

@@ -1,0 +1,18 @@
+@import '../theme/style.scss';
+.select-shifts{
+    .Select-value-label{
+        width: 93%;
+    }
+    .Select-value-icon{
+        height: 40px;
+        line-height: 36px;
+    }
+    .shift-option{
+        a,span{
+            &.shift-position{color: $fuchsia;}
+            &.shift-location{color: $green-600;}
+            &.shift-date{color: $black;}
+            &.shift-price{color: $red;}
+        }
+    }
+}

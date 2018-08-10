@@ -1,1 +1,1 @@
-export { default } from './AcceptReject';
+export { default } from './AcceptReject.jsx';

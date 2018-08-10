@@ -1,1 +1,1 @@
-export { default } from './ApplicantCard';
+export { default } from './ApplicantCard.jsx';

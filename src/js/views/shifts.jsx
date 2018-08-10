@@ -46,7 +46,34 @@ export const Shift = (data) => {
             };
             
             return Object.assign(this, newShift);
+        },
+        unserialize: function(){
+            const dataType = typeof this.date;
+            //if its already serialized
+            if(['number','string'].indexOf(dataType) == -1) return this;
+            
+            const tempDate = new Date(this.date).toLocaleDateString("en-US");
+            const newShift = {
+                position: (typeof this.position != 'object') ? store.get('positions', this.position) : this.position,
+                venue: (typeof this.venue != 'object') ? store.get('venues', this.venue) : this.venue,
+                start_time: (!moment.isMoment(this.start_time)) ? moment(tempDate+" "+this.start_time) : this.start_time,
+                finish_time: (!moment.isMoment(this.finish_time)) ? moment(tempDate+" "+this.finish_time) : this.finish_time,
+                date: (!moment.isMoment(this.date)) ? moment(this.date) : this.date,
+                allowedFavlists: this.allowed_from_list.map(fav => {
+                    const list = store.get('favlists', fav.id || fav);
+                    return {value: list.id, label: list.title};
+                }),
+                price: {
+                    currency: 'usd',
+                    currencySymbol: '$',
+                    amount: this.minimum_hourly_rate,
+                    timeframe: 'hr'
+                }
+            };
+            
+            return Object.assign(this, newShift);
         }
+        
     };
     
     let _shift = Object.assign(_defaults, data);

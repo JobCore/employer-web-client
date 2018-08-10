@@ -1,0 +1,56 @@
+body{
+    overflow-x: hidden;
+}
+ul{
+    margin: 0;
+    padding: 0;
+    li{ 
+        list-style: none; 
+    }
+}
+.btn{
+    background: none;
+    border: $green-600 1px solid;
+    border-radius: 30px;
+    padding: 10px 50px;
+    font-size: 80%;
+    padding: 10px 30px;
+    &.btn-primary{
+        background: $green-600;
+    }
+    &.btn-secondary{
+        background: grey;
+    }
+    &.btn-success{
+        background: $green-400;
+    }
+    &.btn-lg{
+        font-size: 100%;
+        padding: 15px 30px;
+    }
+}
+.not-btn{
+    border: none;
+    background: no-repeat;
+    &:hover{
+        cursor: pointer;
+    }
+}
+.badge{ 
+    margin: 2px; background: $green-600; color: white;
+    &.badge-warning{ background: $green-300; color: $yellow; }
+    &.badge-danger{ background: $red; color: white; }
+    &.badge-success{ background: $green-600; color: white; }
+    &.badge-secondary{ background: $green-300; color: white; }
+}
+
+.bcnotifier{
+    .alert{
+        position: fixed;
+        text-align: center;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 11;
+    }
+}

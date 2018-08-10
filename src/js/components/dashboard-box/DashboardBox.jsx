@@ -1,6 +1,6 @@
 import './style.scss';
 import React from 'react';
-import {ShiftCard} from '../index';
+import ShiftCard from '../shift-card';
 import {Link} from "react-router-dom";
 import PropTypes from 'prop-types';
 

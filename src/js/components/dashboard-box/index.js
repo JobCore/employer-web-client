@@ -1,1 +1,1 @@
-export { default } from './DashboardBox';
+export { default } from './DashboardBox.jsx';
