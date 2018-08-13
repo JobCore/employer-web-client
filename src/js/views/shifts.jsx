@@ -8,6 +8,7 @@ import Select from 'react-select';
 import {Notify} from 'bc-react-notifier';
 import queryString from 'query-string';
 import {ShiftCard} from '../components/index';
+import Joyride from 'react-joyride';
 import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
 import {validator, ValidationError} from '../utils/validation';
 
@@ -121,7 +122,25 @@ export class ManageShifts extends Flux.DashView {
     constructor(){
         super();
         this.state = {
-            shifts: []
+            shifts: [],
+            runTutorial: false,
+            steps: [
+                {
+                    target: '#shift-details-header',
+                    content: 'Here you can see your entire list of shifts',
+                    placement: 'right',
+                },
+                {
+                    target: '#create_shift',
+                    content: 'You can also create new shifts',
+                    placement: 'left',
+                },
+                {
+                    target: '#filter_shift',
+                    content: 'Or filter them for better browsing',
+                    placement: 'left',
+                }
+            ]
         };
     }
     
@@ -135,6 +154,7 @@ export class ManageShifts extends Flux.DashView {
         this.props.history.listen(() => {
             this.filterShifts();
         });
+        this.setState({ runTutorial: true });
         
     }
     
@@ -212,20 +232,29 @@ export class ManageShifts extends Flux.DashView {
         return filters;
     }
     
+    
     render() {
+        const callback = (data) => {
+            //const { action, index, type } = data;
+        };
         const groupedShifts = _.groupBy(this.state.shifts, (s) => s.date.format('MMMM YYYY'));
         const shiftsHTML = [];
         for(let date in groupedShifts){
             shiftsHTML.push(<div key={date} className="date-group">
                 <p className="date-group-label">{date}</p>
                 <div>
-                    {groupedShifts[date].map((s,i) => (<ShiftCard key={i} shift={s} showStatus={true} hover={true} />))}
+                    {groupedShifts[date].map((s,i) => (<ShiftCard key={i} shift={s} showStatus={true} hoverEffect={true} />))}
                 </div>
             </div>);
             
         }
-        return (<div className="p-5 listcontents">
-            <h1 className="float-left">Shift Details</h1>
+        return (<div className="p-1 listcontents">
+            <Joyride continuous
+              steps={this.state.steps}
+              run={this.state.runTutorial}
+              callback={callback}
+            />
+            <h1 id="shift-details-header" className="float-left">Shift Details</h1>
             {shiftsHTML}
         </div>);
     }
@@ -283,9 +312,9 @@ export const FilterShifts = ({onSave, onCancel, onChange, catalog}) => (<form>
     </div>
     <div className="row">
         <div className="col">
-            <label>Venue</label>
+            <label>Location</label>
             <select className="form-control" onChange={(e)=>onChange({venue: e.target.value})} >
-                <option value={null}>Select a venue</option>
+                <option value={null}>Select a location</option>
                 {
                     catalog.venues.map((ven,i)=>(<option key={i} value={ven.id}>{ven.title}</option>))
                 }
@@ -416,12 +445,12 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
     </div>
     <div className="row">
         <div className="col-12">
-            <label>Venue</label>
+            <label>Location</label>
             <select className="form-control" 
                 value={formData.venue}
                 onChange={(e)=>onChange({venue: e.target.value})} 
             >
-                <option value={null}>Select a venue</option>
+                <option value={null}>Select a location</option>
                 {
                     catalog.venues.map((ven,i)=>(<option key={i} value={ven.id}>{ven.title}</option>))
                 }
@@ -478,9 +507,8 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
                         if(answer) onSave({status: 'DRAFT'});
                         noti.remove();
                     });
-            }}>Back to draft</button>:''
+            }}>Convert to draft</button>:''
         }
-        <button type="button" className="btn btn-secondary" onClick={() => onCancel()}>Cancel</button>
     </div>
     {(formData.status != 'UNDEFINED')?
         <p className="text-right">

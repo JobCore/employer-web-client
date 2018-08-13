@@ -5,6 +5,7 @@ import {store, search} from '../actions.js';
 import {EmployeeExtendedCard, ShiftOption, Avatar, Stars, Theme} from '../components/index';
 import Select from 'react-select';
 import queryString from 'query-string';
+import Joyride from 'react-joyride';
 
 import {Session} from 'bc-react-session';
 const user = Session.store.getSession().user;
@@ -115,7 +116,20 @@ export class ManageTalents extends Flux.DashView {
     constructor(){
         super();
         this.state = {
-            employees: []
+            employees: [],
+            runTutorial: false,
+            steps: [
+                {
+                    target: '#talent_search_header',
+                    content: 'In this page you can search our entire talent network',
+                    placement: 'right',
+                },
+                {
+                    target: '#filter_talent',
+                    content: 'Start by filtering by name, experience, badges or minium star rating',
+                    placement: 'left',
+                }
+            ]
         };
     }
     
@@ -128,8 +142,9 @@ export class ManageTalents extends Flux.DashView {
         
         this.props.history.listen(() => {
             this.filter();
+            this.setState({ firstSearch: false });
         });
-        
+        this.setState({ runTutorial: true });
     }
     
     filter(employees=null){
@@ -137,9 +152,14 @@ export class ManageTalents extends Flux.DashView {
     }
     
     render() {
+        if(this.state.firstSearch) return <p>Please search for an employee</p>;
         const talentHTML = this.state.employees.map((s,i) => (<EmployeeExtendedCard key={i} employee={s} hover={true} />));
-        return (<div className="p-5 listcontents">
-            <h1>Talent Details</h1>
+        return (<div className="p-1 listcontents">
+            <Joyride continuous
+              steps={this.state.steps}
+              run={this.state.runTutorial}
+            />
+            <h1 id="talent_search_header">Talent Search</h1>
             {talentHTML}
         </div>);
     }
@@ -153,6 +173,22 @@ export const FilterTalents = (props) => {
     const positions = props.catalog.positions.map(pos => ({ value: pos.id, label: pos.title }));
     const badges = props.catalog.badges.map(bad => ({ value: bad.id, label: bad.title }));
     return (<form>
+        <div className="row">
+            <div className="col-6">
+                <label>First Name:</label>
+                <input className="form-control"
+                    value={props.formData.first_name}
+                    onChange={(e)=>props.onChange({ first_name: e.target.value })} 
+                />
+            </div>
+            <div className="col-6">
+                <label>Last Name:</label>
+                <input className="form-control"
+                    value={props.formData.last_name}
+                    onChange={(e)=>props.onChange({ last_name: e.target.value })} 
+                />
+            </div>
+        </div>
         <div className="row">
             <div className="col-12">
                 <label>Experience in past positions:</label>
@@ -273,6 +309,12 @@ InviteTalentToShift.propTypes = {
  * ShiftDetails
  */
 export const InviteTalentToJobcore = ({ onSave, onCancel, onChange, catalog, formData }) => (<form>
+    
+    <div className="row">
+        <div className="col-12">
+            <p>If you would like to invite someone into yor talent pool, please fill the following details:</p>
+        </div>
+    </div>
     <div className="row">
         <div className="col-12">
             <label>Talent First Name</label>

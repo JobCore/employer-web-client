@@ -4,12 +4,12 @@ import ShiftCard from '../shift-card';
 import {Link} from "react-router-dom";
 import PropTypes from 'prop-types';
 
-const DashboardBox = ({shifts, title, status}) => {
-    const shiftsHTML = shifts.map((s,i) => (<ShiftCard key={i} shift={s} />));
+const DashboardBox = ({shifts, title, status, id}) => {
+    const shiftsHTML = shifts.map((s,i) => (<ShiftCard key={i} shift={s} clickForDetails={true} />));
     return (<div className="dashboard_box">
         <div className="row header">
             <div className="col-4 text-center">
-                <button className="btn btn-primary btn-lg">{title}</button>
+                <button id={id} className="btn btn-primary btn-lg">{title}</button>
             </div>
             <div className="col-8">
                 <span className="bar mt-2"></span>
@@ -30,7 +30,12 @@ const DashboardBox = ({shifts, title, status}) => {
 
 DashboardBox.propTypes = {
     status: PropTypes.string.isRequired,
+    id: PropTypes.string,
     shifts: PropTypes.array.isRequired,
     title: PropTypes.string.isRequired
+};
+// Specifies the default values for props:
+DashboardBox.defaultProps = {
+  id: ''
 };
 export default DashboardBox;

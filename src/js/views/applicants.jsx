@@ -6,7 +6,7 @@ import {store, rejectCandidate, acceptCandidate} from '../actions.js';
 import queryString from 'query-string';
 import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
 import moment from 'moment';
-
+import Joyride from 'react-joyride';
 //gets the querystring and creats a formData object to be used when opening the rightbar
 export const getApplicantInitialFilters = () => {
     return {};
@@ -17,7 +17,20 @@ export class ManageApplicants extends Flux.DashView {
     constructor(){
         super();
         this.state = {
-            applicants: []
+            applicants: [],
+            runTutorial: false,
+            steps: [
+                {
+                    target: '#applicant_details_header',
+                    content: 'Here is everyone that has applied to your shifts but you haven\'t accepted or rejected',
+                    placement: 'right',
+                },
+                {
+                    target: '#filter_applicants',
+                    content: 'You can also filter this list of applicants by any desired criteria',
+                    placement: 'left',
+                },
+            ]
         };
     }
     
@@ -31,6 +44,7 @@ export class ManageApplicants extends Flux.DashView {
         this.props.history.listen(() => {
             this.filter();
         });
+        this.setState({ runTutorial: true });
         
     }
     
@@ -108,8 +122,12 @@ export class ManageApplicants extends Flux.DashView {
     
     render() {
         const applicansHTML = this.state.applicants.map((a,i) => (<ApplicantExtendedCard key={i} applicant={a} shift={a.shift} hover={true} />));
-        return (<div className="p-5 listcontents">
-            <h1>Applicant Details</h1>
+        return (<div className="p-1 listcontents">
+            <Joyride continuous
+              steps={this.state.steps}
+              run={this.state.runTutorial}
+            />
+            <h1 id="applicant_details_header">Applicant Details</h1>
             {
                 (applicansHTML.length == 0) ?
                     <p>No applicants were found for this shift.</p>
@@ -200,7 +218,6 @@ export const ApplicationDetails = (props) => {
                     onAccept={() => acceptCandidate(applicant.shift.id, applicant)} 
                     onReject={() => rejectCandidate(applicant.shift.id, applicant)} 
                 />
-                <button className="btn btn-secondary" onClick={() => bar.close()}>Cancel</button>
             </li>)}
     </Theme.Consumer>);
 };

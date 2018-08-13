@@ -8,7 +8,8 @@ class ButtonBar extends React.Component {
         this.state = {
             buttonBarActions: {
                 home: [
-                    { slug: "create_shift", title: 'Create shifts', to: 'shifts'}
+                    { slug: "create_shift", title: 'Create shifts', to: 'shifts'},
+                    { slug: "invite_talent_to_jobcore", title: 'Invite Talent to JobCore', to: 'talents'}
                 ],
                 shifts: [
                     { slug: "create_shift", title: 'Create shifts', to: 'shifts'},
@@ -43,7 +44,7 @@ class ButtonBar extends React.Component {
 
     render(){
         const buttons = this.state.currentButtons.map((btn,i) => (<li key={i}>
-            <button className="btn btn-primary mb-3"
+            <button id={btn.slug} className="btn btn-primary mb-3"
                 onClick={() => this.props.onClick(btn)}>{btn.title}</button></li>
         ));
         return (<div className="buttonbar">

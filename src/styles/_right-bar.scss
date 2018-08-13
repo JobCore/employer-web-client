@@ -7,6 +7,7 @@
     background: $green-000;
     bottom: 0;
     right: 0;
+    border-left: 2px solid #27666f;
     .btn-bar{
         margin-top: 20px;
         display: flex;
@@ -15,5 +16,19 @@
         .btn{
             margin: 3px;
         }
+    }
+    .collapsebtn{
+        position: absolute;
+        top: calc(100vh / 2);
+        left: -12px;
+        border: 0;
+        border-radius: 100%;
+        font-size: 12px;
+        width: 20px;
+        height: 20px;
+        padding: 2px;
+        color: white;
+        background-color: #27666f;
+        cursor: pointer;
     }
 }

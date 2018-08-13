@@ -122,6 +122,9 @@ class RightBar extends React.Component {
                 onCancel={(incoming)=>this.props.onClose(incoming)} 
                 onChange={(incoming)=>this.onChange(incoming)} 
             />
+            <button className="collapsebtn"
+                onClick={() => this.props.onClose()}
+            ><i className="fas fa-angle-double-right"></i></button>
         </div>);
     }
 

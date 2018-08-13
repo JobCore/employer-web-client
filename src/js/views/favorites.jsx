@@ -77,6 +77,16 @@ export class ManageFavorites extends Flux.DashView {
                         }
                     };
                 break;
+                case "rating":
+                    filters[f] = {
+                        value: filters[f],
+                        matches: (shift) => {
+                            if(!filters.rating.value) return true;
+                            if(isNaN(filters.rating.value)) return true;
+                            return parseInt(shift.rating) >= filters.rating.value;
+                        }
+                    };
+                break;
                 case "minimum_hourly_rate":
                     filters[f] = {
                         value: filters[f],
@@ -103,8 +113,8 @@ export class ManageFavorites extends Flux.DashView {
     
     render() {
         const talentHTML = this.state.employees.map((s,i) => (<EmployeeExtendedCard key={i} employee={s} hover={true} />));
-        return (<div className="p-5 listcontents">
-            <h1>Talent Details</h1>
+        return (<div className="p-1 listcontents">
+            <h1>Your favorites</h1>
             {talentHTML}
         </div>);
     }

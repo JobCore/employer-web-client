@@ -130,13 +130,12 @@ class PrivateLayout extends Flux.DashView{
                 <div className="row sidebar">
                     <div className="left_pane">
                         <ul>
-                            <li><Link to="/home">HOME</Link></li>
+                            <li><Link to="/home"><i className="icon icon-dashboard"></i>Dashboard</Link></li>
+                            <li><Link to="/talents"><i className="icon icon-talents"></i>Talents</Link></li>
                             <li><Link to="/favorites"><i className="icon icon-favorite"></i>Favorites</Link></li>
                             <li><Link to="/profile"><i className="icon icon-companyprofile"></i>Company Profile</Link></li>
                             <li><Link to="/applicants"><i className="icon icon-applications"></i>Applications</Link></li>
                             <li><Link to="/shifts"><i className="icon icon-shifts"></i>Shifts</Link></li>
-                            <li><Link to="/talents"><i className="icon icon-talents"></i>Talents</Link></li>
-                            <li><Link to="/home"><i className="icon icon-dashboard"></i>Dashboard</Link></li>
                             <li><a href="#" onClick={()=>logout()}><i className="icon icon-logout icon-sm"></i>Logout</a></li>
                         </ul>
                     </div>

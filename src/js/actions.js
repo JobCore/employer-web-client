@@ -55,7 +55,7 @@ export const fetchAll = (entities) => {
 };
 
 export const search = (entity, queryString) => {
-    GET(entity, null, queryString)
+    GET(entity, queryString)
         .then(function(list){
             if(typeof entity.callback == 'function') entity.callback();
             Flux.dispatchEvent(entity.slug || entity, list);

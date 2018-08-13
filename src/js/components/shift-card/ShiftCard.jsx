@@ -22,7 +22,7 @@ export default class ShiftCard extends React.Component{
         return (<Theme.Consumer>
             {({bar}) => 
                 (<li className={"shiftcard "+this.state.hoveredClass} onMouseOver={() => {
-                        if(this.props.hover){
+                        if(this.props.hoverEffect){
                             this.setState({ hoveredClass: 'shiftcard-hovered', hasMousedOut: false });
                             setTimeout(() => {
                                 if(this.state.hasMousedOut) this.setState({hoveredClass: ''});
@@ -30,6 +30,7 @@ export default class ShiftCard extends React.Component{
                         }
                     }}
                     onMouseOut={() => this.setState({ hasMousedOut: true })}
+                    onClick={() => bar.show({ slug: "update_shift", data: this.props.shift, title: "Shift Details" })}
                 >
                     <div className="shift-details">
                         {
@@ -51,7 +52,10 @@ export default class ShiftCard extends React.Component{
                         }
                         <div className="btn-group" role="group" aria-label="Basic example">
                             <button type="button" className="btn btn-secondary"
-                                onClick={() => bar.show({ slug: "show_shift_applicants", data: this.props.shift, title: "Shift Applicants" })}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    bar.show({ slug: "show_shift_applicants", data: this.props.shift, title: "Shift Applicants" });
+                                }}
                             ><i className="icon icon-favorite icon-xs"></i> <label>Applicants</label></button>
                             <button type="button" className="btn btn-secondary"
                                 onClick={() => bar.show({ slug: "update_shift", data: this.props.shift, title: "Shift Details" })}
@@ -64,10 +68,12 @@ export default class ShiftCard extends React.Component{
 }
 ShiftCard.propTypes = {
     shift: PropTypes.object.isRequired,
-    hover: PropTypes.bool.isRequired,
+    hoverEffect: PropTypes.bool.isRequired,
+    clickForDetails: PropTypes.bool,
     showStatus: PropTypes.bool
 };
 ShiftCard.defaultProps = {
-  hover: false,
+  hoverEffect: false,
+  clickForDetails: true,
   showStatus: false
 };
