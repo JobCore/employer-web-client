@@ -16,7 +16,7 @@ const DashboardBox = ({shifts, title, status, id}) => {
             </div>
         </div>
         <div className="row">
-            <div className="col-10 content">
+            <div className="col-10 content scroll">
                 <ul>{shiftsHTML}</ul>
             </div>
             <div className="col-2 text-center">

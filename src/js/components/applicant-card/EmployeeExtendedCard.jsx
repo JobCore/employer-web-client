@@ -12,7 +12,9 @@ const EmployeeExtendedCard = (props) => {
     const favoriteCount = props.employee.favoriteLists.length;
     return (<Theme.Consumer>
         {({bar}) => 
-            (<li className="aplicantcard aplicantcard-hover">
+            (<li className="aplicantcard aplicantcard-hover"
+                onClick={() => bar.show({ slug: "show_single_talent", data: props.employee, title: "Talent Details" })}
+            >
                 <Avatar url={props.employee.profile.picture} />
                 <a href="#"><b>{props.employee.profile.user.first_name + " " + props.employee.profile.user.last_name}</b></a>
                 <Stars rating={Number(props.employee.rating)} jobCount={props.employee.positions.length}  />
@@ -21,8 +23,8 @@ const EmployeeExtendedCard = (props) => {
                 
                 <div className="btn-group" role="group" aria-label="Basic example">
                     <button type="button" className="btn btn-secondary"
-                        onClick={() => bar.show({ slug: "show_single_talent", data: props.employee, title: "Talent Details" })}
-                    ><i className="icon icon-favorite icon-xs"></i> <label>Detals</label></button>
+                        onClick={() => bar.show({ slug: "add_to_favlist", data: props.employee, title: "Add to favorites" })}
+                    ><i className="icon icon-favorite icon-xs"></i> <label>Favorites</label></button>
                     <button type="button" className="btn btn-secondary"
                         onClick={() => bar.show({ slug: "invite_talent", data: props.employee, title: "Invite Talent" })}
                     ><i className="icon icon-favorite icon-xs"></i> <label>Invite</label></button>

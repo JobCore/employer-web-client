@@ -128,17 +128,17 @@ export class ManageShifts extends Flux.DashView {
                 {
                     target: '#shift-details-header',
                     content: 'Here you can see your entire list of shifts',
-                    placement: 'right',
+                    placement: 'right'
                 },
                 {
                     target: '#create_shift',
                     content: 'You can also create new shifts',
-                    placement: 'left',
+                    placement: 'left'
                 },
                 {
                     target: '#filter_shift',
                     content: 'Or filter them for better browsing',
-                    placement: 'left',
+                    placement: 'left'
                 }
             ]
         };
@@ -254,7 +254,7 @@ export class ManageShifts extends Flux.DashView {
               run={this.state.runTutorial}
               callback={callback}
             />
-            <h1 id="shift-details-header" className="float-left">Shift Details</h1>
+            <h1 className="float-left"><span id="shift-details-header">Shift Details</span></h1>
             {shiftsHTML}
         </div>);
     }

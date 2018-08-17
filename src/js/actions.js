@@ -54,6 +54,19 @@ export const fetchAll = (entities) => {
     );
 };
 
+export const fetchSingle = (entity, id, event_name=null) => {
+    const url = entity.slug || entity;
+    GET(url+'/'+id)
+        .then(function(data){
+            if(typeof entity.callback == 'function') entity.callback();
+            Flux.dispatchEvent(event_name || entity.slug || entity, data);
+        })
+        .catch(function(error) {
+            Notify.error(error.message || error);
+            //console.error(error);
+        });
+};
+
 export const search = (entity, queryString) => {
     GET(entity, queryString)
         .then(function(list){
@@ -80,15 +93,19 @@ export const create = (entity, data) => POST(entity, data)
     });
     
 export const update = (entity, data) => {
-    PUT(`${entity}/${data.id}`, data)
-        .then(function(incomingShift){
-            let entities = store.replaceMerged(entity, data.id, data);
-            Flux.dispatchEvent(entity, entities);
-            Notify.success("The "+entity.substring(0, entity.length - 1)+" was updated successfully");
+    const path = (typeof entity == 'string') ? `${entity}/${data.id}` : `${entity.path}/${data.id}`;
+    const event_name = (typeof entity == 'string') ? entity : entity.event_name;
+    PUT(path, data)
+        .then(function(incomingObject){
+            let entities = store.replaceMerged(event_name, data.id, data);
+            Flux.dispatchEvent(event_name, entities);
+            
+            const name = path.split('/');
+            Notify.success("The "+name[0].substring(0, name[0].length - 1)+" was updated successfully");
         })
         .catch(function(error) {
             Notify.error(error.message || error);
-            //console.error(error);
+            console.error(error);
         });
 };
 
@@ -166,6 +183,7 @@ class _Store extends Flux.DashStore{
         super();
         this.addEvent('positions');
         this.addEvent('venues');
+        this.addEvent('current_employer');
         this.addEvent('shiftinvites');
         this.addEvent('jobcore-invites');
         this.addEvent('employees', (employees) => {
@@ -218,20 +236,29 @@ class _Store extends Flux.DashStore{
         else throw new Error('Trying to add a null item into '+type);
     }
     replace(type, id, item){
-        const entities = this.getState(type).concat([]);
-        if(entities) return entities.map(ent => {
-            if(ent.id != id) return ent;
-            return item;
-        });
-        else throw new Error("No item found in "+type);
+        const entities = this.getState(type);
+        if(!entities) throw new Error("No item found in "+type);
+        
+        if(Array.isArray(entities)){
+            return entities.concat([]).map(ent => {
+                if(ent.id != id) return ent;
+                return item;
+            });
+        }
+        else return item;
     }
     replaceMerged(type, id, item){
-        const entities = this.getState(type).concat([]);
-        if(entities) return entities.map(ent => {
-            if(ent.id != id) return ent;
-            return Object.assign(ent, item);
-        });
-        else throw new Error("No item found in "+type);
+        const entities = this.getState(type);
+        if(!entities) throw new Error("No item found in "+type);
+        if(Array.isArray(entities)){
+            return entities.concat([]).map(ent => {
+                if(ent.id != id) return ent;
+                return Object.assign(ent, item);
+            });
+        }
+        else{
+            return Object.assign(entities, item);
+        }
     }
     remove(type, id){
         const entities = this.getState(type);

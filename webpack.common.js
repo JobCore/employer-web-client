@@ -75,7 +75,7 @@ module.exports = {
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
     new HtmlWebpackPlugin({
-        favicon: '4geeks.ico',
+        favicon: 'jobcore.ico',
         template: 'template.html'
     })
   ]

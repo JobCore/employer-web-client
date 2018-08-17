@@ -54,3 +54,14 @@ ul{
         z-index: 11;
     }
 }
+
+.scroll{
+    &::-webkit-scrollbar { width: 5px; }
+    &::-webkit-scrollbar:after { width: 5px; height: 100%; display: inline-block; position: absolute; background: blue; content: ' '; }
+    /* Track */
+    &::-webkit-scrollbar-track { background: $green-000;  }
+    /* Handle */
+    &::-webkit-scrollbar-thumb { background: $green-600; border-radius: 10px;  }
+    /* Handle on hover */
+    &::-webkit-scrollbar-thumb:hover { background: $green-300; cursor: pointer;  }
+}

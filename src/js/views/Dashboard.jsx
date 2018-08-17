@@ -15,17 +15,17 @@ export default class Home extends Flux.DashView {
                 {
                     target: '#draft_shifts',
                     content: 'No one can see your draft shifts, make sure to publish them later',
-                    placement: 'right',
+                    placement: 'right'
                 },
                 {
                     target: '#create_shift',
                     content: 'Start by creating a new shift',
-                    placement: 'right',
+                    placement: 'right'
                 },
                 {
                     target: '#invite_talent_to_jobcore',
                     content: 'Of you can also invite people to your pool of talents',
-                    placement: 'right',
+                    placement: 'right'
                 }
                 // {
                 //     target: '#open_shifts',

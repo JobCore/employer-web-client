@@ -122,12 +122,12 @@ export class ManageTalents extends Flux.DashView {
                 {
                     target: '#talent_search_header',
                     content: 'In this page you can search our entire talent network',
-                    placement: 'right',
+                    placement: 'right'
                 },
                 {
                     target: '#filter_talent',
                     content: 'Start by filtering by name, experience, badges or minium star rating',
-                    placement: 'left',
+                    placement: 'left'
                 }
             ]
         };
@@ -159,7 +159,7 @@ export class ManageTalents extends Flux.DashView {
               steps={this.state.steps}
               run={this.state.runTutorial}
             />
-            <h1 id="talent_search_header">Talent Search</h1>
+            <h1><span id="talent_search_header">Talent Search</span></h1>
             {talentHTML}
         </div>);
     }

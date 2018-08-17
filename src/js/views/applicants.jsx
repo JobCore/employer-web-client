@@ -23,13 +23,13 @@ export class ManageApplicants extends Flux.DashView {
                 {
                     target: '#applicant_details_header',
                     content: 'Here is everyone that has applied to your shifts but you haven\'t accepted or rejected',
-                    placement: 'right',
+                    placement: 'right'
                 },
                 {
                     target: '#filter_applicants',
                     content: 'You can also filter this list of applicants by any desired criteria',
-                    placement: 'left',
-                },
+                    placement: 'left'
+                }
             ]
         };
     }
@@ -127,7 +127,7 @@ export class ManageApplicants extends Flux.DashView {
               steps={this.state.steps}
               run={this.state.runTutorial}
             />
-            <h1 id="applicant_details_header">Applicant Details</h1>
+            <h1><span id="applicant_details_header">Applicant Details</span></h1>
             {
                 (applicansHTML.length == 0) ?
                     <p>No applicants were found for this shift.</p>

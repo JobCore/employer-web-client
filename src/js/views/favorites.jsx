@@ -6,13 +6,27 @@ import {Avatar, Stars, Theme, Modal} from '../components/index';
 import queryString from 'query-string';
 import Select from 'react-select';
 import moment from 'moment';
+import Joyride from 'react-joyride';
 
 export class ManageFavorites extends Flux.DashView {
     
     constructor(){
         super();
         this.state = {
-            employees: []
+            employees: [],
+            runTutorial: false,
+            steps: [
+                {
+                    target: '#your-favorites-heading',
+                    content: 'Here you can manage you favorite lists',
+                    placement: 'right'
+                }
+                // {
+                //     target: '#filter_applicants',
+                //     content: 'You can also filter this list of applicants by any desired criteria',
+                //     placement: 'left',
+                // },
+            ]
         };
     }
     
@@ -26,7 +40,7 @@ export class ManageFavorites extends Flux.DashView {
         this.props.history.listen(() => {
             this.filter();
         });
-        
+        this.setState({ runTutorial: true });
     }
     
     filter(employees=null){
@@ -114,7 +128,11 @@ export class ManageFavorites extends Flux.DashView {
     render() {
         const talentHTML = this.state.employees.map((s,i) => (<EmployeeExtendedCard key={i} employee={s} hover={true} />));
         return (<div className="p-1 listcontents">
-            <h1>Your favorites</h1>
+            <Joyride continuous
+              steps={this.state.steps}
+              run={this.state.runTutorial}
+            />
+            <h1><span id="your-favorites-heading">Your favorite lists</span></h1>
             {talentHTML}
         </div>);
     }

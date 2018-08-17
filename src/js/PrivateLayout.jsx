@@ -10,6 +10,7 @@ import {ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShi
 import {ManageApplicants, ApplicationDetails,FilterApplicants, getApplicantInitialFilters} from './views/applicants';
 import {Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilters, InviteTalentToShift, InviteTalentToJobcore, TalentDetails} from './views/talents';
 import {ManageFavorites, AddTalentToFavlist} from './views/favorites';
+import {Profile} from './views/profile';
 import {store} from './actions';
 import {Notifier} from 'bc-react-notifier';
 import logoURL from '../img/logo.png';
@@ -133,13 +134,13 @@ class PrivateLayout extends Flux.DashView{
                             <li><Link to="/home"><i className="icon icon-dashboard"></i>Dashboard</Link></li>
                             <li><Link to="/talents"><i className="icon icon-talents"></i>Talents</Link></li>
                             <li><Link to="/favorites"><i className="icon icon-favorite"></i>Favorites</Link></li>
-                            <li><Link to="/profile"><i className="icon icon-companyprofile"></i>Company Profile</Link></li>
                             <li><Link to="/applicants"><i className="icon icon-applications"></i>Applications</Link></li>
                             <li><Link to="/shifts"><i className="icon icon-shifts"></i>Shifts</Link></li>
+                            <li><Link to="/profile"><i className="icon icon-companyprofile"></i>Your Profile</Link></li>
                             <li><a href="#" onClick={()=>logout()}><i className="icon icon-logout icon-sm"></i>Logout</a></li>
                         </ul>
                     </div>
-                    <div className="right_pane">
+                    <div className="right_pane bc-scrollbar">
                         <Notifier />
                         <div className="row">
                             <div className="col-12">
@@ -151,6 +152,7 @@ class PrivateLayout extends Flux.DashView{
                             <Route exact path='/applicants' component={ManageApplicants} />
                             <Route exact path='/talents' component={ManageTalents} />
                             <Route exact path='/favorites' component={ManageFavorites} />
+                            <Route exact path='/profile' component={Profile} />
                             <Route exact path='/rate' component={RateShift} />
                             <Route exact path='/home' component={Dashboard} />
                             <Route exact path='/' component={Dashboard} />
