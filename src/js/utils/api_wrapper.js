@@ -80,18 +80,7 @@ export const POST = (endpoint, postData, extraHeaders = {}) => {
   };
   
   const response = fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
-    .then((resp) => {
-      if(resp.status >= 200 && resp.status < 300){
-        const data = resp.json();
-        return data;
-      }
-      else if(resp.status == 400) throw new ValidationError('Invalid parameters for '+endpoint);
-      else if(resp.status == 401) logout();
-      else{
-        throw new Error("There has been an error");
-      }
-      
-    })
+    .then((resp) => processResp(resp))
     .catch(err => {
       throw new Error(`Could not POST model to API due to -> ${err.message || err}`);
     });
@@ -114,12 +103,7 @@ export const PUT = (endpoint, putData, extraHeaders = {}) => {
   };
   
   const response = fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
-    .then((resp) => {
-        if(resp.status == 400) throw new Error('Bad Request');
-        if(resp.status == 401) logout();
-        const data = resp.json();
-        return data;
-    })
+    .then((resp) => processResp(resp))
     .then((data) => {
       if (data.detail) {
         logout();
@@ -134,34 +118,37 @@ export const PUT = (endpoint, putData, extraHeaders = {}) => {
   return response;
 };
 
-export const PATCH = async (endpoint, putData, extraHeaders = {}) => {
-  const response = await fetch(`${rootAPIendpoint}/${endpoint}`, {
-    method: 'PATCH',
-    headers: new Headers({
-      ...HEADERS,
-      ...extraHeaders,
-      Authorization: `JWT ${getToken()}`
-    }),
-    body: putData
-  }).catch(err => {
-    throw new Error(`Could not UPDATE model on API due to -> ${err}`);
-  });
-  const data = await response.json();
-  if (data.detail) {
-    logout();
-    return 0;
-  }
-  return data;
+export const DELETE = (endpoint, extraHeaders = {}) => {
+  
+  HEADERS['Authorization'] = `JWT ${getToken()}`;
+  
+  const REQ = {
+    method: 'DELETE',
+    headers: Object.assign(HEADERS,extraHeaders)
+  };
+  
+  const response = fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
+    .then((resp) => processResp(resp))
+    .then((data) => {
+      if (data.detail) {
+        logout();
+        return 0;
+      }
+      return data;
+    })
+    .catch(err => {
+      throw new Error(`Could not DELETE model on API due to -> ${err}`);
+    });
+  
+  return response;
 };
 
-export const DELETE = async (endpoint, extraHeaders = {}) => {
-  await fetch(`${rootAPIendpoint}/${endpoint}`, {
-    method: 'DELETE',
-    headers: new Headers({
-      ...HEADERS,
-      extraHeaders
-    })
-  }).catch(err => {
-    throw new Error(`Could not GET models from API due to -> ${err}`);
-  });
+const processResp = (resp) => {
+  if(resp.status == 200) return resp.json();
+  else if(resp.status == 400) throw new Error('Bad Request');
+  else if(resp.status == 404) throw new Error('Not found');
+  else if(resp.status == 401) logout();
+  else if(resp.status > 200 && resp.status < 300) return resp;
+  else if(resp.status >= 500 && resp.status < 600) throw new Error('Something bad happened while completing your request! Please try again later.');
+  else return resp;
 };

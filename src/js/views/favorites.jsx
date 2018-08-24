@@ -1,20 +1,65 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import {store, create} from '../actions.js';
-import {Avatar, Stars, Theme, Modal} from '../components/index';
-import queryString from 'query-string';
+import {store, update, remove, updateTalentList} from '../actions.js';
+import {callback, hasTutorial} from '../utils/tutorial';
+import { Modal, ListCard, EmployeeExtendedCard, Button, Theme, Wizard} from '../components/index';
 import Select from 'react-select';
-import moment from 'moment';
-import Joyride from 'react-joyride';
+import {Session} from 'bc-react-session';
+
+export const Favlist = (data) => {
+    
+    const _defaults = {
+        title: '',
+        employees: [],
+        employer: Session.store.getSession().user.profile.employer,
+        serialize: function(filters=[]){
+            
+            const newEntity = {
+                employees: _defaults.employees.map((emp) => emp.id || emp)
+            };
+            let response = Object.assign(this, newEntity);
+            
+            filters.forEach((property) => delete response[property]);
+            return response;
+        }
+    };
+    
+    let _entity = Object.assign(_defaults, data);
+    return {
+        validate: () => {
+            // if(!validator.isEmail(_entity.email)) throw new ValidationError('Please specify the email');
+            // if(validator.isEmpty(_entity.first_name)) throw new ValidationError('Please specify the first name');
+            // if(validator.isEmpty(_entity.last_name)) throw new ValidationError('Please specify the last name');
+            return _entity;
+        },
+        defaults: () => {
+            return _defaults;
+        },
+        getFormData: () => {
+            let _formShift = {
+                id: _entity.id,
+                title: _entity.title,
+                employees: _entity.employees
+            };
+            return _formShift;
+        },
+        filters: () => {
+            const _filters = {
+                // positions: _entity.positions.map( item => item.value ),
+            };
+            return Object.assign(_entity, _filters);
+        }
+    };
+};
 
 export class ManageFavorites extends Flux.DashView {
     
     constructor(){
         super();
         this.state = {
-            employees: [],
-            runTutorial: false,
+            lists: [],
+            runTutorial: hasTutorial(),
             steps: [
                 {
                     target: '#your-favorites-heading',
@@ -32,154 +77,69 @@ export class ManageFavorites extends Flux.DashView {
     
     componentDidMount(){
         
-        this.filter();
-        this.subscribe(store, 'employees', (employees) => {
-            this.filter(employees);
+        const lists = store.getState('favlists');
+        this.subscribe(store, 'favlists', (lists) => {
+            this.setState({ lists });
         });
-        
-        this.props.history.listen(() => {
-            this.filter();
-        });
-        this.setState({ runTutorial: true });
-    }
-    
-    filter(employees=null){
-        let filters = this.getFilters();
-        if(!employees) employees = store.getState('employees');
-        if(employees){
-            this.setState({
-                employees: employees.filter((applicant) => {
-                    for(let f in filters){
-                        const matches = filters[f].matches(applicant);
-                        if(!matches) return false;
-                    }
-                            
-                    return true;
-                }).sort((employee) => moment().diff(employee.created_at, 'minutes'))
-            });
-        }
-        else this.setState({applicant: []});
-    }
-    
-    getFilters(){
-        let filters = queryString.parse(window.location.search);
-        for(let f in filters){
-            switch(f){
-                case "status":
-                    filters[f] = {
-                        value: filters[f],
-                        matches: (shift) => shift.status == filters.status.value
-                    };
-                break;
-                case "position":
-                    filters[f] = {
-                        value: filters[f],
-                        matches: (shift) => {
-                            if(!filters.position.value) return true;
-                            if(isNaN(filters.position.value)) return true;
-                            return shift.position.id == filters.position.value;
-                        }
-                    };
-                break;
-                case "venue":
-                    filters[f] = {
-                        value: filters[f],
-                        matches: (shift) => {
-                            if(!filters.venue.value) return true;
-                            if(isNaN(filters.venue.value)) return true;
-                            return shift.venue.id == filters.venue.value;
-                        }
-                    };
-                break;
-                case "rating":
-                    filters[f] = {
-                        value: filters[f],
-                        matches: (shift) => {
-                            if(!filters.rating.value) return true;
-                            if(isNaN(filters.rating.value)) return true;
-                            return parseInt(shift.rating) >= filters.rating.value;
-                        }
-                    };
-                break;
-                case "minimum_hourly_rate":
-                    filters[f] = {
-                        value: filters[f],
-                        matches: (shift) => {
-                            if(!filters.minimum_hourly_rate.value) return true;
-                            if(isNaN(filters.minimum_hourly_rate.value)) return true;
-                            return parseInt(shift.minimum_hourly_rate) >= filters.minimum_hourly_rate.value;
-                        }
-                    };
-                break;
-                case "date":
-                    filters[f] = {
-                        value: filters[f],
-                        matches: (shift) => {
-                            const fdate = moment(filters.date.value);
-                            return shift.date.diff(fdate, 'days') == 0;
-                        }
-                    };
-                break;
-            }
-        }
-        return filters;
+        this.setState({ lists: (lists) ? lists:[], runTutorial: true });
     }
     
     render() {
-        const talentHTML = this.state.employees.map((s,i) => (<EmployeeExtendedCard key={i} employee={s} hover={true} />));
         return (<div className="p-1 listcontents">
-            <Joyride continuous
+            <Wizard continuous
               steps={this.state.steps}
               run={this.state.runTutorial}
+              callback={callback}
             />
             <h1><span id="your-favorites-heading">Your favorite lists</span></h1>
-            {talentHTML}
+            <Theme.Consumer>
+                {({bar}) => 
+                    this.state.lists.map((list,i) => (
+                        <ListCard key={i} list={list} onClick={() => 
+                            bar.show({ slug: "favlist_employees", data: list, title: "List Details" })}
+                        >
+                            <button type="button" className="btn btn-secondary"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    bar.show({ slug: "update_favlist", data: list, title: "List Details" });
+                            }}>
+                                <i className="fas fa-pencil-alt"></i>
+                            </button>
+                            <button type="button" className="btn btn-secondary"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    remove('favlists', list);
+                            }}>
+                                <i className="fas fa-trash-alt"></i>
+                            </button>
+                        </ListCard>
+                    ))
+                }
+            </Theme.Consumer>
         </div>);
     }
 }
-
-
-/**
- * Applican Card
- */
-export const EmployeeExtendedCard = (props) => {
-    return (<Theme.Consumer>
-        {({bar}) => 
-            (<li className="aplicantcard"
-                    onClick={() => bar.show({ slug: "show_single_applicant", data: {}, title: "Application Details" })}
-                >
-                <Avatar url={props.employee.profile.picture} />
-                <a href="#">{props.employee.profile.user.first_name + " " + props.employee.profile.user.last_name}</a>
-                <Stars rating={Number(props.employee.rating)}  />
-            </li>)}
-    </Theme.Consumer>);
-};
-EmployeeExtendedCard.propTypes = {
-  employee: PropTypes.object.isRequired
-};
 
 /**
  * Add To Favorite List
  */
 export const AddTalentToFavlist = (props) => {
     
-    const favlists = props.catalog.favlists.map(item => ({ value: item.id, label: item.title }));
     return (<form>
         <div className="row">
             <div className="col-12">
                 <label>Pick your favorite lists:</label>
-                <Select multi className="select-favlists"
+                <Select isMulti className="select-favlists"
                     value={props.formData.favoriteLists}
                     onChange={(selectedOption) => props.onChange({favoriteLists: selectedOption})} 
-                    options={favlists.concat([{ value: 'new_favlist', label: "Add to new list" }])}
-                >
-                </Select>
+                    options={props.catalog.favlists}
+                />
             </div>
         </div>
         <p>Click on invite add the talent to your favorite lists</p>
         <div className="btn-bar">
-            <button type="button" className="btn btn-primary" onClick={() => props.onSave()}>Save</button>
-            <button type="button" className="btn btn-secondary" onClick={() => props.onCancel()}>Cancel</button>
+            <Button color="primary" onClick={() => props.onSave()}>Save</Button>
+            <Button color="secondary" onClick={() => props.onCancel()}>Cancel</Button>
         </div>
     </form>);
 };
@@ -191,24 +151,65 @@ AddTalentToFavlist.propTypes = {
   catalog: PropTypes.object //contains the data needed for the form to load
 };
 
-export class AddFavlist extends React.Component{
-    constructor(){
-        super();
-        this.state = { listName: '' };
-    }
-    render(){
-        return (<Modal>
-            <h1>Please speficy the name of your new favorite list</h1>
-            <input type="text" value={this.state.listName} onChange={(e)=> this.setState({listName: e.target.value})} />
-            <p>
-                <button className="btn btn-light" onClick={() => this.props.onConfirm(false)}>Cancel</button>
-                <button className="btn btn-success ml-2" onClick={() => create('favlists', { title: this.state.listName }).then(() => this.props.onConfirm(true))}>
-                    Confirm
-                </button>
-            </p>
-        </Modal>);
-    }
-}
+export const AddFavlist = ({ formData, onChange, onSave, onCancel }) => (<form>
+    <input type="text" className="form-control" 
+        placeholder="List name"
+        value={formData.title} 
+        onChange={(e)=> onChange({title: e.target.value})} 
+    />
+    <div className="btn-bar">
+        <Button color="light" onClick={() => onCancel()}>Cancel</Button>
+        <Button color="success" className="ml-2" onClick={() => onSave()}>
+            Save
+        </Button>
+    </div>
+</form>);
 AddFavlist.propTypes = {
-  onConfirm: PropTypes.func
+    onSave: PropTypes.func.isRequired,
+    formData: PropTypes.object.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    onChange: PropTypes.func.isRequired,
+    catalog: PropTypes.object //contains the data needed for the form to load
+};
+
+export const FavlistEmployees = ({ formData, onChange, onSave }) => {
+    return (<form>
+        <Theme.Consumer>
+            {({bar}) => (<span>
+                <div className="row">
+                    <div className="col-12">
+                        <label>Talents:</label>
+                        <ul>
+                            {formData.employees.map((em,i) => (
+                                <EmployeeExtendedCard 
+                                    key={i} 
+                                    employee={em} 
+                                    hover={false} 
+                                    showFavlist={false}
+                                    onClick={() => bar.show({ slug: "show_single_talent", data: em, allowLevels: true })}
+                                >
+                                    <Button className="mt-0" icon="trash" label="Delete" onClick={() => {
+                                        updateTalentList('delete', em.id,formData.id);
+                                    }}/>
+                                </EmployeeExtendedCard>)
+                            )}
+                        </ul>
+                    </div>
+                </div>
+                <div className="btn-bar">
+                    <button type="button" className="btn btn-primary" onClick={() => 
+                        bar.show({ slug: "update_favlist", data: formData, allowLevels: true })
+                    }>Rename</button>
+                    <button type="button" className="btn btn-secondary" onClick={() => onSave()}>Add Talents</button>
+                </div>
+            </span>)}
+        </Theme.Consumer>
+    </form>);
+};
+FavlistEmployees.propTypes = {
+    onSave: PropTypes.func.isRequired,
+    formData: PropTypes.object.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    onChange: PropTypes.func.isRequired,
+    catalog: PropTypes.object //contains the data needed for the form to load
 };

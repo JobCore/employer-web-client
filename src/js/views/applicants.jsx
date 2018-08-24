@@ -1,12 +1,12 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import {AcceptReject, Avatar, Stars, Theme} from '../components/index';
+import {AcceptReject, Avatar, Stars, Theme, Wizard} from '../components/index';
 import {store, rejectCandidate, acceptCandidate} from '../actions.js';
 import queryString from 'query-string';
 import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
 import moment from 'moment';
-import Joyride from 'react-joyride';
+import {callback, hasTutorial} from '../utils/tutorial';
 //gets the querystring and creats a formData object to be used when opening the rightbar
 export const getApplicantInitialFilters = () => {
     return {};
@@ -18,7 +18,7 @@ export class ManageApplicants extends Flux.DashView {
         super();
         this.state = {
             applicants: [],
-            runTutorial: false,
+            runTutorial: hasTutorial(),
             steps: [
                 {
                     target: '#applicant_details_header',
@@ -123,9 +123,10 @@ export class ManageApplicants extends Flux.DashView {
     render() {
         const applicansHTML = this.state.applicants.map((a,i) => (<ApplicantExtendedCard key={i} applicant={a} shift={a.shift} hover={true} />));
         return (<div className="p-1 listcontents">
-            <Joyride continuous
+            <Wizard continuous
               steps={this.state.steps}
               run={this.state.runTutorial}
+              callback={callback}
             />
             <h1><span id="applicant_details_header">Applicant Details</span></h1>
             {

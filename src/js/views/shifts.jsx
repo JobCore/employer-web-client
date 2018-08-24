@@ -7,10 +7,11 @@ import _ from 'underscore';
 import Select from 'react-select';
 import {Notify} from 'bc-react-notifier';
 import queryString from 'query-string';
-import {ShiftCard} from '../components/index';
-import Joyride from 'react-joyride';
+import {Session} from 'bc-react-session';
+import {ShiftCard, Wizard} from '../components/index';
 import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
 import {validator, ValidationError} from '../utils/validation';
+import {callback, hasTutorial} from '../utils/tutorial';
 
 import TimePicker from 'rc-time-picker';
 import moment from 'moment';
@@ -26,6 +27,7 @@ export const Shift = (data) => {
     const _defaults = {
         position: '',
         maximum_allowed_employees: '1',
+        application_restriction: 'ANYONE',
         minimum_hourly_rate: '8',
         date: NOW,
         candidates:[],
@@ -33,6 +35,7 @@ export const Shift = (data) => {
         finish_time: NOW,
         allowed_from_list: [],
         allowedFavlists: [],
+        allowedTalents: [],
         minimum_allowed_rating: '1',
         venue: '',
         status: 'UNDEFINED',
@@ -101,6 +104,7 @@ export const Shift = (data) => {
         getFormData: () => {
             const _formShift = {
                 id: _shift.id.toString(),
+                application_restriction: _shift.application_restriction,
                 position: _shift.position.id.toString() || _shift.position.toString(),
                 maximum_allowed_employees: _shift.maximum_allowed_employees.toString(),
                 minimum_hourly_rate: _shift.minimum_hourly_rate.toString(),
@@ -123,7 +127,7 @@ export class ManageShifts extends Flux.DashView {
         super();
         this.state = {
             shifts: [],
-            runTutorial: false,
+            runTutorial: hasTutorial(),
             steps: [
                 {
                     target: '#shift-details-header',
@@ -234,9 +238,6 @@ export class ManageShifts extends Flux.DashView {
     
     
     render() {
-        const callback = (data) => {
-            //const { action, index, type } = data;
-        };
         const groupedShifts = _.groupBy(this.state.shifts, (s) => s.date.format('MMMM YYYY'));
         const shiftsHTML = [];
         for(let date in groupedShifts){
@@ -249,7 +250,7 @@ export class ManageShifts extends Flux.DashView {
             
         }
         return (<div className="p-1 listcontents">
-            <Joyride continuous
+            <Wizard continuous
               steps={this.state.steps}
               run={this.state.runTutorial}
               callback={callback}
@@ -268,12 +269,10 @@ export const FilterShifts = ({onSave, onCancel, onChange, catalog}) => (<form>
     <div className="row">
         <div className="col">
             <label>Looking for</label>
-            <select className="form-control" onChange={(e)=>onChange({position: e.target.value})} >
-                <option>Select a position</option>
-                {
-                    catalog.positions.map((pos,i)=>(<option key={i} value={pos.id}>{pos.title}</option>))
-                }
-            </select>
+            <Select 
+                onChange={(selection)=>onChange({position: selection.value.toString()})}
+                options={catalog.positions}
+            />
         </div>
     </div>
     <div className="row">
@@ -288,53 +287,25 @@ export const FilterShifts = ({onSave, onCancel, onChange, catalog}) => (<form>
     </div>
     <div className="row">
         <div className="col">
-            <label>From</label>
-            <TimePicker 
-                format={TIME_FORMAT}
-                showSecond={false}
-                minuteStep={15}
-                defaultValue={NOW}
-                use12Hours={true}
-                onChange={(value)=>onChange({start_time: value.format(TIME_FORMAT)})}
-            />
-        </div>
-        <div className="col">
-            <label>To</label>
-            <TimePicker 
-                format={TIME_FORMAT}
-                showSecond={false}
-                minuteStep={15}
-                defaultValue={NOW}
-                use12Hours={true}
-                onChange={(value)=>onChange({finish_time: value.format(TIME_FORMAT)})}
-            />
-        </div>
-    </div>
-    <div className="row">
-        <div className="col">
             <label>Location</label>
-            <select className="form-control" onChange={(e)=>onChange({venue: e.target.value})} >
-                <option value={null}>Select a location</option>
-                {
-                    catalog.venues.map((ven,i)=>(<option key={i} value={ven.id}>{ven.title}</option>))
-                }
-            </select>
+            <Select
+                onChange={(selection)=>onChange({venue: selection.value.toString()})}
+                options={catalog.venues}
+            />
         </div>
     </div>
     <div className="row">
         <div className="col">
             <label>Status</label>
-            <select className="form-control" onChange={(e)=>onChange({status: e.target.value})} >
-                <option value={null}>Select a status</option>
-                <option value={'DRAFT'}>DRAFT</option>
-                <option value={'OPEN'}>OPEN</option>
-                <option value={'UPCOMING'}>UPCOMING</option>
-            </select>
+            <Select
+                onChange={(selection)=>onChange({status: selection.value.toString()})}
+                options={catalog.shiftStatus}
+            />
         </div>
     </div>
     <div className="btn-bar">
         <button type="button" className="btn btn-primary" onClick={() => onSave()}>Apply Filters</button>
-        <button type="button" className="btn btn-secondary" onClick={() => onCancel()}>Cancel</button>
+        <button type="button" className="btn btn-secondary" onClick={() => onSave(false)}>Clear Filters</button>
     </div>
 </form>);
 FilterShifts.propTypes = {
@@ -357,9 +328,6 @@ export const ShiftApplicants = ({onCancel, onSave, catalog}) => {
             :
                 <p>No applicants were found for this shift.</p>
         }
-        <div className="btn-bar">
-            <button type="button" className="btn btn-secondary" onClick={() => onCancel()}>Close</button>
-        </div>
     </div>);
 };
 ShiftApplicants.propTypes = {
@@ -385,14 +353,11 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
     <div className="row">
         <div className="col-6">
             <label>Looking for</label>
-            <select className="form-control"
-                value={formData.position}
-                onChange={(e)=>onChange({position: e.target.value})} >
-                <option>Select a position</option>
-                {
-                    catalog.positions.map((pos,i)=>(<option key={i} value={pos.id}>{pos.title}</option>))
-                }
-            </select>
+            <Select
+                value={ catalog.positions.find((pos) => pos.value == formData.position)}
+                onChange={(selection)=>onChange({position: selection.value.toString()})}
+                options={[{label: 'Select a position', value: ''}].concat(catalog.positions)}
+            />
         </div>
         <div className="col-6">
             <label>How many?</label>
@@ -446,15 +411,11 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
     <div className="row">
         <div className="col-12">
             <label>Location</label>
-            <select className="form-control" 
-                value={formData.venue}
-                onChange={(e)=>onChange({venue: e.target.value})} 
-            >
-                <option value={null}>Select a location</option>
-                {
-                    catalog.venues.map((ven,i)=>(<option key={i} value={ven.id}>{ven.title}</option>))
-                }
-            </select>
+            <Select 
+                value={ catalog.venues.find((ven) => ven.value == formData.venue)}
+                onChange={(selection)=>onChange({ venue: selection.value.toString() })} 
+                options={[{ label: "Select a location", value: '' }].concat(catalog.venues)}
+            />
         </div>
     </div>
     <div className="row mt-3">
@@ -463,36 +424,56 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
         </div>
     </div>
     <div className="row">
-        <div className="col-6">
-            <label>Minimum rating</label>
-        </div>
-        <div className="col-6">
-            <select className="form-control" 
-                value={formData.minimum_allowed_rating}
-                onChange={(e)=>onChange({minimum_allowed_rating: e.target.value})} 
-            >
-                <option value={1}>1 star</option>
-                <option value={2}>2 stars</option>
-                <option value={3}>3 stars</option>
-                <option value={4}>4 stars</option>
-                <option value={5}>5 stars</option>
-            </select>
-        </div>
-    </div>
-    <div className="row">
         <div className="col-12">
-            <label>From these favorite lists</label>
-            <Select multi
-                value={formData.allowedFavlists}
-                onChange={(opt)=> onChange({allowedFavlists: opt})} 
-                options={catalog.favlists.map(f => ({value: f.id, label: f.title}))}
-            >
-            </Select>
+            <Select
+                value={ catalog.applicationRestrictions.find((a) => a.value == formData.application_restriction)}
+                onChange={(selection)=>onChange({application_restriction: selection.value.toString()})} 
+                options={catalog.applicationRestrictions}
+            />
         </div>
     </div>
+    {
+        (formData.application_restriction == "FAVORITES") ? 
+            <div className="row">
+                <div className="col-12">
+                    <label>From these favorite lists</label>
+                    <Select isMulti
+                        value={formData.allowedFavlists}
+                        onChange={(opt)=> onChange({allowedFavlists: opt})} 
+                        options={catalog.favlists}
+                    >
+                    </Select>
+                </div>
+            </div>
+        : (formData.application_restriction == "ANYONE") ?
+            <div className="row mt-3">
+                <div className="col-5">
+                    <label className="mt-2">Minimum rating</label>
+                </div>
+                <div className="col-7">
+                    <Select
+                        value={ catalog.stars.find((s) => s.value == formData.minimum_allowed_rating)}
+                        onChange={(selection)=>onChange({minimum_allowed_rating: selection.value})}
+                        options={catalog.stars}
+                    />
+                </div>
+            </div>
+        :
+            <div className="row">
+                <div className="col-12">
+                    <label>Search and pick from your favorites:</label>
+                    <Select multi className="select-employee"
+                        value={formData.specificPeople}
+                        onChange={(selection) => onChange({ specificPeople: selection})} 
+                        options={catalog.favoriteEmployees}
+                    >
+                    </Select>
+                </div>
+            </div>
+    }
     <div className="btn-bar">
         { (formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ? 
-            <button type="button" className="btn btn-success" onClick={() => onSave({status: 'DRAFT'})}>Save as DRAFT</button>:''
+            <button type="button" className="btn btn-success" onClick={() => onSave({status: 'DRAFT'})}>Save as draft</button>:''
         }
         { (formData.status == 'DRAFT') ? 
             <button type="button" className="btn btn-primary" onClick={() => {
@@ -507,18 +488,27 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
                         if(answer) onSave({status: 'DRAFT'});
                         noti.remove();
                     });
-            }}>Convert to draft</button>:''
+            }}>Unpublish shift</button>:''
         }
-    </div>
-    {(formData.status != 'UNDEFINED')?
-        <p className="text-right">
-            <button type="button" className="not-btn text-danger" onClick={() => {
+        { (formData.status != 'UNDEFINED') ?
+            <button type="button" className="btn btn-danger" onClick={() => {
                 const noti = Notify.info("Are you sure you want to cancel this shift?",(answer) => {
                     if(answer) onSave({status: 'CANCELLED'});
                     noti.remove();
                 });
-            }}>cancel this shift</button>
-        </p>:''
+            }}>Cancel shift</button>:''
+        }
+    </div>
+    {
+        // (formData.status != 'UNDEFINED')?
+        //     <p className="text-right">
+        //         <button type="button" className="not-btn text-danger" onClick={() => {
+        //             const noti = Notify.info("Are you sure you want to cancel this shift?",(answer) => {
+        //                 if(answer) onSave({status: 'CANCELLED'});
+        //                 noti.remove();
+        //             });
+        //         }}>Cancel shift</button>
+        //     </p>:''
     }
 </form>);
 ShiftDetails.propTypes = {

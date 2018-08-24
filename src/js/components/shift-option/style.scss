@@ -1,18 +1,21 @@
 @import '../theme/style.scss';
 .select-shifts{
-    .Select-value-label{
-        width: 93%;
-    }
-    .Select-value-icon{
-        height: 40px;
-        line-height: 36px;
+    .delete-btn{
+        cursor: pointer;
+        margin-top: 16px; margin-left: 5px;
+        &:hover{ color: $green-500;}
     }
     .shift-option{
+        padding: 5px;
         a,span{
             &.shift-position{color: $fuchsia;}
             &.shift-location{color: $green-600;}
-            &.shift-date{color: $black;}
+            &.shift-date{color: $black; font-weight: 500;}
             &.shift-price{color: $red;}
+        }
+        &:hover{
+            background: $green-000;
+            cursor: pointer;
         }
     }
 }

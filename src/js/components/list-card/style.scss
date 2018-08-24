@@ -1,29 +1,10 @@
 @import '../theme/style.scss';
-.aplicantcard{
+.list-card{
     list-style: none;
     position: relative;
-    padding: 5px 70px 5px 55px;
+    padding: 5px 70px 5px 15px;
     border-radius: 30px;
     p{margin: 0;}
-    a,span{
-        &.shift-position{color: $fuchsia;}
-        &.shift-location{color: $green-600;}
-        &.shift-date{color: $black;}
-        &.shift-price{color: $red;}
-    }
-    .starrating{
-        font-size: 14px;
-    }
-    .avatar{
-        position: absolute;
-        left: 8px;
-        top: 8px;
-    }
-    .accept-reject{
-        position: absolute;
-        right: 8px;
-        top: 8px;
-    }
     &:hover{
         background: $green-000;
         cursor: pointer;
@@ -32,7 +13,7 @@
         display: none;
         position: absolute;
         right: 0px;
-        top: 14px;
+        top: 15px;
         .icon{
             width: 20px;
             height: 20px;
@@ -50,12 +31,12 @@
         label{
             position: absolute;
             font-size: 75%;
-            top: -10px;
+            top: -15px;
             right: 0;
             left: 0;
         }
     }
-    &.aplicantcard-hover:hover{
+    &:hover{
         .btn-group{
             display: inline-block;
         }

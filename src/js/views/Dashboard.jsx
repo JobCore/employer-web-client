@@ -1,22 +1,16 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 //include images into your bundle
-import {DashboardBox} from '../components/index';
+import {DashboardBox, Wizard } from '../components/index';
 import {store} from '../actions.js';
-import Joyride from 'react-joyride';
-
+import {callback, hasTutorial} from '../utils/tutorial';
 export default class Home extends Flux.DashView {
     constructor(){
         super();
         this.state = {
             shifts: [],
-            runTutorial: false,
+            runTutorial: hasTutorial(),
             steps: [
-                {
-                    target: '#draft_shifts',
-                    content: 'No one can see your draft shifts, make sure to publish them later',
-                    placement: 'right'
-                },
                 {
                     target: '#create_shift',
                     content: 'Start by creating a new shift',
@@ -24,7 +18,12 @@ export default class Home extends Flux.DashView {
                 },
                 {
                     target: '#invite_talent_to_jobcore',
-                    content: 'Of you can also invite people to your pool of talents',
+                    content: 'Or you can also invite people to your pool of talents',
+                    placement: 'right'
+                },
+                {
+                    target: '#draft_shifts',
+                    content: 'Finally, you can see your current shifts grouped by status: Drafts, Open (Receiving applicants), Upcoming and Pending to process payment.',
                     placement: 'right'
                 }
                 // {
@@ -55,12 +54,9 @@ export default class Home extends Flux.DashView {
         this.setState({ runTutorial: true });
     }
     render() {
-        const callback = (data) => {
-            //const { action, index, type } = data;
-        };
         return (
             <div>
-                <Joyride continuous
+                <Wizard continuous
                   steps={this.state.steps}
                   run={this.state.runTutorial}
                   callback={callback}
@@ -71,7 +67,7 @@ export default class Home extends Flux.DashView {
                         <DashboardBox id="draft_shifts" shifts={this.state.shifts.filter(s => s.status == 'DRAFT')} title="Draft Shifts" status="DRAFT" />
                         <DashboardBox id="open_shifts" shifts={this.state.shifts.filter(s => s.status == 'OPEN')} title="Open Shifts" status="OPEN" />
                         <DashboardBox id="upcoming_shifts" shifts={this.state.shifts.filter(s => s.status == 'FILLED')} title="Upcoming Shifts" status="FILLED" />
-                        <DashboardBox id="pending_shifts" shifts={this.state.shifts.filter(s => s.status == 'UNPAID')} title="Shifts with pending payments" status="UNPAID" />
+                        <DashboardBox id="pending_shifts" shifts={this.state.shifts.filter(s => s.status == 'UNPAID')} title="Pending for payments" status="UNPAID" />
                     </div>
                 </div>
             </div>

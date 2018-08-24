@@ -3,15 +3,15 @@ import Flux from '@4geeksacademy/react-flux-dash';
 import {Session} from 'bc-react-session';
 import {Notify} from 'bc-react-notifier';
 import {Shift} from './views/shifts';
-import {POST, GET, PUT} from './utils/api_wrapper';
+import {POST, GET, PUT, DELETE} from './utils/api_wrapper';
 
 export const login = (email, password) => {
     POST('login', {
       username_or_email: email,
       password: password
     })
-    .then(function(data){
-        Session.actions.login({ user: data.user, access_token: data.token });
+    .then(function({ user, token}){
+        Session.actions.login({ user, access_token: token });
     })
     .catch(function(error) {
         Notify.error(error.message || error);
@@ -109,6 +109,34 @@ export const update = (entity, data) => {
         });
 };
 
+export const updateProfile = (data) => {
+    PUT(`profiles/${data.id}`, data)
+        .then(function(incomingObject){
+            Session.actions.setUser({ profile: incomingObject });
+        })
+        .catch(function(error) {
+            Notify.error(error.message || error);
+            console.error(error);
+        });
+};
+
+export const remove = (entity, data) => {
+    const path = (typeof entity == 'string') ? `${entity}/${data.id}` : `${entity.path}/${data.id}`;
+    const event_name = (typeof entity == 'string') ? entity : entity.event_name;
+    DELETE(path)
+        .then(function(incomingObject){
+            let entities = store.remove(event_name, data.id);
+            Flux.dispatchEvent(event_name, entities);
+            
+            const name = path.split('/');
+            Notify.success("The "+name[0].substring(0, name[0].length - 1)+" was updated successfully");
+        })
+        .catch(function(error) {
+            Notify.error(error.message || error);
+            //console.error(error);
+        });
+};
+
 export const rejectCandidate = (shiftId, applicant) => {
     const shift = store.get('shifts', shiftId);
     if(shift){
@@ -160,17 +188,15 @@ export const acceptCandidate = (shiftId, applicant) => {
 export const updateTalentList = (action, employeeId, listId) => {
     const favoriteList = store.get("favlists", listId);
     if(favoriteList){
-        
-        let employeeIdsArr = favoriteList.employees.map(employee => employee.id);
-    
+        let employeeIdsArr = favoriteList.employees.map(employee => employee.id || employee);
         if (action === 'add') {
           employeeIdsArr.push(employeeId);
         } else {
           employeeIdsArr = employeeIdsArr.filter((id) => id != employeeId);
         }
-        PUT('favlists', listId, { employees: employeeIdsArr }).then((updatedFavlist) => {
-            Flux.dispatchEvent('favlists', store.replace("favlists", updatedFavlist.id, updatedFavlist));
-            Notify.success("The talent was successfully added to the favorite list");
+        PUT('favlists/'+listId, { employees: employeeIdsArr }).then((updatedFavlist) => {
+            Flux.dispatchEvent('favlists', store.replaceMerged("favlists", listId, { employees: favoriteList.employees.filter((emp) => emp.id != employeeId) }));
+            Notify.success(`The talent was successfully ${(action == 'add') ? 'added' : 'removed'}`);
         });
     }
     else{

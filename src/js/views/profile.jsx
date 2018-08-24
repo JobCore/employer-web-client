@@ -1,10 +1,7 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
-import PropTypes from 'prop-types';
-import {Theme} from '../components/index';
 import {store, fetchSingle, update} from '../actions.js';
 import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
-import moment from 'moment';
 import {Session} from 'bc-react-session';
 import {validator, ValidationError} from '../utils/validation';
 

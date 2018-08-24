@@ -2,10 +2,10 @@ import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
 import {store, search} from '../actions.js';
-import {EmployeeExtendedCard, ShiftOption, Avatar, Stars, Theme} from '../components/index';
+import {callback, hasTutorial} from '../utils/tutorial';
+import {EmployeeExtendedCard, ShiftOption, ShiftOptionSelected, Avatar, Stars, Theme, Button, Wizard} from '../components/index';
 import Select from 'react-select';
 import queryString from 'query-string';
-import Joyride from 'react-joyride';
 
 import {Session} from 'bc-react-session';
 const user = Session.store.getSession().user;
@@ -117,7 +117,7 @@ export class ManageTalents extends Flux.DashView {
         super();
         this.state = {
             employees: [],
-            runTutorial: false,
+            runTutorial: hasTutorial(),
             steps: [
                 {
                     target: '#talent_search_header',
@@ -153,14 +153,25 @@ export class ManageTalents extends Flux.DashView {
     
     render() {
         if(this.state.firstSearch) return <p>Please search for an employee</p>;
-        const talentHTML = this.state.employees.map((s,i) => (<EmployeeExtendedCard key={i} employee={s} hover={true} />));
+        const allowLevels = (window.location.search != '');
         return (<div className="p-1 listcontents">
-            <Joyride continuous
-              steps={this.state.steps}
-              run={this.state.runTutorial}
-            />
-            <h1><span id="talent_search_header">Talent Search</span></h1>
-            {talentHTML}
+            <Theme.Consumer>
+                {({bar}) => (<span>
+                    <Wizard continuous
+                      steps={this.state.steps}
+                      run={this.state.runTutorial}
+                      callback={callback}
+                    />
+                    <h1><span id="talent_search_header">Talent Search</span></h1>
+                    {this.state.employees.map((s,i) => (
+                        <EmployeeExtendedCard key={i} employee={s} hover={true} 
+                            onClick={() => bar.show({ slug: "show_single_talent", data: s, allowLevels })}>
+                            <Button icon="favorite" onClick={() => bar.show({ slug: "add_to_favlist", data: s, allowLevels })}><label>Favorites</label></Button>
+                            <Button icon="favorite" onClick={() => bar.show({ slug: "invite_talent", data: s, allowLevels })}><label>Invite</label></Button>
+                        </EmployeeExtendedCard>
+                    ))}
+                </span>)}
+            </Theme.Consumer>
         </div>);
     }
 }
@@ -169,9 +180,6 @@ export class ManageTalents extends Flux.DashView {
  * AddShift
  */
 export const FilterTalents = (props) => {
-    
-    const positions = props.catalog.positions.map(pos => ({ value: pos.id, label: pos.title }));
-    const badges = props.catalog.badges.map(bad => ({ value: bad.id, label: bad.title }));
     return (<form>
         <div className="row">
             <div className="col-6">
@@ -192,43 +200,36 @@ export const FilterTalents = (props) => {
         <div className="row">
             <div className="col-12">
                 <label>Experience in past positions:</label>
-                <Select multi
+                <Select isMulti
                     value={props.formData.positions}
                     onChange={(selectedOption)=>props.onChange({positions: selectedOption})} 
-                    options={positions}
-                >
-                </Select>
+                    options={props.catalog.positions}
+                />
             </div>
         </div>
         <div className="row">
             <div className="col-12">
                 <label>Badges:</label>
-                <Select multi
+                <Select isMulti
                     value={props.formData.badges}
                     onChange={(selectedOption)=>props.onChange({badges: selectedOption})} 
-                    options={badges}
-                >
-                </Select>
+                    options={props.catalog.badges}
+                />
             </div>
         </div>
         <div className="row">
             <div className="col-12">
                 <label>Minimum start rating</label>
-                <select className="form-control" 
+                <Select
                     value={props.formData.rating}
-                    onChange={(e)=>props.onChange({rating: e.target.value})} 
-                >
-                    <option value={1}>1 star</option>
-                    <option value={2}>2 star</option>
-                    <option value={3}>3 star</option>
-                    <option value={4}>4 star</option>
-                    <option value={5}>5 star</option>
-                </select>
+                    onChange={(opt)=>props.onChange({rating: opt.value})} 
+                    options={props.catalog.stars}
+                />
             </div>
         </div>
         <div className="btn-bar">
-            <button type="button" className="btn btn-primary" onClick={() => props.onSave()}>Apply Filters</button>
-            <button type="button" className="btn btn-secondary" onClick={() => props.onCancel()}>Cancel</button>
+            <Button color="primary" onClick={() => props.onSave()}>Apply Filters</Button>
+            <Button color="secondary" onClick={() => props.onSave(false)}>Clear Filters</Button>
         </div>
     </form>);
 };
@@ -250,18 +251,15 @@ export const TalentDetails = (props) => {
             (<li className="aplication-details">
                 <Avatar url={employee.profile.picture} />
                 <p>{employee.profile.user.first_name + " " + employee.profile.user.last_name}</p>
-                <Stars rating={Number(employee.rating)}  />
-                <span>Doing 4 jobs</span>
+                <p>
+                    <Stars className="float-left" rating={Number(employee.rating)}  />
+                    <span>Doing 4 jobs</span>
+                </p>
                 <p>$ 13 /hr Minimum Rate</p>
                 <p>{employee.profile.bio}</p>
                 <div className="btn-bar">
-                    <button type="button" className="btn btn-primary" 
-                        onClick={() => bar.show({ slug: "invite_talent", data: employee, title: "Invite Talent" })}
-                    >Invite</button>
-                    <button type="button" className="btn btn-success" 
-                        onClick={() => bar.show({ slug: "add_to_favlist", data: employee, title: "Add to favorites" })}
-                    >Add to favorites</button>
-                    <button type="button" className="btn btn-secondary" onClick={() => bar.close()}>Close</button>
+                    <Button color="primary" onClick={() => bar.show({ slug: "invite_talent", data: employee, allowLevels:true })}>Invite to shift</Button>
+                    <Button color="success" onClick={() => bar.show({ slug: "add_to_favlist", data: employee, allowLevels:true })}>Add to favorites</Button>
                 </div>
             </li>)}
     </Theme.Consumer>);
@@ -280,20 +278,18 @@ export const InviteTalentToShift = (props) => {
         <div className="row">
             <div className="col-12">
                 <label>Pick your shifts:</label>
-                <Select multi className="select-shifts"
+                <Select isMulti className="select-shifts"
                     value={props.formData.shifts}
-                    optionRenderer={ShiftOption}
+                    components={{ Option: ShiftOption, MultiValue: ShiftOptionSelected }}
                     onChange={(selectedOption)=>props.onChange({shifts: selectedOption})} 
                     options={shifts}
-                    valueRenderer={ShiftOption}
                 >
                 </Select>
             </div>
         </div>
         <p>Click on invite to invite the talent to your selected shifts</p>
         <div className="btn-bar">
-            <button type="button" className="btn btn-primary" onClick={() => props.onSave()}>Save</button>
-            <button type="button" className="btn btn-secondary" onClick={() => props.onCancel()}>Cancel</button>
+            <Button color="primary" onClick={() => props.onSave()}>Send Invite</Button>
         </div>
     </form>);
 };
@@ -334,10 +330,16 @@ export const InviteTalentToJobcore = ({ onSave, onCancel, onChange, catalog, for
                 onChange={(e)=>onChange({email: e.target.value})} 
             />
         </div>
+        <div className="col-12">
+            <label>Talent Phone</label>
+            <input type="phone" className="form-control"
+                onChange={(e)=>onChange({phone_number: e.target.value})} 
+            />
+        </div>
     </div>
     <div className="btn-bar">
-        <button type="button" className="btn btn-success" onClick={() => onSave()}>Send Invite</button>
-        <button type="button" className="btn btn-secondary" onClick={() => onCancel()}>Cancel</button>
+        <Button color="success" onClick={() => onSave()}>Send Invite</Button>
+        <Button color="secondary" onClick={() => onCancel()}>Cancel</Button>
     </div>
 </form>);
 InviteTalentToJobcore.propTypes = {

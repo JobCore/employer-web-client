@@ -1,10 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {create, update, invite, updateTalentList} from '../actions';
+import {create, update, remove, updateTalentList} from '../actions';
 import {withRouter} from 'react-router-dom';
 import queryString from 'query-string';
 import {Shift} from '../views/shifts';
 import {Invite} from '../views/invites';
+import {Favlist} from '../views/favorites';
 import {Talent, ShiftInvite} from '../views/talents';
 import {AddFavlist} from '../views/favorites';
 import {ValidationError} from '../utils/validation';
@@ -34,8 +35,11 @@ class RightBar extends React.Component {
                     this.props.onClose();
                 break;
                 case 'filter_shift':{
-                        const stringified = queryString.stringify(this.state.formData);
-                        this.props.history.push('/shifts?'+stringified);
+                        if(data === false) this.props.history.push('/shifts');
+                        else{
+                            const stringified = queryString.stringify(this.state.formData);
+                            this.props.history.push('/shifts?'+stringified);
+                        }
                     }
                 break;
                 case 'invite_talent_to_jobcore':{
@@ -56,8 +60,21 @@ class RightBar extends React.Component {
                     }
                 break;
                 case 'filter_talent':{
-                        const stringified = queryString.stringify(Talent(this.state.formData).filters());
-                        this.props.history.push('/talents?'+stringified);
+                        if(data === false) this.props.history.push('/talents');
+                        else{
+                            const stringified = queryString.stringify(Talent(this.state.formData).filters());
+                            this.props.history.push('/talents?'+stringified);
+                        }
+                    }
+                break;
+                case 'create_favlist':{
+                        create('favlists', Favlist(this.state.formData).validate().serialize());
+                        this.props.onClose();
+                    }
+                break;
+                case 'update_favlist':{
+                        update('favlists',Favlist(this.state.formData).validate().serialize(['employees']));
+                        this.props.onClose();
                     }
                 break;
                 default: throw new Error("Missing logic onSave() for "+this.props.option.slug);
@@ -108,9 +125,9 @@ class RightBar extends React.Component {
     
     render(){
         const View = this.props.component;
+        const styles = { width: this.props.width , right: (this.props.level * this.props.width)};
         
-        
-        return (<div className="right-bar">
+        return (<div className="right-bar" style={styles}>
             <h1>{this.props.option.title}</h1>
             {
                 (this.state.error) ? <div className="alert alert-danger">{this.state.error}</div> : ''
@@ -122,9 +139,12 @@ class RightBar extends React.Component {
                 onCancel={(incoming)=>this.props.onClose(incoming)} 
                 onChange={(incoming)=>this.onChange(incoming)} 
             />
-            <button className="collapsebtn"
-                onClick={() => this.props.onClose()}
-            ><i className="fas fa-angle-double-right"></i></button>
+            { (this.props.isCollapsable) ? 
+                <button className="collapsebtn"
+                    onClick={() => this.props.onClose()}
+                ><i className="fas fa-angle-double-right"></i></button>
+                :''
+            }
         </div>);
     }
 
@@ -135,13 +155,19 @@ RightBar.propTypes = {
     PropTypes.func,
     PropTypes.object
   ]).isRequire,
+  level: PropTypes.number,
+  width: PropTypes.number,
   onClose: PropTypes.func.isRequired,
+  isCollapsable: PropTypes.bool,
   history: PropTypes.object.isRequired,
   option: PropTypes.object.isRequired,
   formData:  PropTypes.object,
   catalog:PropTypes.object
 };
 RightBar.defaultProps = {
-  formData: null
+  formData: null,
+  isCollapsable: false,
+  level: 0,
+  width: 370
 };
 export default withRouter(RightBar);

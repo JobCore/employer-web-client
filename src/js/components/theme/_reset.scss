@@ -24,6 +24,9 @@ ul{
     &.btn-success{
         background: $green-400;
     }
+    &.btn-danger{
+        background: $red;
+    }
     &.btn-lg{
         font-size: 100%;
         padding: 15px 30px;

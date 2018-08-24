@@ -3,13 +3,12 @@ import Flux from '@4geeksacademy/react-flux-dash';
 import { Route, Switch, Link } from 'react-router-dom';
 import {logout, fetchAll} from './actions';
 import Dashboard from './views/Dashboard';
-import RightBar from './views/RightBar';
 import ButtonBar from './views/ButtonBar';
-import {Theme} from './components/index';
+import {Theme, SideBar} from './components/index';
 import {ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters, RateShift} from './views/shifts';
 import {ManageApplicants, ApplicationDetails,FilterApplicants, getApplicantInitialFilters} from './views/applicants';
 import {Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilters, InviteTalentToShift, InviteTalentToJobcore, TalentDetails} from './views/talents';
-import {ManageFavorites, AddTalentToFavlist} from './views/favorites';
+import {ManageFavorites, AddTalentToFavlist, FavlistEmployees, Favlist, AddFavlist} from './views/favorites';
 import {Profile} from './views/profile';
 import {store} from './actions';
 import {Notifier} from 'bc-react-notifier';
@@ -23,15 +22,35 @@ class PrivateLayout extends Flux.DashView{
     
     constructor(){
         super();
+        this.currentPath = null;
+        this.removeHistoryListener = null;
         this.state = {
-            showRightBar: false,
+            showRightBar: 0,
             showButtonBar: true,
-            rightBarComponent: null,
-            rightBarOption: null,
+            sideBarLevels: [],
             catalog:{
                 positions: [],
                 venues: [],
-                applicants: []
+                applicants: [],
+                applicationRestrictions: [
+                    { label: "Anyone that qualifies", value: 'ANYONE' },
+                    { label: "Only from my favorites", value: 'FAVORITES' },
+                    { label: "Specific People from favorites", value: 'SPECIFIC_PEOPLE' }
+                ],
+                stars: [
+                    { label: "1 Star", value: 1 },
+                    { label: "2 Stars", value: 2 },
+                    { label: "3 Stars", value: 3 },
+                    { label: "4 Stars", value: 4 },
+                    { label: "5 Stars", value: 5 }
+                ],
+                shiftStatus: [
+                    { label: '', value: 'Select a status' },
+                    { label: 'Draft', value: 'DRAFT' },
+                    { label: 'Open', value: 'OPEN' },
+                    { label: 'Filled', value: 'FILLED' },
+                    { label: 'Upcoming', value: 'UPCOMING' }
+                ]
             },
             bar: {
                 show: (option) => {
@@ -57,20 +76,35 @@ class PrivateLayout extends Flux.DashView{
                         case 'update_shift':
                             this.showRightBar(ShiftDetails, option, {formData: Shift(option.data).getFormData()});
                         break;
+                        case 'favlist_employees':
+                            option.title = "List: "+option.data.title;
+                            this.showRightBar(FavlistEmployees, option, {formData: Favlist(option.data).getFormData()});
+                        break;
                         case 'invite_talent':
+                            option.title = "Invite Talent";
                             this.showRightBar(InviteTalentToShift, option, {formData: ShiftInvite(option.data).getFormData()});
                         break;
                         case 'invite_talent_to_jobcore':
                             this.showRightBar(InviteTalentToJobcore, option);
                         break;
                         case 'show_single_talent':
+                            option.title = "Talent Details";
                             this.showRightBar(TalentDetails, option, {employee: option.data});
                         break;
                         case 'add_to_favlist':
+                            option.title = "Add to favorites";
                             this.showRightBar(AddTalentToFavlist, option, {formData: Talent(option.data).getFormData()});
                         break;
+                        case 'create_favlist':
+                            option.title = "Create Favorite List";
+                            this.showRightBar(AddFavlist, option, {formData: Favlist(option.data).getFormData()});
+                        break;
+                        case 'update_favlist':
+                            option.title = "List: "+option.data.title;
+                            this.showRightBar(AddFavlist, option, {formData: Favlist(option.data).getFormData()});
+                        break;
                         default:
-                            this.history.push(option.to);
+                            this.props.history.push(option.to);
                         break;
                     }
                 },
@@ -79,16 +113,36 @@ class PrivateLayout extends Flux.DashView{
         };
     }
     
+    
     componentDidMount(){
+        const reduce = (list) => list.map(itm => ({ 
+            label: itm.title || itm.profile.user.first_name + ' ' + itm.profile.user.last_name, 
+            value: itm.id 
+        }));
         fetchAll(['shifts','positions','venues', 'favlists', 'badges']);
         
-        this.subscribe(store, 'venues', (venues) => this.setCatalog({venues}));
-        this.subscribe(store, 'positions', (positions) => this.setCatalog({positions}));
-        this.subscribe(store, 'badges', (badges) => this.setCatalog({badges}));
-        this.subscribe(store, 'favlists', (favlists) => this.setCatalog({favlists}));
+        this.subscribe(store, 'venues', (venues) => this.setCatalog({venues: reduce(venues)}));
+        this.subscribe(store, 'positions', (positions) => this.setCatalog({positions: reduce(positions)}));
+        this.subscribe(store, 'badges', (badges) => this.setCatalog({badges: reduce(badges)}));
+        this.subscribe(store, 'favlists', (favlists) => {
+            
+            let favoriteEmployees = [];
+            let favoriteEmployeesIds = [];
+            if(Array.isArray(favlists)){
+                favlists.forEach((favlist)=>{
+                    favoriteEmployees = favoriteEmployees.concat(favlist.employees.filter(em => favoriteEmployeesIds.indexOf(em.id) == -1));
+                    favoriteEmployeesIds = favoriteEmployeesIds.concat(favlist.employees.map(em => em.id));
+                });
+            } 
+            this.setCatalog({
+                favlists: reduce(favlists), 
+                favoriteEmployees: reduce(favoriteEmployees)
+            });
+            
+        });
         this.subscribe(store, 'shifts', (shifts) => {
             
-            this.setCatalog({shifts});
+            this.setCatalog({ shifts });
             if(this.state.showRightBar && this.state.rightBarOption){
                 if(this.state.rightBarOption.slug == 'show_shift_applicants'){
                     const newRightBarOpt = Object.assign(this.state.rightBarOption, {
@@ -98,24 +152,35 @@ class PrivateLayout extends Flux.DashView{
                 }
             }
         });
+        
+        this.currentPath = this.props.history.location.pathname;
+        this.removeHistoryListener = this.props.history.listen((e) => {
+            if(this.currentPath != e.pathname) this.closeRightBar(true);
+            this.currentPath = e.pathname;
+        });
         //this.showRightBar(AddShift);
+    }
+    
+    componentWillUnmount(){
+        if(this.removeHistoryListener) this.removeHistoryListener();
     }
     
     showRightBar(component, option, incomingCatalog={}){
         const catalog = Object.assign(this.state.catalog, incomingCatalog);
+        
+        const newLevel = [{ component, option, formData: incomingCatalog.formData || null }];
+        const levels = (option.allowLevels) ? this.state.sideBarLevels.concat(newLevel) : newLevel;
         this.setState({
-            showRightBar: true,
-            rightBarComponent: component,
-            rightBarOption: option,
-            catalog,
-            formData: incomingCatalog.formData || null
+            showRightBar: levels.length,
+            sideBarLevels: levels,
+            catalog
         });
     }
-    closeRightBar(){
+    closeRightBar(all=false){
+        const newLevels = this.state.sideBarLevels.filter((e,i) => i < this.state.sideBarLevels.length-1);
         this.setState({
-            showRightBar: false,
-            rightBarComponent: null,
-            rightBarOption: null
+            showRightBar: (all) ? 0 : newLevels.length,
+            sideBarLevels: (all) ? [] : newLevels
         });
     }
     
@@ -161,12 +226,10 @@ class PrivateLayout extends Flux.DashView{
                     <ButtonBar onClick={(option) => this.state.bar.show(option)} />
                     {
                         (this.state.showRightBar) ? 
-                            <RightBar 
+                            <SideBar
+                                sideBarLevels={this.state.sideBarLevels}
                                 catalog={this.state.catalog}
-                                option={this.state.rightBarOption}
-                                formData={this.state.formData}
-                                component={this.state.rightBarComponent} 
-                                onClose={() => this.setState({showRightBar: false, rightBarComponent: null})}
+                                onClose={() => this.closeRightBar()}
                             />:''
                     }
                 </div>

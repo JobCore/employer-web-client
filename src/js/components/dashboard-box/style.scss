@@ -1,7 +1,10 @@
 @import '../theme/style.scss';
 .dashboard_box{
     .header{
-        .btn{
+        .header-title{
+            width: 100%;
+            border: 1px solid $green-600;
+            padding: 5px;
             width: 100%;
         }
     }

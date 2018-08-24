@@ -53,13 +53,11 @@ export default class ShiftCard extends React.Component{
                         <div className="btn-group" role="group" aria-label="Basic example">
                             <button type="button" className="btn btn-secondary"
                                 onClick={(e) => {
-                                    e.preventDefault();
+                                    e.stopPropagation();
                                     bar.show({ slug: "show_shift_applicants", data: this.props.shift, title: "Shift Applicants" });
                                 }}
                             ><i className="icon icon-favorite icon-xs"></i> <label>Applicants</label></button>
-                            <button type="button" className="btn btn-secondary"
-                                onClick={() => bar.show({ slug: "update_shift", data: this.props.shift, title: "Shift Details" })}
-                            ><i className="icon icon-favorite icon-xs"></i> <label>Detais</label></button>
+                            <button type="button" className="btn btn-secondary"><i className="icon icon-favorite icon-xs"></i> <label>Detais</label></button>
                         </div>
                     </div>
                 </li>)}

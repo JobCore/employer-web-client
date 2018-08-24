@@ -6,9 +6,13 @@ import faStarHalf from '@fortawesome/fontawesome-free-solid/faStarHalf';
 import faTimesCircle from '@fortawesome/fontawesome-free-solid/faTimesCircle';
 import faCheckCircle from '@fortawesome/fontawesome-free-solid/faCheckCircle';
 import faAngleDoubleRight from '@fortawesome/fontawesome-free-solid/faAngleDoubleRight';
+import faTrashAlt from '@fortawesome/fontawesome-free-solid/faTrashAlt';
+import faQuestion from '@fortawesome/fontawesome-free-solid/faQuestion';
+import faPencilAlt from '@fortawesome/fontawesome-free-solid/faPencilAlt';
 fontawesome.config = {
   autoReplaceSvg: 'nest'
 };
 fontawesome.library.add(
-    faStar, faStarHalf, faEmptyStar, faTimesCircle, faCheckCircle, faAngleDoubleRight
+    faStar, faStarHalf, faEmptyStar, faTimesCircle, faCheckCircle, faAngleDoubleRight,
+    faTrashAlt, faQuestion, faPencilAlt
 );

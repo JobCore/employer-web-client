@@ -8,6 +8,9 @@
     bottom: 0;
     right: 0;
     border-left: 2px solid #27666f;
+    -webkit-box-shadow: 3px 2px 10px -2px rgba(0,0,0,0.75);
+    -moz-box-shadow: 3px 2px 10px -2px rgba(0,0,0,0.75);
+    box-shadow: 3px 2px 10px -2px rgba(0,0,0,0.75);
     .btn-bar{
         margin-top: 20px;
         display: flex;
@@ -28,7 +31,10 @@
         height: 20px;
         padding: 2px;
         color: white;
-        background-color: #27666f;
+        background-color: $green-600;
         cursor: pointer;
+        &:hover{
+            background-color: $green-300;
+        }
     }
 }
