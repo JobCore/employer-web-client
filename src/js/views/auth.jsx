@@ -1,5 +1,6 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
+import PropTypes from 'prop-types';
 import * as actions from '../actions';
 import {Notifier} from 'bc-react-notifier';
 import loginBanner from '../../img/login-banner.png';
@@ -17,7 +18,7 @@ export class Login extends React.Component{
                 <form className="col-10 col-sm-5 col-md-4 col-lg-3 mx-auto"
                     onSubmit={(e)=> {
                         e.preventDefault();
-                        actions.login(this.state.email, this.state.password);
+                        actions.login(this.state.email, this.state.password, this.props.history);
                     }}
                 >
                     <div className="form-group">
@@ -41,7 +42,9 @@ export class Login extends React.Component{
         );
     }
 }
-
+Login.propTypes = {
+    history: PropTypes.object
+};
 export class Signup extends React.Component{
     constructor(){
         super();

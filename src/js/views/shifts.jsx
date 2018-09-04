@@ -7,7 +7,6 @@ import _ from 'underscore';
 import Select from 'react-select';
 import {Notify} from 'bc-react-notifier';
 import queryString from 'query-string';
-import {Session} from 'bc-react-session';
 import {ShiftCard, Wizard} from '../components/index';
 import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
 import {validator, ValidationError} from '../utils/validation';

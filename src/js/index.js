@@ -3,9 +3,12 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './utils/icons';
 import '../styles/index.scss';
+import packg from '../../package.json';
 
 //import your own components
 import Layout from './Layout.jsx';
+
+console.info(`JobCore: Employer v${packg.version}, DEBUG=${process.env.DEBUG}`);
 
 //render your react application
 ReactDOM.render(

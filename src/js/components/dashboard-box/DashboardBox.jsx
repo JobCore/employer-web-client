@@ -5,7 +5,7 @@ import {Link} from "react-router-dom";
 import PropTypes from 'prop-types';
 
 const DashboardBox = ({shifts, title, status, id}) => {
-    const shiftsHTML = shifts.map((s,i) => (<ShiftCard key={i} shift={s} clickForDetails={true} />));
+    const shiftsHTML = (!Array.isArray(shifts)) ? [] : shifts.map((s,i) => (<ShiftCard key={i} shift={s} clickForDetails={true} />));
     return (<div className="dashboard_box">
         <div className="row header no-gutters">
             <div className="col-4">
@@ -17,11 +17,17 @@ const DashboardBox = ({shifts, title, status, id}) => {
         </div>
         <div className="row">
             <div className="col-10 content scroll">
-                <ul>{shiftsHTML}</ul>
+                <ul>
+                    { (shiftsHTML.length == 0) ? 
+                        <li>You have not shifts with status {status}</li>
+                        :
+                        shiftsHTML
+                    }
+                </ul>
             </div>
             <div className="col-2 text-center">
                 <p>{title}</p>
-                <p className="kpi">6</p>
+                <p className="kpi">{shiftsHTML.length}</p>
                 <Link className="btn btn-success" to={"/shifts?status="+status}>View all</Link>
             </div>
         </div>

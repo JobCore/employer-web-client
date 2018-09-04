@@ -68,3 +68,10 @@ ul{
     /* Handle on hover */
     &::-webkit-scrollbar-thumb:hover { background: $green-300; cursor: pointer;  }
 }
+
+.anchor{ 
+    text-decoration: underline; 
+    &:hover{
+        cursor: pointer;
+    }
+}

@@ -3,7 +3,7 @@ import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
 import {store, search} from '../actions.js';
 import {callback, hasTutorial} from '../utils/tutorial';
-import {EmployeeExtendedCard, ShiftOption, ShiftOptionSelected, Avatar, Stars, Theme, Button, Wizard} from '../components/index';
+import {EmployeeExtendedCard, Avatar, Stars, Theme, Button, Wizard} from '../components/index';
 import Select from 'react-select';
 import queryString from 'query-string';
 
@@ -266,86 +266,4 @@ export const TalentDetails = (props) => {
 };
 TalentDetails.propTypes = {
   catalog: PropTypes.object.isRequired
-};
-
-/**
- * AddShift
- */
-export const InviteTalentToShift = (props) => {
-    
-    const shifts = props.catalog.shifts.filter(s => s.status == 'OPEN').map(item => ({ value: item, label: '' }));
-    return (<form>
-        <div className="row">
-            <div className="col-12">
-                <label>Pick your shifts:</label>
-                <Select isMulti className="select-shifts"
-                    value={props.formData.shifts}
-                    components={{ Option: ShiftOption, MultiValue: ShiftOptionSelected }}
-                    onChange={(selectedOption)=>props.onChange({shifts: selectedOption})} 
-                    options={shifts}
-                >
-                </Select>
-            </div>
-        </div>
-        <p>Click on invite to invite the talent to your selected shifts</p>
-        <div className="btn-bar">
-            <Button color="primary" onClick={() => props.onSave()}>Send Invite</Button>
-        </div>
-    </form>);
-};
-InviteTalentToShift.propTypes = {
-  onSave: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  onChange: PropTypes.func.isRequired,
-  formData: PropTypes.object,
-  catalog: PropTypes.object //contains the data needed for the form to load
-};
-
-/**
- * ShiftDetails
- */
-export const InviteTalentToJobcore = ({ onSave, onCancel, onChange, catalog, formData }) => (<form>
-    
-    <div className="row">
-        <div className="col-12">
-            <p>If you would like to invite someone into yor talent pool, please fill the following details:</p>
-        </div>
-    </div>
-    <div className="row">
-        <div className="col-12">
-            <label>Talent First Name</label>
-            <input type="text" className="form-control"
-                onChange={(e)=>onChange({first_name: e.target.value})} 
-            />
-        </div>
-        <div className="col-12">
-            <label>Talent Last Name</label>
-            <input type="text" className="form-control"
-                onChange={(e)=>onChange({last_name: e.target.value})} 
-            />
-        </div>
-        <div className="col-12">
-            <label>Talent email</label>
-            <input type="email" className="form-control"
-                onChange={(e)=>onChange({email: e.target.value})} 
-            />
-        </div>
-        <div className="col-12">
-            <label>Talent Phone</label>
-            <input type="phone" className="form-control"
-                onChange={(e)=>onChange({phone_number: e.target.value})} 
-            />
-        </div>
-    </div>
-    <div className="btn-bar">
-        <Button color="success" onClick={() => onSave()}>Send Invite</Button>
-        <Button color="secondary" onClick={() => onCancel()}>Cancel</Button>
-    </div>
-</form>);
-InviteTalentToJobcore.propTypes = {
-  onSave: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  onChange: PropTypes.func.isRequired,
-  formData: PropTypes.object,
-  catalog: PropTypes.object //contains the data needed for the form to load
 };

@@ -7,7 +7,8 @@ import ButtonBar from './views/ButtonBar';
 import {Theme, SideBar} from './components/index';
 import {ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters, RateShift} from './views/shifts';
 import {ManageApplicants, ApplicationDetails,FilterApplicants, getApplicantInitialFilters} from './views/applicants';
-import {Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilters, InviteTalentToShift, InviteTalentToJobcore, TalentDetails} from './views/talents';
+import {Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilters, TalentDetails} from './views/talents';
+import {PendingInvites, InviteTalentToShift, InviteTalentToJobcore} from './views/invites';
 import {ManageFavorites, AddTalentToFavlist, FavlistEmployees, Favlist, AddFavlist} from './views/favorites';
 import {Profile} from './views/profile';
 import {store} from './actions';
@@ -87,6 +88,9 @@ class PrivateLayout extends Flux.DashView{
                         case 'invite_talent_to_jobcore':
                             this.showRightBar(InviteTalentToJobcore, option);
                         break;
+                        case 'show_pending_jobcore_invites':
+                            this.showRightBar(PendingInvites, option);
+                        break;
                         case 'show_single_talent':
                             option.title = "Talent Details";
                             this.showRightBar(TalentDetails, option, {employee: option.data});
@@ -119,8 +123,9 @@ class PrivateLayout extends Flux.DashView{
             label: itm.title || itm.profile.user.first_name + ' ' + itm.profile.user.last_name, 
             value: itm.id 
         }));
-        fetchAll(['shifts','positions','venues', 'favlists', 'badges']);
+        fetchAll(['shifts','positions','venues', 'favlists', 'badges', 'jobcore-invites']);
         
+        this.subscribe(store, 'jobcore-invites', (jcInvites) => this.setCatalog({jcInvites: jcInvites || []}));
         this.subscribe(store, 'venues', (venues) => this.setCatalog({venues: reduce(venues)}));
         this.subscribe(store, 'positions', (positions) => this.setCatalog({positions: reduce(positions)}));
         this.subscribe(store, 'badges', (badges) => this.setCatalog({badges: reduce(badges)}));

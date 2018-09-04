@@ -154,7 +154,7 @@ RightBar.propTypes = {
   component: PropTypes.oneOfType([
     PropTypes.func,
     PropTypes.object
-  ]).isRequire,
+  ]).isRequired,
   level: PropTypes.number,
   width: PropTypes.number,
   onClose: PropTypes.func.isRequired,

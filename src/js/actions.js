@@ -5,17 +5,18 @@ import {Notify} from 'bc-react-notifier';
 import {Shift} from './views/shifts';
 import {POST, GET, PUT, DELETE} from './utils/api_wrapper';
 
-export const login = (email, password) => {
+export const login = (email, password, history) => {
     POST('login', {
       username_or_email: email,
       password: password
     })
     .then(function({ user, token}){
         Session.actions.login({ user, access_token: token });
+        history.push('/');
     })
     .catch(function(error) {
         Notify.error(error.message || error);
-        //console.error(error);
+        console.error(error);
     });
 };
 

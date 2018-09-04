@@ -1,7 +1,6 @@
 /* global localStorage, fetch */
 import {logout} from '../actions';
 import {Session} from 'bc-react-session';
-import {ValidationError} from '../utils/validation';
 
 const rootAPIendpoint = process.env.apiHost+'/api';
 
@@ -11,6 +10,7 @@ let HEADERS = {
 
 // TODO: implemente a queue for requests and status, also avoid calling the same request twice
 let pending_requests = [];
+const log = (error) => (process.env.DEBUG == 'true') ? console.error(error) : '';
 
 const getToken = () => {
   if (Session) {
@@ -49,22 +49,20 @@ export const GET = async (endpoint, queryString = null, extraHeaders = {}) => {
   let url = `${rootAPIendpoint}/${endpoint}`;
   if(queryString) url += queryString;
   
-  const response = await fetch(url, {
+  const response = fetch(url, {
     method: 'GET',
     headers: new Headers({
       ...HEADERS,
       ...extraHeaders,
       Authorization: `JWT ${getToken()}`
     })
-  }).catch(err => {
-    throw new Error(`Could not GET models from API due to -> ${err}`);
+  })
+  .then((resp) => processResp(resp))
+  .catch(err => {
+      if (typeof err == 'string') throw new Error(err);
+      log(err);
   });
-  const data = await response.json();
-  if (data.detail) {
-    logout();
-    return 0;
-  }
-  return data;
+  return response;
 };
 
 export const POST = (endpoint, postData, extraHeaders = {}) => {
@@ -82,7 +80,8 @@ export const POST = (endpoint, postData, extraHeaders = {}) => {
   const response = fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
     .then((resp) => processResp(resp))
     .catch(err => {
-      throw new Error(`Could not POST model to API due to -> ${err.message || err}`);
+      if (typeof err == 'string') throw new Error(err);
+      log(err);
     });
   // if (data.detail) {
   //   logout();
@@ -112,7 +111,8 @@ export const PUT = (endpoint, putData, extraHeaders = {}) => {
       return data;
     })
     .catch(err => {
-      throw new Error(`Could not UPDATE model on API due to -> ${err}`);
+      if (typeof err == 'string') throw new Error(err);
+      log(err);
     });
   
   return response;
@@ -137,7 +137,8 @@ export const DELETE = (endpoint, extraHeaders = {}) => {
       return data;
     })
     .catch(err => {
-      throw new Error(`Could not DELETE model on API due to -> ${err}`);
+      if (typeof err == 'string') throw new Error(err);
+      log(err);
     });
   
   return response;
@@ -145,10 +146,26 @@ export const DELETE = (endpoint, extraHeaders = {}) => {
 
 const processResp = (resp) => {
   if(resp.status == 200) return resp.json();
-  else if(resp.status == 400) throw new Error('Bad Request');
+  else if(resp.status == 400) throw new Error(parseError(resp));
   else if(resp.status == 404) throw new Error('Not found');
-  else if(resp.status == 401) logout();
-  else if(resp.status > 200 && resp.status < 300) return resp;
+  else if(resp.status == 503){
+    logout();
+    throw new Error('The JobCore API seems to be unavailable');
+  } 
+  else if(resp.status == 401){
+    logout();
+    throw new Error('You are not authorized for this action');
+  } 
+  else if(resp.status > 200 && resp.status < 300) return resp.json();
   else if(resp.status >= 500 && resp.status < 600) throw new Error('Something bad happened while completing your request! Please try again later.');
-  else return resp;
+  else return resp.json();
+};
+
+const parseError = (error) => {
+  const json = error.json();
+  let errorMsg = '';
+  for(let type in json){
+    errorMsg += json[type].join(',');
+  }
+  return errorMsg;
 };
