@@ -5,6 +5,7 @@ import {withRouter} from 'react-router-dom';
 import queryString from 'query-string';
 import {Shift} from '../views/shifts';
 import {Invite} from '../views/invites';
+import {Location} from '../views/profile';
 import {Favlist} from '../views/favorites';
 import {Talent, ShiftInvite} from '../views/talents';
 import {AddFavlist} from '../views/favorites';
@@ -77,6 +78,16 @@ class RightBar extends React.Component {
                         this.props.onClose();
                     }
                 break;
+                case 'create_venue':{
+                        create('venues',Location(this.state.formData).validate().serialize());
+                        this.props.onClose();
+                    }
+                break;
+                case 'update_venue':{
+                        update('venues',Location(this.state.formData).validate().serialize());
+                        this.props.onClose();
+                    }
+                break;
                 default: throw new Error("Missing logic onSave() for "+this.props.option.slug);
             }
         }
@@ -105,22 +116,25 @@ class RightBar extends React.Component {
     }
     
     onChange(incoming){
-        if(this.noNewFavlist(incoming)){
-            const data = Object.assign(this.state.formData, incoming);
-            this.setState({ formData: data });
-        }
-        else{
-            let noti = Notify.add('info', AddFavlist, (proceed)=>{
+        const AddComponent = this.newCatalogValue(incoming);
+        if(AddComponent){
+            let noti = Notify.add('info', AddComponent, (proceed)=>{
                 if(proceed) noti.remove();
             }, 9999999999999);
         }
+        else{
+            const data = Object.assign(this.state.formData, incoming);
+            this.setState({ formData: data });
+        }
     }
     
-    noNewFavlist(incomingFormData){
-        if(typeof incomingFormData.favoriteLists == 'undefined') return true;
-        if(!incomingFormData.favoriteLists.find(fav => fav.value == "new_favlist")) return true;
+    newCatalogValue(formData){
+        if(typeof formData.favoriteLists != 'undefined'){
+            if(!formData.favoriteLists.find(opt => opt.value == "new_favlist")) return true;
+        }
+        if(typeof formData.venue != 'undefined' && formData.venue == "new_venue") return true;
         
-        
+        return false;
     }
     
     render(){

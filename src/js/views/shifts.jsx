@@ -7,11 +7,13 @@ import _ from 'underscore';
 import Select from 'react-select';
 import {Notify} from 'bc-react-notifier';
 import queryString from 'query-string';
-import {ShiftCard, Wizard} from '../components/index';
+import {ShiftCard, Wizard, Theme} from '../components/index';
 import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
 import {validator, ValidationError} from '../utils/validation';
 import {callback, hasTutorial} from '../utils/tutorial';
-
+import GoogleMapReact from 'google-map-react';
+import markerURL from '../../img/marker.png';
+import PlacesAutocomplete, {geocodeByAddress, getLatLng} from 'react-places-autocomplete';
 import TimePicker from 'rc-time-picker';
 import moment from 'moment';
 const SHIFT_POSSIBLE_STATUS = ['UNDEFINED','DRAFT','OPEN','CANCELLED'];
@@ -64,7 +66,7 @@ export const Shift = (data) => {
                 date: (!moment.isMoment(this.date)) ? moment(this.date) : this.date,
                 allowedFavlists: this.allowed_from_list.map(fav => {
                     const list = store.get('favlists', fav.id || fav);
-                    return {value: list.id, label: list.title};
+                    return (list) ? {value: list.id, label: list.title} : null;
                 }),
                 price: {
                     currency: 'usd',
@@ -339,177 +341,171 @@ ShiftApplicants.propTypes = {
 /**
  * ShiftDetails
  */
-export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) => (<form>
-    <div className="row">
-        <div className="col-12">
-            { (formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ?
-                <div className="alert alert-warning">This shift is a draft, it has not been published</div>
-                :
-                <div className="alert alert-success">This shift is published, therefore <strong>it needs to be unpublished</strong> before it can be updated</div>
-            }
-        </div>
-    </div>
-    <div className="row">
-        <div className="col-6">
-            <label>Looking for</label>
-            <Select
-                value={ catalog.positions.find((pos) => pos.value == formData.position)}
-                onChange={(selection)=>onChange({position: selection.value.toString()})}
-                options={[{label: 'Select a position', value: ''}].concat(catalog.positions)}
-            />
-        </div>
-        <div className="col-6">
-            <label>How many?</label>
-            <input type="number" className="form-control" 
-                value={formData.maximum_allowed_employees}
-                onChange={(e)=>onChange({maximum_allowed_employees: e.target.value})} 
-            />
-        </div>
-    </div>
-    <div className="row">
-        <div className="col-6">
-            <label>Price / hour</label>
-            <input type="number" className="form-control" 
-                value={formData.minimum_hourly_rate}
-                onChange={(e)=>onChange({minimum_hourly_rate: e.target.value})} 
-            />
-        </div>
-        <div className="col-6">
-            <label>Date</label>
-            <input type="date" className="form-control" 
-                value={(typeof formData.date != 'undefined') ? formData.date.format(DATE_FORMAT) : ''}
-                onChange={(e)=>onChange({date: moment(e.target.value)})} 
-            />
-        </div>
-    </div>
-    <div className="row">
-        <div className="col-6">
-            <label>From</label>
-            <TimePicker 
-                format={TIME_FORMAT}
-                showSecond={false}
-                minuteStep={15}
-                use12Hours={true}
-                value={formData.start_time}
-                onChange={(value)=>onChange({start_time: value})}
-            />
-        </div>
-        <div className="col-6">
-            <label>To</label>
-            <TimePicker 
-                format={TIME_FORMAT}
-                showSecond={false}
-                minuteStep={15}
-                defaultValue={NOW}
-                use12Hours={true}
-                value={formData.finish_time}
-                onChange={(value)=>onChange({finish_time: value})}
-            />
-        </div>
-    </div>
-    <div className="row">
-        <div className="col-12">
-            <label>Location</label>
-            <Select 
-                value={ catalog.venues.find((ven) => ven.value == formData.venue)}
-                onChange={(selection)=>onChange({ venue: selection.value.toString() })} 
-                options={[{ label: "Select a location", value: '' }].concat(catalog.venues)}
-            />
-        </div>
-    </div>
-    <div className="row mt-3">
-        <div className="col-12">
-            <h4>Who can apply to this shift?</h4>
-        </div>
-    </div>
-    <div className="row">
-        <div className="col-12">
-            <Select
-                value={ catalog.applicationRestrictions.find((a) => a.value == formData.application_restriction)}
-                onChange={(selection)=>onChange({application_restriction: selection.value.toString()})} 
-                options={catalog.applicationRestrictions}
-            />
-        </div>
-    </div>
-    {
-        (formData.application_restriction == "FAVORITES") ? 
-            <div className="row">
-                <div className="col-12">
-                    <label>From these favorite lists</label>
-                    <Select isMulti
-                        value={formData.allowedFavlists}
-                        onChange={(opt)=> onChange({allowedFavlists: opt})} 
-                        options={catalog.favlists}
-                    >
-                    </Select>
-                </div>
+export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) => (<Theme.Consumer>
+    {({bar}) => (<form>
+        <div className="row">
+            <div className="col-12">
+                { (formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ?
+                    <div className="alert alert-warning">This shift is a draft, it has not been published</div>
+                    :
+                    <div className="alert alert-success">This shift is published, therefore <strong>it needs to be unpublished</strong> before it can be updated</div>
+                }
             </div>
-        : (formData.application_restriction == "ANYONE") ?
-            <div className="row mt-3">
-                <div className="col-5">
-                    <label className="mt-2">Minimum rating</label>
-                </div>
-                <div className="col-7">
-                    <Select
-                        value={ catalog.stars.find((s) => s.value == formData.minimum_allowed_rating)}
-                        onChange={(selection)=>onChange({minimum_allowed_rating: selection.value})}
-                        options={catalog.stars}
-                    />
-                </div>
+        </div>
+        <div className="row">
+            <div className="col-6">
+                <label>Looking for</label>
+                <Select
+                    value={ catalog.positions.find((pos) => pos.value == formData.position)}
+                    onChange={(selection)=>onChange({position: selection.value.toString()})}
+                    options={[{label: 'Select a position', value: ''}].concat(catalog.positions)}
+                />
             </div>
-        :
-            <div className="row">
-                <div className="col-12">
-                    <label>Search and pick from your favorites:</label>
-                    <Select multi className="select-employee"
-                        value={formData.specificPeople}
-                        onChange={(selection) => onChange({ specificPeople: selection})} 
-                        options={catalog.favoriteEmployees}
-                    >
-                    </Select>
-                </div>
+            <div className="col-6">
+                <label>How many?</label>
+                <input type="number" className="form-control" 
+                    value={formData.maximum_allowed_employees}
+                    onChange={(e)=>onChange({maximum_allowed_employees: e.target.value})} 
+                />
             </div>
-    }
-    <div className="btn-bar">
-        { (formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ? 
-            <button type="button" className="btn btn-success" onClick={() => onSave({status: 'DRAFT'})}>Save as draft</button>:''
+        </div>
+        <div className="row">
+            <div className="col-6">
+                <label>Price / hour</label>
+                <input type="number" className="form-control" 
+                    value={formData.minimum_hourly_rate}
+                    onChange={(e)=>onChange({minimum_hourly_rate: e.target.value})} 
+                />
+            </div>
+            <div className="col-6">
+                <label>Date</label>
+                <input type="date" className="form-control" 
+                    value={(typeof formData.date != 'undefined') ? formData.date.format(DATE_FORMAT) : ''}
+                    onChange={(e)=>onChange({date: moment(e.target.value)})} 
+                />
+            </div>
+        </div>
+        <div className="row">
+            <div className="col-6">
+                <label>From</label>
+                <TimePicker 
+                    format={TIME_FORMAT}
+                    showSecond={false}
+                    minuteStep={15}
+                    use12Hours={true}
+                    value={formData.start_time}
+                    onChange={(value)=>onChange({start_time: value})}
+                />
+            </div>
+            <div className="col-6">
+                <label>To</label>
+                <TimePicker 
+                    format={TIME_FORMAT}
+                    showSecond={false}
+                    minuteStep={15}
+                    defaultValue={NOW}
+                    use12Hours={true}
+                    value={formData.finish_time}
+                    onChange={(value)=>onChange({finish_time: value})}
+                />
+            </div>
+        </div>
+        <div className="row">
+            <div className="col-12">
+                <label>Location</label>
+                <Select 
+                    value={ catalog.venues.find((ven) => ven.value == formData.venue)}
+                    options={[{ label: "Add a location", value: 'new_venue', component: AddVenue }].concat(catalog.venues)}
+                    onChange={(selection)=> {
+                        if(selection.value == 'new_venue') bar.show({ slug: "create_venue", allowLevels: true });
+                        else onChange({ venue: selection.value.toString() });
+                    }}
+                />
+            </div>
+        </div>
+        <div className="row mt-3">
+            <div className="col-12">
+                <h4>Who can apply to this shift?</h4>
+            </div>
+        </div>
+        <div className="row">
+            <div className="col-12">
+                <Select
+                    value={ catalog.applicationRestrictions.find((a) => a.value == formData.application_restriction)}
+                    onChange={(selection)=>onChange({application_restriction: selection.value.toString()})} 
+                    options={catalog.applicationRestrictions}
+                />
+            </div>
+        </div>
+        {
+            (formData.application_restriction == "FAVORITES") ? 
+                <div className="row">
+                    <div className="col-12">
+                        <label>From these favorite lists</label>
+                        <Select isMulti
+                            value={formData.allowedFavlists}
+                            onChange={(opt)=> onChange({allowedFavlists: opt})} 
+                            options={catalog.favlists}
+                        >
+                        </Select>
+                    </div>
+                </div>
+            : (formData.application_restriction == "ANYONE") ?
+                <div className="row mt-3">
+                    <div className="col-5">
+                        <label className="mt-2">Minimum rating</label>
+                    </div>
+                    <div className="col-7">
+                        <Select
+                            value={ catalog.stars.find((s) => s.value == formData.minimum_allowed_rating)}
+                            onChange={(selection)=>onChange({minimum_allowed_rating: selection.value})}
+                            options={catalog.stars}
+                        />
+                    </div>
+                </div>
+            :
+                <div className="row">
+                    <div className="col-12">
+                        <label>Search and pick from your favorites:</label>
+                        <Select multi className="select-employee"
+                            value={formData.specificPeople}
+                            onChange={(selection) => onChange({ specificPeople: selection})} 
+                            options={catalog.favoriteEmployees}
+                        >
+                        </Select>
+                    </div>
+                </div>
         }
-        { (formData.status == 'DRAFT') ? 
-            <button type="button" className="btn btn-primary" onClick={() => {
-                const noti = Notify.info("Are you sure?",(answer) => {
-                    if(answer) onSave({status: 'OPEN'});
-                    noti.remove();
-                });
-            }}>Publish</button>
-            : (formData.status != 'UNDEFINED') ?
+        <div className="btn-bar">
+            { (formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ? 
+                <button type="button" className="btn btn-success" onClick={() => onSave({status: 'DRAFT'})}>Save as draft</button>:''
+            }
+            { (formData.status == 'DRAFT') ? 
                 <button type="button" className="btn btn-primary" onClick={() => {
                     const noti = Notify.info("Are you sure?",(answer) => {
-                        if(answer) onSave({status: 'DRAFT'});
+                        if(answer) onSave({status: 'OPEN'});
                         noti.remove();
                     });
-            }}>Unpublish shift</button>:''
-        }
-        { (formData.status != 'UNDEFINED') ?
-            <button type="button" className="btn btn-danger" onClick={() => {
-                const noti = Notify.info("Are you sure you want to cancel this shift?",(answer) => {
-                    if(answer) onSave({status: 'CANCELLED'});
-                    noti.remove();
-                });
-            }}>Cancel shift</button>:''
-        }
-    </div>
-    {
-        // (formData.status != 'UNDEFINED')?
-        //     <p className="text-right">
-        //         <button type="button" className="not-btn text-danger" onClick={() => {
-        //             const noti = Notify.info("Are you sure you want to cancel this shift?",(answer) => {
-        //                 if(answer) onSave({status: 'CANCELLED'});
-        //                 noti.remove();
-        //             });
-        //         }}>Cancel shift</button>
-        //     </p>:''
-    }
-</form>);
+                }}>Publish</button>
+                : (formData.status != 'UNDEFINED') ?
+                    <button type="button" className="btn btn-primary" onClick={() => {
+                        const noti = Notify.info("Are you sure?",(answer) => {
+                            if(answer) onSave({status: 'DRAFT'});
+                            noti.remove();
+                        });
+                }}>Unpublish shift</button>:''
+            }
+            { (formData.status != 'UNDEFINED') ?
+                <button type="button" className="btn btn-danger" onClick={() => {
+                    const noti = Notify.info("Are you sure you want to cancel this shift?",(answer) => {
+                        if(answer) onSave({status: 'CANCELLED'});
+                        noti.remove();
+                    });
+                }}>Cancel shift</button>:''
+            }
+        </div>
+    </form>)}
+</Theme.Consumer>);
 ShiftDetails.propTypes = {
   onSave: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
@@ -523,8 +519,119 @@ ShiftDetails.propTypes = {
  * ShiftDetails
  */
 export const RateShift = () => (<div className="p-5 listcontents">
-    <h1 className="float-left">Rate a Talent</h1>
-    
+    <div className="row">
+        <div className="col-12">
+            <h4>Venue name</h4>
+        </div>
+    </div>
 </div>);
 RateShift.propTypes = {
+};
+
+/**
+ * Add a Location
+ */
+const Marker = ({ text }) => (<div><img style={{maxWidth: "25px"}} src={markerURL} /></div>);
+Marker.propTypes = {
+    text: PropTypes.string
+};
+export const AddVenue = ({onSave, onCancel, onChange, catalog, formData}) => (<Theme.Consumer>
+    {({bar}) => (<div>
+        <div className="row">
+            <div className="col-12">
+                <label>Venue name</label>
+                <input type="text" className="form-control" 
+                    value={formData.title}
+                    onChange={(e)=>onChange({title: e.target.value})} 
+                />
+            </div>
+        </div>
+        <div className="row">
+            <div className="col-12">
+                <label>Address</label>
+                <PlacesAutocomplete 
+                    value={formData.street_address || ''} 
+                    onChange={(value)=>onChange({ street_address: value })}
+                    onSelect={(address)=>{
+                        onChange({ street_address: address });
+                        geocodeByAddress(address)
+                          .then(results => getLatLng(results[0]))
+                          .then(coord => onChange({ latitude: coord.lat, longitude: coord.lng }))
+                          .catch(error => Notify.error('There was an error obtaining the location coordinates'));
+                    }}
+                >
+                    {({ getInputProps, getSuggestionItemProps, suggestions, loading }) => (
+                        <div className="autocomplete-root">
+                            <input {...getInputProps()} className="form-control" />
+                            <div className="autocomplete-dropdown-container bg-white">
+                                {loading && <div>Loading...</div>}
+                                {suggestions.map((suggestion,i) => (
+                                    <div key={i} {...getSuggestionItemProps(suggestion)} className="p-2">
+                                        <span>{suggestion.description}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </PlacesAutocomplete>
+            </div>
+        </div>
+        <div className="row">
+            <div className="col-6 pr-0">
+                <label>Location</label>
+                <div className="location-map">
+                    <GoogleMapReact
+                        bootstrapURLKeys={{ key: process.env.GOOGLE_MAPS_KEY }}
+                        defaultCenter={{
+                          lat: 25.7617,
+                          lng: 80.1918
+                        }}
+                        center={{
+                          lat: formData.latitude,
+                          lng: formData.longitude
+                        }}
+                        defaultZoom={11}
+                    >
+                        <Marker
+                            lat={formData.latitude}
+                            lng={formData.longitude}
+                            text={'Jobcore'}
+                        />
+                    </GoogleMapReact>
+                </div>
+            </div>
+            <div className="col-6">
+                <label>Country</label>
+                <input type="text" className="form-control" 
+                    value={formData.country}
+                    onChange={(e)=>onChange({country: e.target.value})} 
+                />
+                <label>State</label>
+                <input type="text" className="form-control" 
+                    value={formData.state}
+                    onChange={(e)=>onChange({state: e.target.value})} 
+                />
+                <label>Zip</label>
+                <input type="number" className="form-control" 
+                    value={formData.zip_code}
+                    onChange={(e)=>onChange({zip_code: e.target.value})} 
+                />
+            </div>
+        </div>
+        <div className="row">
+            <div className="col-12">
+                <div className="btn-bar">
+                    <button type="button" className="btn btn-success" onClick={() => onSave()}>Save</button>
+                    <button type="button" className="btn btn-default" onClick={() => bar.close()}>Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>)}
+</Theme.Consumer>);
+AddVenue.propTypes = {
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  formData: PropTypes.object,
+  catalog: PropTypes.object //contains the data needed for the form to load
 };

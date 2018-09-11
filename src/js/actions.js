@@ -4,19 +4,20 @@ import {Session} from 'bc-react-session';
 import {Notify} from 'bc-react-notifier';
 import {Shift} from './views/shifts';
 import {POST, GET, PUT, DELETE} from './utils/api_wrapper';
+import {log} from './utils/log';
 
 export const login = (email, password, history) => {
     POST('login', {
       username_or_email: email,
       password: password
     })
-    .then(function({ user, token}){
-        Session.actions.login({ user, access_token: token });
+    .then(function(data){
+        Session.actions.login({ user: data.user, access_token: data.token });
         history.push('/');
     })
     .catch(function(error) {
         Notify.error(error.message || error);
-        console.error(error);
+        log.error(error);
     });
 };
 
@@ -30,6 +31,20 @@ export const signup = (email, password, company) => {
     })
     .then(function(data){
         window.location.href="/login";
+    })
+    .catch(function(error) {
+        Notify.error(error.message || error);
+        log.error(error);
+    });
+};
+
+export const remind = (email) => {
+    POST('remind', {
+      email: email,
+      username: email
+    })
+    .then(function(data){
+        Notify.success("Check your email!");
     })
     .catch(function(error) {
         Notify.error(error.message || error);
@@ -50,7 +65,7 @@ export const fetchAll = (entities) => {
         })
         .catch(function(error) {
             Notify.error(error.message || error);
-            //console.error(error);
+            log.error(error);
         })
     );
 };
@@ -64,7 +79,7 @@ export const fetchSingle = (entity, id, event_name=null) => {
         })
         .catch(function(error) {
             Notify.error(error.message || error);
-            //console.error(error);
+            log.error(error);
         });
 };
 
@@ -76,7 +91,7 @@ export const search = (entity, queryString) => {
         })
         .catch(function(error) {
             Notify.error(error.message || error);
-            //console.error(error);
+            log.error(error);
         });
 };
 
@@ -90,7 +105,7 @@ export const create = (entity, data) => POST(entity, data)
     })
     .catch(function(error) {
         Notify.error(error.message || error);
-        //console.error(error);
+        log.error(error);
     });
     
 export const update = (entity, data) => {
@@ -106,7 +121,7 @@ export const update = (entity, data) => {
         })
         .catch(function(error) {
             Notify.error(error.message || error);
-            console.error(error);
+            log.error(error);
         });
 };
 
@@ -117,7 +132,7 @@ export const updateProfile = (data) => {
         })
         .catch(function(error) {
             Notify.error(error.message || error);
-            console.error(error);
+            log.error(error);
         });
 };
 
@@ -134,7 +149,7 @@ export const remove = (entity, data) => {
         })
         .catch(function(error) {
             Notify.error(error.message || error);
-            //console.error(error);
+            log.error(error);
         });
 };
 

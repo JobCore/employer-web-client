@@ -8,10 +8,10 @@ const DashboardBox = ({shifts, title, status, id}) => {
     const shiftsHTML = (!Array.isArray(shifts)) ? [] : shifts.map((s,i) => (<ShiftCard key={i} shift={s} clickForDetails={true} />));
     return (<div className="dashboard_box">
         <div className="row header no-gutters">
-            <div className="col-4">
+            <div className="col-5">
                 <h2 id={id} className="header-title">{title}</h2>
             </div>
-            <div className="col-8">
+            <div className="col-7">
                 <span className="bar mt-2"></span>
             </div>
         </div>

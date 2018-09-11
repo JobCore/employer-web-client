@@ -5,12 +5,12 @@ import {logout, fetchAll} from './actions';
 import Dashboard from './views/Dashboard';
 import ButtonBar from './views/ButtonBar';
 import {Theme, SideBar} from './components/index';
-import {ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters, RateShift} from './views/shifts';
+import {ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters, RateShift, AddVenue} from './views/shifts';
 import {ManageApplicants, ApplicationDetails,FilterApplicants, getApplicantInitialFilters} from './views/applicants';
 import {Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilters, TalentDetails} from './views/talents';
 import {PendingInvites, InviteTalentToShift, InviteTalentToJobcore} from './views/invites';
 import {ManageFavorites, AddTalentToFavlist, FavlistEmployees, Favlist, AddFavlist} from './views/favorites';
-import {Profile} from './views/profile';
+import {Profile, Location} from './views/profile';
 import {store} from './actions';
 import {Notifier} from 'bc-react-notifier';
 import logoURL from '../img/logo.png';
@@ -107,8 +107,13 @@ class PrivateLayout extends Flux.DashView{
                             option.title = "List: "+option.data.title;
                             this.showRightBar(AddFavlist, option, {formData: Favlist(option.data).getFormData()});
                         break;
+                        case 'create_venue':
+                            option.title = "Create New Venue";
+                            this.showRightBar(AddVenue, option, {formData: Location(option.data).getFormData()});
+                        break;
                         default:
-                            this.props.history.push(option.to);
+                            if(typeof option.to == 'string') this.props.history.push(option.to);
+                            else console.log("Option slug not found: "+option.slug);
                         break;
                     }
                 },

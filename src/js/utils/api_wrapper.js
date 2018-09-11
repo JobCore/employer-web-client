@@ -1,5 +1,6 @@
 /* global localStorage, fetch */
 import {logout} from '../actions';
+import {log} from './log';
 import {Session} from 'bc-react-session';
 
 const rootAPIendpoint = process.env.apiHost+'/api';
@@ -10,7 +11,6 @@ let HEADERS = {
 
 // TODO: implemente a queue for requests and status, also avoid calling the same request twice
 let pending_requests = [];
-const log = (error) => (process.env.DEBUG == 'true') ? console.error(error) : '';
 
 const getToken = () => {
   if (Session) {
@@ -49,20 +49,20 @@ export const GET = async (endpoint, queryString = null, extraHeaders = {}) => {
   let url = `${rootAPIendpoint}/${endpoint}`;
   if(queryString) url += queryString;
   
-  const response = fetch(url, {
+  HEADERS['Authorization'] = `JWT ${getToken()}`;
+  const REQ = {
     method: 'GET',
-    headers: new Headers({
-      ...HEADERS,
-      ...extraHeaders,
-      Authorization: `JWT ${getToken()}`
-    })
-  })
-  .then((resp) => processResp(resp))
-  .catch(err => {
+    headers: Object.assign(HEADERS,extraHeaders)
+  };
+  
+  return new Promise((resolve, reject) => fetch(url, REQ)
+    .then((resp) => processResp(resp))
+    .then(data => resolve(data))
+    .catch(err => {
+      log.error(err);
       if (typeof err == 'string') throw new Error(err);
-      log(err);
-  });
-  return response;
+    })
+  );
 };
 
 export const POST = (endpoint, postData, extraHeaders = {}) => {
@@ -77,17 +77,14 @@ export const POST = (endpoint, postData, extraHeaders = {}) => {
     body: JSON.stringify(postData)
   };
   
-  const response = fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
+  return new Promise((resolve, reject) => fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
     .then((resp) => processResp(resp))
+    .then(data => resolve(data))
     .catch(err => {
+      log.error(err);
       if (typeof err == 'string') throw new Error(err);
-      log(err);
-    });
-  // if (data.detail) {
-  //   logout();
-  //   return 0;
-  // }
-  return response;
+    })
+  );
 };
 
 export const PUT = (endpoint, putData, extraHeaders = {}) => {
@@ -101,21 +98,14 @@ export const PUT = (endpoint, putData, extraHeaders = {}) => {
     body: JSON.stringify(putData)
   };
   
-  const response = fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
+  return new Promise((resolve, reject) => fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
     .then((resp) => processResp(resp))
-    .then((data) => {
-      if (data.detail) {
-        logout();
-        return 0;
-      }
-      return data;
-    })
+    .then(data => resolve(data))
     .catch(err => {
+      log.error(err);
       if (typeof err == 'string') throw new Error(err);
-      log(err);
-    });
-  
-  return response;
+    })
+  );
 };
 
 export const DELETE = (endpoint, extraHeaders = {}) => {
@@ -127,26 +117,19 @@ export const DELETE = (endpoint, extraHeaders = {}) => {
     headers: Object.assign(HEADERS,extraHeaders)
   };
   
-  const response = fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
+  return new Promise((resolve, reject) => fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
     .then((resp) => processResp(resp))
-    .then((data) => {
-      if (data.detail) {
-        logout();
-        return 0;
-      }
-      return data;
-    })
+    .then(data => resolve(data))
     .catch(err => {
+      log.error(err);
       if (typeof err == 'string') throw new Error(err);
-      log(err);
-    });
-  
-  return response;
+    })
+  );
 };
 
 const processResp = (resp) => {
-  if(resp.status == 200) return resp.json();
-  else if(resp.status == 400) throw new Error(parseError(resp));
+  if(resp.ok) return resp.json();
+  else if(resp.status == 400) parseError(resp);
   else if(resp.status == 404) throw new Error('Not found');
   else if(resp.status == 503){
     logout();
@@ -158,14 +141,19 @@ const processResp = (resp) => {
   } 
   else if(resp.status > 200 && resp.status < 300) return resp.json();
   else if(resp.status >= 500 && resp.status < 600) throw new Error('Something bad happened while completing your request! Please try again later.');
-  else return resp.json();
+  else throw new Error('Somethign went wrong');
 };
 
 const parseError = (error) => {
-  const json = error.json();
-  let errorMsg = '';
-  for(let type in json){
-    errorMsg += json[type].join(',');
-  }
-  return errorMsg;
+  const errorPromise = error.json();
+  errorPromise.then(json => {
+    let errorMsg = '';
+    for(let type in json){
+      errorMsg += json[type].join(',');
+    }
+    throw new Error(errorMsg);
+  })
+  .catch(error => {
+    throw error;
+  });
 };

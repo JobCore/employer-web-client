@@ -7,6 +7,12 @@ ul{
     li{ 
         list-style: none; 
     }
+    &.li-white{
+        li{ 
+            padding: 5px;
+            &:hover{ background: white; }
+        }
+    }
 }
 .btn{
     background: none;
@@ -30,6 +36,10 @@ ul{
     &.btn-lg{
         font-size: 100%;
         padding: 15px 30px;
+    }
+    &.btn-sm{
+        font-size: 80%;
+        padding: 5px 20px;
     }
 }
 .not-btn{

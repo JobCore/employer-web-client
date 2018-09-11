@@ -1,10 +1,12 @@
 import React from 'react';
 import {validator, ValidationError} from '../utils/validation';
+import {update} from '../actions';
 import {Session} from 'bc-react-session';
 import PropTypes from 'prop-types';
 import Select from 'react-select';
 import {Button, Theme} from '../components/index';
 import {ShiftOption, ShiftOptionSelected} from './talents';
+import moment from 'moment';
 export const Invite = (data) => {
     
     const _defaults = {
@@ -145,16 +147,25 @@ InviteTalentToJobcore.propTypes = {
 export const PendingInvites = ({ catalog, formData }) => (<div>
     <div className="row">
         <div className="col">
-            { (catalog.jcInvites.length > 0) ? 
-                catalog.jcInvites.map((inv, i) => 
-                    (<li key={i}>
-                        <span>{inv.first_name} {inv.last_name} </span>
-                        <span className="badge">{inv.status}</span>
-                        <span className="text-primary anchor">Resend</span>
-                    </li>)
-                ):
-                <p className="text-center">No pending invites</p>
-            }
+            <h2>These are your pending invites</h2>
+            <ul className="li-white">
+                { (catalog.jcInvites.length > 0) ? 
+                    catalog.jcInvites.map((inv, i) => 
+                        (<li key={i}>
+                            <button 
+                                className="btn btn-primary float-right mt-2 btn-sm"
+                                onClick={() => update('jobcore-invites', inv)}
+                            >Resend</button>
+                            <p className="p-0 m-0">
+                                <span>{inv.first_name} {inv.last_name} </span>
+                            </p>
+                            <span className="badge">{inv.status}</span>
+                            <span>{moment(inv.created_at, "YYYYMMDD").fromNow()}</span>
+                        </li>)
+                    ):
+                    <p className="text-center">No pending invites</p>
+                }
+            </ul>
         </div>
     </div>
 </div>);
