@@ -5,7 +5,8 @@ $avatarDefaultSize: 35px;
     min-width: $avatarDefaultSize;
     background-repeat: no-repeat;
     background-position: center;
+    background-color: #eaffe6;
     background-size: contain;
-    border-radius: $avatarDefaultSize;
+    border-radius: 100%;
     display: inline-block;
 }

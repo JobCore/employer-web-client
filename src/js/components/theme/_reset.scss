@@ -56,7 +56,6 @@ ul{
     &.badge-success{ background: $green-600; color: white; }
     &.badge-secondary{ background: $green-300; color: white; }
 }
-
 .bcnotifier{
     .alert{
         position: fixed;
@@ -64,7 +63,7 @@ ul{
         top: 0;
         left: 0;
         width: 100%;
-        z-index: 11;
+        z-index: 102;
     }
 }
 

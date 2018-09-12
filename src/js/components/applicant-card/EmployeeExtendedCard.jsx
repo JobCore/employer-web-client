@@ -10,7 +10,7 @@ const EmployeeExtendedCard = (props) => {
     const badgesHTML = props.employee.badges.map((b, i) => (<span key={i} className="badge">{b.title}</span>));
     const favoriteCount = props.employee.favoritelist_set.length;
     return (<li className="aplicantcard aplicantcard-hover" onClick={() => (props.onClick) ? props.onClick() : false}>
-        <Avatar url={props.employee.profile.picture} />
+        <Avatar url={process.env.API_HOST+props.employee.profile.picture} />
         <a href="#"><b>{props.employee.profile.user.first_name + " " + props.employee.profile.user.last_name}</b></a>
         <Stars rating={Number(props.employee.rating)} jobCount={props.employee.positions.length}  />
         { (props.showFavlist) ?

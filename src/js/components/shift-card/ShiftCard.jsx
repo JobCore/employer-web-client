@@ -46,9 +46,9 @@ export default class ShiftCard extends React.Component{
                         <span className="shift-date"> {startDate} from {startTime} to {endTime} </span>
                         {
                             (typeof this.props.shift.price == 'string') ? 
-                                <span className="shift-price"> ${this.props.shift.price}/hr.</span>
+                                <span className="shift-price"> ${this.props.shift.price}</span>
                             :
-                                <span className="shift-price"> {this.props.shift.price.currencySymbol}{this.props.shift.price.amount}/{this.props.shift.price.timeframe}.</span>
+                                <span className="shift-price"> {this.props.shift.price.currencySymbol}{this.props.shift.price.amount}</span>
                         }
                         <div className="btn-group" role="group" aria-label="Basic example">
                             <button type="button" className="btn btn-secondary"

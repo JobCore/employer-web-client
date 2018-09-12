@@ -12,7 +12,7 @@ const ApplicantCard = (props) => {
     return (<Theme.Consumer>
         {({bar}) => 
             (<li className="aplicantcard">
-                <Avatar url={props.applicant.profile.picture} />
+                <Avatar url={process.env.API_HOST+props.applicant.profile.picture} />
                 <AcceptReject
                     onAccept={() => props.onAccept(props.shift.id, props.applicant)} 
                     onReject={() => props.onReject(props.shift.id, props.applicant)} 

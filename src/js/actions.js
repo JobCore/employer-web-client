@@ -22,9 +22,9 @@ export const login = (email, password, history) => {
 };
 
 export const signup = (email, password, company) => {
-    POST('register', {
+    POST('user/register', {
       email: email,
-      type: 'employer',
+      account_type: 'employer',
       employer: 1,
       username: email,
       password: password
@@ -95,13 +95,13 @@ export const search = (entity, queryString) => {
         });
 };
 
-export const create = (entity, data) => POST(entity, data)
+export const create = (entity, data) => POST(entity.url || entity, data)
     .then(function(incoming){
-        let entities = store.getState(entity);
+        let entities = store.getState(entity.slug || entity);
         data.id = incoming.id;
         if(!entities || !Array.isArray(entities)) entities = [];
-        Flux.dispatchEvent(entity, entities.concat([data]));
-        Notify.success("The "+entity.substring(0, entity.length - 1)+" was created successfully");
+        Flux.dispatchEvent(entity.slug || entity, entities.concat([data]));
+        Notify.success("The "+(entity.slug || entity).substring(0, (entity.slug || entity).length - 1)+" was created successfully");
     })
     .catch(function(error) {
         Notify.error(error.message || error);
@@ -145,7 +145,7 @@ export const remove = (entity, data) => {
             Flux.dispatchEvent(event_name, entities);
             
             const name = path.split('/');
-            Notify.success("The "+name[0].substring(0, name[0].length - 1)+" was updated successfully");
+            Notify.success("The "+name[0].substring(0, name[0].length - 1)+" was deleted successfully");
         })
         .catch(function(error) {
             Notify.error(error.message || error);
@@ -201,23 +201,34 @@ export const acceptCandidate = (shiftId, applicant) => {
     else Notify.error("Shift not found");
 };
 
-export const updateTalentList = (action, employeeId, listId) => {
+export const updateTalentList = (action, employee, listId) => {
     const favoriteList = store.get("favlists", listId);
-    if(favoriteList){
-        let employeeIdsArr = favoriteList.employees.map(employee => employee.id || employee);
-        if (action === 'add') {
-          employeeIdsArr.push(employeeId);
-        } else {
-          employeeIdsArr = employeeIdsArr.filter((id) => id != employeeId);
+    return new Promise((resolve, reject) => {
+        if(favoriteList){
+            let employeeIdsArr = favoriteList.employees.map(employee => employee.id || employee);
+            if (action === 'add') {
+              employeeIdsArr.push(employee.id || employee);
+            }
+            else if (action === 'delete') {
+              employeeIdsArr = employeeIdsArr.filter((id) => id != employee.id || employee);
+            }
+            PUT('favlists/'+listId, { employees: employeeIdsArr }).then((updatedFavlist) => {
+                Flux.dispatchEvent('favlists', store.replaceMerged("favlists", listId, { 
+                    employees: (action === 'delete') ? 
+                                    favoriteList.employees.filter((emp) => emp.id != employee.id || employee) 
+                                :
+                                    favoriteList.employees.concat([employee]) 
+                }));
+                Notify.success(`The talent was successfully ${(action == 'add') ? 'added' : 'removed'}`);
+                resolve(updatedFavlist);
+            })
+            .catch(error => reject());
         }
-        PUT('favlists/'+listId, { employees: employeeIdsArr }).then((updatedFavlist) => {
-            Flux.dispatchEvent('favlists', store.replaceMerged("favlists", listId, { employees: favoriteList.employees.filter((emp) => emp.id != employeeId) }));
-            Notify.success(`The talent was successfully ${(action == 'add') ? 'added' : 'removed'}`);
-        });
-    }
-    else{
-        Notify.error("Favorite list not found");
-    }
+        else{
+            Notify.error("Favorite list not found");
+            reject();
+        }
+    });
 };
 
 class _Store extends Flux.DashStore{

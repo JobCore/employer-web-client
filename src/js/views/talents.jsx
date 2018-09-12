@@ -249,13 +249,12 @@ export const TalentDetails = (props) => {
     return (<Theme.Consumer>
         {({bar}) => 
             (<li className="aplication-details">
-                <Avatar url={employee.profile.picture} />
+                <Avatar url={process.env.API_HOST+employee.profile.picture} />
                 <p>{employee.profile.user.first_name + " " + employee.profile.user.last_name}</p>
-                <p>
-                    <Stars className="float-left" rating={Number(employee.rating)}  />
-                    <span>Doing 4 jobs</span>
-                </p>
-                <p>$ 13 /hr Minimum Rate</p>
+                <div>
+                    <Stars className="float-left" rating={Number(employee.rating)} jobCount={employee.profile.job_count}  />
+                </div>
+                <p>$ {employee.profile.minimum_hourly_rate} /hr Minimum Rate</p>
                 <p>{employee.profile.bio}</p>
                 <div className="btn-bar">
                     <Button color="primary" onClick={() => bar.show({ slug: "invite_talent", data: employee, allowLevels:true })}>Invite to shift</Button>

@@ -9,7 +9,7 @@ import {ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShi
 import {ManageApplicants, ApplicationDetails,FilterApplicants, getApplicantInitialFilters} from './views/applicants';
 import {Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilters, TalentDetails} from './views/talents';
 import {PendingInvites, InviteTalentToShift, InviteTalentToJobcore} from './views/invites';
-import {ManageFavorites, AddTalentToFavlist, FavlistEmployees, Favlist, AddFavlist} from './views/favorites';
+import {ManageFavorites, AddFavlistsToTalent, FavlistEmployees, AddTalentToFavlist, Favlist, AddFavlist} from './views/favorites';
 import {Profile, Location} from './views/profile';
 import {store} from './actions';
 import {Notifier} from 'bc-react-notifier';
@@ -96,8 +96,8 @@ class PrivateLayout extends Flux.DashView{
                             this.showRightBar(TalentDetails, option, {employee: option.data});
                         break;
                         case 'add_to_favlist':
-                            option.title = "Add to favorites";
-                            this.showRightBar(AddTalentToFavlist, option, {formData: Talent(option.data).getFormData()});
+                            option.title = "Add to favorite lists";
+                            this.showRightBar(AddFavlistsToTalent, option, {formData: Talent(option.data).getFormData()});
                         break;
                         case 'create_favlist':
                             option.title = "Create Favorite List";
@@ -110,6 +110,10 @@ class PrivateLayout extends Flux.DashView{
                         case 'create_venue':
                             option.title = "Create New Venue";
                             this.showRightBar(AddVenue, option, {formData: Location(option.data).getFormData()});
+                        break;
+                        case 'add_talent_to_favlist':
+                            option.title = "Search for the talent";
+                            this.showRightBar(AddTalentToFavlist, option, {formData: Favlist(option.data).getFormData()});
                         break;
                         default:
                             if(typeof option.to == 'string') this.props.history.push(option.to);
@@ -162,7 +166,6 @@ class PrivateLayout extends Flux.DashView{
                 }
             }
         });
-        
         this.currentPath = this.props.history.location.pathname;
         this.removeHistoryListener = this.props.history.listen((e) => {
             if(this.currentPath != e.pathname) this.closeRightBar(true);

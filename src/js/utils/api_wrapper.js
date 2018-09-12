@@ -3,7 +3,7 @@ import {logout} from '../actions';
 import {log} from './log';
 import {Session} from 'bc-react-session';
 
-const rootAPIendpoint = process.env.apiHost+'/api';
+const rootAPIendpoint = process.env.API_HOST+'/api';
 
 let HEADERS = {
   'Content-Type': 'application/json'
@@ -128,7 +128,10 @@ export const DELETE = (endpoint, extraHeaders = {}) => {
 };
 
 const processResp = (resp) => {
-  if(resp.ok) return resp.json();
+  if(resp.ok){
+    if(resp.status == 204) return true;
+    else return resp.json();
+  } 
   else if(resp.status == 400) parseError(resp);
   else if(resp.status == 404) throw new Error('Not found');
   else if(resp.status == 503){

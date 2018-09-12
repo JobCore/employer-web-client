@@ -6,6 +6,7 @@ import {callback, hasTutorial} from '../utils/tutorial';
 import { Modal, ListCard, EmployeeExtendedCard, Button, Theme, Wizard} from '../components/index';
 import Select from 'react-select';
 import {Session} from 'bc-react-session';
+import {GET} from '../utils/api_wrapper';
 
 export const Favlist = (data) => {
     
@@ -16,6 +17,7 @@ export const Favlist = (data) => {
         serialize: function(filters=[]){
             
             const newEntity = {
+                id: data.id,
                 employees: _defaults.employees.map((emp) => emp.id || emp)
             };
             let response = Object.assign(this, newEntity);
@@ -94,6 +96,9 @@ export class ManageFavorites extends Flux.DashView {
             <h1><span id="your-favorites-heading">Your favorite lists</span></h1>
             <Theme.Consumer>
                 {({bar}) => 
+                    (this.state.lists.length == 0) ?
+                        <p>You have no favorite lists yet, <a href="#" className="text-primary" onClick={() => bar.show({ slug: "create_favlist" })}>click here</a> to create your first</p>
+                    :
                     this.state.lists.map((list,i) => (
                         <ListCard key={i} list={list} onClick={() => 
                             bar.show({ slug: "favlist_employees", data: list, title: "List Details" })}
@@ -123,27 +128,31 @@ export class ManageFavorites extends Flux.DashView {
 /**
  * Add To Favorite List
  */
-export const AddTalentToFavlist = (props) => {
-    
-    return (<form>
+export const AddFavlistsToTalent = ({onChange, formData, onSave, onCancel, catalog}) => (<Theme.Consumer>
+    {({bar}) => (<form>
         <div className="row">
             <div className="col-12">
                 <label>Pick your favorite lists:</label>
                 <Select isMulti className="select-favlists"
-                    value={props.formData.favoriteLists}
-                    onChange={(selectedOption) => props.onChange({favoriteLists: selectedOption})} 
-                    options={props.catalog.favlists}
+                    value={formData.favoriteLists}
+                    options={[{ label: "Add new favorite list", value: 'new_favlist', component: AddFavlist }].concat(catalog.favlists)}
+                    onChange={(selection)=> {
+                        const create = selection.find(opt => (opt.value == 'new_favlist'));
+                        if(create) bar.show({ slug: "create_favlist", allowLevels: true });
+                        else onChange({ favoriteLists: selection });
+                    }}
                 />
             </div>
         </div>
         <p>Click on invite add the talent to your favorite lists</p>
         <div className="btn-bar">
-            <Button color="primary" onClick={() => props.onSave()}>Save</Button>
-            <Button color="secondary" onClick={() => props.onCancel()}>Cancel</Button>
+            <Button color="primary" onClick={() => onSave()}>Save</Button>
+            <Button color="secondary" onClick={() => onCancel()}>Cancel</Button>
         </div>
-    </form>);
-};
-AddTalentToFavlist.propTypes = {
+    </form>)}
+</Theme.Consumer>);
+
+AddFavlistsToTalent.propTypes = {
   onSave: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
@@ -172,7 +181,8 @@ AddFavlist.propTypes = {
     catalog: PropTypes.object //contains the data needed for the form to load
 };
 
-export const FavlistEmployees = ({ formData, onChange, onSave }) => {
+export const FavlistEmployees = ({ formData, onChange, onSave, catalog }) => {
+    const favlist = store.get('favlists', formData.id);
     return (<form>
         <Theme.Consumer>
             {({bar}) => (<span>
@@ -180,7 +190,7 @@ export const FavlistEmployees = ({ formData, onChange, onSave }) => {
                     <div className="col-12">
                         <label>Talents:</label>
                         <ul>
-                            {formData.employees.map((em,i) => (
+                            {(!favlist) ? '':favlist.employees.map((em,i) => (
                                 <EmployeeExtendedCard 
                                     key={i} 
                                     employee={em} 
@@ -190,6 +200,7 @@ export const FavlistEmployees = ({ formData, onChange, onSave }) => {
                                 >
                                     <Button className="mt-0" icon="trash" label="Delete" onClick={() => {
                                         updateTalentList('delete', em.id,formData.id);
+                                        //.then(() => onChange);
                                     }}/>
                                 </EmployeeExtendedCard>)
                             )}
@@ -200,13 +211,85 @@ export const FavlistEmployees = ({ formData, onChange, onSave }) => {
                     <button type="button" className="btn btn-primary" onClick={() => 
                         bar.show({ slug: "update_favlist", data: formData, allowLevels: true })
                     }>Rename</button>
-                    <button type="button" className="btn btn-secondary" onClick={() => onSave()}>Add Talents</button>
+                    <button type="button" className="btn btn-secondary" onClick={() => 
+                        bar.show({ slug: "add_talent_to_favlist", data: formData, allowLevels: true })
+                    }>Add new talent</button>
                 </div>
             </span>)}
         </Theme.Consumer>
     </form>);
 };
 FavlistEmployees.propTypes = {
+    onSave: PropTypes.func.isRequired,
+    formData: PropTypes.object.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    onChange: PropTypes.func.isRequired,
+    catalog: PropTypes.object //contains the data needed for the form to load
+};
+
+export class AddTalentToFavlist extends React.Component {
+    
+    constructor(){
+        super();
+        this.state = {
+            employees: [],
+            loading: false,
+            keyword: ''
+        };
+    }
+    
+    getTalentList(search){
+        setTimeout(()=>{
+            if(search == this.state.keyword)
+                GET('employees?full_name='+search)
+                    .then(employees => this.setState({employees, loading: false}));
+        },700);
+    }
+    
+    render(){
+        return (<Theme.Consumer>
+            {({bar}) => (<div>
+                <div className="row">
+                    <div className="col-12">
+                        <input type="text" className="form-control" 
+                            placeholder="Type employee name"
+                            value={this.state.keyword} 
+                            onChange={(e)=> {
+                                const loading = (e.target.value.length > 3);
+                                this.setState({ keyword: e.target.value, loading });
+                                if(loading) this.getTalentList(e.target.value);
+                            }}
+                        />
+                        {(this.state.loading) ? 
+                            <p>Searching...</p>
+                            :
+                            (this.state.keyword.length < 3) ? <p>You have to type at least 4 caracters to search</p>:''
+                        }
+                    </div>
+                </div>
+                <ul className="mt-2">
+                    {(!this.state.employees) ? 
+                        <p>No talents match your search</p>
+                        :
+                        this.state.employees.map((em,i) => (
+                            <EmployeeExtendedCard 
+                                key={i} 
+                                employee={em} 
+                                hover={false} 
+                                showFavlist={false}
+                                onClick={() => bar.show({ slug: "show_single_talent", data: em, allowLevels: true })}
+                            >
+                                <Button className="mt-0" icon="plus" label="Add to list" onClick={() => {
+                                    updateTalentList('add', em,this.props.formData.id);
+                                }}/>
+                            </EmployeeExtendedCard>))
+                    }
+                </ul>
+            </div>)}
+        </Theme.Consumer>);
+    }
+}
+AddTalentToFavlist.propTypes = {
     onSave: PropTypes.func.isRequired,
     formData: PropTypes.object.isRequired,
     onCancel: PropTypes.func.isRequired,

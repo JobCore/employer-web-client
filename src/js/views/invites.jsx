@@ -4,8 +4,7 @@ import {update} from '../actions';
 import {Session} from 'bc-react-session';
 import PropTypes from 'prop-types';
 import Select from 'react-select';
-import {Button, Theme} from '../components/index';
-import {ShiftOption, ShiftOptionSelected} from './talents';
+import {Button, Theme, ShiftOption, ShiftOptionSelected} from '../components/index';
 import moment from 'moment';
 export const Invite = (data) => {
     

@@ -4,7 +4,10 @@ import {store} from '../actions.js';
 import {ApplicantCard} from './applicants';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+
 import Select from 'react-select';
+import AsyncSelect from 'react-select/lib/Async';
+
 import {Notify} from 'bc-react-notifier';
 import queryString from 'query-string';
 import {ShiftCard, Wizard, Theme} from '../components/index';
@@ -16,6 +19,7 @@ import markerURL from '../../img/marker.png';
 import PlacesAutocomplete, {geocodeByAddress, getLatLng} from 'react-places-autocomplete';
 import TimePicker from 'rc-time-picker';
 import moment from 'moment';
+import {GET} from '../utils/api_wrapper';
 const SHIFT_POSSIBLE_STATUS = ['UNDEFINED','DRAFT','OPEN','CANCELLED'];
 
 //gets the querystring and creats a formData object to be used when opening the rightbar
@@ -236,7 +240,6 @@ export class ManageShifts extends Flux.DashView {
         }
         return filters;
     }
-    
     
     render() {
         const groupedShifts = _.groupBy(this.state.shifts, (s) => s.date.format('MMMM YYYY'));
@@ -466,13 +469,13 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
             :
                 <div className="row">
                     <div className="col-12">
-                        <label>Search and pick from your favorites:</label>
-                        <Select multi className="select-employee"
-                            value={formData.specificPeople}
-                            onChange={(selection) => onChange({ specificPeople: selection})} 
-                            options={catalog.favoriteEmployees}
-                        >
-                        </Select>
+                        <label>Search people in JobCore:</label>
+                        <SearchEmployees 
+                            onSelect={(selection)=> {
+                                if(selection.value == 'new_venue') bar.show({ slug: "create_venue", allowLevels: true });
+                                else onChange({ venue: selection.value.toString() });
+                            }}
+                        />
                     </div>
                 </div>
         }
@@ -634,4 +637,30 @@ AddVenue.propTypes = {
   onChange: PropTypes.func.isRequired,
   formData: PropTypes.object,
   catalog: PropTypes.object //contains the data needed for the form to load
+};
+
+
+export class SearchEmployees extends React.Component {
+    constructor(){
+        super();
+        this.state = {
+            keyword: ''
+        };
+    }
+    render() {
+        return (
+            <AsyncSelect cacheOptions defaultOptions 
+                loadOptions={(newValue) => {
+                    const keyword = newValue.replace(/\W/g, '');
+                    this.setState({ keyword });
+                    return keyword;
+                }} 
+                onInputChange={(search) => GET('catalog/employees?full_name='+search)}
+                onChange={(selection)=> this.props.onSelect(selection)}
+            />
+        );
+    }
+}
+SearchEmployees.propTypes = {
+    onSelect: PropTypes.func.isRequired,
 };

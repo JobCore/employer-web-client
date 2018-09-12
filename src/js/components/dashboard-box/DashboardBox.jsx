@@ -5,7 +5,7 @@ import {Link} from "react-router-dom";
 import PropTypes from 'prop-types';
 
 const DashboardBox = ({shifts, title, status, id}) => {
-    const shiftsHTML = (!Array.isArray(shifts)) ? [] : shifts.map((s,i) => (<ShiftCard key={i} shift={s} clickForDetails={true} />));
+    const shiftsHTML = (!Array.isArray(shifts)) ? [] : shifts.map((s,i) => (<ShiftCard key={i} shift={s} clickForDetails={true} showStatus={true} />));
     return (<div className="dashboard_box">
         <div className="row header no-gutters">
             <div className="col-5">

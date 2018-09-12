@@ -49,7 +49,10 @@ class RightBar extends React.Component {
                     }
                 break;
                 case 'invite_talent':{
-                        create('shiftinvites', ShiftInvite(this.state.formData).validate().serialize());
+                        create(
+                            {url: 'shifts/invites', slug: 'shiftinvites'}, 
+                            ShiftInvite(this.state.formData).validate().serialize()
+                        );
                         this.props.onClose();
                     }
                 break;
@@ -116,25 +119,8 @@ class RightBar extends React.Component {
     }
     
     onChange(incoming){
-        const AddComponent = this.newCatalogValue(incoming);
-        if(AddComponent){
-            let noti = Notify.add('info', AddComponent, (proceed)=>{
-                if(proceed) noti.remove();
-            }, 9999999999999);
-        }
-        else{
-            const data = Object.assign(this.state.formData, incoming);
-            this.setState({ formData: data });
-        }
-    }
-    
-    newCatalogValue(formData){
-        if(typeof formData.favoriteLists != 'undefined'){
-            if(!formData.favoriteLists.find(opt => opt.value == "new_favlist")) return true;
-        }
-        if(typeof formData.venue != 'undefined' && formData.venue == "new_venue") return true;
-        
-        return false;
+        const data = Object.assign(this.state.formData, incoming);
+        this.setState({ formData: data });
     }
     
     render(){

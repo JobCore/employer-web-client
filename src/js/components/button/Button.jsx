@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 
 const icons = {
   favorite: 'icon icon-favorite icon-xs',
-  trash: 'fas fa-trash-alt'
+  trash: 'fas fa-trash-alt',
+  plus: 'fas fa-plus'
 };
 
 const Button = ({ color, onClick, propagate, icon, children, className }) => (
