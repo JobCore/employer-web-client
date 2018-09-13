@@ -4,7 +4,7 @@ import {Session} from 'bc-react-session';
 import {Notify} from 'bc-react-notifier';
 import {Shift} from './views/shifts';
 import {POST, GET, PUT, DELETE} from './utils/api_wrapper';
-import {log} from './utils/log';
+import log from './utils/log';
 
 export const login = (email, password, history) => {
     POST('login', {

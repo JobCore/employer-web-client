@@ -35,6 +35,8 @@ export const Shift = (data) => {
         application_restriction: 'ANYONE',
         minimum_hourly_rate: '8',
         date: NOW,
+        pending_invites: [],
+        pending_jobcore_invites: [],
         candidates:[],
         start_time: NOW,
         finish_time: NOW,
@@ -109,6 +111,8 @@ export const Shift = (data) => {
         getFormData: () => {
             const _formShift = {
                 id: _shift.id.toString(),
+                pending_invites: _shift.pending_invites,
+                pending_jobcore_invites: _shift.pending_jobcore_invites,
                 application_restriction: _shift.application_restriction,
                 position: _shift.position.id.toString() || _shift.position.toString(),
                 maximum_allowed_employees: _shift.maximum_allowed_employees.toString(),
@@ -471,13 +475,30 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
                     <div className="col-12">
                         <label>Search people in JobCore:</label>
                         <SearchEmployees 
-                            onSelect={(selection)=> {
-                                if(selection.value == 'new_venue') bar.show({ slug: "create_venue", allowLevels: true });
-                                else onChange({ venue: selection.value.toString() });
+                            isMulti={true}
+                            value={formData.pending_invites}
+                            onChange={(selections)=> {
+                                const invite = selections.find(opt => opt.value == 'invite_talent');
+                                if(invite) bar.show({ 
+                                    allowLevels: true,
+                                    slug: "invite_talent_to_jobcore", 
+                                    onSave: (emp) => onChange({ pending_jobcore_invites: formData.pending_jobcore_invites.concat(emp) })
+                                });
+                                else onChange({ pending_invites: selections });
                             }}
                         />
                     </div>
                 </div>
+        }
+        {(formData.pending_jobcore_invites.length>0) ?
+            <div className="row">
+                <div className="col-12">
+                    <p className="m-0 p-0">The following people will be invited to this shift after they accept your invitation to jobcore:</p>
+                    {formData.pending_jobcore_invites.map((emp, i) => (
+                        <span key={i} className="badge">{emp.first_name} {emp.last_name} <i className="fas fa-trash-alt"></i></span>
+                    ))}
+                </div>
+            </div> : ''
         }
         <div className="btn-bar">
             { (formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ? 
@@ -649,18 +670,33 @@ export class SearchEmployees extends React.Component {
     }
     render() {
         return (
-            <AsyncSelect cacheOptions defaultOptions 
-                loadOptions={(newValue) => {
+            <AsyncSelect
+                isMulti={this.props.isMulti}
+                value={this.props.value}
+                cacheOptions={true} //The cache will remain until cacheOptions changes value.
+                defaultOptions={[{ label: 'Start typing to search talents', value: null }]} // Options to show before the user starts searching. if true = results for loadOptions('') will be autoloaded.
+                onInputChange={(newValue) => { //Function that returns a promise, which is the set of options to be used once the promise resolves.
                     const keyword = newValue.replace(/\W/g, '');
                     this.setState({ keyword });
                     return keyword;
                 }} 
-                onInputChange={(search) => GET('catalog/employees?full_name='+search)}
-                onChange={(selection)=> this.props.onSelect(selection)}
+                loadOptions={(search) => new Promise((resolve, reject) => 
+                    GET('catalog/employees?full_name='+search)
+                        .then(talents => resolve([{ label: `${(talents.length==0) ? 'No one found: ':''}Invite "${this.state.keyword}" to jobcore`, value: 'invite_talent' }].concat(talents)))
+                        .catch(error => reject(error))
+                )}
+                onChange={(selection)=> this.props.onChange(selection)}
             />
         );
     }
 }
 SearchEmployees.propTypes = {
-    onSelect: PropTypes.func.isRequired,
+    value: PropTypes.obj,
+    isMulti: PropTypes.bool,
+    onChange: PropTypes.func.isRequired
+};
+SearchEmployees.defaultProps = {
+    isMulti: false,
+    value: null,
+    onChange: null
 };

@@ -1,6 +1,6 @@
 /* global localStorage, fetch */
 import {logout} from '../actions';
-import {log} from './log';
+import log from './log';
 import {Session} from 'bc-react-session';
 
 const rootAPIendpoint = process.env.API_HOST+'/api';
@@ -82,7 +82,7 @@ export const POST = (endpoint, postData, extraHeaders = {}) => {
     .then(data => resolve(data))
     .catch(err => {
       log.error(err);
-      if (typeof err == 'string') throw new Error(err);
+      reject(err);
     })
   );
 };
@@ -127,36 +127,37 @@ export const DELETE = (endpoint, extraHeaders = {}) => {
   );
 };
 
-const processResp = (resp) => {
+const processResp = function(resp){
   if(resp.ok){
-    if(resp.status == 204) return true;
+    if(resp.status == 204) return new Promise((resolve, reject) => resolve(true));
     else return resp.json();
-  } 
-  else if(resp.status == 400) parseError(resp);
-  else if(resp.status == 404) throw new Error('Not found');
-  else if(resp.status == 503){
-    logout();
-    throw new Error('The JobCore API seems to be unavailable');
-  } 
-  else if(resp.status == 401){
-    logout();
-    throw new Error('You are not authorized for this action');
-  } 
-  else if(resp.status > 200 && resp.status < 300) return resp.json();
-  else if(resp.status >= 500 && resp.status < 600) throw new Error('Something bad happened while completing your request! Please try again later.');
-  else throw new Error('Somethign went wrong');
+  }
+  else return new Promise(function(resolve, reject){
+    if(resp.status == 400) parseError(resp).catch((errorMsg) => reject(errorMsg));
+    else if(resp.status == 404) reject(new Error('Not found'));
+    else if(resp.status == 503){
+      logout();
+      reject(new Error('The JobCore API seems to be unavailable'));
+    } 
+    else if(resp.status == 401){
+      logout();
+      reject(new Error('You are not authorized for this action'));
+    } 
+    else if(resp.status >= 500 && resp.status < 600) reject(new Error('Something bad happened while completing your request! Please try again later.'));
+    else reject(new Error('Something went wrong'));
+  });
 };
 
-const parseError = (error) => {
+const parseError = (error) => new Promise(function(resolve, reject){
   const errorPromise = error.json();
   errorPromise.then(json => {
     let errorMsg = '';
     for(let type in json){
       errorMsg += json[type].join(',');
     }
-    throw new Error(errorMsg);
+    reject(errorMsg);
   })
   .catch(error => {
-    throw error;
+    reject(error);
   });
-};
+});

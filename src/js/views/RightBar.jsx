@@ -135,7 +135,13 @@ class RightBar extends React.Component {
             <View 
                 catalog={this.props.catalog}
                 formData={this.state.formData}
-                onSave={(data)=> this.onSave(data)} 
+                onSave={(data)=> {
+                    if(typeof this.props.option.onSave != 'undefined'){
+                        this.props.option.onSave(this.state.formData);
+                        this.props.onClose();
+                    }
+                    else this.onSave(data);
+                }}
                 onCancel={(incoming)=>this.props.onClose(incoming)} 
                 onChange={(incoming)=>this.onChange(incoming)} 
             />

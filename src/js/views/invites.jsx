@@ -4,6 +4,7 @@ import {update} from '../actions';
 import {Session} from 'bc-react-session';
 import PropTypes from 'prop-types';
 import Select from 'react-select';
+import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
 import {Button, Theme, ShiftOption, ShiftOptionSelected} from '../components/index';
 import moment from 'moment';
 export const Invite = (data) => {
@@ -11,6 +12,8 @@ export const Invite = (data) => {
     const _defaults = {
         first_name: '',
         last_name: '',
+        status: 'PENDING',
+        created_at: NOW,
         email: '',
         serialize: function(){
             
@@ -120,7 +123,7 @@ export const InviteTalentToJobcore = ({ onSave, onCancel, onChange, catalog, for
                 </div>
                 <div className="col-12">
                     <label>Talent Phone</label>
-                    <input type="phone" className="form-control"
+                    <input type="tel" className="form-control"
                         onChange={(e)=>onChange({phone_number: e.target.value})} 
                     />
                 </div>
