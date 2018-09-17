@@ -128,10 +128,12 @@ class PrivateLayout extends Flux.DashView{
     
     
     componentDidMount(){
-        const reduce = (list) => list.map(itm => ({ 
-            label: itm.title || itm.profile.user.first_name + ' ' + itm.profile.user.last_name, 
-            value: itm.id 
-        }));
+        const reduce = (list) => list.map(itm => {
+            return ({ 
+                label: itm.title || itm.profile.user.first_name + ' ' + itm.profile.user.last_name, 
+                value: itm.id 
+            });
+        });
         fetchAll(['shifts','positions','venues', 'favlists', 'badges', 'jobcore-invites']);
         
         this.subscribe(store, 'jobcore-invites', (jcInvites) => this.setCatalog({jcInvites: jcInvites || []}));
@@ -212,7 +214,7 @@ class PrivateLayout extends Flux.DashView{
                             <li><Link to="/home"><i className="icon icon-dashboard"></i>Dashboard</Link></li>
                             <li><Link to="/talents"><i className="icon icon-talents"></i>Talents</Link></li>
                             <li><Link to="/favorites"><i className="icon icon-favorite"></i>Favorites</Link></li>
-                            <li><Link to="/applicants"><i className="icon icon-applications"></i>Applications</Link></li>
+                            <li><Link to="/applicants"><i className="icon icon-applications"></i>Applicants</Link></li>
                             <li><Link to="/shifts"><i className="icon icon-shifts"></i>Shifts</Link></li>
                             <li><Link to="/profile"><i className="icon icon-companyprofile"></i>Your Profile</Link></li>
                             <li><a href="#" onClick={()=>logout()}><i className="icon icon-logout icon-sm"></i>Logout</a></li>

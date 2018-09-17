@@ -67,7 +67,7 @@ export const GET = async (endpoint, queryString = null, extraHeaders = {}) => {
 
 export const POST = (endpoint, postData, extraHeaders = {}) => {
   
-  if(['register', 'login'].indexOf(endpoint) == -1){
+  if(['user/register', 'login', 'user/password/reset'].indexOf(endpoint) == -1){
     HEADERS['Authorization'] = `JWT ${getToken()}`;
     postData = appendCompany(postData);
   } 

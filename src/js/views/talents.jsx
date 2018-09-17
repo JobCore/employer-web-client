@@ -249,13 +249,13 @@ export const TalentDetails = (props) => {
     return (<Theme.Consumer>
         {({bar}) => 
             (<li className="aplication-details">
-                <Avatar url={process.env.API_HOST+employee.profile.picture} />
-                <p>{employee.profile.user.first_name + " " + employee.profile.user.last_name}</p>
+                <Avatar url={process.env.API_HOST+employee.user.profile.picture} />
+                <p>{employee.fullName()}</p>
                 <div>
-                    <Stars className="float-left" rating={Number(employee.rating)} jobCount={employee.profile.job_count}  />
+                    <Stars className="float-left" rating={Number(employee.rating)} jobCount={employee.job_count}  />
                 </div>
-                <p>$ {employee.profile.minimum_hourly_rate} /hr Minimum Rate</p>
-                <p>{employee.profile.bio}</p>
+                <p>$ {employee.minimum_hourly_rate} /hr Minimum Rate</p>
+                <p>{employee.user.profile.bio}</p>
                 <div className="btn-bar">
                     <Button color="primary" onClick={() => bar.show({ slug: "invite_talent", data: employee, allowLevels:true })}>Invite to shift</Button>
                     <Button color="success" onClick={() => bar.show({ slug: "add_to_favlist", data: employee, allowLevels:true })}>Add to favorites</Button>

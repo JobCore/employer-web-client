@@ -6,51 +6,54 @@ import {Shift} from './views/shifts';
 import {POST, GET, PUT, DELETE} from './utils/api_wrapper';
 import log from './utils/log';
 
-export const login = (email, password, history) => {
-    POST('login', {
+export const login = (email, password, history) => new Promise((resolve, reject) => POST('login', {
       username_or_email: email,
       password: password
     })
     .then(function(data){
         Session.actions.login({ user: data.user, access_token: data.token });
         history.push('/');
+        resolve();
     })
     .catch(function(error) {
+        reject(error.message || error);
         Notify.error(error.message || error);
         log.error(error);
-    });
-};
+    })
+);
 
-export const signup = (email, password, company) => {
-    POST('user/register', {
-      email: email,
-      account_type: 'employer',
-      employer: 1,
-      username: email,
-      password: password
+export const signup = (formData, history) => new Promise((resolve, reject) => POST('user/register', {
+      email: formData.email,
+      account_type: formData.account_type,
+      employer: formData.company,
+      username: formData.email,
+      password: formData.password
     })
     .then(function(data){
-        window.location.href="/login";
+        Notify.success("You have signed up successfully, proceed to log in");
+        history.push('/login');
+        resolve();
     })
     .catch(function(error) {
+        reject(error.message || error);
         Notify.error(error.message || error);
         log.error(error);
-    });
-};
+    })
+);
 
-export const remind = (email) => {
-    POST('remind', {
-      email: email,
-      username: email
+export const remind = (email) => new Promise((resolve, reject) => POST('user/password/reset', {
+      email: email
     })
     .then(function(data){
+        resolve();
         Notify.success("Check your email!");
     })
     .catch(function(error) {
         Notify.error(error.message || error);
-        //console.error(error);
-    });
-};
+        reject(error.message || error);
+        log.error(error);
+    })
+);
 
 export const logout = () => {
       Session.actions.logout();
@@ -246,6 +249,7 @@ class _Store extends Flux.DashStore{
             const session = Session.store.getSession();
             return employees.map((em) => {
                 //if the talent has an employer
+                em.fullName = function() { return (this.user.first_name.length>0) ? this.user.first_name + ' ' + this.user.last_name : 'No name specified'; };
                 if(typeof session.user.profile.employer != 'undefined'){
                     if(typeof em.favoriteLists =='undefined') em.favoriteLists = em.favoritelist_set.filter(fav => fav.employer == session.user.profile.employer);
                     else{

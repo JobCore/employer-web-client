@@ -675,8 +675,8 @@ export class SearchEmployees extends React.Component {
                 value={this.props.value}
                 cacheOptions={true} //The cache will remain until cacheOptions changes value.
                 defaultOptions={[{ label: 'Start typing to search talents', value: null }]} // Options to show before the user starts searching. if true = results for loadOptions('') will be autoloaded.
-                onInputChange={(newValue) => { //Function that returns a promise, which is the set of options to be used once the promise resolves.
-                    const keyword = newValue.replace(/\W/g, '');
+                onInputChange={(keyword) => { //Function that returns a promise, which is the set of options to be used once the promise resolves.
+                    //const keyword = newValue.replace(/\W/g, '');
                     this.setState({ keyword });
                     return keyword;
                 }} 

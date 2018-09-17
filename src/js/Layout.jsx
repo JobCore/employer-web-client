@@ -1,7 +1,7 @@
 import React from 'react';
 import Flux from '@4geeksacademy/react-flux-dash';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
-import {Login, Signup, Forgot} from './views/auth';
+import {Login, Signup, Forgot, Invite} from './views/auth';
 import PrivateLayout from './PrivateLayout';
 import {PrivateRoute} from 'bc-react-session';
 
@@ -16,6 +16,8 @@ class Layout extends Flux.View{
                             <Route exact path='/login' component={Login} />
                             <Route exact path='/signup' component={Signup} />
                             <Route exact path='/forgot' component={Forgot} />
+                            <Route extact path="/invite" component={Invite} />
+                            <Route extact path="/shift/:shift_id/invite" component={Invite} />
                             <PrivateRoute exact path='/' component={PrivateLayout} />
                             <PrivateRoute exact path='/favorites' component={PrivateLayout} />
                             <PrivateRoute exact path='/rate' component={PrivateLayout} />
