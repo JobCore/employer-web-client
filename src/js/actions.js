@@ -283,7 +283,7 @@ class _Store extends Flux.DashStore{
     
     get(type, id){
         const entities = this.getState(type);
-        if(entities) return entities.find(ent => ent.id == id);
+        if(entities) return entities.find(ent => ent.id == parseInt(id, 10));
         else return null;
     }
     add(type, item){
@@ -298,7 +298,7 @@ class _Store extends Flux.DashStore{
         
         if(Array.isArray(entities)){
             return entities.concat([]).map(ent => {
-                if(ent.id != id) return ent;
+                if(ent.id != parseInt(id, 10)) return ent;
                 return item;
             });
         }
@@ -309,7 +309,7 @@ class _Store extends Flux.DashStore{
         if(!entities) throw new Error("No item found in "+type);
         if(Array.isArray(entities)){
             return entities.concat([]).map(ent => {
-                if(ent.id != id) return ent;
+                if(ent.id != parseInt(id, 10)) return ent;
                 return Object.assign(ent, item);
             });
         }
@@ -320,7 +320,7 @@ class _Store extends Flux.DashStore{
     remove(type, id){
         const entities = this.getState(type);
         if(entities) return entities.filter(ent => {
-            return (ent.id != id);
+            return (ent.id != parseInt(id, 10));
         });
         else throw new Error("No items found in "+entities);
     }

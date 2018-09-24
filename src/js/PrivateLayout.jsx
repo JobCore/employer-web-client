@@ -130,7 +130,7 @@ class PrivateLayout extends Flux.DashView{
     componentDidMount(){
         const reduce = (list) => list.map(itm => {
             return ({ 
-                label: itm.title || itm.profile.user.first_name + ' ' + itm.profile.user.last_name, 
+                label: itm.title || itm.user.first_name + ' ' + itm.user.last_name, 
                 value: itm.id 
             });
         });

@@ -173,13 +173,13 @@ export const ApplicantExtendedCard = (props) => {
             (<li className="aplicantcard"
                     onClick={() => bar.show({ slug: "show_single_applicant", data: props.applicant.employee, title: "Application Details" })}
                 >
-                <Avatar url={props.applicant.employee.profile.picture} />
+                <Avatar url={props.applicant.employee.user.profile.picture} />
                 <AcceptReject
                     onAccept={() => acceptCandidate(props.shift.id, props.applicant.employee)} 
                     onReject={() => rejectCandidate(props.shift.id, props.applicant.employee)} 
                 />
                 <p>
-                    <a href="#" className="shift-position">{props.applicant.employee.profile.user.first_name + " " + props.applicant.employee.profile.user.last_name} </a>
+                    <a href="#" className="shift-position">{props.applicant.employee.user.first_name + " " + props.applicant.employee.user.last_name} </a>
                     is applying for the {props.shift.position.title} position
                     at the <a href="#" className="shift-location"> {props.shift.venue.title}</a> 
                     <span className="shift-date"> {startDate} from {startTime} to {endTime} </span>
@@ -208,12 +208,12 @@ export const ApplicationDetails = (props) => {
     return (<Theme.Consumer>
         {({bar}) => 
             (<li className="aplication-details">
-                <Avatar url={applicant.profile.picture} />
-                <p>{applicant.profile.user.first_name + " " + applicant.profile.user.last_name}</p>
+                <Avatar url={applicant.user.profile.picture} />
+                <p>{applicant.user.first_name + " " + applicant.user.last_name}</p>
                 <Stars rating={Number(applicant.rating)}  />
                 <span>Doing 4 jobs</span>
                 <p>$ 13 /hr Minimum Rate</p>
-                <p>{applicant.profile.bio}</p>
+                <p>{applicant.user.profile.bio}</p>
                 <AcceptReject
                     showLabels={true}
                     onAccept={() => acceptCandidate(applicant.shift.id, applicant)} 

@@ -1,6 +1,6 @@
 {
-  "name": "workspace",
-  "version": "1.0.0",
+  "name": "jobcore-employee-web",
+  "version": "0.0.11",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -67,9 +67,9 @@
     "popper.js": "^1.12.9",
     "prop-types": "^15.6.1",
     "query-string": "^5.1.1",
-    "rc-time-picker": "^3.3.1",
     "react": "^16.4.1",
     "react-ace": "^5.9.0",
+    "react-datetime": "^2.15.0",
     "react-dom": "^16.4.1",
     "react-joyride": "^2.0.0-14",
     "react-places-autocomplete": "^7.2.0",

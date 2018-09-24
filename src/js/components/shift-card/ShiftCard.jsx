@@ -16,9 +16,9 @@ export default class ShiftCard extends React.Component{
     render(){
         const totalCandidates = (Array.isArray(this.props.shift.candidates)) ? this.props.shift.candidates.length : 0;
         const openVacancys = this.props.shift.maximum_allowed_employees;
-        const startDate = this.props.shift.date.format('ll');
-        const startTime = this.props.shift.start_time.format('LT');
-        const endTime = this.props.shift.finish_time.format('LT');
+        const startDate = this.props.shift.starting_at.format('ll');
+        const startTime = this.props.shift.starting_at.format('LT');
+        const endTime = this.props.shift.ending_at.format('LT');
         return (<Theme.Consumer>
             {({bar}) => 
                 (<li className={"shiftcard "+this.state.hoveredClass} onMouseOver={() => {

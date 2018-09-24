@@ -8,16 +8,17 @@ import _ from 'underscore';
 import Select from 'react-select';
 import AsyncSelect from 'react-select/lib/Async';
 
+import DateTime from 'react-datetime';
+
 import {Notify} from 'bc-react-notifier';
 import queryString from 'query-string';
 import {ShiftCard, Wizard, Theme} from '../components/index';
-import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
+import {DATETIME_FORMAT, NOW} from '../components/utils.js';
 import {validator, ValidationError} from '../utils/validation';
 import {callback, hasTutorial} from '../utils/tutorial';
 import GoogleMapReact from 'google-map-react';
 import markerURL from '../../img/marker.png';
 import PlacesAutocomplete, {geocodeByAddress, getLatLng} from 'react-places-autocomplete';
-import TimePicker from 'rc-time-picker';
 import moment from 'moment';
 import {GET} from '../utils/api_wrapper';
 const SHIFT_POSSIBLE_STATUS = ['UNDEFINED','DRAFT','OPEN','CANCELLED'];
@@ -34,12 +35,11 @@ export const Shift = (data) => {
         maximum_allowed_employees: '1',
         application_restriction: 'ANYONE',
         minimum_hourly_rate: '8',
-        date: NOW,
+        starting_at: NOW,
+        ending_at: NOW,
         pending_invites: [],
         pending_jobcore_invites: [],
         candidates:[],
-        start_time: NOW,
-        finish_time: NOW,
         allowed_from_list: [],
         allowedFavlists: [],
         allowedTalents: [],
@@ -50,26 +50,23 @@ export const Shift = (data) => {
             
             const newShift = {
                 status: (this.status == 'UNDEFINED') ? 'DRAFT' : this.status,
-                date: (moment.isMoment(this.date)) ? this.date.format(DATE_FORMAT) : this.date,
-                start_time: (moment.isMoment(this.start_time)) ? this.start_time.format(TIME_FORMAT) : this.start_time,
-                finish_time: (moment.isMoment(this.finish_time)) ? this.finish_time.format(TIME_FORMAT) : this.finish_time,
+                // starting_at: (moment.isMoment(this.starting_at)) ? this.starting_at.format(DATETIME_FORMAT) : this.starting_at,
+                // ending_at: (moment.isMoment(this.ending_at)) ? this.ending_at.format(DATETIME_FORMAT) : this.ending_at,
                 allowed_from_list: this.allowedFavlists.map(f => f.value)
             };
             
             return Object.assign(this, newShift);
         },
         unserialize: function(){
-            const dataType = typeof this.date;
+            const dataType = typeof this.starting_at;
             //if its already serialized
-            if(['number','string'].indexOf(dataType) == -1) return this;
+            if((typeof this.position == 'object') && ['number','string'].indexOf(dataType) == -1) return this;
             
-            const tempDate = new Date(this.date).toLocaleDateString("en-US");
             const newShift = {
                 position: (typeof this.position != 'object') ? store.get('positions', this.position) : this.position,
                 venue: (typeof this.venue != 'object') ? store.get('venues', this.venue) : this.venue,
-                start_time: (!moment.isMoment(this.start_time)) ? moment(tempDate+" "+this.start_time) : this.start_time,
-                finish_time: (!moment.isMoment(this.finish_time)) ? moment(tempDate+" "+this.finish_time) : this.finish_time,
-                date: (!moment.isMoment(this.date)) ? moment(this.date) : this.date,
+                starting_at: (!moment.isMoment(this.starting_at)) ? moment(this.starting_at) : this.starting_at,
+                ending_at: (!moment.isMoment(this.ending_at)) ? moment(this.ending_at) : this.ending_at,
                 allowedFavlists: this.allowed_from_list.map(fav => {
                     const list = store.get('favlists', fav.id || fav);
                     return (list) ? {value: list.id, label: list.title} : null;
@@ -90,11 +87,11 @@ export const Shift = (data) => {
     let _shift = Object.assign(_defaults, data);
     return {
         validate: () => {
-            const startTime = (moment.isMoment(_shift.start_time)) ? _shift.start_time.format(TIME_FORMAT) : _shift.start_time;
-            const finish_time = (moment.isMoment(_shift.finish_time)) ? _shift.finish_time.format(TIME_FORMAT) : _shift.finish_time;
-            const date = (moment.isMoment(_shift.date)) ? _shift.date.format(DATE_FORMAT) : _shift.date;
-            const start = moment(date + ' ' + startTime, TIME_FORMAT + ' ' + TIME_FORMAT);
-            const finish = moment(date + ' ' + finish_time, TIME_FORMAT + ' ' + TIME_FORMAT);
+            const start = _shift.starting_at;
+            const finish = _shift.ending_at;
+            
+            if(_shift.status == 'CANCELLED') return _shift;
+            
             if(!validator.isInt(_shift.position, { min: 1 })) throw new ValidationError('The shift is missing a position');
             if(!validator.isInt(_shift.maximum_allowed_employees, { min: 1, max: 25 })) throw new ValidationError('The shift needs to employ at least 1 talent and no more than 25');
             if(!validator.isFloat(_shift.minimum_hourly_rate, { min: 7 })) throw new ValidationError('The minimum allowed hourly rate is $7');
@@ -117,11 +114,12 @@ export const Shift = (data) => {
                 position: _shift.position.id.toString() || _shift.position.toString(),
                 maximum_allowed_employees: _shift.maximum_allowed_employees.toString(),
                 minimum_hourly_rate: _shift.minimum_hourly_rate.toString(),
-                date: _shift.date,
+                starting_at: _shift.starting_at,
+                ending_at: _shift.ending_at,
                 status: _shift.status,
                 allowedFavlists: _shift.allowedFavlists,
-                start_time: (moment.isMoment(_shift.start_time) ) ? _shift.start_time : moment(_shift.date.format("MM/DD/YYYY") + ' ' + _shift.start_time),
-                finish_time: (moment.isMoment(_shift.finish_time) ) ? _shift.finish_time : moment(_shift.date.format("MM/DD/YYYY") + ' ' + _shift.finish_time),
+                start_time: (moment.isMoment(_shift.starting_at) ) ? _shift.starting_at : moment(_shift.starting_at.format("MM/DD/YYYY") + ' ' + _shift.starting_at),
+                finish_time: (moment.isMoment(_shift.starting_at) ) ? _shift.ending_at : moment(_shift.ending_at.format("MM/DD/YYYY") + ' ' + _shift.ending_at),
                 minimum_allowed_rating: _shift.minimum_allowed_rating.toString(),
                 venue: _shift.venue.id.toString() || _shift.venue.toString()
             };
@@ -235,8 +233,8 @@ export class ManageShifts extends Flux.DashView {
                     filters[f] = {
                         value: filters[f],
                         matches: (shift) => {
-                            const fdate = moment(filters.date.value);
-                            return shift.date.diff(fdate, 'days') == 0;
+                            const fdate = moment(filters.starting_at.value);
+                            return shift.starting_at.diff(fdate, 'days') == 0;
                         }
                     };
                 break;
@@ -246,7 +244,7 @@ export class ManageShifts extends Flux.DashView {
     }
     
     render() {
-        const groupedShifts = _.groupBy(this.state.shifts, (s) => s.date.format('MMMM YYYY'));
+        const groupedShifts = _.groupBy(this.state.shifts, (s) => s.starting_at.format('MMMM YYYY'));
         const shiftsHTML = [];
         for(let date in groupedShifts){
             shiftsHTML.push(<div key={date} className="date-group">
@@ -360,7 +358,7 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
             </div>
         </div>
         <div className="row">
-            <div className="col-6">
+            <div className="col-12">
                 <label>Looking for</label>
                 <Select
                     value={ catalog.positions.find((pos) => pos.value == formData.position)}
@@ -368,6 +366,8 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
                     options={[{label: 'Select a position', value: ''}].concat(catalog.positions)}
                 />
             </div>
+        </div>
+        <div className="row">
             <div className="col-6">
                 <label>How many?</label>
                 <input type="number" className="form-control" 
@@ -375,8 +375,6 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
                     onChange={(e)=>onChange({maximum_allowed_employees: e.target.value})} 
                 />
             </div>
-        </div>
-        <div className="row">
             <div className="col-6">
                 <label>Price / hour</label>
                 <input type="number" className="form-control" 
@@ -384,36 +382,25 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
                     onChange={(e)=>onChange({minimum_hourly_rate: e.target.value})} 
                 />
             </div>
-            <div className="col-6">
-                <label>Date</label>
-                <input type="date" className="form-control" 
-                    value={(typeof formData.date != 'undefined') ? formData.date.format(DATE_FORMAT) : ''}
-                    onChange={(e)=>onChange({date: moment(e.target.value)})} 
-                />
-            </div>
         </div>
         <div className="row">
             <div className="col-6">
                 <label>From</label>
-                <TimePicker 
-                    format={TIME_FORMAT}
-                    showSecond={false}
-                    minuteStep={15}
-                    use12Hours={true}
-                    value={formData.start_time}
-                    onChange={(value)=>onChange({start_time: value})}
+                <DateTime 
+                    timeFormat={DATETIME_FORMAT}
+                    timeConstraints={{ minutes: { step: 15 }}}
+                    value={formData.starting_at}
+                    onChange={(value)=>onChange({starting_at: value})}
                 />
             </div>
             <div className="col-6">
                 <label>To</label>
-                <TimePicker 
-                    format={TIME_FORMAT}
-                    showSecond={false}
-                    minuteStep={15}
-                    defaultValue={NOW}
-                    use12Hours={true}
-                    value={formData.finish_time}
-                    onChange={(value)=>onChange({finish_time: value})}
+                <DateTime 
+                    className="picker-left"
+                    timeFormat={DATETIME_FORMAT}
+                    timeConstraints={{ minutes: { step: 15 }}}
+                    value={formData.ending_at}
+                    onChange={(value)=>onChange({ending_at: value})}
                 />
             </div>
         </div>
@@ -525,7 +512,7 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
                         if(answer) onSave({status: 'CANCELLED'});
                         noti.remove();
                     });
-                }}>Cancel shift</button>:''
+                }}>Delete</button>:''
             }
         </div>
     </form>)}
