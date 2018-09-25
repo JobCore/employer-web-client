@@ -59,19 +59,39 @@ export const logout = () => {
       Session.actions.logout();
 };
 
-export const fetchAll = (entities) => {
-    entities.forEach((entity) =>
+export const fetchAll = (entities) => new Promise((resolve, reject) => {
+    let requests = [];
+    const checkPromiseResolution = () => {
+            const hasPending = requests.find(r => r.pending == true);
+            if(!hasPending){
+                const hasError = requests.find(r => r.error == true);
+                if(hasError) reject();
+                else resolve();
+            }
+        };
+        
+    entities.forEach((entity) => {
+        const currentRequest = { entity: entity.slug || entity, pending: true, error: false};
+        requests.push(currentRequest);
+        
         GET(entity.slug || entity)
         .then(function(list){
             if(typeof entity.callback == 'function') entity.callback();
             Flux.dispatchEvent(entity.slug || entity, list);
+
+            currentRequest.pending = false;
+            checkPromiseResolution();
         })
         .catch(function(error) {
             Notify.error(error.message || error);
             log.error(error);
-        })
-    );
-};
+            
+            currentRequest.pending = false;
+            currentRequest.error = true;
+            checkPromiseResolution();
+        });
+    });
+});
 
 export const fetchSingle = (entity, id, event_name=null) => {
     const url = entity.slug || entity;

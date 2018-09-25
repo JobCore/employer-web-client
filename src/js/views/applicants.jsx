@@ -1,6 +1,7 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
+import Select from 'react-select';
 import {AcceptReject, Avatar, Stars, Theme, Wizard} from '../components/index';
 import {store, rejectCandidate, acceptCandidate} from '../actions.js';
 import queryString from 'query-string';
@@ -234,12 +235,10 @@ export const FilterApplicants = ({onSave, onCancel, onChange, catalog}) => (<for
     <div className="row">
         <div className="col">
             <label>Looking for</label>
-            <select className="form-control" onChange={(e)=>onChange({position: e.target.value})} >
-                <option>Select a position</option>
-                {
-                    catalog.positions.map((pos,i)=>(<option key={i} value={pos.id}>{pos.title}</option>))
-                }
-            </select>
+            <Select 
+                options={catalog.positions}
+                onChange={(selection) => onChange({ position: selection.value.toString() })}
+            />
         </div>
     </div>
     <div className="row">
@@ -255,12 +254,10 @@ export const FilterApplicants = ({onSave, onCancel, onChange, catalog}) => (<for
     <div className="row">
         <div className="col">
             <label>Venue</label>
-            <select className="form-control" onChange={(e)=>onChange({venue: e.target.value})} >
-                <option value={null}>Select a venue</option>
-                {
-                    catalog.venues.map((ven,i)=>(<option key={i} value={ven.id}>{ven.title}</option>))
-                }
-            </select>
+            <Select 
+                options={catalog.venues}
+                onChange={(selection) => onChange({ venue: selection.value.toString() })}
+            />
         </div>
     </div>
     <div className="row">

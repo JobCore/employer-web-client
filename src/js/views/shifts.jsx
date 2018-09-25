@@ -489,10 +489,10 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
         }
         <div className="btn-bar">
             { (formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ? 
-                <button type="button" className="btn btn-success" onClick={() => onSave({status: 'DRAFT'})}>Save as draft</button>:''
+                <button type="button" className="btn btn-primary" onClick={() => onSave({status: 'DRAFT'})}>Save as draft</button>:''
             }
             { (formData.status == 'DRAFT') ? 
-                <button type="button" className="btn btn-primary" onClick={() => {
+                <button type="button" className="btn btn-success" onClick={() => {
                     const noti = Notify.info("Are you sure?",(answer) => {
                         if(answer) onSave({status: 'OPEN'});
                         noti.remove();
@@ -504,7 +504,9 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
                             if(answer) onSave({status: 'DRAFT'});
                             noti.remove();
                         });
-                }}>Unpublish shift</button>:''
+                    }}>Unpublish shift</button>
+                    :
+                    <button type="button" className="btn btn-success" onClick={() => onSave({status: 'OPEN'})}>Save and publish</button>
             }
             { (formData.status != 'UNDEFINED') ?
                 <button type="button" className="btn btn-danger" onClick={() => {

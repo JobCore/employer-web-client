@@ -28,7 +28,7 @@ class RightBar extends React.Component {
         try{
             switch (this.props.option.slug) {
                 case 'create_shift':
-                    create('shifts', Shift(this.state.formData).validate().serialize());
+                    create('shifts', Shift(Object.assign(this.state.formData,data)).validate().serialize());
                     this.props.onClose();
                 break;
                 case 'update_shift':
@@ -58,7 +58,10 @@ class RightBar extends React.Component {
                 break;
                 case 'add_to_favlist':{
                         this.state.formData.favoriteLists.forEach((list)=>{
-                            update("employees", Talent(this.state.formData).validate().serialize());
+                            update({
+                                path: "favlists/employee",
+                                event_name: "employees"
+                            },Talent(this.state.formData).validate().serialize());
                         });
                         this.props.onClose();
                     }

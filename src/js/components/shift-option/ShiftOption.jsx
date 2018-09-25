@@ -4,9 +4,9 @@ import './style.scss';
 
 const ShiftOption = ({data, isDisabled, innerProps}) => {
     if(isDisabled) return null;
-    const startDate = data.value.date.format('ll');
-    const startTime = data.value.start_time.format('LT');
-    const endTime = data.value.finish_time.format('LT');
+    const startDate = data.value.starting_at.format('ll');
+    const startTime = data.value.ending_at.format('LT');
+    const endTime = data.value.ending_at.format('LT');
     return (<div className="shift-option" {...innerProps}>
         <a href="#" className="shift-position">{data.value.position.title}</a> @ 
         <a href="#" className="shift-location"> {data.value.venue.title}</a> 
