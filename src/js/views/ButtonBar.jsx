@@ -16,7 +16,7 @@ class ButtonBar extends React.Component {
                     { slug: "filter_shift", title: 'Filter shifts', to: 'shifts'}
                 ],
                 applicants: [
-                    { slug: "filter_applicants", title: 'Filter Applicants', to: 'applicants'}
+                    { slug: "filter_applications", title: 'Filter Applications', to: 'applicants'}
                 ],
                 talents: [
                     { slug: "filter_talent", title: 'Filter Talents', to: 'talents'},

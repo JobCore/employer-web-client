@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import * as actions from '../actions';
 import {Notifier} from 'bc-react-notifier';
 import loginBanner from '../../img/login-banner.png';
+import {validator, onlyLetters} from '../utils/validation';
 
 export class Login extends React.Component{
     constructor(){
@@ -55,23 +56,48 @@ Login.propTypes = {
 export class Signup extends React.Component{
     constructor(){
         super();
-        this.state = { email: 'aalejo@gmail.com', password: '', company: 1, loading: false };
+        this.state = { email: 'aalejo@gmail.com', password: '', first_name: '', last_name:'', company: 1, loading: false, errors: [] };
+    }
+    validate(formData){
+        let errors = [];
+        if(!validator.isEmail(formData.email)) errors.push('Invalid email');
+        if(validator.isEmpty(formData.first_name)) errors.push('The first name cannot be empty');
+        if(!validator.isLength(formData.first_name, { min: 0, max: 50 })) errors.push('The first name can have a max of 50 characters');
+        if(!validator.isLength(formData.last_name, { min: 0 ,max: 50 })) errors.push('The last name can have a max of 50 characters');
+        if(!onlyLetters(formData.first_name) || !onlyLetters(formData.last_name)) errors.push('First and last name cannot contain numbers');
+        if(validator.isEmpty(formData.last_name)) errors.push('The last name cannot be empty');
+        if(validator.isEmpty(formData.password)) errors.push('The password cannot be empty');
+        if(!validator.isLength(formData.password, { min: 8, max: 50 })) errors.push('Password must have between 8 and 50 characters');
+        
+        this.setState({ errors, loading: false });
+        return errors.length == 0;
     }
     render(){
         return (
             <div className="public_view login_view">
                 <img className="banner" src={loginBanner} />
                 <Notifier />
-                <form className="col-10 col-sm-8 col-md-4 col-lg-4 mx-auto"
+                {(this.state.errors.length>0) ?
+                    <div className="alert alert-danger">
+                        <ul>
+                            { this.state.errors.map((err, i) => (<li key={i}>{err}</li>)) }
+                        </ul>
+                    </div>:''
+                }
+                <form className="col-10 col-sm-8 col-md-4 col-lg-4 mx-auto mb-5"
                     onSubmit={(e)=> {
                         this.setState({loading: true});
                         e.preventDefault();
-                        actions.signup({
-                                email: this.state.email,
-                                password: this.state.password,
-                                company: this.state.company,
-                                account_type: 'employer'
-                            }, this.props.history)
+                        
+                        const formData = {
+                            email: this.state.email,
+                            password: this.state.password,
+                            first_name: this.state.first_name,
+                            last_name: this.state.last_name,
+                            company: this.state.company,
+                            account_type: 'employer'
+                        };
+                        if(this.validate(formData)) actions.signup(formData, this.props.history)
                             .then(() => this.setState({loading: false}))
                             .catch(() => this.setState({loading: false}));
                     }}
@@ -79,6 +105,18 @@ export class Signup extends React.Component{
                     <div className="form-group">
                         <input type="text" className="form-control rounded" aria-describedby="emailHelp" placeholder="Company Name"
                             value="Fetes & Events" readOnly={true}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <input type="text" className="form-control rounded" aria-describedby="fHelp" placeholder="First Name"
+                            value={this.state.first_name}
+                            onChange={(e) => this.setState({first_name: e.target.value})}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <input type="text" className="form-control rounded" aria-describedby="lHelp" placeholder="Last Name"
+                            value={this.state.last_name}
+                            onChange={(e) => this.setState({last_name: e.target.value})}
                         />
                     </div>
                     <div className="form-group">

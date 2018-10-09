@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {create, update, remove, updateTalentList} from '../actions';
+import {create, update, remove} from '../actions';
 import {withRouter} from 'react-router-dom';
 import queryString from 'query-string';
 import {Shift} from '../views/shifts';
@@ -8,9 +8,8 @@ import {Invite} from '../views/invites';
 import {Location} from '../views/profile';
 import {Favlist} from '../views/favorites';
 import {Talent, ShiftInvite} from '../views/talents';
-import {AddFavlist} from '../views/favorites';
+import {Application} from '../views/applications';
 import {ValidationError} from '../utils/validation';
-import {Notify} from 'bc-react-notifier';
 
 class RightBar extends React.Component {
     
@@ -28,11 +27,15 @@ class RightBar extends React.Component {
         try{
             switch (this.props.option.slug) {
                 case 'create_shift':
-                    create('shifts', Shift(Object.assign(this.state.formData,data)).validate().serialize());
+                    create('shifts', Shift(this.state.formData).validate().withStatus(data.status).serialize());
                     this.props.onClose();
                 break;
                 case 'update_shift':
-                    update('shifts', Shift(Object.assign(this.state.formData,data)).validate().serialize());
+                    update('shifts', Shift(this.state.formData).validate().withStatus(data.status).serialize());
+                    this.props.onClose();
+                break;
+                case 'delete_shift':
+                    remove('shifts', Shift(Object.assign(this.state.formData,data)).validate().serialize());
                     this.props.onClose();
                 break;
                 case 'filter_shift':{
@@ -71,6 +74,14 @@ class RightBar extends React.Component {
                         else{
                             const stringified = queryString.stringify(Talent(this.state.formData).filters());
                             this.props.history.push('/talents?'+stringified);
+                        }
+                    }
+                break;
+                case 'filter_applications':{
+                        if(data === false) this.props.history.push('/applicants');
+                        else{
+                            const stringified = queryString.stringify(Application(this.state.formData).filters());
+                            this.props.history.push('/applicants?'+stringified);
                         }
                     }
                 break;
@@ -136,6 +147,7 @@ class RightBar extends React.Component {
                 (this.state.error) ? <div className="alert alert-danger">{this.state.error}</div> : ''
             }
             <View 
+                error={this.state.error}
                 catalog={this.props.catalog}
                 formData={this.state.formData}
                 onSave={(data)=> {

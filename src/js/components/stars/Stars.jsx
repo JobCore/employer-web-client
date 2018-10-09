@@ -15,7 +15,7 @@ const Stars = ({ rating , jobCount}) => {
             (decimalPart > 0) ? <i className="fas fa-star-half"></i> : ''
         }
         {
-            (jobCount) ? 
+            (jobCount && jobCount.length>0) ? 
                 <span className="jobs">in {jobCount} jobs completed</span>
             :
                 ''

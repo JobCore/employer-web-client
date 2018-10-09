@@ -111,8 +111,8 @@ export class Profile extends Flux.DashView {
     
     componentDidMount(){
         
-        const session = Session.store.getSession();
-        fetchSingle('employers', session.user.profile.employer, 'current_employer');
+        const payload = Session.getPayload();
+        fetchSingle('employers', payload.user.profile.employer, 'current_employer');
         this.subscribe(store, 'current_employer', (employer) => {
             this.setState({ employer });
         });

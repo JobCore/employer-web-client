@@ -7,6 +7,7 @@ export const DashboardBox = require('./dashboard-box/DashboardBox').default;
 export const ShiftCard = require('./shift-card/ShiftCard').default;
 export const ListCard = require('./list-card/ListCard').default;
 export const SideBar = require('./sidebar/SideBar').default;
+export const SearchCatalogSelect = require('./search-catalog-select/SearchCatalogSelect').default;
 export const Wizard = require('./wizard/Wizard').default;
 export const ShiftOption = require('./shift-option/ShiftOption').default;
 export const ShiftOptionSelected = require('./shift-option/ShiftOptionSelected').default;

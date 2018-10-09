@@ -18,7 +18,7 @@ export const Invite = (data) => {
         serialize: function(){
             
             const newShift = {
-                sender: Session.store.getSession().user.profile.id
+                sender: Session.getPayload().user.profile.id
             };
             
             return Object.assign(this, newShift);

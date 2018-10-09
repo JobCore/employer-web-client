@@ -3,7 +3,7 @@ import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
 import {store, update, remove, updateTalentList} from '../actions.js';
 import {callback, hasTutorial} from '../utils/tutorial';
-import { Modal, ListCard, EmployeeExtendedCard, Button, Theme, Wizard} from '../components/index';
+import { ListCard, EmployeeExtendedCard, Button, Theme, Wizard, SearchCatalogSelect} from '../components/index';
 import Select from 'react-select';
 import {Session} from 'bc-react-session';
 import {GET} from '../utils/api_wrapper';
@@ -13,7 +13,7 @@ export const Favlist = (data) => {
     const _defaults = {
         title: '',
         employees: [],
-        employer: Session.store.getSession().user.profile.employer,
+        employer: Session.getPayload().user.profile.employer,
         serialize: function(filters=[]){
             
             const newEntity = {
@@ -186,110 +186,75 @@ export const FavlistEmployees = ({ formData, onChange, onSave, catalog }) => {
     return (<form>
         <Theme.Consumer>
             {({bar}) => (<span>
+                <div className="top-bar">
+                    <button type="button" className="btn btn-primary btn-sm rounded" onClick={() => 
+                            bar.show({ slug: "update_favlist", data: formData, allowLevels: true })
+                        }><i className="fas fa-pencil-alt"></i></button>
+                    <button type="button" className="btn btn-secondary btn-sm rounded" onClick={() => onChange({ _mode: 'add_talent' })}>
+                        <i className="fas fa-plus"></i>
+                    </button>
+                </div>
                 <div className="row">
                     <div className="col-12">
-                        <label>Talents:</label>
-                        <ul>
-                            {(!favlist) ? '':favlist.employees.map((em,i) => (
-                                <EmployeeExtendedCard 
-                                    key={i} 
-                                    employee={em} 
-                                    hover={false} 
-                                    showFavlist={false}
-                                    onClick={() => bar.show({ slug: "show_single_talent", data: em, allowLevels: true })}
-                                >
-                                    <Button className="mt-0" icon="trash" label="Delete" onClick={() => {
-                                        updateTalentList('delete', em.id,formData.id);
-                                        //.then(() => onChange);
-                                    }}/>
-                                </EmployeeExtendedCard>)
-                            )}
-                        </ul>
+                        <label>Title:</label>
+                        <span>{favlist.title}</span>
                     </div>
                 </div>
-                <div className="btn-bar">
-                    <button type="button" className="btn btn-primary" onClick={() => 
-                        bar.show({ slug: "update_favlist", data: formData, allowLevels: true })
-                    }>Rename</button>
-                    <button type="button" className="btn btn-secondary" onClick={() => 
-                        bar.show({ slug: "add_talent_to_favlist", data: formData, allowLevels: true })
-                    }>Add new talent</button>
-                </div>
+                { (typeof formData._mode == 'undefined' || formData._mode == 'default') ? 
+                    <div className="row">
+                        <div className="col-12">
+                            <label>Talents:</label>
+                            {(!favlist || favlist.employees.length == 0) ? <span>There are no talents in this list yet, <span className="anchor" onClick={() => onChange({ mode_addNewTalent: true })}>click here to add a new one</span></span>:'' }
+                        </div>
+                    </div>:''
+                }
+                { (typeof formData._mode != 'undefined' && formData._mode=='add_talent') ? 
+                    <div className="row">
+                        <div className="col-12">
+                            <label>Search for the talents you want to add</label>
+                            <SearchCatalogSelect 
+                                isMulti={false}
+                                onChange={(selection)=> {
+                                    updateTalentList('add', selection.value, formData.id)
+                                        .then(() => onChange({ _mode: 'default'  }))
+                                        .catch((error) => alert(error));
+                                }}
+                                searchFunction={(search) => new Promise((resolve, reject) => 
+                                    GET('catalog/employees?full_name='+search)
+                                        .then(talents => resolve(talents))
+                                        .catch(error => reject(error))
+                                )}
+                            />
+                        </div>
+                    </div>:''
+                }
+                {(favlist && favlist.employees.length > 0) ? 
+                    <div className="row">
+                        <div className="col-12">
+                            <ul>
+                                {favlist.employees.map((em,i) => (
+                                    <EmployeeExtendedCard 
+                                        key={i} 
+                                        employee={em} 
+                                        hover={false} 
+                                        showFavlist={false}
+                                        onClick={() => bar.show({ slug: "show_single_talent", data: em, allowLevels: true })}
+                                    >
+                                        <Button className="mt-0" icon="trash" label="Delete" onClick={() => {
+                                            updateTalentList('delete', em.id,formData.id);
+                                            //.then(() => onChange);
+                                        }}/>
+                                    </EmployeeExtendedCard>)
+                                )}
+                            </ul>
+                        </div>
+                    </div>:''
+                }
             </span>)}
         </Theme.Consumer>
     </form>);
 };
 FavlistEmployees.propTypes = {
-    onSave: PropTypes.func.isRequired,
-    formData: PropTypes.object.isRequired,
-    onCancel: PropTypes.func.isRequired,
-    onChange: PropTypes.func.isRequired,
-    catalog: PropTypes.object //contains the data needed for the form to load
-};
-
-export class AddTalentToFavlist extends React.Component {
-    
-    constructor(){
-        super();
-        this.state = {
-            employees: [],
-            loading: false,
-            keyword: ''
-        };
-    }
-    
-    getTalentList(search){
-        setTimeout(()=>{
-            if(search == this.state.keyword)
-                GET('employees?full_name='+search)
-                    .then(employees => this.setState({employees, loading: false}));
-        },700);
-    }
-    
-    render(){
-        return (<Theme.Consumer>
-            {({bar}) => (<div>
-                <div className="row">
-                    <div className="col-12">
-                        <input type="text" className="form-control" 
-                            placeholder="Type employee name"
-                            value={this.state.keyword} 
-                            onChange={(e)=> {
-                                const loading = (e.target.value.length > 3);
-                                this.setState({ keyword: e.target.value, loading });
-                                if(loading) this.getTalentList(e.target.value);
-                            }}
-                        />
-                        {(this.state.loading) ? 
-                            <p>Searching...</p>
-                            :
-                            (this.state.keyword.length < 3) ? <p>You have to type at least 4 caracters to search</p>:''
-                        }
-                    </div>
-                </div>
-                <ul className="mt-2">
-                    {(!this.state.employees) ? 
-                        <p>No talents match your search</p>
-                        :
-                        this.state.employees.map((em,i) => (
-                            <EmployeeExtendedCard 
-                                key={i} 
-                                employee={em} 
-                                hover={false} 
-                                showFavlist={false}
-                                onClick={() => bar.show({ slug: "show_single_talent", data: em, allowLevels: true })}
-                            >
-                                <Button className="mt-0" icon="plus" label="Add to list" onClick={() => {
-                                    updateTalentList('add', em,this.props.formData.id);
-                                }}/>
-                            </EmployeeExtendedCard>))
-                    }
-                </ul>
-            </div>)}
-        </Theme.Consumer>);
-    }
-}
-AddTalentToFavlist.propTypes = {
     onSave: PropTypes.func.isRequired,
     formData: PropTypes.object.isRequired,
     onCancel: PropTypes.func.isRequired,

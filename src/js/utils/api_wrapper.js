@@ -14,7 +14,8 @@ let pending_requests = [];
 
 const getToken = () => {
   if (Session) {
-    const token = Session.store.getSession().access_token;
+    const payload = Session.getPayload();
+    const token = payload.access_token;
     return token;
   }
   return null;
@@ -22,7 +23,8 @@ const getToken = () => {
 
 const appendCompany = (data) => {
   if (Session && data) {
-    data.employer = Session.store.getSession().user.profile.employer;
+    const payload = Session.getPayload();
+    data.employer = payload.user.profile.employer;
     return data;
   }
 };

@@ -12,6 +12,18 @@ export default class Home extends Flux.DashView {
             runTutorial: hasTutorial(),
             steps: [
                 {
+                    content: <h2>Welcome to the tour!</h2>,
+                    placement: "center",
+                    disableBeacon: true,
+                    styles: {
+                        options: {
+                        zIndex: 10000
+                        }
+                    },
+                    locale: { skip: "Skip tutorial" },
+                    target: "body"
+                },
+                {
                     target: '#create_shift',
                     content: 'Start by creating a new shift',
                     placement: 'right'

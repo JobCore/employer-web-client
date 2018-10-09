@@ -11,7 +11,7 @@ const EmployeeExtendedCard = (props) => {
     const favoriteCount = props.employee.favoritelist_set.length;
     return (<li className="aplicantcard aplicantcard-hover" onClick={() => (props.onClick) ? props.onClick() : false}>
         <Avatar url={process.env.API_HOST+props.employee.user.profile.picture} />
-        <a href="#"><b>{props.employee.fullName()}</b></a>
+        <a href="#"><b>{props.employee.user.first_name + ' ' + props.employee.user.last_name}</b></a>
         <Stars rating={Number(props.employee.rating)} jobCount={props.employee.positions.length}  />
         { (props.showFavlist) ?
             <p href="#">{ (favoriteCount > 0) ? <span className="badge badge-warning"><i className="fas fa-star"></i> {favoriteCount} Lists</span> : '' } {badgesHTML}</p>
@@ -27,7 +27,10 @@ const EmployeeExtendedCard = (props) => {
 };
 EmployeeExtendedCard.propTypes = {
   employee: PropTypes.object.isRequired,
-  children: PropTypes.object,
+  children: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.node),
+    PropTypes.node
+  ]),
   showFavlist: PropTypes.bool,
   onClick: PropTypes.func
 };

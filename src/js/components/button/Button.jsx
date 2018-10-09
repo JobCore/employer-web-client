@@ -24,7 +24,10 @@ Button.propTypes = {
   className: PropTypes.string,
   propagate: PropTypes.bool,
   color: PropTypes.string, //secondary, success, danger, warning
-  children: PropTypes.obj,
+  children: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.node),
+    PropTypes.node
+  ]),
   icon: PropTypes.string
 };
 Button.defaultProps = {

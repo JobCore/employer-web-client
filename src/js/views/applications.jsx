@@ -9,11 +9,61 @@ import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
 import moment from 'moment';
 import {callback, hasTutorial} from '../utils/tutorial';
 //gets the querystring and creats a formData object to be used when opening the rightbar
-export const getApplicantInitialFilters = () => {
-    return {};
+export const getApplicationsInitialFilters = (catalog) => {
+    let query = queryString.parse(window.location.search);
+    if(typeof query == 'undefined') return {};
+    if(!Array.isArray(query.positions)) query.positions = (typeof query.positions == 'undefined') ? [] : [query.positions];
+    if(!Array.isArray(query.venues)) query.venues = (typeof query.venues == 'undefined') ? [] : [query.venues];
+    return {
+        positions: query.positions.map(pId => catalog.positions.find(pos => pos.value == pId)),
+        venues: query.venues.map(bId => catalog.venues.find(b => b.value == bId))
+    };
 };
 
-export class ManageApplicants extends Flux.DashView {
+export const Application = (data) => {
+    
+    const _defaults = {
+        //foo: 'bar',
+        serialize: function(){
+            
+            const newEntity = {
+                //foo: 'bar'
+                // favoritelist_set: data.favoriteLists.map(fav => fav.value)
+            };
+            
+            return Object.assign(this, newEntity);
+        }
+    };
+    
+    let _entity = Object.assign(_defaults, data);
+    return {
+        validate: () => {
+            
+            return _entity;
+        },
+        defaults: () => {
+            return _defaults;
+        },
+        getFormData: () => {
+            // const _formShift = {
+            //     id: _entity.id,
+            //     favoriteLists: _entity.favoriteLists.map(fav => ({ label: fav.title, value: fav.id }))
+            // };
+            // return _formShift;
+        },
+        filters: () => {
+            const _filters = {
+                positions: _entity.positions.map( item => item.value ),
+                //rating: (typeof _entity.rating == 'object') ? _entity.rating.value : undefined,
+                venues: _entity.venues.map( item => item.value )
+            };
+            for(let key in _entity) if(typeof _entity[key] == 'function') delete _entity[key];
+            return Object.assign(_entity, _filters);
+        }
+    };
+};
+
+export class ManageApplicantions extends Flux.DashView {
     
     constructor(){
         super();
@@ -166,9 +216,9 @@ ApplicantCard.propTypes = {
  * Applican Card
  */
 export const ApplicantExtendedCard = (props) => {
-    const startDate = props.shift.date.format('ll');
-    const startTime = props.shift.start_time.format('LT');
-    const endTime = props.shift.finish_time.format('LT');
+    const startDate = props.shift.starting_at.format('ll');
+    const startTime = props.shift.starting_at.format('LT');
+    const endTime = props.shift.ending_at.format('LT');
     return (<Theme.Consumer>
         {({bar}) => 
             (<li className="aplicantcard"
@@ -229,15 +279,16 @@ ApplicationDetails.propTypes = {
 
 
 /**
- * AddShift
+ * Filter Applications
  */
-export const FilterApplicants = ({onSave, onCancel, onChange, catalog}) => (<form>
+export const FilterApplications = ({onSave, onCancel, onChange, catalog, formData}) => (<form>
     <div className="row">
         <div className="col">
             <label>Looking for</label>
-            <Select 
+            <Select isMulti
+                value={formData.positions}
                 options={catalog.positions}
-                onChange={(selection) => onChange({ position: selection.value.toString() })}
+                onChange={(selection) => onChange({ positions: selection })}
             />
         </div>
     </div>
@@ -254,21 +305,11 @@ export const FilterApplicants = ({onSave, onCancel, onChange, catalog}) => (<for
     <div className="row">
         <div className="col">
             <label>Venue</label>
-            <Select 
+            <Select isMulti
+                value={formData.venues}
                 options={catalog.venues}
-                onChange={(selection) => onChange({ venue: selection.value.toString() })}
+                onChange={(selection) => onChange({ venues: selection })}
             />
-        </div>
-    </div>
-    <div className="row">
-        <div className="col">
-            <label>Status</label>
-            <select className="form-control" onChange={(e)=>onChange({status: e.target.value})} >
-                <option value={null}>Select a status</option>
-                <option value={'DRAFT'}>DRAFT</option>
-                <option value={'OPEN'}>OPEN</option>
-                <option value={'UPCOMING'}>UPCOMING</option>
-            </select>
         </div>
     </div>
     <div className="btn-bar">
@@ -276,9 +317,10 @@ export const FilterApplicants = ({onSave, onCancel, onChange, catalog}) => (<for
         <button type="button" className="btn btn-secondary" onClick={() => onCancel()}>Cancel</button>
     </div>
 </form>);
-FilterApplicants.propTypes = {
+FilterApplications.propTypes = {
   onSave: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
+  formData: PropTypes.object, //contains the data needed for the form to load
   catalog: PropTypes.object //contains the data needed for the form to load
 };

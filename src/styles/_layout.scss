@@ -10,18 +10,27 @@
     font-size: 12px;
     color: white;
     li{
-        margin-top: 10px;
-        .icon{
-            display: block;
-            margin: 15px auto;;
-            width: 50px;
-            height: 50px;
-            &.icon-sm{
-                width: 40px;
-                height: 40px;
+        a{
+            color: white;
+            display: inline-block;
+            width: 80px;
+            padding-bottom: 1vh;
+            .icon{
+                display: block;
+                margin: auto;
+                margin-top: 2vh;
+                margin-bottom: 1vh;
+                height: 6vh;
+                &.icon-sm{
+                    width: 40px;
+                    height: 40px;
+                }
+            }
+            &.active{
+                background: rgba(255,255,255,0.2);
+                border-radius: 5px;
             }
         }
-        a{color: white;}
     }
 }
 
@@ -30,10 +39,10 @@
     width: 100%;
     min-width: 1100px;
     min-height: 98vh;
-    padding: 20px;
-    background: $green-100 url('../img/main-background.jpg') repeat-x;
+    padding: 0px 20px 20px 20px;
+    background: #edfdff url('../img/main-background.jpg') repeat-x;
     background-size: contain;
-    background-position: bottom;
+    background-position-y: 0px;
     .listcontents{
         max-width: 700px;
         .date-group-label{

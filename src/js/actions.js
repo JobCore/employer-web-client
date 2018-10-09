@@ -11,9 +11,17 @@ export const login = (email, password, history) => new Promise((resolve, reject)
       password: password
     })
     .then(function(data){
-        Session.actions.login({ user: data.user, access_token: data.token });
-        history.push('/');
-        resolve();
+        if(!data.user.profile.employer){
+            Notify.error("Only employers are allowed to login into this application");
+            reject("Only employers are allowed to login into this application");
+        }
+        else{
+            Session.start({ payload: {
+                user: data.user, access_token: data.token 
+            }});
+            history.push('/');
+            resolve();
+        }
     })
     .catch(function(error) {
         reject(error.message || error);
@@ -27,6 +35,8 @@ export const signup = (formData, history) => new Promise((resolve, reject) => PO
       account_type: formData.account_type,
       employer: formData.company,
       username: formData.email,
+      first_name: formData.first_name,
+      last_name: formData.last_name,
       password: formData.password
     })
     .then(function(data){
@@ -56,7 +66,7 @@ export const remind = (email) => new Promise((resolve, reject) => POST('user/pas
 );
 
 export const logout = () => {
-      Session.actions.logout();
+      Session.destroy();
 };
 
 export const fetchAll = (entities) => new Promise((resolve, reject) => {
@@ -151,7 +161,9 @@ export const update = (entity, data) => {
 export const updateProfile = (data) => {
     PUT(`profiles/${data.id}`, data)
         .then(function(incomingObject){
-            Session.actions.setUser({ profile: incomingObject });
+            const payload = Session.getPayload();
+            const user = Object.assign(payload.user, { profile: incomingObject });
+            Session.setPayload({ user });
         })
         .catch(function(error) {
             Notify.error(error.message || error);
@@ -233,19 +245,20 @@ export const updateTalentList = (action, employee, listId) => {
               employeeIdsArr.push(employee.id || employee);
             }
             else if (action === 'delete') {
-              employeeIdsArr = employeeIdsArr.filter((id) => id != employee.id || employee);
+              employeeIdsArr = employeeIdsArr.filter((id) => id != (employee.id || employee));
             }
             PUT('favlists/'+listId, { employees: employeeIdsArr }).then((updatedFavlist) => {
                 Flux.dispatchEvent('favlists', store.replaceMerged("favlists", listId, { 
-                    employees: (action === 'delete') ? 
-                                    favoriteList.employees.filter((emp) => emp.id != employee.id || employee) 
-                                :
-                                    favoriteList.employees.concat([employee]) 
+                    employees: updatedFavlist.employees
                 }));
                 Notify.success(`The talent was successfully ${(action == 'add') ? 'added' : 'removed'}`);
                 resolve(updatedFavlist);
             })
-            .catch(error => reject());
+            .catch(error => {
+                Notify.error(error.message || error);
+                log.error(error);
+                reject(error);
+            });
         }
         else{
             Notify.error("Favorite list not found");
@@ -266,12 +279,12 @@ class _Store extends Flux.DashStore{
             
             if(!Array.isArray(employees)) return [];
             
-            const session = Session.store.getSession();
+            const payload = Session.getPayload();
             return employees.map((em) => {
                 //if the talent has an employer
                 em.fullName = function() { return (this.user.first_name.length>0) ? this.user.first_name + ' ' + this.user.last_name : 'No name specified'; };
-                if(typeof session.user.profile.employer != 'undefined'){
-                    if(typeof em.favoriteLists =='undefined') em.favoriteLists = em.favoritelist_set.filter(fav => fav.employer == session.user.profile.employer);
+                if(typeof payload.user.profile.employer != 'undefined'){
+                    if(typeof em.favoriteLists =='undefined') em.favoriteLists = em.favoritelist_set.filter(fav => fav.employer == payload.user.profile.employer);
                     else{
                         em.favoriteLists = em.favoritelist_set.map(fav => store.get('favlists', fav.id || fav));
                     }
@@ -295,7 +308,7 @@ class _Store extends Flux.DashStore{
             });
             
             const applicants = this.getState('applicants');
-            if(!applicants && Session.store.getSession().autenticated) fetchAll(['applicants']);
+            if(!applicants && Session.get().isValid) fetchAll(['applicants']);
             
             return newShifts;
         });

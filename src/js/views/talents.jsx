@@ -6,9 +6,7 @@ import {callback, hasTutorial} from '../utils/tutorial';
 import {EmployeeExtendedCard, Avatar, Stars, Theme, Button, Wizard} from '../components/index';
 import Select from 'react-select';
 import queryString from 'query-string';
-
 import {Session} from 'bc-react-session';
-const user = Session.store.getSession().user;
 
 //gets the querystring and creats a formData object to be used when opening the rightbar
 export const getTalentInitialFilters = (catalog) => {
@@ -17,14 +15,9 @@ export const getTalentInitialFilters = (catalog) => {
     if(!Array.isArray(query.positions)) query.positions = (typeof query.positions == 'undefined') ? [] : [query.positions];
     if(!Array.isArray(query.badges)) query.badges = (typeof query.badges == 'undefined') ? [] : [query.badges];
     return {
-        positions: query.positions.map(pId => {
-            const position = catalog.positions.find(pos => pos.id = pId);
-            return { value: position.id, label: position.title };
-        }),
-        badges: query.badges.map(bId => {
-            const badge = catalog.badges.find(b => b.id = bId);
-            return { value: badge.id, label: badge.title };
-        })
+        positions: query.positions.map(pId => catalog.positions.find(pos => pos.value == pId)),
+        badges: query.badges.map(bId => catalog.badges.find(b => b.value == bId)),
+        rating: catalog.stars.find(rate => rate.value == query.rating)
     };
 };
 
@@ -62,6 +55,7 @@ export const Talent = (data) => {
         filters: () => {
             const _filters = {
                 positions: _entity.positions.map( item => item.value ),
+                rating: (typeof _entity.rating == 'object') ? _entity.rating.value : undefined,
                 badges: _entity.badges.map( item => item.value )
             };
             for(let key in _entity) if(typeof _entity[key] == 'function') delete _entity[key];
@@ -71,7 +65,7 @@ export const Talent = (data) => {
 };
 
 export const ShiftInvite = (data) => {
-    
+    const user = Session.getPayload().user;
     const _defaults = {
         //foo: 'bar',
         serialize: function(){
@@ -222,7 +216,7 @@ export const FilterTalents = (props) => {
                 <label>Minimum start rating</label>
                 <Select
                     value={props.formData.rating}
-                    onChange={(opt)=>props.onChange({rating: opt.value})} 
+                    onChange={(opt)=>props.onChange({rating: opt})} 
                     options={props.catalog.stars}
                 />
             </div>

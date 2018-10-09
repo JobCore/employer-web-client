@@ -1,18 +1,17 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import {store} from '../actions.js';
-import {ApplicantCard} from './applicants';
+import {ApplicantCard} from './applications';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
 import Select from 'react-select';
-import AsyncSelect from 'react-select/lib/Async';
 
 import DateTime from 'react-datetime';
 
 import {Notify} from 'bc-react-notifier';
 import queryString from 'query-string';
-import {ShiftCard, Wizard, Theme} from '../components/index';
+import {ShiftCard, Wizard, Theme, SearchCatalogSelect} from '../components/index';
 import {DATETIME_FORMAT, NOW} from '../components/utils.js';
 import {validator, ValidationError} from '../utils/validation';
 import {callback, hasTutorial} from '../utils/tutorial';
@@ -46,6 +45,12 @@ export const Shift = (data) => {
         minimum_allowed_rating: '1',
         venue: '',
         status: 'UNDEFINED',
+        withStatus: function(newStatus){
+            if(typeof newStatus === 'string') this.status = newStatus;
+            else throw new Error('Invalid status '+newStatus);
+            
+            return this;
+        },
         serialize: function(){
             
             const newShift = {
@@ -108,9 +113,9 @@ export const Shift = (data) => {
         getFormData: () => {
             const _formShift = {
                 id: _shift.id.toString(),
-                pending_invites: _shift.pending_invites,
                 pending_jobcore_invites: _shift.pending_jobcore_invites,
                 application_restriction: _shift.application_restriction,
+                pending_invites: (typeof _shift.pending_invites == 'undefined') ? []:_shift.pending_invites,
                 position: _shift.position.id.toString() || _shift.position.toString(),
                 maximum_allowed_employees: _shift.maximum_allowed_employees.toString(),
                 minimum_hourly_rate: _shift.minimum_hourly_rate.toString(),
@@ -127,6 +132,25 @@ export const Shift = (data) => {
         }
     };
 };
+
+function createMapOptions(maps) {
+  // next props are exposed at maps
+  // "Animation", "ControlPosition", "MapTypeControlStyle", "MapTypeId",
+  // "NavigationControlStyle", "ScaleControlStyle", "StrokePosition", "SymbolPath", "ZoomControlStyle",
+  // "DirectionsStatus", "DirectionsTravelMode", "DirectionsUnitSystem", "DistanceMatrixStatus",
+  // "DistanceMatrixElementStatus", "ElevationStatus", "GeocoderLocationType", "GeocoderStatus", "KmlLayerStatus",
+  // "MaxZoomStatus", "StreetViewStatus", "TransitMode", "TransitRoutePreference", "TravelMode", "UnitSystem"
+  return {
+    zoomControlOptions: {
+      position: maps.ControlPosition.RIGHT_CENTER,
+      style: maps.ZoomControlStyle.SMALL
+    },
+    zoomControl: true,
+    scaleControl: false,
+    fullscreenControl: false,
+    mapTypeControl: false
+  };
+}
 
 export class ManageShifts extends Flux.DashView {
     
@@ -199,7 +223,7 @@ export class ManageShifts extends Flux.DashView {
                         matches: (shift) => shift.status == filters.status.value
                     };
                 break;
-                case "position":
+                case "positions":
                     filters[f] = {
                         value: filters[f],
                         matches: (shift) => {
@@ -238,6 +262,7 @@ export class ManageShifts extends Flux.DashView {
                         }
                     };
                 break;
+                default: throw new Error('Invalid filter');
             }
         }
         return filters;
@@ -346,14 +371,15 @@ ShiftApplicants.propTypes = {
 /**
  * ShiftDetails
  */
-export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) => (<Theme.Consumer>
+export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData, error }) => (<Theme.Consumer>
     {({bar}) => (<form>
         <div className="row">
             <div className="col-12">
-                { (formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ?
+                { (formData.status == 'DRAFT' && !error ) ?
                     <div className="alert alert-warning">This shift is a draft, it has not been published</div>
-                    :
-                    <div className="alert alert-success">This shift is published, therefore <strong>it needs to be unpublished</strong> before it can be updated</div>
+                    : (formData.status != 'UNDEFINED' && !error) ?
+                        <div className="alert alert-success">This shift is published, therefore <strong>it needs to be unpublished</strong> before it can be updated</div>
+                        :''
                 }
             </div>
         </div>
@@ -461,7 +487,7 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
                 <div className="row">
                     <div className="col-12">
                         <label>Search people in JobCore:</label>
-                        <SearchEmployees 
+                        <SearchCatalogSelect 
                             isMulti={true}
                             value={formData.pending_invites}
                             onChange={(selections)=> {
@@ -473,6 +499,13 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
                                 });
                                 else onChange({ pending_invites: selections });
                             }}
+                            searchFunction={(search) => new Promise((resolve, reject) => 
+                                GET('catalog/employees?full_name='+search)
+                                    .then(talents => resolve([
+                                        { label: `${(talents.length==0) ? 'No one found: ':''}Invite "${search}" to jobcore`, value: 'invite_talent' }
+                                    ].concat(talents)))
+                                    .catch(error => reject(error))
+                            )}
                         />
                     </div>
                 </div>
@@ -520,11 +553,12 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData}) =>
     </form>)}
 </Theme.Consumer>);
 ShiftDetails.propTypes = {
-  onSave: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  onChange: PropTypes.func.isRequired,
-  formData: PropTypes.object,
-  catalog: PropTypes.object //contains the data needed for the form to load
+    error: PropTypes.string,
+    onSave: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    onChange: PropTypes.func.isRequired,
+    formData: PropTypes.object,
+    catalog: PropTypes.object //contains the data needed for the form to load
 };
 
 
@@ -552,15 +586,6 @@ export const AddVenue = ({onSave, onCancel, onChange, catalog, formData}) => (<T
     {({bar}) => (<div>
         <div className="row">
             <div className="col-12">
-                <label>Venue name</label>
-                <input type="text" className="form-control" 
-                    value={formData.title}
-                    onChange={(e)=>onChange({title: e.target.value})} 
-                />
-            </div>
-        </div>
-        <div className="row">
-            <div className="col-12">
                 <label>Address</label>
                 <PlacesAutocomplete 
                     value={formData.street_address || ''} 
@@ -568,7 +593,17 @@ export const AddVenue = ({onSave, onCancel, onChange, catalog, formData}) => (<T
                     onSelect={(address)=>{
                         onChange({ street_address: address });
                         geocodeByAddress(address)
-                          .then(results => getLatLng(results[0]))
+                          .then(results => {
+                                const title = address.split(',')[0];
+                                console.log(results[0].address_components);
+                                const pieces = results[0].address_components;
+                                const getPiece = (name) => pieces.find((comp) => typeof comp.types.find(type => type == name) != 'undefined');
+                                const country = getPiece('country');
+                                const state = getPiece('administrative_area_level_1');
+                                const zipcode = getPiece('postal_code');
+                                onChange({ title, country: country.long_name, state: state.long_name, zip_code: zipcode.long_name });
+                                return getLatLng(results[0]);
+                          })
                           .then(coord => onChange({ latitude: coord.lat, longitude: coord.lng }))
                           .catch(error => Notify.error('There was an error obtaining the location coordinates'));
                     }}
@@ -590,6 +625,15 @@ export const AddVenue = ({onSave, onCancel, onChange, catalog, formData}) => (<T
             </div>
         </div>
         <div className="row">
+            <div className="col-12">
+                <label>Location nickname</label>
+                <input type="text" className="form-control" 
+                    value={formData.title}
+                    onChange={(e)=>onChange({title: e.target.value})} 
+                />
+            </div>
+        </div>
+        <div className="row">
             <div className="col-6 pr-0">
                 <label>Location</label>
                 <div className="location-map">
@@ -597,13 +641,14 @@ export const AddVenue = ({onSave, onCancel, onChange, catalog, formData}) => (<T
                         bootstrapURLKeys={{ key: process.env.GOOGLE_MAPS_KEY }}
                         defaultCenter={{
                           lat: 25.7617,
-                          lng: 80.1918
+                          lng: -80.1918
                         }}
                         center={{
                           lat: formData.latitude,
                           lng: formData.longitude
                         }}
-                        defaultZoom={11}
+                        options={createMapOptions}
+                        defaultZoom={12}
                     >
                         <Marker
                             lat={formData.latitude}
@@ -647,45 +692,4 @@ AddVenue.propTypes = {
   onChange: PropTypes.func.isRequired,
   formData: PropTypes.object,
   catalog: PropTypes.object //contains the data needed for the form to load
-};
-
-
-export class SearchEmployees extends React.Component {
-    constructor(){
-        super();
-        this.state = {
-            keyword: ''
-        };
-    }
-    render() {
-        return (
-            <AsyncSelect
-                isMulti={this.props.isMulti}
-                value={this.props.value}
-                cacheOptions={true} //The cache will remain until cacheOptions changes value.
-                defaultOptions={[{ label: 'Start typing to search talents', value: null }]} // Options to show before the user starts searching. if true = results for loadOptions('') will be autoloaded.
-                onInputChange={(keyword) => { //Function that returns a promise, which is the set of options to be used once the promise resolves.
-                    //const keyword = newValue.replace(/\W/g, '');
-                    this.setState({ keyword });
-                    return keyword;
-                }} 
-                loadOptions={(search) => new Promise((resolve, reject) => 
-                    GET('catalog/employees?full_name='+search)
-                        .then(talents => resolve([{ label: `${(talents.length==0) ? 'No one found: ':''}Invite "${this.state.keyword}" to jobcore`, value: 'invite_talent' }].concat(talents)))
-                        .catch(error => reject(error))
-                )}
-                onChange={(selection)=> this.props.onChange(selection)}
-            />
-        );
-    }
-}
-SearchEmployees.propTypes = {
-    value: PropTypes.obj,
-    isMulti: PropTypes.bool,
-    onChange: PropTypes.func.isRequired
-};
-SearchEmployees.defaultProps = {
-    isMulti: false,
-    value: null,
-    onChange: null
 };
