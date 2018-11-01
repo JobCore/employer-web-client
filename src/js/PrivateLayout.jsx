@@ -71,7 +71,7 @@ class PrivateLayout extends Flux.DashView{
                         case 'show_shift_applications':
                             this.showRightBar(ShiftApplicants, option, {applicants: option.data.candidates, shift: option.data});
                         break;
-                        case 'show_single_application':
+                        case 'show_single_applicant':
                             this.showRightBar(ApplicationDetails, option, {applicant: option.data});
                         break;
                         case 'update_shift':

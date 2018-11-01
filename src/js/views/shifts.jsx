@@ -249,7 +249,7 @@ export class ManageShifts extends Flux.DashView {
                         matches: (shift) => {
                             if(!filters.minimum_hourly_rate.value) return true;
                             if(isNaN(filters.minimum_hourly_rate.value)) return true;
-                            return parseInt(shift.minimum_hourly_rate) >= filters.minimum_hourly_rate.value;
+                            return parseInt(shift.minimum_hourly_rate, 10) >= filters.minimum_hourly_rate.value;
                         }
                     };
                 break;
@@ -533,10 +533,10 @@ export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData, err
                 }}>Publish</button>
                 : (formData.status != 'UNDEFINED') ?
                     <button type="button" className="btn btn-primary" onClick={() => {
-                        const noti = Notify.info("Are you sure?",(answer) => {
+                        const noti = Notify.info("Are you sure you want to unpublish this shift?",(answer) => {
                             if(answer) onSave({status: 'DRAFT'});
                             noti.remove();
-                        });
+                        }, 9999999999999);
                     }}>Unpublish shift</button>
                     :
                     <button type="button" className="btn btn-success" onClick={() => onSave({status: 'OPEN'})}>Save and publish</button>

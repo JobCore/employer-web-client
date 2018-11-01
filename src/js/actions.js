@@ -11,9 +11,14 @@ export const login = (email, password, history) => new Promise((resolve, reject)
       password: password
     })
     .then(function(data){
+        console.log("User: ",data.user);
         if(!data.user.profile.employer){
             Notify.error("Only employers are allowed to login into this application");
             reject("Only employers are allowed to login into this application");
+        }
+        else if(!data.user.is_active){
+            Notify.error("You need to validate your email before being able to login");
+            reject("You need to validate your email before being able to login");
         }
         else{
             Session.start({ payload: {
@@ -294,7 +299,7 @@ class _Store extends Flux.DashStore{
         });
         this.addEvent('favlists');
         this.addEvent('badges');
-        this.addEvent('applicants', (applicants) => {
+        this.addEvent('applications', (applicants) => {
             return (!applicants || (Object.keys(applicants).length === 0 && applicants.constructor === Object)) ? [] : applicants.map(app => {
                 app.shift = Shift(app.shift).defaults().unserialize();
                 return app;
@@ -307,8 +312,8 @@ class _Store extends Flux.DashStore{
                 return Shift(shift).defaults().unserialize();
             });
             
-            const applicants = this.getState('applicants');
-            if(!applicants && Session.get().isValid) fetchAll(['applicants']);
+            const applicants = this.getState('applications');
+            if(!applicants && Session.get().isValid) fetchAll(['applications']);
             
             return newShifts;
         });

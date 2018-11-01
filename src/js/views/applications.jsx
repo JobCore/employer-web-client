@@ -54,7 +54,7 @@ export const Application = (data) => {
         filters: () => {
             const _filters = {
                 positions: _entity.positions.map( item => item.value ),
-                //rating: (typeof _entity.rating == 'object') ? _entity.rating.value : undefined,
+                minimum_hourly_rate: _entity.minimum_hourly_rate,
                 venues: _entity.venues.map( item => item.value )
             };
             for(let key in _entity) if(typeof _entity[key] == 'function') delete _entity[key];
@@ -88,7 +88,7 @@ export class ManageApplicantions extends Flux.DashView {
     componentDidMount(){
         
         this.filter();
-        this.subscribe(store, 'applicants', (applicants) => {
+        this.subscribe(store, 'applications', (applicants) => {
             this.filter(applicants);
         });
         
@@ -101,7 +101,7 @@ export class ManageApplicantions extends Flux.DashView {
     
     filter(applicants=null){
         let filters = this.getFilters();
-        if(!applicants) applicants = store.getState('applicants');
+        if(!applicants) applicants = store.getState('applications');
         if(applicants){
             this.setState({
                 applicants: applicants.filter((applicant) => {
@@ -121,39 +121,43 @@ export class ManageApplicantions extends Flux.DashView {
         let filters = queryString.parse(window.location.search);
         for(let f in filters){
             switch(f){
-                case "status":
+                case "positions":
                     filters[f] = {
                         value: filters[f],
-                        matches: (shift) => shift.status == filters.status.value
-                    };
-                break;
-                case "position":
-                    filters[f] = {
-                        value: filters[f],
-                        matches: (shift) => {
-                            if(!filters.position.value) return true;
-                            if(isNaN(filters.position.value)) return true;
-                            return shift.position.id == filters.position.value;
-                        }
-                    };
-                break;
-                case "venue":
-                    filters[f] = {
-                        value: filters[f],
-                        matches: (shift) => {
-                            if(!filters.venue.value) return true;
-                            if(isNaN(filters.venue.value)) return true;
-                            return shift.venue.id == filters.venue.value;
+                        matches: (application) => {
+                            if(!filters.positions || typeof filters.positions == undefined) return true;
+                            else if(!Array.isArray(filters.positions.value)){
+                                return filters.positions.value == application.shift.position.id;
+                            } 
+                            else{
+                                if(filters.positions.value.length == 0) return true;
+                                return filters.positions.value.find(posId => application.shift.position.id == posId) !== null;
+                            }
                         }
                     };
                 break;
                 case "minimum_hourly_rate":
                     filters[f] = {
                         value: filters[f],
-                        matches: (shift) => {
+                        matches: (application) => {
                             if(!filters.minimum_hourly_rate.value) return true;
                             if(isNaN(filters.minimum_hourly_rate.value)) return true;
-                            return parseInt(shift.minimum_hourly_rate) >= filters.minimum_hourly_rate.value;
+                            return parseInt(application.shift.minimum_hourly_rate, 10) >= filters.minimum_hourly_rate.value;
+                        }
+                    };
+                break;
+                case "venues":
+                    filters[f] = {
+                        value: filters[f],
+                        matches: (application) => {
+                            if(!filters.venues || typeof filters.venues == undefined) return true;
+                            else if(!Array.isArray(filters.venues.value)){
+                                return filters.venues.value == application.shift.venue.id;
+                            } 
+                            else{
+                                if(filters.venues.value.length == 0) return true;
+                                return filters.venues.value.find(posId => application.shift.venue.id == posId) !== null;
+                            }
                         }
                     };
                 break;
@@ -295,7 +299,7 @@ export const FilterApplications = ({onSave, onCancel, onChange, catalog, formDat
     <div className="row">
         <div className="col">
             <label>Price / hour</label>
-            <input type="number" className="form-control" onChange={(e)=>onChange({minimum_hourly_rate: e.target.value})} />
+            <input type="number" className="form-control" onChange={(e)=>onChange({minimum_hourly_rate: e.target.value})} value={formData.minimum_hourly_rate} />
         </div>
         <div className="col">
             <label>Date</label>
@@ -314,7 +318,7 @@ export const FilterApplications = ({onSave, onCancel, onChange, catalog, formDat
     </div>
     <div className="btn-bar">
         <button type="button" className="btn btn-primary" onClick={() => onSave()}>Apply Filters</button>
-        <button type="button" className="btn btn-secondary" onClick={() => onCancel()}>Cancel</button>
+        <button type="button" className="btn btn-secondary" onClick={() => onSave(false)}>Clear Filters</button>
     </div>
 </form>);
 FilterApplications.propTypes = {

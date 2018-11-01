@@ -1,0 +1,27 @@
+.right_pane .bcnotifier.withconfirm{
+    &:before{
+        content: ' ';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 102;
+        display: none;
+    }
+    &.active{
+        &:before{ display: block; }
+    }
+    .alert{
+        border: $green-600 2px solid;
+        top: 50vh;
+        left: 50vh;
+        transform: translateY(-50%);
+        width: auto;
+        min-width: 400px;
+        font-size: 20px;
+        padding: 40px;
+        p{ margin-top: 20px;}
+    }
+}
