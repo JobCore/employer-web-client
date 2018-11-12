@@ -3,7 +3,8 @@ import {updateProfile} from '../actions.js';
 
 export const hasTutorial = function(){
     const session = Session.get();
-    return (session.payload.user.profile.show_tutorial == 'true') ? true:false;
+    if(typeof session == 'undefined') return false;
+    return (session.payload.user.profile.show_tutorial == 'true') ? true : false;
 };
 
 export const callback = ({type}) => {

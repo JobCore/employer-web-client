@@ -91,6 +91,9 @@ export const Shift = (data) => {
     
     let _shift = Object.assign(_defaults, data);
     return {
+        get: () => {
+            return _shift;
+        },
         validate: () => {
             const start = _shift.starting_at;
             const finish = _shift.ending_at;
@@ -590,7 +593,7 @@ export const AddVenue = ({onSave, onCancel, onChange, catalog, formData}) => (<T
                 <PlacesAutocomplete 
                     value={formData.street_address || ''} 
                     onChange={(value)=>onChange({ street_address: value })}
-                    onSelect={(address)=>{
+                    onSelect={(address) => {
                         onChange({ street_address: address });
                         geocodeByAddress(address)
                           .then(results => {

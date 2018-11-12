@@ -21,6 +21,6 @@ Wizard.propTypes = {
     run: PropTypes.bool
 };
 Wizard.defaultProps = {
-    run: true
+    run: false
 };
 export default Wizard;

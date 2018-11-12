@@ -31,11 +31,12 @@ class RightBar extends React.Component {
                     this.props.onClose();
                 break;
                 case 'update_shift':
-                    update('shifts', Shift(this.state.formData).validate().withStatus(data.status).serialize());
+                    if(typeof data.status != 'undefined' && data.status === 'CANCELLED') update('shifts', Shift(this.state.formData).get().serialize().withStatus(data.status));
+                    else update('shifts', Shift(this.state.formData).validate().withStatus(data.status).serialize());
                     this.props.onClose();
                 break;
                 case 'delete_shift':
-                    remove('shifts', Shift(Object.assign(this.state.formData,data)).validate().serialize());
+                    remove('shifts', Shift(Object.assign(this.state.formData,data)).serialize());
                     this.props.onClose();
                 break;
                 case 'filter_shift':{

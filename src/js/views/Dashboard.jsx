@@ -4,11 +4,15 @@ import Flux from "@4geeksacademy/react-flux-dash";
 import {DashboardBox, Wizard } from '../components/index';
 import {store} from '../actions.js';
 import {callback, hasTutorial} from '../utils/tutorial';
+import {Session} from 'bc-react-session';
+
 export default class Home extends Flux.DashView {
     constructor(){
         super();
+        
         this.state = {
             shifts: [],
+            session: Session.get(),
             runTutorial: hasTutorial(),
             steps: [
                 {
@@ -38,21 +42,6 @@ export default class Home extends Flux.DashView {
                     content: 'Finally, you can see your current shifts grouped by status: Drafts, Open (Receiving applicants), Upcoming and Pending to process payment.',
                     placement: 'right'
                 }
-                // {
-                //     target: '#open_shifts',
-                //     content: 'Here are the schedule shifts waiting for talents to apply',
-                //     placement: 'right',
-                // },
-                // {
-                //     target: '#upcoming_shifts',
-                //     content: 'Upcoming means that it\'s full and ready to rumble!',
-                //     placement: 'right',
-                // },
-                // {
-                //     target: '#pending_shifts',
-                //     content: 'Successfully finished shifts, it\'s payrol time!',
-                //     placement: 'right',
-                // }
             ]
         };
     }
@@ -63,14 +52,13 @@ export default class Home extends Flux.DashView {
             if(Array.isArray(shifts)) this.setState({shifts});
         });
         
-        this.setState({ runTutorial: true });
     }
     render() {
         return (
             <div>
                 <Wizard continuous
                   steps={this.state.steps}
-                  run={this.state.runTutorial}
+                  run={this.state.runTutorial && this.state.session.active}
                   callback={callback}
                 />
                 <div className="row">

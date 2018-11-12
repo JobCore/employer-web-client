@@ -4,6 +4,8 @@ import { Route, Switch, NavLink } from 'react-router-dom';
 import {logout, fetchAll} from './actions';
 import Dashboard from './views/Dashboard';
 import ButtonBar from './views/ButtonBar';
+import { Session } from 'bc-react-session';
+import LoadBar from './components/load-bar/LoadBar.jsx';
 import {Theme, SideBar} from './components/index';
 import {ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters, RateShift, AddVenue} from './views/shifts';
 import {ManageApplicantions, ApplicationDetails,FilterApplications, getApplicationsInitialFilters} from './views/applications';
@@ -28,6 +30,7 @@ class PrivateLayout extends Flux.DashView{
         this.state = {
             showRightBar: 0,
             showButtonBar: true,
+            loading: true,
             sideBarLevels: [],
             catalog:{
                 positions: [],
@@ -128,12 +131,18 @@ class PrivateLayout extends Flux.DashView{
     
     
     componentDidMount(){
+        
+        const session = Session.get();
+        if(typeof session == 'undefined' || typeof session.active == 'undefined' || session.active == false) this.props.history.push('/login');
+        
         const reduce = (list) => list.map(itm => {
             return ({ 
                 label: itm.title || itm.user.first_name + ' ' + itm.user.last_name, 
                 value: itm.id 
             });
         });
+        
+        
         fetchAll(['positions','venues', 'favlists', 'badges', 'jobcore-invites'])
             .then(() => fetchAll(['shifts']));
         
@@ -209,6 +218,7 @@ class PrivateLayout extends Flux.DashView{
         const Logo = () => (<span className="svg_img" style={logoStyles} />);
         return (
             <Theme.Provider value={{bar: this.state.bar}}>
+                <LoadBar />
                 <div className="row sidebar">
                     <div className="left_pane">
                         <ul>

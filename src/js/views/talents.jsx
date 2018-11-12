@@ -244,7 +244,7 @@ export const TalentDetails = (props) => {
         {({bar}) => 
             (<li className="aplication-details">
                 <Avatar url={process.env.API_HOST+employee.user.profile.picture} />
-                <p>{employee.fullName()}</p>
+                <p>{typeof employee.fullName == 'function' ? employee.fullName() : employee.first_name + ' ' + employee.last_name}</p>
                 <div>
                     <Stars className="float-left" rating={Number(employee.rating)} jobCount={employee.job_count}  />
                 </div>

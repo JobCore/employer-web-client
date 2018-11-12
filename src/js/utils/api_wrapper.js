@@ -2,6 +2,7 @@
 import {logout} from '../actions';
 import log from './log';
 import {Session} from 'bc-react-session';
+import { setLoading } from '../components/load-bar/LoadBar.jsx';
 
 const rootAPIendpoint = process.env.API_HOST+'/api';
 
@@ -10,7 +11,21 @@ let HEADERS = {
 };
 
 // TODO: implemente a queue for requests and status, also avoid calling the same request twice
-let pending_requests = [];
+let PendingReq = {
+  _requests: [],
+  add: function(req){
+    this._requests.push(req);
+    setLoading(true);
+    console.log("Loading");
+  },
+  remove: function(req){
+    this._requests = this._requests.filter(r => r !== req);
+    if(this._requests.length == 0){
+      console.log("Not loading");
+      setLoading(false);
+    } 
+  }
+};
 
 const getToken = () => {
   if (Session) {
@@ -57,14 +72,16 @@ export const GET = async (endpoint, queryString = null, extraHeaders = {}) => {
     headers: Object.assign(HEADERS,extraHeaders)
   };
   
-  return new Promise((resolve, reject) => fetch(url, REQ)
-    .then((resp) => processResp(resp))
+  const req = new Promise((resolve, reject) => fetch(url, REQ)
+    .then((resp) => processResp(resp, req))
     .then(data => resolve(data))
     .catch(err => {
-      log.error(err);
-      if (typeof err == 'string') throw new Error(err);
+      processFailure(err, req);
+      reject(err);
     })
   );
+  PendingReq.add(req);
+  return req;
 };
 
 export const POST = (endpoint, postData, extraHeaders = {}) => {
@@ -79,14 +96,16 @@ export const POST = (endpoint, postData, extraHeaders = {}) => {
     body: JSON.stringify(postData)
   };
   
-  return new Promise((resolve, reject) => fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
-    .then((resp) => processResp(resp))
+  const req = new Promise((resolve, reject) => fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
+    .then((resp) => processResp(resp, req))
     .then(data => resolve(data))
     .catch(err => {
-      log.error(err);
+      processFailure(err, req);
       reject(err);
     })
   );
+  PendingReq.add(req);
+  return req;
 };
 
 export const PUT = (endpoint, putData, extraHeaders = {}) => {
@@ -100,14 +119,16 @@ export const PUT = (endpoint, putData, extraHeaders = {}) => {
     body: JSON.stringify(putData)
   };
   
-  return new Promise((resolve, reject) => fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
-    .then((resp) => processResp(resp))
+  const req = new Promise((resolve, reject) => fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
+    .then((resp) => processResp(resp, req))
     .then(data => resolve(data))
     .catch(err => {
-      log.error(err);
-      if (typeof err == 'string') throw new Error(err);
+      processFailure(err, req);
+      reject(err);
     })
   );
+  PendingReq.add(req);
+  return req;
 };
 
 export const DELETE = (endpoint, extraHeaders = {}) => {
@@ -119,17 +140,20 @@ export const DELETE = (endpoint, extraHeaders = {}) => {
     headers: Object.assign(HEADERS,extraHeaders)
   };
   
-  return new Promise((resolve, reject) => fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
-    .then((resp) => processResp(resp))
+  const req = new Promise((resolve, reject) => fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
+    .then((resp) => processResp(resp, req))
     .then(data => resolve(data))
     .catch(err => {
-      log.error(err);
-      if (typeof err == 'string') throw new Error(err);
+      processFailure(err, req);
+      reject(err);
     })
   );
+  PendingReq.add(req);
+  return req;
 };
 
-const processResp = function(resp){
+const processResp = function(resp, req=null){
+  PendingReq.remove(req);
   if(resp.ok){
     if(resp.status == 204) return new Promise((resolve, reject) => resolve(true));
     else return resp.json();
@@ -145,9 +169,17 @@ const processResp = function(resp){
       logout();
       reject(new Error('You are not authorized for this action'));
     } 
-    else if(resp.status >= 500 && resp.status < 600) reject(new Error('Something bad happened while completing your request! Please try again later.'));
+    else if(resp.status >= 500 && resp.status < 600){
+      resp.json().then(err => reject(new Error(err.detail)))
+        .catch((errorMsg) => reject(new Error('Something bad happened while completing your request! Please try again later.')));
+    } 
     else reject(new Error('Something went wrong'));
   });
+};
+
+const processFailure = function(err, req=null){
+  PendingReq.remove(req);
+  log.error(err);
 };
 
 const parseError = (error) => new Promise(function(resolve, reject){

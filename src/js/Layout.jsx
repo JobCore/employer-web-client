@@ -10,6 +10,7 @@ class Layout extends Flux.View{
     render() {
         return (
             <div className="layout">
+                
                 <BrowserRouter>
                     <div>
                         <Switch>
