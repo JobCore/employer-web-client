@@ -12,6 +12,7 @@ const SideBar = (props) => {
           option={sb.option}
           formData={sb.formData}
           component={sb.component} 
+          goFetch={props.goFetch} 
           onClose={() => props.onClose()}
       />));
   
@@ -21,12 +22,14 @@ const SideBar = (props) => {
 };
 SideBar.propTypes = {
   sideBarLevels: PropTypes.array.isRequired,
+  goFetch: PropTypes.func, 
   catalog: PropTypes.object.isRequired,
   className: PropTypes.string,
   onClose: PropTypes.func.isRequired
 };
 SideBar.defaultProps = {
-  className: ''
+  className: '',
+  goFetch: null 
 };
 
 export default SideBar;

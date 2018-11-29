@@ -178,18 +178,22 @@ export class ManageApplicantions extends Flux.DashView {
     render() {
         const applicansHTML = this.state.applicants.map((a,i) => (<ApplicantExtendedCard key={i} applicant={a} shift={a.shift} hover={true} />));
         return (<div className="p-1 listcontents">
-            <Wizard continuous
-              steps={this.state.steps}
-              run={this.state.runTutorial}
-              callback={callback}
-            />
-            <h1><span id="applicant_details_header">Applicant Details</span></h1>
-            {
-                (applicansHTML.length == 0) ?
-                    <p>No applicants were found for this shift.</p>
-                :
-                    applicansHTML
-            }
+            <Theme.Consumer>
+                {({bar}) => (<span>
+                    <Wizard continuous
+                      steps={this.state.steps}
+                      run={this.state.runTutorial}
+                      callback={callback}
+                    />
+                    <h1><span id="applicant_details_header">Applicant Details</span></h1>
+                    {
+                        (applicansHTML.length == 0) ?
+                            <p>No applicants were found for this shift.</p>
+                        :
+                            applicansHTML
+                    }
+                </span>)}
+            </Theme.Consumer>
         </div>);
     }
 }

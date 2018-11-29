@@ -143,7 +143,6 @@ class RightBar extends React.Component {
         const styles = { width: this.props.width , right: (this.props.level * this.props.width)};
         
         return (<div className="right-bar" style={styles}>
-            <h1>{this.props.option.title}</h1>
             {
                 (this.state.error) ? <div className="alert alert-danger">{this.state.error}</div> : ''
             }

@@ -3,6 +3,7 @@ import Flux from '@4geeksacademy/react-flux-dash';
 import {Session} from 'bc-react-session';
 import {Notify} from 'bc-react-notifier';
 import {Shift} from './views/shifts';
+import {Clockin} from './views/payroll';
 import {POST, GET, PUT, DELETE} from './utils/api_wrapper';
 import log from './utils/log';
 
@@ -71,7 +72,7 @@ export const remind = (email) => new Promise((resolve, reject) => POST('user/pas
 );
 
 export const logout = () => {
-      Session.destroy();
+    Session.destroy();
 };
 
 export const fetchAll = (entities) => new Promise((resolve, reject) => {
@@ -121,17 +122,19 @@ export const fetchSingle = (entity, id, event_name=null) => {
         });
 };
 
-export const search = (entity, queryString) => {
+export const search = (entity, queryString) => new Promise((accept, reject) => 
     GET(entity, queryString)
         .then(function(list){
             if(typeof entity.callback == 'function') entity.callback();
             Flux.dispatchEvent(entity.slug || entity, list);
+            accept(list);
         })
         .catch(function(error) {
             Notify.error(error.message || error);
             log.error(error);
-        });
-};
+            reject(error);
+        })
+);
 
 export const create = (entity, data) => POST(entity.url || entity, data)
     .then(function(incoming){
@@ -272,6 +275,14 @@ export const updateTalentList = (action, employee, listId) => {
     });
 };
 
+export const fillPayrollBlocks = (shifts) => {
+    Flux.dispatchEvent('single_payroll_detail', shifts);
+};
+
+export const updatePayroll = ({ talent, clockins }) => {
+    //TODO: finish payroll update
+};
+
 class _Store extends Flux.DashStore{
     constructor(){
         super();
@@ -299,6 +310,18 @@ class _Store extends Flux.DashStore{
         });
         this.addEvent('favlists');
         this.addEvent('badges');
+        this.addEvent('payroll');
+        this.addEvent('single_payroll_detail', (payroll) => {
+            
+            const clockins = payroll.clockins;
+            payroll.clockins = (!clockins || (Object.keys(clockins).length === 0 && clockins.constructor === Object)) ? [] : clockins.map((clockin) => {
+                //already transformed
+                return Clockin(clockin).defaults().unserialize();
+            });
+            
+            return payroll;
+        });
+        
         this.addEvent('applications', (applicants) => {
             return (!applicants || (Object.keys(applicants).length === 0 && applicants.constructor === Object)) ? [] : applicants.map(app => {
                 app.shift = Shift(app.shift).defaults().unserialize();

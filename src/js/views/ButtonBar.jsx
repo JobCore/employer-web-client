@@ -26,6 +26,9 @@ class ButtonBar extends React.Component {
                     { slug: "create_favlist", title: 'Create Favorite List', to: 'favorites'},
                     { slug: "invite_talent_to_jobcore", title: 'Invite New Talent', to: 'favorites'}
                 ],
+                payroll: [
+                    { slug: "select_timesheet", title: 'Select Timesheet', to: 'payroll'},
+                ],
                 profile: [
                     { slug: "manage_locations", title: 'Manage Locations', to: 'locations'}
                 ]

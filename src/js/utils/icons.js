@@ -10,10 +10,11 @@ import faTrashAlt from '@fortawesome/fontawesome-free-solid/faTrashAlt';
 import faQuestion from '@fortawesome/fontawesome-free-solid/faQuestion';
 import faPencilAlt from '@fortawesome/fontawesome-free-solid/faPencilAlt';
 import faPlus from '@fortawesome/fontawesome-free-solid/faPlus';
+import faUsers from '@fortawesome/fontawesome-free-solid/faUsers';
 fontawesome.config = {
   autoReplaceSvg: 'nest'
 };
 fontawesome.library.add(
     faStar, faStarHalf, faEmptyStar, faTimesCircle, faCheckCircle, faAngleDoubleRight,
-    faTrashAlt, faQuestion, faPencilAlt, faPlus
+    faTrashAlt, faQuestion, faPencilAlt, faPlus, faUsers
 );

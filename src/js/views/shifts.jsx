@@ -376,6 +376,11 @@ ShiftApplicants.propTypes = {
  */
 export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData, error }) => (<Theme.Consumer>
     {({bar}) => (<form>
+        <div className="top-bar">
+            <button type="button" className="btn btn-primary btn-sm rounded" onClick={() => bar.show({ slug: "show_shift_applications", data: formData, title: "Shift Applicants" })}>
+                <i className="fas fa-users"></i>
+            </button>
+        </div>
         <div className="row">
             <div className="col-12">
                 { (formData.status == 'DRAFT' && !error ) ?

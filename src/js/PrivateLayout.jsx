@@ -12,9 +12,11 @@ import {ManageApplicantions, ApplicationDetails,FilterApplications, getApplicati
 import {Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilters, TalentDetails} from './views/talents';
 import {PendingInvites, InviteTalentToShift, InviteTalentToJobcore} from './views/invites';
 import {ManageFavorites, AddFavlistsToTalent, FavlistEmployees, AddTalentToFavlist, Favlist, AddFavlist} from './views/favorites';
+import { ManageLocations } from './views/locations';
+import { ManagePayroll, SelectTimesheet } from './views/payroll';
 import {Profile, Location} from './views/profile';
 import {store} from './actions';
-import {Notifier} from 'bc-react-notifier';
+import {Notifier, Notify} from 'bc-react-notifier';
 import logoURL from '../img/logo.png';
 
 const logoStyles = {
@@ -72,7 +74,7 @@ class PrivateLayout extends Flux.DashView{
                             this.showRightBar(FilterApplications, option, {formData: getApplicationsInitialFilters(this.state.catalog)});
                         break;
                         case 'show_shift_applications':
-                            this.showRightBar(ShiftApplicants, option, {applicants: option.data.candidates, shift: option.data});
+                            this.showRightBar(ShiftApplicants, option, { applicants: option.data.candidates, shift: option.data });
                         break;
                         case 'show_single_applicant':
                             this.showRightBar(ApplicationDetails, option, {applicant: option.data});
@@ -116,7 +118,13 @@ class PrivateLayout extends Flux.DashView{
                         break;
                         case 'add_talent_to_favlist':
                             option.title = "Search for the talent";
-                            this.showRightBar(AddTalentToFavlist, option, {formData: Favlist(option.data).getFormData()});
+                            this.showRightBar(AddTalentToFavlist, option, {formData: Favlist(option.data).getFormData() });
+                        break;
+                        case 'select_timesheet':
+                            this.showRightBar(SelectTimesheet, option);
+                        break;
+                        case 'filter_timesheet':
+                            this.showRightBar(SelectTimesheet, option, { formData: option.data });
                         break;
                         default:
                             if(typeof option.to == 'string') this.props.history.push(option.to);
@@ -226,9 +234,23 @@ class PrivateLayout extends Flux.DashView{
                             <li><NavLink to="/talents"><i className="icon icon-talents"></i>Talents</NavLink></li>
                             <li><NavLink to="/favorites"><i className="icon icon-favorite"></i>Favorites</NavLink></li>
                             <li><NavLink to="/applicants"><i className="icon icon-applications"></i>Applicants</NavLink></li>
-                            <li><NavLink to="/shifts"><i className="icon icon-shifts"></i>Shifts</NavLink></li>
+                            <li><NavLink to="/payroll"><i className="icon icon-shifts"></i>Payroll</NavLink></li>
                             <li><NavLink to="/profile"><i className="icon icon-companyprofile"></i>Your Profile</NavLink></li>
-                            <li><a href="#" onClick={()=>logout()}><i className="icon icon-logout icon-sm"></i>Logout</a></li>
+                            <li>
+                                <a 
+                                    href="#" 
+                                    onClick={() => {
+                                        const noty = Notify.error("Hey! Are you sure?", (answer) => {
+                                            if(answer){
+                                                logout();
+                                                this.props.history.push('/login');
+                                            } 
+                                            noty.remove();
+                                        });
+                                    }}>
+                                    <i className="icon icon-logout icon-sm"></i>Logout
+                                </a>
+                            </li>
                         </ul>
                     </div>
                     <div className="right_pane bc-scrollbar">
@@ -243,7 +265,9 @@ class PrivateLayout extends Flux.DashView{
                             <Route exact path='/applicants' component={ManageApplicantions} />
                             <Route exact path='/talents' component={ManageTalents} />
                             <Route exact path='/favorites' component={ManageFavorites} />
+                            <Route exact path='/locations' component={ManageLocations} />
                             <Route exact path='/profile' component={Profile} />
+                            <Route exact path='/payroll' component={ManagePayroll} />
                             <Route exact path='/rate' component={RateShift} />
                             <Route exact path='/home' component={Dashboard} />
                             <Route exact path='/' component={Dashboard} />

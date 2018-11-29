@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 const icons = {
   favorite: 'icon icon-favorite icon-xs',
   trash: 'fas fa-trash-alt',
+  pencil: 'fas fa-pencil',
   plus: 'fas fa-plus'
 };
 

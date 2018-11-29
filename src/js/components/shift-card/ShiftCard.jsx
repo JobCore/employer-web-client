@@ -15,6 +15,7 @@ export default class ShiftCard extends React.Component{
     }
     render(){
         const totalCandidates = (Array.isArray(this.props.shift.candidates)) ? this.props.shift.candidates.length : 0;
+        const totalEmployees = (Array.isArray(this.props.shift.employees)) ? this.props.shift.employees.length : 0;
         const openVacancys = this.props.shift.maximum_allowed_employees;
         const startDate = this.props.shift.starting_at.format('ll');
         const startTime = this.props.shift.starting_at.format('LT');
@@ -37,9 +38,9 @@ export default class ShiftCard extends React.Component{
                             (!this.props.showStatus) ? '':
                                 (this.props.shift.status == 'DRAFT') ? 
                                     <span href="#" className="badge badge-secondary">D</span> :
-                                        (openVacancys == totalCandidates) ? 
-                                            <span href="#" className="badge">{totalCandidates}/{openVacancys}</span> :
-                                            <span href="#" className="badge badge-danger">{totalCandidates}/{openVacancys}</span>
+                                        (openVacancys == totalEmployees) ? 
+                                            <span href="#" className="badge">{totalEmployees}/{openVacancys}</span> :
+                                            <span href="#" className="badge badge-danger">{totalEmployees}/{openVacancys}</span>
                         }
                         <a href="#" className="shift-position">{this.props.shift.position.title}</a> @ 
                         <a href="#" className="shift-location"> {this.props.shift.venue.title}</a> 
@@ -54,7 +55,7 @@ export default class ShiftCard extends React.Component{
                             <button type="button" className="btn btn-secondary"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    bar.show({ slug: "show_shift_applicants", data: this.props.shift, title: "Shift Applicants" });
+                                    bar.show({ slug: "show_shift_applications", data: this.props.shift, title: "Shift Applicants" });
                                 }}
                             ><i className="icon icon-favorite icon-xs"></i> <label>Applicants</label></button>
                             <button type="button" className="btn btn-secondary"><i className="icon icon-favorite icon-xs"></i> <label>Detais</label></button>

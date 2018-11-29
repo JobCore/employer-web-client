@@ -36,7 +36,7 @@ module.exports = {
           ]
         },
         {
-          test: /\.scss$/, use: [{
+          test: /\.scss|css$/, use: [{
               loader: "style-loader" // creates style nodes from JS strings
           }, {
               loader: "css-loader" // translates CSS into CommonJS
