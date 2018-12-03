@@ -275,13 +275,27 @@ export const updateTalentList = (action, employee, listId) => {
     });
 };
 
-export const fillPayrollBlocks = (shifts) => {
-    Flux.dispatchEvent('single_payroll_detail', shifts);
+export const fillPayrollBlocks = (clockins) => {
+    Flux.dispatchEvent('single_payroll_detail', clockins);
 };
 
-export const updatePayroll = ({ talent, clockins }) => {
-    //TODO: finish payroll update
-};
+export const updatePayroll = ({ talent, clockins, status }) => new Promise((resolve, reject) => {
+    return PUT(`employees/${talent.id}/payroll`, clockins.map(c => {
+        c.status = status;
+        return Clockin(c).defaults().serialize();
+    }))
+    .then(function(data){
+        console.log("Response arrived ",data);
+        resolve();
+        Notify.success("The Payroll has been updated successfully");
+    })
+    .catch(function(error) {
+        reject(error.message || error);
+        Notify.error(error.message || error);
+        log.error(error);
+    });
+});
+
 
 class _Store extends Flux.DashStore{
     constructor(){
@@ -314,11 +328,23 @@ class _Store extends Flux.DashStore{
         this.addEvent('single_payroll_detail', (payroll) => {
             
             const clockins = payroll.clockins;
+            let approved = true;
+            let paid = true;
             payroll.clockins = (!clockins || (Object.keys(clockins).length === 0 && clockins.constructor === Object)) ? [] : clockins.map((clockin) => {
                 //already transformed
+                if (clockin.status == 'PENDING'){
+                    approved = false;
+                    paid = false;
+                } 
+                else if (clockin.status != 'PAID') paid = false;
+                
                 return Clockin(clockin).defaults().unserialize();
             });
             
+            if(typeof payroll.talent != 'undefined') payroll.talent.paymentsApproved = approved;
+            if(typeof payroll.talent != 'undefined') payroll.talent.paymentsPaid = paid;
+            payroll.approved = approved;
+            payroll.paid = paid;
             return payroll;
         });
         

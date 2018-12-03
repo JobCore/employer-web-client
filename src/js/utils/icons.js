@@ -11,10 +11,13 @@ import faQuestion from '@fortawesome/fontawesome-free-solid/faQuestion';
 import faPencilAlt from '@fortawesome/fontawesome-free-solid/faPencilAlt';
 import faPlus from '@fortawesome/fontawesome-free-solid/faPlus';
 import faUsers from '@fortawesome/fontawesome-free-solid/faUsers';
+import faExclamationTriangle from '@fortawesome/fontawesome-free-solid/faExclamationTriangle';
+import faDollarSign from '@fortawesome/fontawesome-free-solid/faDollarSign';
+
 fontawesome.config = {
   autoReplaceSvg: 'nest'
 };
 fontawesome.library.add(
     faStar, faStarHalf, faEmptyStar, faTimesCircle, faCheckCircle, faAngleDoubleRight,
-    faTrashAlt, faQuestion, faPencilAlt, faPlus, faUsers
+    faTrashAlt, faQuestion, faPencilAlt, faPlus, faUsers, faExclamationTriangle, faDollarSign
 );

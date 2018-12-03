@@ -44,6 +44,8 @@ export const Clockin = (data) => {
         serialize: function(){
             
             const newObj = {
+                shift: (!this.shift || typeof this.shift.id === 'undefined') ? this.shift : this.shift.id,
+                employee: (!this.employee || typeof this.employee.id === 'undefined') ? this.employee : this.employee.id
             };
             
             return Object.assign(this, newObj);
@@ -114,7 +116,16 @@ export class ManagePayroll extends Flux.DashView {
             <Theme.Consumer>
                 {({bar}) => (<span>
                     {(typeof this.state.single_payroll_detail.talent !== 'undefined') ?
-                        <h1><span id="payroll_header">Payroll for {this.state.single_payroll_detail.talent.user.first_name} {this.state.single_payroll_detail.talent.user.last_name}</span></h1>
+                        <h1>
+                            <span id="payroll_header">Payroll for {this.state.single_payroll_detail.talent.user.first_name} {this.state.single_payroll_detail.talent.user.last_name}</span> {' '}
+                            {
+                                (this.state.single_payroll_detail.paid) ?
+                                    <i className="fas fa-dollar-sign"></i>
+                                    : (this.state.single_payroll_detail.approved) ?
+                                        <i className="fas fa-check-circle mr-2"></i>
+                                        :''
+                            }
+                        </h1>
                         :
                         <p>Pick a timeframe and employe to review</p>
                     }
@@ -138,6 +149,7 @@ export class ManagePayroll extends Flux.DashView {
                                         {this.state.single_payroll_detail.clockins.map((c, i) => (
                                             <ClockinRow key={i} 
                                                 clockin={c} 
+                                                readOnly={c.status !== 'PENDING'}
                                                 shift={c.shift} 
                                                 onChange={(clockin) => this.setState({ 
                                                     single_payroll_detail: Object.assign(this.state.single_payroll_detail, { 
@@ -149,7 +161,12 @@ export class ManagePayroll extends Flux.DashView {
                                     </tbody>
                                 </table>
                                 <div className="btn-bar">
-                                    <button type="button" className="btn btn-primary" onClick={() => updatePayroll(this.state.single_payroll_detail)}>Approve</button>
+                                    { !this.state.single_payroll_detail.approved ? 
+                                        <button type="button" className="btn btn-primary" onClick={() => updatePayroll(Object.assign(this.state.single_payroll_detail, { status: 'APPROVED'}))}>Approve</button>
+                                        : !this.state.single_payroll_detail.paid ? 
+                                            <button type="button" className="btn btn-primary" onClick={() => updatePayroll(Object.assign(this.state.single_payroll_detail, { status: 'PAID'}))}> Mark as PAID</button>
+                                            :''
+                                    }
                                 </div>
                             </div>
                             :
@@ -161,7 +178,7 @@ export class ManagePayroll extends Flux.DashView {
     }
 }
 
-const ClockinRow = ({ clockin, shift, onChange }) => {
+const ClockinRow = ({ clockin, shift, onChange, readOnly }) => {
     const startDate = clockin.started_at.format('MM/DD');
     const startTime = clockin.started_at.format('LT');
     const endTime = clockin.ended_at.format('LT');
@@ -182,25 +199,33 @@ const ClockinRow = ({ clockin, shift, onChange }) => {
     return <tr>
         <td>{startDate}</td>
         <td className="time">
-            <TimePicker
-                showSecond={false}
-                defaultValue={clockin.started_at}
-                format={TIME_FORMAT}
-                onChange={(value) => onChange(Object.assign(clockin,{ started_at: value}))}
-                use12Hours
-                inputReadOnly
-              />
+            { readOnly ? 
+                <p>{startTime}</p>
+                :
+                <TimePicker
+                    showSecond={false}
+                    defaultValue={clockin.started_at}
+                    format={TIME_FORMAT}
+                    onChange={(value) => onChange(Object.assign(clockin,{ started_at: value}))}
+                    use12Hours
+                    inputReadOnly
+                  />
+            }
             <small>({shiftStartTime})</small>
         </td>
         <td className="time">
-            <TimePicker
-                showSecond={false}
-                defaultValue={clockin.ended_at}
-                format={TIME_FORMAT}
-                onChange={(value) => onChange(Object.assign(clockin,{ ended_at: value}))}
-                use12Hours
-                inputReadOnly
-              />
+            { readOnly ? 
+                <p>{endTime}</p>
+                :
+                <TimePicker
+                    showSecond={false}
+                    defaultValue={clockin.ended_at}
+                    format={TIME_FORMAT}
+                    onChange={(value) => onChange(Object.assign(clockin,{ ended_at: value}))}
+                    use12Hours
+                    inputReadOnly
+                  />
+            }
             <small>({shiftEndTime})</small>
         </td>
         <td>{hours}</td>
@@ -213,6 +238,7 @@ const ClockinRow = ({ clockin, shift, onChange }) => {
 ClockinRow.propTypes = {
     shift: PropTypes.object,
     clockin: PropTypes.object,
+    readOnly: PropTypes.bool,
     onChange: PropTypes.func
 };
 
@@ -222,7 +248,7 @@ ClockinRow.propTypes = {
 export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel }) => (<Theme.Consumer>
     {({bar}) => (<div>
         <div className="row">
-            <div className="col bg-dark ml-1 pt3 pb-3">
+            <div className="col ml-1 pt3 pb-3">
                 <h3>Select a time period:</h3>
                 <div className="row">
                     <div className="col-4 pr-0">
@@ -254,15 +280,35 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel 
             {(formData && typeof formData.employees != 'undefined' && formData.employees.length > 0) ? 
                 <div className="col-12 mt-3">
                     <ul>
-                        {formData.employees.map((em,i) => (
-                            <EmployeeExtendedCard 
-                                key={i} 
-                                employee={em.talent} 
-                                hover={false} 
+                        {formData.employees.map((block,i) => {
+                        
+                            var approved = true;
+                            var paid = true;
+                            block.clockins.forEach(b => {
+                                if (block.status == 'PENDING'){
+                                    approved = false;
+                                    paid = false;
+                                } 
+                                else if (block.status != 'PAID') paid = false;
+                            });
+                            return (<EmployeeExtendedCard 
+                                    key={i} 
+                                employee={block.talent} 
                                 showFavlist={false}
-                                onClick={() => fillPayrollBlocks(em)}
-                            />
-                        ))}
+                                showButtonsOnHover={false}
+                                onClick={() => fillPayrollBlocks(block)}
+                            >
+                                {
+                                    (!approved) ?
+                                        <i className="fas fa-exclamation-triangle mr-2"></i>
+                                        :
+                                        (!paid) ?
+                                            <i className="fas fa-dollar-sign mr-2"></i>
+                                            :
+                                            <i className="fas fa-check-circle mr-2"></i>
+                                }
+                            </EmployeeExtendedCard>);
+                        })}
                     </ul>
                 </div>
                 :

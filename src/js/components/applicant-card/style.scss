@@ -29,10 +29,12 @@
         cursor: pointer;
     }
     .btn-group{
-        display: none;
         position: absolute;
         right: 0px;
         top: 14px;
+        &.hover-show{
+            display: none;
+        }
         .icon{
             width: 20px;
             height: 20px;
@@ -56,9 +58,6 @@
         }
     }
     &.aplicantcard-hover:hover{
-        .btn-group{
-            display: inline-block;
-        }
         -webkit-box-shadow: 1px 0px 25px 3px rgba(0,0,0,0.2);
         -moz-box-shadow: 1px 0px 25px 3px rgba(0,0,0,0.2);
         box-shadow: 1px 0px 25px 3px rgba(0,0,0,0.2);
@@ -66,5 +65,10 @@
         border-radius: 20px;
         cursor: pointer;
         margin-bottom: 10px;
+    }
+    .hover-show{
+        .btn-group{
+            display: inline-block;
+        }
     }
 }
