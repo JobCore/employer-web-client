@@ -1,0 +1,35 @@
+@import '../theme/style.scss';
+.jc-button{
+    position: relative;
+    .btn-tooltip{
+       background: black;
+       display: none;
+       color: white;
+       padding: 5px;
+       position: absolute;
+       transform: translateX(-100%);
+       &.left{
+           left: -20px;
+           top: 0;
+       }
+       &.right{
+           right: -20px;
+           top: 0;
+       }
+    }
+    &.with-note:before{
+        content: ' ';
+        background: red;
+        width: 8px;
+        height: 8px;
+        bottom: -4px;
+        right: -4px;
+        position: absolute;
+        border-radius: 100%;
+    }
+    &:hover{
+        .btn-tooltip{
+            display: inline-block;
+        }
+    }
+}

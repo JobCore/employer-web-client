@@ -16,8 +16,10 @@ import { ManageLocations } from './views/locations';
 import { ManagePayroll, SelectTimesheet } from './views/payroll';
 import {Profile, Location} from './views/profile';
 import {store} from './actions';
+import {NOW} from './components/utils.js';
 import {Notifier, Notify} from 'bc-react-notifier';
 import logoURL from '../img/logo.png';
+import moment from 'moment';
 
 const logoStyles = {
     backgroundImage: `url(${logoURL})`
@@ -121,7 +123,12 @@ class PrivateLayout extends Flux.DashView{
                             this.showRightBar(AddTalentToFavlist, option, {formData: Favlist(option.data).getFormData() });
                         break;
                         case 'select_timesheet':
-                            this.showRightBar(SelectTimesheet, option);
+                            this.showRightBar(SelectTimesheet, option, {
+                                formData: {
+                                    starting_at: NOW.subtract( 7, 'day' ),
+                                    ending_at: moment()
+                                }
+                            });
                         break;
                         case 'filter_timesheet':
                             this.showRightBar(SelectTimesheet, option, { formData: option.data });

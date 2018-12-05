@@ -275,19 +275,27 @@ export const updateTalentList = (action, employee, listId) => {
     });
 };
 
-export const fillPayrollBlocks = (clockins) => {
-    Flux.dispatchEvent('single_payroll_detail', clockins);
+export const fillPayrollBlocks = (payroll) => {
+    payroll.clockins = payroll.clockins.map(c => {
+        c.selected = (c.status === 'PENDING');
+        return c;
+    });
+    Flux.dispatchEvent('single_payroll_detail', payroll);
 };
 
-export const updatePayroll = ({ talent, clockins, status }) => new Promise((resolve, reject) => {
-    return PUT(`employees/${talent.id}/payroll`, clockins.map(c => {
-        c.status = status;
+export const updatePayroll = (payroll) => new Promise((resolve, reject) => {
+    
+    const newPayroll = payroll.clockins.map(c => {
+        c.status = payroll.status;
         return Clockin(c).defaults().serialize();
-    }))
+    });
+    
+    return PUT(`employees/${payroll.talent.id}/payroll`, newPayroll.filter(c => c.selected === true))
     .then(function(data){
         console.log("Response arrived ",data);
         resolve();
         Notify.success("The Payroll has been updated successfully");
+        Flux.dispatchEvent('single_payroll_detail', newPayroll);
     })
     .catch(function(error) {
         reject(error.message || error);
@@ -324,6 +332,27 @@ class _Store extends Flux.DashStore{
         });
         this.addEvent('favlists');
         this.addEvent('badges');
+        
+        this.addEvent('applications', (applicants) => {
+            return (!applicants || (Object.keys(applicants).length === 0 && applicants.constructor === Object)) ? [] : applicants.map(app => {
+                app.shift = Shift(app.shift).defaults().unserialize();
+                return app;
+            });
+        });
+        this.addEvent('shifts', (shifts) => {
+            
+            const newShifts = (!shifts || (Object.keys(shifts).length === 0 && shifts.constructor === Object)) ? [] : shifts.map((shift) => {
+                //already transformed
+                return Shift(shift).defaults().unserialize();
+            });
+            
+            const applicants = this.getState('applications');
+            if(!applicants && Session.get().isValid) fetchAll(['applications']);
+            
+            return newShifts;
+        });
+        
+        // Payroll related data
         this.addEvent('payroll');
         this.addEvent('single_payroll_detail', (payroll) => {
             
@@ -346,25 +375,6 @@ class _Store extends Flux.DashStore{
             payroll.approved = approved;
             payroll.paid = paid;
             return payroll;
-        });
-        
-        this.addEvent('applications', (applicants) => {
-            return (!applicants || (Object.keys(applicants).length === 0 && applicants.constructor === Object)) ? [] : applicants.map(app => {
-                app.shift = Shift(app.shift).defaults().unserialize();
-                return app;
-            });
-        });
-        this.addEvent('shifts', (shifts) => {
-            
-            const newShifts = (!shifts || (Object.keys(shifts).length === 0 && shifts.constructor === Object)) ? [] : shifts.map((shift) => {
-                //already transformed
-                return Shift(shift).defaults().unserialize();
-            });
-            
-            const applicants = this.getState('applications');
-            if(!applicants && Session.get().isValid) fetchAll(['applications']);
-            
-            return newShifts;
         });
     }
     

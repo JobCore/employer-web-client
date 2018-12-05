@@ -6,10 +6,10 @@ import { store, search, fillPayrollBlocks, updatePayroll } from '../actions.js';
 import DateTime from 'react-datetime';
 import moment from 'moment';
 import {DATETIME_FORMAT, NOW, TIME_FORMAT} from '../components/utils.js';
+import Select from 'react-select';
 
 import {Shift} from './shifts.jsx';
-import { EmployeeExtendedCard, ShiftCard, Stars, Theme, Button } from '../components/index';
-import Select from 'react-select';
+import { EmployeeExtendedCard, ShiftOption, ShiftCard, Theme, Button } from '../components/index';
 import queryString from 'query-string';
 
 import TimePicker from 'rc-time-picker';
@@ -103,6 +103,7 @@ export class ManagePayroll extends Flux.DashView {
     
     componentDidMount(){
         
+        this.setState({ single_payroll_detail: store.getState('single_payroll_detail') });
         this.subscribe(store, 'single_payroll_detail', (single_payroll_detail) => {
             this.setState({ single_payroll_detail });
         });
@@ -115,7 +116,7 @@ export class ManagePayroll extends Flux.DashView {
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({bar}) => (<span>
-                    {(typeof this.state.single_payroll_detail.talent !== 'undefined') ?
+                    {(this.state.single_payroll_detail && typeof this.state.single_payroll_detail.talent !== 'undefined') ?
                         <h1>
                             <span id="payroll_header">Payroll for {this.state.single_payroll_detail.talent.user.first_name} {this.state.single_payroll_detail.talent.user.last_name}</span> {' '}
                             {
@@ -129,17 +130,17 @@ export class ManagePayroll extends Flux.DashView {
                         :
                         <p>Pick a timeframe and employe to review</p>
                     }
-                    {(!Array.isArray(this.state.single_payroll_detail.clockins)) ? '' :
+                    {(!this.state.single_payroll_detail || !Array.isArray(this.state.single_payroll_detail.clockins)) ? '' :
                         (this.state.single_payroll_detail.clockins.length > 0) ?
                             <div>
                                 <table className="table table-striped payroll-summary">
                                     <thead>
                                         <tr>
-                                            <th>Day</th>
+                                            <th></th>
+                                            <th>Details</th>
                                             <th>In</th>
                                             <th>Out</th>
                                             <th>Total</th>
-                                            <th>Details</th>
                                             <th>Worked</th>
                                             <th>Scheduled</th>
                                             <th>Diff</th>
@@ -197,7 +198,15 @@ const ClockinRow = ({ clockin, shift, onChange, readOnly }) => {
     const clockinTime = 0;
     const clockoutTime = 0;
     return <tr>
-        <td>{startDate}</td>
+        <td>
+            {!readOnly ? 
+                <input type="checkbox" 
+                    checked={clockin.selected} 
+                    onClick={(value) => onChange(Object.assign(clockin,{ selected: !clockin.selected }))}
+                />:''
+            }
+        </td>
+        <td><ShiftCard className="p-0" shift={shift} /></td>
         <td className="time">
             { readOnly ? 
                 <p>{startTime}</p>
@@ -229,7 +238,6 @@ const ClockinRow = ({ clockin, shift, onChange, readOnly }) => {
             <small>({shiftEndTime})</small>
         </td>
         <td>{hours}</td>
-        <td>{shift.position.title} at {shift.venue.title}</td>
         <td>{hours}</td>
         <td>{shiftTotalHours}</td>
         <td>{diff}</td>
@@ -245,37 +253,54 @@ ClockinRow.propTypes = {
 /**
  * SelectTimesheet
  */
+ 
+const filterClockins = (formChanges, formData, onChange) => {
+    onChange(Object.assign(formChanges, {employees: [], loading: true }));
+    search(ENTITIY_NAME, '?'+queryString.stringify({
+        starting_at: formData.shift ? '' : formData.starting_at.format('YYYY-MM-DD'),
+        ending_at: formData.shift ? '' : formData.ending_at.format('YYYY-MM-DD'),
+        shift: formData.shift ? formData.shift.id : ''
+    })).then((data) => 
+        onChange({employees: data, loading: false })
+    );
+};
+ 
 export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel }) => (<Theme.Consumer>
     {({bar}) => (<div>
         <div className="row">
-            <div className="col ml-1 pt3 pb-3">
-                <h3>Select a time period:</h3>
-                <div className="row">
-                    <div className="col-4 pr-0">
-                        <DateTime 
-                            timeFormat={false}
-                            value={formData.starting_at}
-                            onChange={(value)=>onChange({starting_at: value})}
-                            placeholder="from"
-                        />
-                    </div>
-                    <div className="col-4 pr-0 pl-0">
-                        <DateTime 
-                            className="picker-left"
-                            timeFormat={false}
-                            value={formData.ending_at}
-                            onChange={(value)=>onChange({ending_at: value})}
-                            placeholder="to"
-                        />
-                    </div>
-                    <div className="col-4 pl-0">
-                        <button className="btn btn-primary" 
-                            onClick={() => search(ENTITIY_NAME, window.location.search).then((data) => 
-                                bar.show({ slug: "filter_timesheet", data: Object.assign({employees: data}, formData) })
-                            )}
-                        >Apply</button>
+            <div className="col-12">
+                <label>{"Filter clockin's by shift:"}</label>
+                <Select className="select-shifts" isMulti={false}
+                    value={ formData.shift }
+                    components={{ Option: ShiftOption, SingleValue: ShiftOption }}
+                    onChange={(selectedOption)=> filterClockins({ shift: Array.isArray(selectedOption) && selectedOption.length==0 ? null : selectedOption }, formData, onChange)}
+                    options={catalog.shifts.filter(s => !['COMPLETED', 'DRAFT', 'CANCELLED'].includes(s.status)).map(item => ({ value: item, label: '' }))}
+                />
+                { typeof formData.shift !== 'undefined' && formData.shift && typeof formData.shift.value !== 'undefined' ? '': <div>
+                    <label>Or by date range:</label>
+                    <div className="row pl-3 pr-3">
+                        <div className="col-6 p-0">
+                            <DateTime 
+                                timeFormat={false}
+                                value={formData.starting_at}
+                                onChange={(value)=> filterClockins({starting_at: value}, formData, onChange)}
+                                placeholder="from"
+                                isValidDate={(current) => current.isBefore( formData.ending_at )}
+                            />
+                        </div>
+                        <div className="col-6 p-0">
+                            <DateTime 
+                                className="picker-left"
+                                timeFormat={false}
+                                value={formData.ending_at}
+                                onChange={(value)=> filterClockins({ending_at: value}, formData, onChange)}
+                                placeholder="to"
+                                isValidDate={(current) => current.isBefore( moment() ) && current.isAfter( formData.starting_at ) }
+                            />
+                        </div>
                     </div>
                 </div>
+                }
             </div>
             {(formData && typeof formData.employees != 'undefined' && formData.employees.length > 0) ? 
                 <div className="col-12 mt-3">
@@ -285,25 +310,34 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel 
                             var approved = true;
                             var paid = true;
                             block.clockins.forEach(b => {
-                                if (block.status == 'PENDING'){
+                                if (b.status == 'PENDING'){
                                     approved = false;
                                     paid = false;
                                 } 
-                                else if (block.status != 'PAID') paid = false;
+                                else if (b.status != 'PAID') paid = false;
                             });
                             return (<EmployeeExtendedCard 
                                     key={i} 
                                 employee={block.talent} 
                                 showFavlist={false}
                                 showButtonsOnHover={false}
-                                onClick={() => fillPayrollBlocks(block)}
+                                onClick={() => {
+                                    fillPayrollBlocks(block);
+                                    bar.show({ 
+                                        to: "/payroll?"+queryString.stringify({
+                                            starting_at: formData.shift ? '' : formData.starting_at.format('YYYY-MM-DD'),
+                                            ending_at: formData.shift ? '' : formData.ending_at.format('YYYY-MM-DD'),
+                                            shift: formData.shift ? formData.shift.id : ''
+                                        })
+                                    });
+                                }}
                             >
                                 {
                                     (!approved) ?
-                                        <i className="fas fa-exclamation-triangle mr-2"></i>
+                                        <span> pending <i className="fas fa-exclamation-triangle mr-2"></i></span>
                                         :
                                         (!paid) ?
-                                            <i className="fas fa-dollar-sign mr-2"></i>
+                                            <span> unpaid <i className="fas fa-dollar-sign mr-2"></i></span>
                                             :
                                             <i className="fas fa-check-circle mr-2"></i>
                                 }
@@ -311,8 +345,10 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel 
                         })}
                     </ul>
                 </div>
-                :
-                <div className="col-12 mt-3">No talents found for this period</div>
+                : (typeof formData.loading !== 'undefined' && formData.loading) ?
+                    <div className="col-12 mt-3 text-center">Loading...</div>
+                    :
+                    <div className="col-12 mt-3 text-center">No talents found for this period or shift</div>
             }
         </div>
     </div>)}

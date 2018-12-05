@@ -22,7 +22,7 @@ export default class ShiftCard extends React.Component{
         const endTime = this.props.shift.ending_at.format('LT');
         return (<Theme.Consumer>
             {({bar}) => 
-                (<li className={"shiftcard "+this.state.hoveredClass} onMouseOver={() => {
+                (<li className={"shiftcard "+this.state.hoveredClass+" "+this.props.className} onMouseOver={() => {
                         if(this.props.hoverEffect){
                             this.setState({ hoveredClass: 'shiftcard-hovered', hasMousedOut: false });
                             setTimeout(() => {
@@ -47,7 +47,7 @@ export default class ShiftCard extends React.Component{
                         <span className="shift-date"> {startDate} from {startTime} to {endTime} </span>
                         {
                             (typeof this.props.shift.price == 'string') ? 
-                                <span className="shift-price"> ${this.props.shift.price}</span>
+                                (this.props.shift.price === '0.0') ? '': <span className="shift-price"> ${this.props.shift.price}</span>
                             :
                                 <span className="shift-price"> {this.props.shift.price.currencySymbol}{this.props.shift.price.amount}</span>
                         }
@@ -69,10 +69,12 @@ ShiftCard.propTypes = {
     shift: PropTypes.object.isRequired,
     hoverEffect: PropTypes.bool.isRequired,
     clickForDetails: PropTypes.bool,
-    showStatus: PropTypes.bool
+    showStatus: PropTypes.bool,
+    className: PropTypes.string
 };
 ShiftCard.defaultProps = {
   hoverEffect: false,
   clickForDetails: true,
-  showStatus: false
+  showStatus: false,
+  className: ''
 };

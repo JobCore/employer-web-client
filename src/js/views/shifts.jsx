@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from 'react-router-dom';
 import Flux from "@4geeksacademy/react-flux-dash";
 import {store} from '../actions.js';
 import {ApplicantCard} from './applications';
@@ -11,7 +12,7 @@ import DateTime from 'react-datetime';
 
 import {Notify} from 'bc-react-notifier';
 import queryString from 'query-string';
-import {ShiftCard, Wizard, Theme, SearchCatalogSelect} from '../components/index';
+import {ShiftCard, Wizard, Theme, SearchCatalogSelect, Button} from '../components/index';
 import {DATETIME_FORMAT, NOW} from '../components/utils.js';
 import {validator, ValidationError} from '../utils/validation';
 import {callback, hasTutorial} from '../utils/tutorial';
@@ -76,6 +77,7 @@ export const Shift = (data) => {
                     const list = store.get('favlists', fav.id || fav);
                     return (list) ? {value: list.id, label: list.title} : null;
                 }),
+                expired: moment(this.ending_at).isBefore(NOW),
                 price: {
                     currency: 'usd',
                     currencySymbol: '$',
@@ -372,194 +374,230 @@ ShiftApplicants.propTypes = {
 };
 
 /**
- * ShiftDetails
+ * EditShift
  */
-export const ShiftDetails = ({onSave, onCancel, onChange, catalog, formData, error }) => (<Theme.Consumer>
-    {({bar}) => (<form>
-        <div className="top-bar">
-            <button type="button" className="btn btn-primary btn-sm rounded" onClick={() => bar.show({ slug: "show_shift_applications", data: formData, title: "Shift Applicants" })}>
-                <i className="fas fa-users"></i>
-            </button>
-        </div>
-        <div className="row">
-            <div className="col-12">
-                { (formData.status == 'DRAFT' && !error ) ?
-                    <div className="alert alert-warning">This shift is a draft, it has not been published</div>
-                    : (formData.status != 'UNDEFINED' && !error) ?
-                        <div className="alert alert-success">This shift is published, therefore <strong>it needs to be unpublished</strong> before it can be updated</div>
-                        :''
-                }
-            </div>
-        </div>
-        <div className="row">
-            <div className="col-12">
-                <label>Looking for</label>
-                <Select
-                    value={ catalog.positions.find((pos) => pos.value == formData.position)}
-                    onChange={(selection)=>onChange({position: selection.value.toString()})}
-                    options={[{label: 'Select a position', value: ''}].concat(catalog.positions)}
-                />
-            </div>
-        </div>
-        <div className="row">
-            <div className="col-6">
-                <label>How many?</label>
-                <input type="number" className="form-control" 
-                    value={formData.maximum_allowed_employees}
-                    onChange={(e)=>onChange({maximum_allowed_employees: e.target.value})} 
-                />
-            </div>
-            <div className="col-6">
-                <label>Price / hour</label>
-                <input type="number" className="form-control" 
-                    value={formData.minimum_hourly_rate}
-                    onChange={(e)=>onChange({minimum_hourly_rate: e.target.value})} 
-                />
-            </div>
-        </div>
-        <div className="row">
-            <div className="col-6">
-                <label>From</label>
-                <DateTime 
-                    timeFormat={DATETIME_FORMAT}
-                    timeConstraints={{ minutes: { step: 15 }}}
-                    value={formData.starting_at}
-                    onChange={(value)=>onChange({starting_at: value})}
-                />
-            </div>
-            <div className="col-6">
-                <label>To</label>
-                <DateTime 
-                    className="picker-left"
-                    timeFormat={DATETIME_FORMAT}
-                    timeConstraints={{ minutes: { step: 15 }}}
-                    value={formData.ending_at}
-                    onChange={(value)=>onChange({ending_at: value})}
-                />
-            </div>
-        </div>
-        <div className="row">
-            <div className="col-12">
-                <label>Location</label>
-                <Select 
-                    value={ catalog.venues.find((ven) => ven.value == formData.venue)}
-                    options={[{ label: "Add a location", value: 'new_venue', component: AddVenue }].concat(catalog.venues)}
-                    onChange={(selection)=> {
-                        if(selection.value == 'new_venue') bar.show({ slug: "create_venue", allowLevels: true });
-                        else onChange({ venue: selection.value.toString() });
-                    }}
-                />
-            </div>
-        </div>
-        <div className="row mt-3">
-            <div className="col-12">
-                <h4>Who can apply to this shift?</h4>
-            </div>
-        </div>
-        <div className="row">
-            <div className="col-12">
-                <Select
-                    value={ catalog.applicationRestrictions.find((a) => a.value == formData.application_restriction)}
-                    onChange={(selection)=>onChange({application_restriction: selection.value.toString()})} 
-                    options={catalog.applicationRestrictions}
-                />
-            </div>
-        </div>
-        {
-            (formData.application_restriction == "FAVORITES") ? 
-                <div className="row">
-                    <div className="col-12">
-                        <label>From these favorite lists</label>
-                        <Select isMulti
-                            value={formData.allowedFavlists}
-                            onChange={(opt)=> onChange({allowedFavlists: opt})} 
-                            options={catalog.favlists}
-                        >
-                        </Select>
-                    </div>
-                </div>
-            : (formData.application_restriction == "ANYONE") ?
-                <div className="row mt-3">
-                    <div className="col-5">
-                        <label className="mt-2">Minimum rating</label>
-                    </div>
-                    <div className="col-7">
-                        <Select
-                            value={ catalog.stars.find((s) => s.value == formData.minimum_allowed_rating)}
-                            onChange={(selection)=>onChange({minimum_allowed_rating: selection.value})}
-                            options={catalog.stars}
-                        />
-                    </div>
-                </div>
-            :
-                <div className="row">
-                    <div className="col-12">
-                        <label>Search people in JobCore:</label>
-                        <SearchCatalogSelect 
-                            isMulti={true}
-                            value={formData.pending_invites}
-                            onChange={(selections)=> {
-                                const invite = selections.find(opt => opt.value == 'invite_talent');
-                                if(invite) bar.show({ 
-                                    allowLevels: true,
-                                    slug: "invite_talent_to_jobcore", 
-                                    onSave: (emp) => onChange({ pending_jobcore_invites: formData.pending_jobcore_invites.concat(emp) })
-                                });
-                                else onChange({ pending_invites: selections });
-                            }}
-                            searchFunction={(search) => new Promise((resolve, reject) => 
-                                GET('catalog/employees?full_name='+search)
-                                    .then(talents => resolve([
-                                        { label: `${(talents.length==0) ? 'No one found: ':''}Invite "${search}" to jobcore`, value: 'invite_talent' }
-                                    ].concat(talents)))
-                                    .catch(error => reject(error))
-                            )}
-                        />
-                    </div>
-                </div>
-        }
-        {(formData.pending_jobcore_invites.length>0) ?
+const EditShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar }) => {
+    return (
+        <form>
             <div className="row">
                 <div className="col-12">
-                    <p className="m-0 p-0">The following people will be invited to this shift after they accept your invitation to jobcore:</p>
-                    {formData.pending_jobcore_invites.map((emp, i) => (
-                        <span key={i} className="badge">{emp.first_name} {emp.last_name} <i className="fas fa-trash-alt"></i></span>
-                    ))}
+                    { (formData.status == 'DRAFT' && !error ) ?
+                        <div className="alert alert-warning">This shift is a draft, it has not been published</div>
+                        : (formData.status != 'UNDEFINED' && !error) ?
+                            <div className="alert alert-success">This shift is published, therefore <strong>it needs to be unpublished</strong> before it can be updated</div>
+                            :''
+                    }
                 </div>
-            </div> : ''
-        }
-        <div className="btn-bar">
-            { (formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ? 
-                <button type="button" className="btn btn-primary" onClick={() => onSave({status: 'DRAFT'})}>Save as draft</button>:''
+            </div>
+            <div className="row">
+                <div className="col-12">
+                    <label>Looking for</label>
+                    <Select
+                        value={ catalog.positions.find((pos) => pos.value == formData.position)}
+                        onChange={(selection)=>onChange({position: selection.value.toString()})}
+                        options={[{label: 'Select a position', value: ''}].concat(catalog.positions)}
+                    />
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-6">
+                    <label>How many?</label>
+                    <input type="number" className="form-control" 
+                        value={formData.maximum_allowed_employees}
+                        onChange={(e)=>onChange({maximum_allowed_employees: e.target.value})} 
+                    />
+                </div>
+                <div className="col-6">
+                    <label>Price / hour</label>
+                    <input type="number" className="form-control" 
+                        value={formData.minimum_hourly_rate}
+                        onChange={(e)=>onChange({minimum_hourly_rate: e.target.value})} 
+                    />
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-6">
+                    <label>From</label>
+                    <DateTime 
+                        timeFormat={DATETIME_FORMAT}
+                        timeConstraints={{ minutes: { step: 15 }}}
+                        value={formData.starting_at}
+                        onChange={(value)=>onChange({starting_at: value})}
+                    />
+                </div>
+                <div className="col-6">
+                    <label>To</label>
+                    <DateTime 
+                        className="picker-left"
+                        timeFormat={DATETIME_FORMAT}
+                        timeConstraints={{ minutes: { step: 15 }}}
+                        value={formData.ending_at}
+                        onChange={(value)=>onChange({ending_at: value})}
+                    />
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-12">
+                    <label>Location</label>
+                    <Select 
+                        value={ catalog.venues.find((ven) => ven.value == formData.venue)}
+                        options={[{ label: "Add a location", value: 'new_venue', component: AddVenue }].concat(catalog.venues)}
+                        onChange={(selection)=> {
+                            if(selection.value == 'new_venue') bar.show({ slug: "create_venue", allowLevels: true });
+                            else onChange({ venue: selection.value.toString() });
+                        }}
+                    />
+                </div>
+            </div>
+            <div className="row mt-3">
+                <div className="col-12">
+                    <h4>Who can apply to this shift?</h4>
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-12">
+                    <Select
+                        value={ catalog.applicationRestrictions.find((a) => a.value == formData.application_restriction)}
+                        onChange={(selection)=>onChange({application_restriction: selection.value.toString()})} 
+                        options={catalog.applicationRestrictions}
+                    />
+                </div>
+            </div>
+            {
+                (formData.application_restriction == "FAVORITES") ? 
+                    <div className="row">
+                        <div className="col-12">
+                            <label>From these favorite lists</label>
+                            <Select isMulti
+                                value={formData.allowedFavlists}
+                                onChange={(opt)=> onChange({allowedFavlists: opt})} 
+                                options={catalog.favlists}
+                            >
+                            </Select>
+                        </div>
+                    </div>
+                : (formData.application_restriction == "ANYONE") ?
+                    <div className="row mt-3">
+                        <div className="col-5">
+                            <label className="mt-2">Minimum rating</label>
+                        </div>
+                        <div className="col-7">
+                            <Select
+                                value={ catalog.stars.find((s) => s.value == formData.minimum_allowed_rating)}
+                                onChange={(selection)=>onChange({minimum_allowed_rating: selection.value})}
+                                options={catalog.stars}
+                            />
+                        </div>
+                    </div>
+                :
+                    <div className="row">
+                        <div className="col-12">
+                            <label>Search people in JobCore:</label>
+                            <SearchCatalogSelect 
+                                isMulti={true}
+                                value={formData.pending_invites}
+                                onChange={(selections)=> {
+                                    const invite = selections.find(opt => opt.value == 'invite_talent');
+                                    if(invite) bar.show({ 
+                                        allowLevels: true,
+                                        slug: "invite_talent_to_jobcore", 
+                                        onSave: (emp) => onChange({ pending_jobcore_invites: formData.pending_jobcore_invites.concat(emp) })
+                                    });
+                                    else onChange({ pending_invites: selections });
+                                }}
+                                searchFunction={(search) => new Promise((resolve, reject) => 
+                                    GET('catalog/employees?full_name='+search)
+                                        .then(talents => resolve([
+                                            { label: `${(talents.length==0) ? 'No one found: ':''}Invite "${search}" to jobcore`, value: 'invite_talent' }
+                                        ].concat(talents)))
+                                        .catch(error => reject(error))
+                                )}
+                            />
+                        </div>
+                    </div>
             }
-            { (formData.status == 'DRAFT') ? 
-                <button type="button" className="btn btn-success" onClick={() => {
-                    const noti = Notify.info("Are you sure?",(answer) => {
-                        if(answer) onSave({status: 'OPEN'});
-                        noti.remove();
-                    });
-                }}>Publish</button>
-                : (formData.status != 'UNDEFINED') ?
-                    <button type="button" className="btn btn-primary" onClick={() => {
-                        const noti = Notify.info("Are you sure you want to unpublish this shift?",(answer) => {
-                            if(answer) onSave({status: 'DRAFT'});
+            {(formData.pending_jobcore_invites.length>0) ?
+                <div className="row">
+                    <div className="col-12">
+                        <p className="m-0 p-0">The following people will be invited to this shift after they accept your invitation to jobcore:</p>
+                        {formData.pending_jobcore_invites.map((emp, i) => (
+                            <span key={i} className="badge">{emp.first_name} {emp.last_name} <i className="fas fa-trash-alt"></i></span>
+                        ))}
+                    </div>
+                </div> : ''
+            }
+            <div className="btn-bar">
+                { (formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ? 
+                    <button type="button" className="btn btn-primary" onClick={() => onSave({status: 'DRAFT'})}>Save as draft</button>:''
+                }
+                { (formData.status == 'DRAFT') ? 
+                    <button type="button" className="btn btn-success" onClick={() => {
+                        const noti = Notify.info("Are you sure?",(answer) => {
+                            if(answer) onSave({status: 'OPEN'});
                             noti.remove();
-                        }, 9999999999999);
-                    }}>Unpublish shift</button>
-                    :
-                    <button type="button" className="btn btn-success" onClick={() => onSave({status: 'OPEN'})}>Save and publish</button>
-            }
-            { (formData.status != 'UNDEFINED') ?
-                <button type="button" className="btn btn-danger" onClick={() => {
-                    const noti = Notify.info("Are you sure you want to cancel this shift?",(answer) => {
-                        if(answer) onSave({status: 'CANCELLED'});
-                        noti.remove();
-                    });
-                }}>Delete</button>:''
-            }
-        </div>
-    </form>)}
-</Theme.Consumer>);
+                        });
+                    }}>Publish</button>
+                    : (formData.status != 'UNDEFINED') ?
+                        <button type="button" className="btn btn-primary" onClick={() => {
+                            const noti = Notify.info("Are you sure you want to unpublish this shift?",(answer) => {
+                                if(answer) onSave({status: 'DRAFT'});
+                                noti.remove();
+                            }, 9999999999999);
+                        }}>Unpublish shift</button>
+                        :
+                        <button type="button" className="btn btn-success" onClick={() => onSave({status: 'OPEN'})}>Save and publish</button>
+                }
+                { (formData.status != 'UNDEFINED') ?
+                    <button type="button" className="btn btn-danger" onClick={() => {
+                        const noti = Notify.info("Are you sure you want to cancel this shift?",(answer) => {
+                            if(answer) onSave({status: 'CANCELLED'});
+                            noti.remove();
+                        });
+                    }}>Delete</button>:''
+                }
+            </div>
+        </form>
+    );
+};
+EditShift.propTypes = {
+    error: PropTypes.string,
+    bar: PropTypes.object,
+    onSave: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    onChange: PropTypes.func.isRequired,
+    formData: PropTypes.object,
+    catalog: PropTypes.object //contains the data needed for the form to load
+};
+
+/**
+ * ShiftDetails
+ */
+export const ShiftDetails = (props) => {
+    const shift = Shift(props.formData).defaults().unserialize();
+    return (<Theme.Consumer>
+        {({ bar }) => (
+            <div>
+                <div className="top-bar">
+                    <button type="button" className="btn btn-primary btn-sm rounded" onClick={() => props.onChange({ status: 'DRAFT' })}>
+                        <i className="fas fa-pencil-alt"></i>
+                    </button>
+                    <Button 
+                        icon="candidates" color="primary" size="small" rounded={true} 
+                         onClick={() => bar.show({ slug: "show_shift_applications", data: props.formData, title: "Shift Applicants" })}
+                        note={shift.candidates.length > 0 ? "The shift has applications that have not been reviwed" : null}
+                    />
+                    { shift.expired === true ?
+                        <Button icon="dollar" color="primary" note={ 
+                            shift.status !== 'OPEN' ? '': <span>This shift is expired and the payroll has not been processed</span>
+                        } size="small" rounded={true} onClick={() => bar.show({ slug: "select_timesheet", data: props.formData, allowLevels: true })} />
+                        :''
+                    }
+                </div>
+                { props.formData.status === 'DRAFT' ? <EditShift bar={bar} {...props} /> : <ShowShift bar={bar} shift={shift} /> }
+            </div>
+        )}
+    </Theme.Consumer>);
+};
 ShiftDetails.propTypes = {
     error: PropTypes.string,
     onSave: PropTypes.func.isRequired,
@@ -569,9 +607,44 @@ ShiftDetails.propTypes = {
     catalog: PropTypes.object //contains the data needed for the form to load
 };
 
+const ShowShift = ({ shift, bar}) => {
+    const totalCandidates = (Array.isArray(shift.candidates)) ? shift.candidates.length : 0;
+    const totalEmployees = (Array.isArray(shift.employees)) ? shift.employees.length : 0;
+    const openVacancys = shift.maximum_allowed_employees;
+    const startDate = shift.starting_at.format('ll');
+    const startTime = shift.starting_at.format('LT');
+    const endTime = shift.ending_at.format('LT');
+    return (<div className="shift-details">
+        {
+            (shift.status == 'DRAFT') ? 
+                <span href="#" className="badge badge-secondary">D</span> :
+                    (openVacancys == totalEmployees) ? 
+                        <span href="#" className="badge">{totalEmployees}/{openVacancys}</span> :
+                        <span href="#" className="badge badge-danger">{totalEmployees}/{openVacancys}</span>
+        }
+        <a href="#" className="shift-position">{shift.position.title}</a> @ 
+        <a href="#" className="shift-location"> {shift.venue.title}</a> 
+        <span className="shift-date"> {startDate} from {startTime} to {endTime} </span>
+        {
+            (typeof shift.price == 'string') ? 
+                <span className="shift-price"> ${shift.price}</span>
+            :
+                <span className="shift-price"> {shift.price.currencySymbol}{shift.price.amount}</span>
+        }
+    </div>);
+};
+ShowShift.propTypes = {
+    shift: PropTypes.object.isRequired,
+    bar: PropTypes.object.isRequired,
+};
+ShowShift.defaultProps = {
+  shift: null,
+  bar: null
+};
+
 
 /**
- * ShiftDetails
+ * RateShift
  */
 export const RateShift = () => (<div className="p-5 listcontents">
     <div className="row">

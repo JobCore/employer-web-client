@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import './style.scss';
 
 const ShiftOption = ({data, isDisabled, innerProps}) => {
-    if(isDisabled) return null;
+    if(isDisabled || typeof data.value === 'undefined') return null;
     const startDate = data.value.starting_at.format('ll');
     const startTime = data.value.starting_at.format('LT');
     const endTime = data.value.ending_at.format('LT');

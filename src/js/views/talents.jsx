@@ -243,6 +243,7 @@ export const TalentDetails = (props) => {
     return (<Theme.Consumer>
         {({bar}) => 
             (<li className="aplication-details">
+                
                 <Avatar url={process.env.API_HOST+employee.user.profile.picture} />
                 <p>{typeof employee.fullName == 'function' ? employee.fullName() : employee.first_name + ' ' + employee.last_name}</p>
                 <div>

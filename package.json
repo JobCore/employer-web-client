@@ -71,6 +71,7 @@
     "query-string": "^5.1.1",
     "randomcolor": "^0.5.3",
     "rc-time-picker": "^3.4.0",
+    "rc-tooltip": "^3.7.3",
     "react": "^16.4.1",
     "react-ace": "^5.9.0",
     "react-calendar-timeline": "^0.22.0",
