@@ -31,7 +31,7 @@ export default class ShiftCard extends React.Component{
                         }
                     }}
                     onMouseOut={() => this.setState({ hasMousedOut: true })}
-                    onClick={() => bar.show({ slug: "update_shift", data: this.props.shift, title: "Shift Details" })}
+                    onClick={() => bar.show({ slug: "shift_details", data: this.props.shift, title: "Shift Details" })}
                 >
                     <div className="shift-details">
                         {
@@ -40,7 +40,7 @@ export default class ShiftCard extends React.Component{
                                     <span href="#" className="badge badge-secondary">D</span> :
                                         (openVacancys == totalEmployees) ? 
                                             <span href="#" className="badge">{totalEmployees}/{openVacancys}</span> :
-                                            <span href="#" className="badge badge-danger">{totalEmployees}/{openVacancys}</span>
+                                            <span href="#" className="badge badge-danger">{totalCandidates}/{totalEmployees}/{openVacancys}</span>
                         }
                         <a href="#" className="shift-position">{this.props.shift.position.title}</a> @ 
                         <a href="#" className="shift-location"> {this.props.shift.venue.title}</a> 

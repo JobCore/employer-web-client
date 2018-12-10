@@ -9,24 +9,58 @@ import AcceptReject from '../accept-reject';
  * Applican Card
  */
 const ApplicantCard = (props) => {
+    const applicant = props.applicant.employee || props.applicant;
     return (<Theme.Consumer>
         {({bar}) => 
-            (<li className="aplicantcard">
-                <Avatar url={process.env.API_HOST+props.applicant.user.profile.picture} />
+            (<li className="aplicantcard"
+                onClick={() => bar.show({ slug: "show_single_applicant", data: props.applicant, title: "Application Details", allowLevels: true })}>
+                <Avatar url={process.env.API_HOST+applicant.user.profile.picture} />
                 <AcceptReject
-                    onAccept={() => props.onAccept(props.shift.id, props.applicant)} 
-                    onReject={() => props.onReject(props.shift.id, props.applicant)} 
+                    onAccept={() => props.onAccept(props.shift.id, applicant)} 
+                    onReject={() => props.onReject(props.shift.id, applicant)} 
                 />
-                <a href="#" className="shift-position">{props.applicant.profile.user.first_name + " " + props.applicant.profile.user.last_name}</a>
+                <a href="#" className="shift-position">{applicant.user.first_name + " " + applicant.user.last_name}</a>
+                <Stars rating={Number(applicant.rating)}  />
+            </li>)}
+    </Theme.Consumer>);
+};
+ApplicantCard.propTypes = {
+  applicant: PropTypes.object.isRequired,
+  onAccept: PropTypes.func.isRequired,
+  onReject: PropTypes.func.isRequired,
+  shift: PropTypes.object.isRequired
+};
+
+export default ApplicantCard;
+
+
+/*
+
+export const ApplicantCard = (props) => {
+    return (<Theme.Consumer>
+        {({bar}) => 
+            (<li className="aplicantcard"
+                 onClick={() => bar.show({ slug: "show_single_applicant", data: props.applicant, title: "Application Details", allowLevels: true })}
+            >
+                <Avatar url={props.applicant.user.profile.picture} />
+                <AcceptReject
+                    onAccept={() => acceptCandidate(props.shift.id, props.applicant).then(() => props.onAccept ? props.onAccept() : null)} 
+                    onReject={() => rejectCandidate(props.shift.id, props.applicant).then(() => props.onReject ? props.onReject() : null)} 
+                />
+                <a href="#" className="shift-position">{props.applicant.user.first_name + " " + props.applicant.user.last_name}</a>
                 <Stars rating={Number(props.applicant.rating)}  />
             </li>)}
     </Theme.Consumer>);
 };
 ApplicantCard.propTypes = {
   applicant: PropTypes.object.isRequired,
-  shift: PropTypes.object.isRequired,
-  onAccept: PropTypes.func.isRequired,
-  onReject: PropTypes.func.isRequired
+  onAccept: PropTypes.func,
+  onReject: PropTypes.func,
+  shift: PropTypes.object.isRequired
+};
+ApplicantCard.defaultProps = {
+  onAccept: null,
+  onReject: null
 };
 
-export default ApplicantCard;
+*/

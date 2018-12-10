@@ -1,8 +1,7 @@
 import React from "react";
 import { Link } from 'react-router-dom';
 import Flux from "@4geeksacademy/react-flux-dash";
-import {store} from '../actions.js';
-import {ApplicantCard} from './applications';
+import {store, acceptCandidate, rejectCandidate} from '../actions.js';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
@@ -12,7 +11,7 @@ import DateTime from 'react-datetime';
 
 import {Notify} from 'bc-react-notifier';
 import queryString from 'query-string';
-import {ShiftCard, Wizard, Theme, SearchCatalogSelect, Button} from '../components/index';
+import {ShiftCard, Wizard, Theme, SearchCatalogSelect, Button, ApplicantCard} from '../components/index';
 import {DATETIME_FORMAT, NOW} from '../components/utils.js';
 import {validator, ValidationError} from '../utils/validation';
 import {callback, hasTutorial} from '../utils/tutorial';
@@ -67,7 +66,6 @@ export const Shift = (data) => {
             const dataType = typeof this.starting_at;
             //if its already serialized
             if((typeof this.position == 'object') && ['number','string'].indexOf(dataType) == -1) return this;
-            
             const newShift = {
                 position: (typeof this.position != 'object') ? store.get('positions', this.position) : this.position,
                 venue: (typeof this.venue != 'object') ? store.get('venues', this.venue) : this.venue,
@@ -355,16 +353,23 @@ FilterShifts.propTypes = {
  * ShiftApplicants
  */
 export const ShiftApplicants = ({onCancel, onSave, catalog}) => {
-    const htmlApplicants = catalog.applicants.map((apli,i) => (<ApplicantCard key={i} applicant={apli} shift={catalog.shift} />));
-    
-    return (<div className="sidebar-applicants">
-        {
-            htmlApplicants.length > 0 ? 
-                htmlApplicants
-            :
-                <p>No applicants were found for this shift.</p>
-        }
-    </div>);
+    const htmlApplicants = catalog.applicants.map((apli,i) => (
+        <ApplicantCard key={i} applicant={apli} shift={catalog.shift} 
+            onAccept={() => acceptCandidate(catalog.shift.id, apli)} 
+            onReject={() => rejectCandidate(catalog.shift.id, apli)} 
+        />)
+    );
+    return (<Theme.Consumer>
+        {({ bar }) => (<div className="sidebar-applicants">
+            <h3>Shift applicants:</h3>
+            {
+                htmlApplicants.length > 0 ? 
+                    htmlApplicants
+                :
+                    <p>No applicants were found for this shift.</p>
+            }
+        </div>)}
+    </Theme.Consumer>);
 };
 ShiftApplicants.propTypes = {
   onSave: PropTypes.func.isRequired,
@@ -381,7 +386,7 @@ const EditShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar }
         <form>
             <div className="row">
                 <div className="col-12">
-                    { (formData.status == 'DRAFT' && !error ) ?
+                    { formData.hide_warnings === true ? null : (formData.status == 'DRAFT' && !error ) ?
                         <div className="alert alert-warning">This shift is a draft, it has not been published</div>
                         : (formData.status != 'UNDEFINED' && !error) ?
                             <div className="alert alert-success">This shift is published, therefore <strong>it needs to be unpublished</strong> before it can be updated</div>
@@ -573,23 +578,25 @@ EditShift.propTypes = {
  * ShiftDetails
  */
 export const ShiftDetails = (props) => {
-    const shift = Shift(props.formData).defaults().unserialize();
+    const shift = props.catalog.shifts.find(s => s.id == props.formData.id);
+    if(!shift || typeof shift === 'undefined') return <div>Loading shift...</div>;
     return (<Theme.Consumer>
         {({ bar }) => (
             <div>
                 <div className="top-bar">
-                    <button type="button" className="btn btn-primary btn-sm rounded" onClick={() => props.onChange({ status: 'DRAFT' })}>
+                    <button type="button" className="btn btn-primary btn-sm rounded" onClick={() => props.onChange({ status: 'DRAFT', hide_warnings: true })}>
                         <i className="fas fa-pencil-alt"></i>
                     </button>
                     <Button 
                         icon="candidates" color="primary" size="small" rounded={true} 
-                         onClick={() => bar.show({ slug: "show_shift_applications", data: props.formData, title: "Shift Applicants" })}
+                        onClick={() => bar.show({ slug: "show_shift_applications", data: shift, title: "Shift Applicants", allowLevels: true })}
                         note={shift.candidates.length > 0 ? "The shift has applications that have not been reviwed" : null}
+                        notePosition="left"
                     />
                     { shift.expired === true ?
-                        <Button icon="dollar" color="primary" note={ 
-                            shift.status !== 'OPEN' ? '': <span>This shift is expired and the payroll has not been processed</span>
-                        } size="small" rounded={true} onClick={() => bar.show({ slug: "select_timesheet", data: props.formData, allowLevels: true })} />
+                        <Button icon="dollar" color="primary" notePosition="left" size="small" rounded={true} 
+                            note={shift.status !== 'OPEN' ? '': <span>This shift is expired and the payroll has not been processed</span>}
+                            onClick={() => bar.show({ slug: "select_timesheet", data: shift, allowLevels: true })} />
                         :''
                     }
                 </div>
@@ -604,6 +611,7 @@ ShiftDetails.propTypes = {
     onCancel: PropTypes.func.isRequired,
     onChange: PropTypes.func.isRequired,
     formData: PropTypes.object,
+    shift: PropTypes.object,
     catalog: PropTypes.object //contains the data needed for the form to load
 };
 
@@ -615,6 +623,7 @@ const ShowShift = ({ shift, bar}) => {
     const startTime = shift.starting_at.format('LT');
     const endTime = shift.ending_at.format('LT');
     return (<div className="shift-details">
+        <h3>{"Shift details"}</h3>
         {
             (shift.status == 'DRAFT') ? 
                 <span href="#" className="badge badge-secondary">D</span> :

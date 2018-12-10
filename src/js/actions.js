@@ -109,7 +109,20 @@ export const fetchAll = (entities) => new Promise((resolve, reject) => {
     });
 });
 
-export const fetchSingle = (entity, id, event_name=null) => {
+export const fetchSingle = (entity, id) =>  new Promise((resolve, reject) => {
+    GET(entity+'/'+id)
+        .then(function(data){
+            Flux.dispatchEvent(entity, store.replaceMerged("shifts", data.id, Shift(data).defaults().unserialize()));
+            resolve(data);
+        })
+        .catch(function(error) {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject();
+        });
+});
+
+export const fetchTemporalEntity = (entity, id, event_name=null) => {
     const url = entity.slug || entity;
     GET(url+'/'+id)
         .then(function(data){
@@ -216,33 +229,37 @@ export const rejectCandidate = (shiftId, applicant) => {
     else Notify.error("Shift not found");
 };
 
-export const acceptCandidate = (shiftId, applicant) => {
+export const acceptCandidate = (shiftId, applicant) => new Promise((accept, reject) => {
     const shift = store.get('shifts', shiftId);
     if(shift){
-        if (shift.status !== 'FILLED' || shift.employees.length < shift.maximum_allowed_employees) {
+        if (shift.status === 'OPEN' || shift.employees.length < shift.maximum_allowed_employees) {
             
             const newEmployees = shift.employees.concat([applicant]);
-            const newCandidates = shift.candidates.filter(employee => employee.id != applicant.id);
+            const newCandidates = shift.candidates.filter(c => Number.isInteger(c) ? c !== applicant.id : c.id !== applicant.id);
             const shiftData = { 
-                employees: newEmployees.map(emp => emp.id),  
-                candidates: newCandidates.map(can => can.id)
+                employees: newEmployees.map(emp => Number.isInteger(emp) ? emp : emp.id),  
+                candidates: newCandidates.map(can => Number.isInteger(can) ? can : can.id)
             };
             PUT(`shifts/${shiftId}/candidates`, shiftData).then((data) => {
                 
-                Flux.dispatchEvent('applicants', store.filter("applicants", (item) => (item.shift.id != shiftId || item.employee.id != applicant.id)));
+                Flux.dispatchEvent('applications', store.filter("applications", (item) => (item.shift.id != shiftId || item.employee.id != applicant.id)));
                 Flux.dispatchEvent('shifts', store.replaceMerged("shifts", shiftId.id, {
                     employees: newEmployees,
                     candidates: newCandidates
                 }));
                 Notify.success("The candidate was successfully accepted");
-                
+                accept();
             });
         } else {
           Notify.error('This shift is already filled.');
+          reject();
         }
     }
-    else Notify.error("Shift not found");
-};
+    else{
+        Notify.error("Shift not found");
+        reject();
+    } 
+});
 
 export const updateTalentList = (action, employee, listId) => {
     const favoriteList = store.get("favlists", listId);
@@ -304,13 +321,13 @@ export const updatePayroll = (payroll) => new Promise((resolve, reject) => {
     });
 });
 
+export const http = { GET };
 
 class _Store extends Flux.DashStore{
     constructor(){
         super();
         this.addEvent('positions');
         this.addEvent('venues');
-        this.addEvent('current_employer');
         this.addEvent('shiftinvites');
         this.addEvent('jobcore-invites');
         this.addEvent('employees', (employees) => {
@@ -354,6 +371,9 @@ class _Store extends Flux.DashStore{
         
         // Payroll related data
         this.addEvent('payroll');
+        
+        //temporal storage (for temporal views, information that is read only)
+        this.addEvent('temporal_employer');
         this.addEvent('single_payroll_detail', (payroll) => {
             
             const clockins = payroll.clockins;

@@ -256,28 +256,65 @@ ClockinRow.propTypes = {
  
 const filterClockins = (formChanges, formData, onChange) => {
     onChange(Object.assign(formChanges, {employees: [], loading: true }));
-    search(ENTITIY_NAME, '?'+queryString.stringify({
+    const query = queryString.stringify({
         starting_at: formData.shift ? '' : formData.starting_at.format('YYYY-MM-DD'),
         ending_at: formData.shift ? '' : formData.ending_at.format('YYYY-MM-DD'),
-        shift: formData.shift ? formData.shift.id : ''
-    })).then((data) => 
+        shift: formData.shift ? formData.shift.id || formData.shift.id : ''
+    });
+    search(ENTITIY_NAME, '?'+query).then((data) => 
         onChange({employees: data, loading: false })
     );
 };
+
+const payrollPeriods = (() => {
+    let end = moment().subtract(40, "days").startOf('week');
+    let payrollPeriods = [];
+    while(moment().isAfter(end)){
+        const start = end.clone();
+        end = start.add(7,"days");
+        payrollPeriods.push({
+            value: {
+                starting_at: start,
+                ending_at: end
+            },
+            label: `From ${start.format('MMM Do YY')} to ${end.format('MMM Do YY')}`
+        });
+    }
+    console.log("Periods", payrollPeriods);
+    return payrollPeriods;
+})();
  
 export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel }) => (<Theme.Consumer>
     {({bar}) => (<div>
         <div className="row">
             <div className="col-12">
-                <label>{"Filter clockin's by shift:"}</label>
+                <h2>{"Search for employee clockins:"}</h2>
                 <Select className="select-shifts" isMulti={false}
-                    value={ formData.shift }
+                    value={ formData.shift ? { value: formData.shift, label: (formData.shift == 'time-period') ? 'Specify a time period' : '' } : null }
+                    defaultValue={ formData.shift ? { value: formData.shift, label: (formData.shift == 'time-period') ? 'Specify a time period' : '' } : null }
                     components={{ Option: ShiftOption, SingleValue: ShiftOption }}
-                    onChange={(selectedOption)=> filterClockins({ shift: Array.isArray(selectedOption) && selectedOption.length==0 ? null : selectedOption }, formData, onChange)}
-                    options={catalog.shifts.filter(s => !['COMPLETED', 'DRAFT', 'CANCELLED'].includes(s.status)).map(item => ({ value: item, label: '' }))}
+                    onChange={(selectedOption)=> filterClockins({ shift: Array.isArray(selectedOption) && selectedOption.length==0 ? null : selectedOption.value }, formData, onChange)}
+                    options={[{ value: 'time-period', label: 'Specify a Payroll Period' }].concat(catalog.shifts.filter(s => !['COMPLETED', 'DRAFT', 'CANCELLED'].includes(s.status)).map(item => ({ value: item, label: '' })))}
                 />
-                { typeof formData.shift !== 'undefined' && formData.shift && typeof formData.shift.value !== 'undefined' ? '': <div>
-                    <label>Or by date range:</label>
+                { formData.shift !== 'time-period' ? '': <div>
+                    <strong className="mt-1">Searching for this date range:</strong>
+                    <Select className="select-shifts" isMulti={false}
+                        value={{
+                            value: {
+                                starting_at: formData.starting_at,
+                                ending_at: formData.ending_at
+                            },
+                            label: `From ${formData.starting_at.format('MMM Do YY')} to ${formData.ending_at.format('MMM Do YY')}`
+                        }}
+                        defaultValue={payrollPeriods[0]}
+                        components={{ Option: ShiftOption, SingleValue: ShiftOption }}
+                        onChange={(selectedOption)=> filterClockins({
+                            starting_at: selectedOption.value.starting_at,
+                            ending_at: selectedOption.value.ending_at
+                        }, formData, onChange)}
+                        options={payrollPeriods}
+                    />
+                    {/*
                     <div className="row pl-3 pr-3">
                         <div className="col-6 p-0">
                             <DateTime 
@@ -299,6 +336,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel 
                             />
                         </div>
                     </div>
+                    */}
                 </div>
                 }
             </div>
@@ -323,7 +361,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel 
                                 showButtonsOnHover={false}
                                 onClick={() => {
                                     fillPayrollBlocks(block);
-                                    bar.show({ 
+                                    bar.show({
                                         to: "/payroll?"+queryString.stringify({
                                             starting_at: formData.shift ? '' : formData.starting_at.format('YYYY-MM-DD'),
                                             ending_at: formData.shift ? '' : formData.ending_at.format('YYYY-MM-DD'),

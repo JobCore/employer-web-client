@@ -1,6 +1,6 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
-import {store, fetchSingle, update} from '../actions.js';
+import {store, fetchTemporalEntity, update} from '../actions.js';
 import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
 import {Session} from 'bc-react-session';
 import {validator, ValidationError} from '../utils/validation';
@@ -112,8 +112,8 @@ export class Profile extends Flux.DashView {
     componentDidMount(){
         
         const payload = Session.getPayload();
-        fetchSingle('employers', payload.user.profile.employer, 'current_employer');
-        this.subscribe(store, 'current_employer', (employer) => {
+        fetchTemporalEntity('employers', payload.user.profile.employer, 'temporal_employer');
+        this.subscribe(store, 'temporal_employer', (employer) => {
             this.setState({ employer });
         });
         

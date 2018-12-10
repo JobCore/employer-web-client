@@ -2,7 +2,7 @@ import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
 import Select from 'react-select';
-import {AcceptReject, Avatar, Stars, Theme, Wizard} from '../components/index';
+import {AcceptReject, Avatar, Stars, Theme, Wizard } from '../components/index';
 import {store, rejectCandidate, acceptCandidate} from '../actions.js';
 import queryString from 'query-string';
 import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
@@ -198,27 +198,6 @@ export class ManageApplicantions extends Flux.DashView {
     }
 }
 
-/**
- * Applican Card
- */
-export const ApplicantCard = (props) => {
-    return (<Theme.Consumer>
-        {({bar}) => 
-            (<li className="aplicantcard">
-                <Avatar url={props.applicant.profile.picture} />
-                <AcceptReject
-                    onAccept={() => acceptCandidate(props.shift.id, props.applicant)} 
-                    onReject={() => rejectCandidate(props.shift.id, props.applicant)} 
-                />
-                <a href="#" className="shift-position">{props.applicant.profile.user.first_name + " " + props.applicant.profile.user.last_name}</a>
-                <Stars rating={Number(props.applicant.rating)}  />
-            </li>)}
-    </Theme.Consumer>);
-};
-ApplicantCard.propTypes = {
-  applicant: PropTypes.object.isRequired,
-  shift: PropTypes.object.isRequired
-};
 
 /**
  * Applican Card
@@ -234,8 +213,8 @@ export const ApplicantExtendedCard = (props) => {
                 >
                 <Avatar url={props.applicant.employee.user.profile.picture} />
                 <AcceptReject
-                    onAccept={() => acceptCandidate(props.shift.id, props.applicant.employee)} 
-                    onReject={() => rejectCandidate(props.shift.id, props.applicant.employee)} 
+                    onAccept={() => acceptCandidate(props.shift.id, props.applicant.employee).then(() => props.onAccept ? props.onAccept() : null)} 
+                    onReject={() => rejectCandidate(props.shift.id, props.applicant.employee).then(() => props.onReject ? props.onReject() : null)} 
                 />
                 <p>
                     <a href="#" className="shift-position">{props.applicant.employee.user.first_name + " " + props.applicant.employee.user.last_name} </a>
@@ -255,15 +234,20 @@ export const ApplicantExtendedCard = (props) => {
 };
 ApplicantExtendedCard.propTypes = {
   applicant: PropTypes.object.isRequired,
+  onAccept: PropTypes.func,
+  onReject: PropTypes.func,
   shift: PropTypes.object.isRequired
 };
-
+ApplicantExtendedCard.defaultProps = {
+  onAccept: null,
+  onReject: null
+};
 
 /**
  * Application Details
  */
 export const ApplicationDetails = (props) => {
-    const applicant = props.catalog.applicant;
+    const applicant = props.catalog.applicant.employee || props.catalog.applicant;
     return (<Theme.Consumer>
         {({bar}) => 
             (<li className="aplication-details">

@@ -5,7 +5,7 @@
         margin: 5px;
         font-size: 16px;
         border: none;
-        background: none;
+        background: none !important;
         position: relative;
         &.btn-danger{ color: red; }
         &.btn-success{ color: $green-600; }

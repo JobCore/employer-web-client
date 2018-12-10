@@ -31,7 +31,7 @@ const Button = ({ color, onClick, propagate, icon, children, className, note, ro
       >
           { (typeof icons[icon] != 'undefined') ? <i className={icons[icon]}></i>:'' }
           { (children) ? children:'' }
-          { note ? <span className="btn-tooltip">{note}</span> : '' }
+          { note ? <span className={"btn-tooltip "+notePosition}>{note}</span> : '' }
       </button>);
 };
 Button.propTypes = {

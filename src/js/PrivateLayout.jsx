@@ -1,7 +1,7 @@
 import React from 'react';
 import Flux from '@4geeksacademy/react-flux-dash';
 import { Route, Switch, NavLink } from 'react-router-dom';
-import {logout, fetchAll} from './actions';
+import {logout, fetchAll, fetchSingle} from './actions';
 import Dashboard from './views/Dashboard';
 import ButtonBar from './views/ButtonBar';
 import { Session } from 'bc-react-session';
@@ -75,14 +75,18 @@ class PrivateLayout extends Flux.DashView{
                         case 'filter_applications':
                             this.showRightBar(FilterApplications, option, {formData: getApplicationsInitialFilters(this.state.catalog)});
                         break;
-                        case 'show_shift_applications':
-                            this.showRightBar(ShiftApplicants, option, { applicants: option.data.candidates, shift: option.data });
-                        break;
+                        case 'show_shift_applications':{
+                            this.showRightBar(ShiftApplicants, option, { 
+                                applicants: option.data.candidates,
+                                shift: option.data 
+                            });
+                        }break;
                         case 'show_single_applicant':
-                            this.showRightBar(ApplicationDetails, option, {applicant: option.data});
+                            this.showRightBar(ApplicationDetails, option, {applicant: option.data });
                         break;
-                        case 'update_shift':
-                            this.showRightBar(ShiftDetails, option, {formData: Shift(option.data).getFormData()});
+                        case 'shift_details':
+                            fetchSingle('shifts', option.data.id);
+                            this.showRightBar(ShiftDetails, option, {formData: Shift(option.data).getFormData() });
                         break;
                         case 'favlist_employees':
                             option.title = "List Details";
@@ -125,6 +129,7 @@ class PrivateLayout extends Flux.DashView{
                         case 'select_timesheet':
                             this.showRightBar(SelectTimesheet, option, {
                                 formData: {
+                                    shift: null,
                                     starting_at: NOW.subtract( 7, 'day' ),
                                     ending_at: moment()
                                 }

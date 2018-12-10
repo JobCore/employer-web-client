@@ -9,11 +9,11 @@
        position: absolute;
        transform: translateX(-100%);
        &.left{
-           left: -20px;
-           top: 0;
+            left: -7px;
+            top: 0;
        }
        &.right{
-           right: -20px;
+           right: -7px;
            top: 0;
        }
     }
@@ -26,6 +26,28 @@
         right: -4px;
         position: absolute;
         border-radius: 100%;
+    }
+    &.with-note.left:hover:after{ //arrow right (the oposite)
+        content: ' ';
+        position: absolute;
+        bottom: 4px;
+        left: -10px;
+        width: 0; 
+        height: 0; 
+        border-top: 7px solid transparent;
+        border-bottom: 7px solid transparent;
+        border-left: 7px solid black;
+    }
+    &.with-note.right:hover:after{ //arrow left (the oposite)
+        content: ' ';
+        position: absolute;
+        bottom: 4px;
+        right: -10px;
+        width: 0; 
+        height: 0; 
+        border-top: 7px solid transparent;
+        border-bottom: 7px solid transparent; 
+        border-right: 7px solid black; 
     }
     &:hover{
         .btn-tooltip{
