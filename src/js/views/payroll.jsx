@@ -97,32 +97,32 @@ export class ManagePayroll extends Flux.DashView {
     constructor(){
         super();
         this.state = {
-            single_payroll_detail: []
+            single_payroll_projection: []
         };
     }
     
     componentDidMount(){
         
-        this.setState({ single_payroll_detail: store.getState('single_payroll_detail') });
-        this.subscribe(store, 'single_payroll_detail', (single_payroll_detail) => {
-            this.setState({ single_payroll_detail });
+        this.setState({ single_payroll_projection: store.getState('single_payroll_projection') });
+        this.subscribe(store, 'single_payroll_projection', (single_payroll_projection) => {
+            this.setState({ single_payroll_projection });
         });
         
     }
     
     
     render() {
-        const allowLevels = (window.location.search != '');
+        //const allowLevels = (window.location.search != '');
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({bar}) => (<span>
-                    {(this.state.single_payroll_detail && typeof this.state.single_payroll_detail.talent !== 'undefined') ?
+                    {(this.state.single_payroll_projection && typeof this.state.single_payroll_projection.employee !== 'undefined') ?
                         <h1>
-                            <span id="payroll_header">Payroll for {this.state.single_payroll_detail.talent.user.first_name} {this.state.single_payroll_detail.talent.user.last_name}</span> {' '}
+                            <span id="payroll_header">Payroll for {this.state.single_payroll_projection.employee.user.first_name} {this.state.single_payroll_projection.employee.user.last_name}</span> {' '}
                             {
-                                (this.state.single_payroll_detail.paid) ?
+                                (this.state.single_payroll_projection.paid) ?
                                     <i className="fas fa-dollar-sign"></i>
-                                    : (this.state.single_payroll_detail.approved) ?
+                                    : (this.state.single_payroll_projection.approved) ?
                                         <i className="fas fa-check-circle mr-2"></i>
                                         :''
                             }
@@ -130,8 +130,8 @@ export class ManagePayroll extends Flux.DashView {
                         :
                         <p>Pick a timeframe and employe to review</p>
                     }
-                    {(!this.state.single_payroll_detail || !Array.isArray(this.state.single_payroll_detail.clockins)) ? '' :
-                        (this.state.single_payroll_detail.clockins.length > 0) ?
+                    {(!this.state.single_payroll_projection || !Array.isArray(this.state.single_payroll_projection.clockins)) ? '' :
+                        (this.state.single_payroll_projection.clockins.length > 0) ?
                             <div>
                                 <table className="table table-striped payroll-summary">
                                     <thead>
@@ -147,14 +147,14 @@ export class ManagePayroll extends Flux.DashView {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {this.state.single_payroll_detail.clockins.map((c, i) => (
+                                        {this.state.single_payroll_projection.clockins.map((c, i) => (
                                             <ClockinRow key={i} 
                                                 clockin={c} 
                                                 readOnly={c.status !== 'PENDING'}
                                                 shift={c.shift} 
                                                 onChange={(clockin) => this.setState({ 
-                                                    single_payroll_detail: Object.assign(this.state.single_payroll_detail, { 
-                                                        clockins: this.state.single_payroll_detail.clockins.map((c) => (c.id == clockin.id) ? clockin : c)
+                                                    single_payroll_projection: Object.assign(this.state.single_payroll_projection, { 
+                                                        clockins: this.state.single_payroll_projection.clockins.map((c) => (c.id == clockin.id) ? clockin : c)
                                                     })}
                                                 )}
                                             />
@@ -162,10 +162,10 @@ export class ManagePayroll extends Flux.DashView {
                                     </tbody>
                                 </table>
                                 <div className="btn-bar">
-                                    { !this.state.single_payroll_detail.approved ? 
-                                        <button type="button" className="btn btn-primary" onClick={() => updatePayroll(Object.assign(this.state.single_payroll_detail, { status: 'APPROVED'}))}>Approve</button>
-                                        : !this.state.single_payroll_detail.paid ? 
-                                            <button type="button" className="btn btn-primary" onClick={() => updatePayroll(Object.assign(this.state.single_payroll_detail, { status: 'PAID'}))}> Mark as PAID</button>
+                                    { !this.state.single_payroll_projection.approved ? 
+                                        <button type="button" className="btn btn-primary" onClick={() => updatePayroll(Object.assign(this.state.single_payroll_projection, { status: 'APPROVED'}))}>Approve</button>
+                                        : !this.state.single_payroll_projection.paid ? 
+                                            <button type="button" className="btn btn-primary" onClick={() => updatePayroll(Object.assign(this.state.single_payroll_projection, { status: 'PAID'}))}> Mark as PAID</button>
                                             :''
                                     }
                                 </div>
@@ -256,9 +256,12 @@ ClockinRow.propTypes = {
  
 const filterClockins = (formChanges, formData, onChange) => {
     onChange(Object.assign(formChanges, {employees: [], loading: true }));
+    
+    console.log("Form Changes", formChanges);
+    
     const query = queryString.stringify({
-        starting_at: formData.shift ? '' : formData.starting_at.format('YYYY-MM-DD'),
-        ending_at: formData.shift ? '' : formData.ending_at.format('YYYY-MM-DD'),
+        starting_at: formChanges.starting_at ? formChanges.starting_at.format('YYYY-MM-DD') : null,
+        ending_at: formChanges.ending_at ? formChanges.ending_at.format('YYYY-MM-DD') : null,
         shift: formData.shift ? formData.shift.id || formData.shift.id : ''
     });
     search(ENTITIY_NAME, '?'+query).then((data) => 
@@ -267,11 +270,11 @@ const filterClockins = (formChanges, formData, onChange) => {
 };
 
 const payrollPeriods = (() => {
-    let end = moment().subtract(40, "days").startOf('week');
+    let end = moment().subtract(360, "days").startOf('week');
     let payrollPeriods = [];
     while(moment().isAfter(end)){
         const start = end.clone();
-        end = start.add(7,"days");
+        end = end.clone().add(7,"days");
         payrollPeriods.push({
             value: {
                 starting_at: start,
@@ -280,7 +283,6 @@ const payrollPeriods = (() => {
             label: `From ${start.format('MMM Do YY')} to ${end.format('MMM Do YY')}`
         });
     }
-    console.log("Periods", payrollPeriods);
     return payrollPeriods;
 })();
  
@@ -304,7 +306,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel 
                                 starting_at: formData.starting_at,
                                 ending_at: formData.ending_at
                             },
-                            label: `From ${formData.starting_at.format('MMM Do YY')} to ${formData.ending_at.format('MMM Do YY')}`
+                            label: `From ${formData.starting_at.format('MMM Do Y')} to ${formData.ending_at.format('MMM Do Y')}`
                         }}
                         defaultValue={payrollPeriods[0]}
                         components={{ Option: ShiftOption, SingleValue: ShiftOption }}
@@ -364,7 +366,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel 
                                     bar.show({
                                         to: "/payroll?"+queryString.stringify({
                                             starting_at: formData.shift ? '' : formData.starting_at.format('YYYY-MM-DD'),
-                                            ending_at: formData.shift ? '' : formData.ending_at.format('YYYY-MM-DD'),
+                                            talent_id: block.talent.id,
                                             shift: formData.shift ? formData.shift.id : ''
                                         })
                                     });

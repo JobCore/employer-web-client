@@ -163,7 +163,8 @@ class PrivateLayout extends Flux.DashView{
         });
         
         
-        fetchAll(['positions','venues', 'favlists', 'badges', 'jobcore-invites'])
+        fetchAll(['positions', 'badges']);
+        fetchAllFromEmployer(['venues', 'favlists', 'jobcore-invites' ])
             .then(() => fetchAll(['shifts']));
         
         this.subscribe(store, 'jobcore-invites', (jcInvites) => this.setCatalog({jcInvites: jcInvites || []}));
