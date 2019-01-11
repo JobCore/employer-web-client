@@ -1,7 +1,7 @@
 import React from 'react';
 import Flux from '@4geeksacademy/react-flux-dash';
 import { Route, Switch, NavLink } from 'react-router-dom';
-import {logout, fetchAll, fetchSingle} from './actions';
+import {logout, fetchAll, fetchSingle, fetchAllMe} from './actions';
 import Dashboard from './views/Dashboard';
 import ButtonBar from './views/ButtonBar';
 import { Session } from 'bc-react-session';
@@ -163,9 +163,9 @@ class PrivateLayout extends Flux.DashView{
         });
         
         
-        fetchAll(['positions', 'badges']);
-        fetchAllFromEmployer(['venues', 'favlists', 'jobcore-invites' ])
-            .then(() => fetchAll(['shifts']));
+        // fetchAll(['positions', 'badges']);
+        // fetchAllMe(['venues', 'favlists', 'jobcore-invites'])
+        //     .then(() => fetchAllMe(['shifts']));
         
         this.subscribe(store, 'jobcore-invites', (jcInvites) => this.setCatalog({jcInvites: jcInvites || []}));
         this.subscribe(store, 'venues', (venues) => this.setCatalog({venues: reduce(venues)}));

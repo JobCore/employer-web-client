@@ -109,8 +109,42 @@ export const fetchAll = (entities) => new Promise((resolve, reject) => {
     });
 });
 
+export const fetchAllMe = (entities) => new Promise((resolve, reject) => {
+    let requests = [];
+    const checkPromiseResolution = () => {
+            const hasPending = requests.find(r => r.pending == true);
+            if(!hasPending){
+                const hasError = requests.find(r => r.error == true);
+                if(hasError) reject();
+                else resolve();
+            }
+        };
+        
+    entities.forEach((entity) => {
+        const currentRequest = { entity: entity.slug || entity, pending: true, error: false};
+        requests.push(currentRequest);
+        
+        GET('employees/me/'+entity.slug || entity)
+        .then(function(list){
+            if(typeof entity.callback == 'function') entity.callback();
+            Flux.dispatchEvent(entity.slug || entity, list);
+
+            currentRequest.pending = false;
+            checkPromiseResolution();
+        })
+        .catch(function(error) {
+            Notify.error(error.message || error);
+            log.error(error);
+            
+            currentRequest.pending = false;
+            currentRequest.error = true;
+            checkPromiseResolution();
+        });
+    });
+});
+
 export const fetchSingle = (entity, id) =>  new Promise((resolve, reject) => {
-    GET(entity+'/'+id)
+    GET('employers/me/'+entity+'/'+id)
         .then(function(data){
             Flux.dispatchEvent(entity, store.replaceMerged("shifts", data.id, Shift(data).defaults().unserialize()));
             resolve(data);
@@ -124,7 +158,7 @@ export const fetchSingle = (entity, id) =>  new Promise((resolve, reject) => {
 
 export const fetchTemporalEntity = (entity, id, event_name=null) => {
     const url = entity.slug || entity;
-    GET(url+'/'+id)
+    GET('employers/me/'+url+'/'+id)
         .then(function(data){
             if(typeof entity.callback == 'function') entity.callback();
             Flux.dispatchEvent(event_name || entity.slug || entity, data);
@@ -136,7 +170,7 @@ export const fetchTemporalEntity = (entity, id, event_name=null) => {
 };
 
 export const search = (entity, queryString) => new Promise((accept, reject) => 
-    GET(entity, queryString)
+    GET('employees/me/'+entity, queryString)
         .then(function(list){
             if(typeof entity.callback == 'function') entity.callback();
             Flux.dispatchEvent(entity.slug || entity, list);
@@ -364,7 +398,7 @@ class _Store extends Flux.DashStore{
             });
             
             const applicants = this.getState('applications');
-            if(!applicants && Session.get().isValid) fetchAll(['applications']);
+            if(!applicants && Session.get().isValid) fetchAllMe(['applications']);
             
             return newShifts;
         });
