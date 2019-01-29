@@ -12,6 +12,7 @@ export const Favlist = (data) => {
     
     const _defaults = {
         title: '',
+        auto_accept_employees_on_this_list: true,
         employees: [],
         employer: Session.getPayload().user.profile.employer,
         serialize: function(filters=[]){
@@ -42,6 +43,7 @@ export const Favlist = (data) => {
             let _formShift = {
                 id: _entity.id,
                 title: _entity.title,
+                auto_accept_employees_on_this_list: _entity.auto_accept_employees_on_this_list,
                 employees: _entity.employees
             };
             return _formShift;
@@ -135,7 +137,7 @@ export const AddFavlistsToTalent = ({onChange, formData, onSave, onCancel, catal
                 <label>Pick your favorite lists:</label>
                 <Select isMulti className="select-favlists"
                     value={formData.favoriteLists}
-                    options={[{ label: "Add new favorite list", value: 'new_favlist', component: AddFavlist }].concat(catalog.favlists)}
+                    options={[{ label: "Add new favorite list", value: 'new_favlist', component: AddorUpdateFavlist }].concat(catalog.favlists)}
                     onChange={(selection)=> {
                         const create = selection.find(opt => (opt.value == 'new_favlist'));
                         if(create) bar.show({ slug: "create_favlist", allowLevels: true });
@@ -160,12 +162,29 @@ AddFavlistsToTalent.propTypes = {
   catalog: PropTypes.object //contains the data needed for the form to load
 };
 
-export const AddFavlist = ({ formData, onChange, onSave, onCancel }) => (<form>
-    <input type="text" className="form-control" 
-        placeholder="List name"
-        value={formData.title} 
-        onChange={(e)=> onChange({title: e.target.value})} 
-    />
+export const AddorUpdateFavlist = ({ formData, onChange, onSave, onCancel }) => (<form>
+    <div className="row">
+        <div className="col-12">
+            <label>List name:</label>
+            <input type="text" className="form-control" 
+                placeholder="List name"
+                value={formData.title} 
+                onChange={(e)=> onChange({title: e.target.value})} 
+            />
+        </div>
+    </div>
+    <div className="row mt-1">
+        <div className="col-1 text-center">
+            <input type="checkbox" 
+                placeholder="List name"
+                checked={formData.auto_accept_employees_on_this_list} 
+                onChange={(e)=> onChange({ auto_accept_employees_on_this_list: e.target.checked})} 
+            />
+        </div>
+        <div className="col-11">
+            Talents on this list do not require approval to join shifts
+        </div>
+    </div>
     <div className="btn-bar">
         <Button color="light" onClick={() => onCancel()}>Cancel</Button>
         <Button color="success" className="ml-2" onClick={() => onSave()}>
@@ -173,7 +192,7 @@ export const AddFavlist = ({ formData, onChange, onSave, onCancel }) => (<form>
         </Button>
     </div>
 </form>);
-AddFavlist.propTypes = {
+AddorUpdateFavlist.propTypes = {
     onSave: PropTypes.func.isRequired,
     formData: PropTypes.object.isRequired,
     onCancel: PropTypes.func.isRequired,
@@ -196,32 +215,38 @@ export const FavlistEmployees = ({ formData, onChange, onSave, catalog }) => {
                 </div>
                 <div className="row">
                     <div className="col-12">
-                        <label>Title:</label>
+                        <label>Title: </label>
                         <span>{favlist.title}</span>
                     </div>
                 </div>
                 { (typeof formData._mode == 'undefined' || formData._mode == 'default') ? 
                     <div className="row">
                         <div className="col-12">
-                            <label>Talents:</label>
+                            <label>Talents: </label>
                             {(!favlist || favlist.employees.length == 0) ? <span>There are no talents in this list yet, <span className="anchor" onClick={() => onChange({ mode_addNewTalent: true })}>click here to add a new one</span></span>:'' }
                         </div>
                     </div>:''
                 }
                 { (typeof formData._mode != 'undefined' && formData._mode=='add_talent') ? 
-                    <div className="row">
+                    <div className="row mb-2">
                         <div className="col-12">
                             <label>Search for the talents you want to add</label>
                             <SearchCatalogSelect 
                                 isMulti={false}
                                 onChange={(selection)=> {
-                                    updateTalentList('add', selection.value, formData.id)
-                                        .then(() => onChange({ _mode: 'default'  }))
-                                        .catch((error) => alert(error));
+                                    if(selection.value == 'invite_talent_to_jobcore') bar.show({ 
+                                        allowLevels: true,
+                                        slug: "invite_talent_to_jobcore"
+                                    });
+                                    else updateTalentList('add', selection.value, formData.id)
+                                            .then(() => onChange({ _mode: 'default'  }))
+                                            .catch((error) => alert(error));
                                 }}
                                 searchFunction={(search) => new Promise((resolve, reject) => 
                                     GET('catalog/employees?full_name='+search)
-                                        .then(talents => resolve(talents))
+                                        .then(talents => resolve([
+                                            { label: `${(talents.length==0) ? 'No one found: ':''}, Invite "${search}" to JobCore?`, value: 'invite_talent_to_jobcore' }
+                                        ].concat(talents)))
                                         .catch(error => reject(error))
                                 )}
                             />

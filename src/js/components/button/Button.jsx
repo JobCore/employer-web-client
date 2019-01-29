@@ -6,7 +6,7 @@ const icons = {
   favorite: 'icon icon-favorite icon-xs',
   trash: 'fas fa-trash-alt',
   candidates: 'fas fa-users',
-  pencil: 'fas fa-pencil',
+  pencil: 'fas fa-pencil-alt',
   dollar: 'fas fa-dollar-sign',
   plus: 'fas fa-plus'
 };
@@ -22,7 +22,7 @@ const Button = ({ color, onClick, propagate, icon, children, className, note, ro
         type="button" 
         className={"jc-button btn btn-"+color+" "+notePosition+" "+sizes[size]+(note ? ' with-note':'')+(rounded ? ' rounded':'')+" "+className}
         onMouseEnter={(e) => (onMouseEnter) ? onMouseEnter(e):null}
-        onMouseLeave={(e) => (onMouseLeave) ? console.log("leave") || onMouseLeave(e):null}
+        onMouseLeave={(e) => (onMouseLeave) ? onMouseLeave(e):null}
         onFocus={(e) => (onFocus) ? onFocus(e):null}
         onClick={(e) => {
           if(!propagate) e.stopPropagation();

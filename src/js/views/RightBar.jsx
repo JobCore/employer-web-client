@@ -1,11 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {create, update, remove} from '../actions';
+import {create, update, remove, acceptCandidate, rejectCandidate} from '../actions';
 import {withRouter} from 'react-router-dom';
 import queryString from 'query-string';
 import {Shift} from '../views/shifts';
 import {Invite} from '../views/invites';
-import {Location} from '../views/profile';
+import {Location} from '../views/locations';
 import {Favlist} from '../views/favorites';
 import {Talent, ShiftInvite} from '../views/talents';
 import {Application} from '../views/applications';
@@ -25,7 +25,7 @@ class RightBar extends React.Component {
     onSave(data={}){
         this.setState({ error: null });
         try{
-            switch (this.props.option.slug) {
+            switch (data.executed_action || this.props.option.slug) {
                 case 'create_shift':
                     create('shifts', Shift(this.state.formData).validate().withStatus(data.status).serialize());
                     this.props.onClose();
@@ -52,7 +52,7 @@ class RightBar extends React.Component {
                         this.props.onClose();
                     }
                 break;
-                case 'invite_talent':{
+                case 'invite_talent_to_shift':{
                         create(
                             {url: 'shifts/invites', slug: 'shiftinvites'}, 
                             ShiftInvite(this.state.formData).validate().serialize()
@@ -63,7 +63,7 @@ class RightBar extends React.Component {
                 case 'add_to_favlist':{
                         this.state.formData.favoriteLists.forEach((list)=>{
                             update({
-                                path: "favlists/employee",
+                                path: "employers/me/favlists/employee",
                                 event_name: "employees"
                             },Talent(this.state.formData).validate().serialize());
                         });
@@ -96,13 +96,33 @@ class RightBar extends React.Component {
                         this.props.onClose();
                     }
                 break;
-                case 'create_venue':{
+                case 'create_location':{
                         create('venues',Location(this.state.formData).validate().serialize());
+                        this.props.onClose();
+                    }
+                break;
+                case 'update_location':{
+                        update('venues',Location(this.state.formData).validate().serialize());
+                        this.props.onClose();
+                    }
+                break;
+                case 'delete_location':{
+                        remove('venues',Location(this.state.formData).validate().serialize());
                         this.props.onClose();
                     }
                 break;
                 case 'update_venue':{
                         update('venues',Location(this.state.formData).validate().serialize());
+                        this.props.onClose();
+                    }
+                break;
+                case 'accept_applicant':{
+                        acceptCandidate(data.shift.id, data.applicant);
+                        this.props.onClose();
+                    }
+                break;
+                case 'reject_applicant':{
+                        rejectCandidate(data.shift.id, data.applicant);
                         this.props.onClose();
                     }
                 break;
@@ -140,9 +160,9 @@ class RightBar extends React.Component {
     
     render(){
         const View = this.props.component;
-        const styles = { width: this.props.width , right: (this.props.level * this.props.width)};
+        const styles = { width: this.props.width , right: (this.props.level * (this.props.width/3))};
         
-        return (<div className="right-bar" style={styles}>
+        return (<div className={"right-bar"+(!this.props.isCollapsable ? " collapsed" : '')} style={styles}>
             {
                 (this.state.error) ? <div className="alert alert-danger">{this.state.error}</div> : ''
             }
@@ -176,6 +196,7 @@ RightBar.propTypes = {
     PropTypes.func,
     PropTypes.object
   ]).isRequired,
+  parent: PropTypes.object,
   level: PropTypes.number,
   width: PropTypes.number,
   onClose: PropTypes.func.isRequired,
@@ -187,6 +208,7 @@ RightBar.propTypes = {
 };
 RightBar.defaultProps = {
   formData: null,
+  parent: null,
   isCollapsable: false,
   level: 0,
   width: 370

@@ -3,9 +3,10 @@ import {validator, ValidationError} from '../utils/validation';
 import {update} from '../actions';
 import {Session} from 'bc-react-session';
 import PropTypes from 'prop-types';
+import {GET} from '../utils/api_wrapper';
 import Select from 'react-select';
 import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
-import {Button, Theme, ShiftOption, ShiftOptionSelected} from '../components/index';
+import {Button, Theme, ShiftOption, ShiftOptionSelected, SearchCatalogSelect} from '../components/index';
 import moment from 'moment';
 export const Invite = (data) => {
     
@@ -13,7 +14,7 @@ export const Invite = (data) => {
         first_name: '',
         last_name: '',
         status: 'PENDING',
-        created_at: NOW,
+        created_at: NOW(),
         email: '',
         serialize: function(){
             
@@ -56,7 +57,7 @@ export const Invite = (data) => {
 /**
  * AddShift
  */
-export const InviteTalentToShift = (props) => {
+export const SearchShiftToInviteTalent = (props) => {
     
     const shifts = props.catalog.shifts.filter(s => s.status == 'OPEN').map(item => ({ value: item, label: '' }));
     return (<form>
@@ -78,7 +79,53 @@ export const InviteTalentToShift = (props) => {
         </div>
     </form>);
 };
-InviteTalentToShift.propTypes = {
+SearchShiftToInviteTalent.propTypes = {
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  formData: PropTypes.object,
+  catalog: PropTypes.object //contains the data needed for the form to load
+};
+
+/**
+ * Invite Talent To Shift
+ */
+export const SearchTalentToInviteToShift = ({ formData, onSave, onChange }) => {
+    return (<Theme.Consumer>
+        {({bar}) => (<form>
+            <div className="row">
+                <div className="col-12">
+                    <label>Seach the JobCore Database:</label>
+                    <SearchCatalogSelect 
+                        isMulti={true}
+                        value={formData.pending_invites}
+                        onChange={(selections)=> {
+                            const invite = selections.find(opt => opt.value == 'invite_talent_to_jobcore');
+                            if(invite) bar.show({ 
+                                allowLevels: true,
+                                slug: "invite_talent_to_jobcore", 
+                                onSave: (emp) => onChange({ pending_jobcore_invites: formData.pending_jobcore_invites.concat(emp) })
+                            });
+                            else onChange({ pending_invites: selections });
+                        }}
+                        searchFunction={(search) => new Promise((resolve, reject) => 
+                            GET('catalog/employees?full_name='+search)
+                                .then(talents => resolve([
+                                    { label: `${(talents.length==0) ? 'No one found: ':''}Invite "${search}" to jobcore`, value: 'invite_talent_to_jobcore' }
+                                ].concat(talents)))
+                                .catch(error => reject(error))
+                        )}
+                    />
+                </div>
+            </div>
+            <p>Click on invite to invite the talent to your selected shifts</p>
+            <div className="btn-bar">
+                <Button color="primary" onClick={() => onSave()}>Send Invite</Button>
+            </div>
+        </form>)}
+    </Theme.Consumer>);
+};
+SearchTalentToInviteToShift.propTypes = {
   onSave: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,

@@ -53,6 +53,7 @@ export default class Home extends Flux.DashView {
         });
         
     }
+    
     render() {
         return (
             <div>
@@ -64,9 +65,21 @@ export default class Home extends Flux.DashView {
                 <div className="row">
                     <div className="col-8">
                         <h1 className="text-right">Dashboard</h1>
-                        <DashboardBox id="draft_shifts" shifts={this.state.shifts.filter(s => s.status == 'DRAFT')} title="Draft Shifts" status="DRAFT" />
-                        <DashboardBox id="open_shifts" shifts={this.state.shifts.filter(s => s.status == 'OPEN')} title="Open Shifts" status="OPEN" />
-                        <DashboardBox id="upcoming_shifts" shifts={this.state.shifts.filter(s => s.status == 'FILLED')} title="Upcoming Shifts" status="FILLED" />
+                        <DashboardBox id="draft_shifts" 
+                            status="DRAFT" 
+                            title="Draft Shifts"
+                            shifts={this.state.shifts.filter(s => s.status == 'DRAFT').sort((a,b) => (new Date(b.starting_at) - new Date(a.starting_at)))}
+                        />
+                        <DashboardBox id="open_shifts" 
+                            status="OPEN" 
+                            title="Open Shifts" 
+                            shifts={this.state.shifts.filter(s => s.status == 'OPEN' && s.maximum_allowed_employees > s.employees.length).sort((a,b) => (new Date(b.starting_at) - new Date(a.starting_at)))} 
+                        />
+                        <DashboardBox id="upcoming_shifts" 
+                            title="Upcoming Shifts" 
+                            status="FILLED" 
+                            shifts={this.state.shifts.filter(s => (s.status == 'OPEN' && s.maximum_allowed_employees == s.employees.length)).sort((a,b) => (new Date(b.starting_at) - new Date(a.starting_at)))} 
+                        />
                         <DashboardBox id="pending_shifts" shifts={this.state.shifts.filter(s => s.status == 'UNPAID')} title="Pending for payments" status="UNPAID" />
                     </div>
                 </div>

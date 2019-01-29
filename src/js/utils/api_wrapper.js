@@ -16,12 +16,10 @@ let PendingReq = {
   add: function(req){
     this._requests.push(req);
     setLoading(true);
-    console.log("Loading");
   },
   remove: function(req){
     this._requests = this._requests.filter(r => r !== req);
     if(this._requests.length == 0){
-      console.log("Not loading");
       setLoading(false);
     } 
   }

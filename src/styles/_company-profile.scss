@@ -1,0 +1,16 @@
+.company-payroll-settings{
+    .rdt{
+        display: inline;
+        div:first-child{
+            display: inline-block;
+            position: relative;
+        }
+        input{
+            width: 100px;
+        }
+        .rdtPicker{
+            left: 0;
+            text-align: center;
+        }
+    }
+}

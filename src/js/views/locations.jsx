@@ -1,10 +1,18 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import {store, search} from '../actions.js';
-import { GenericCard, Avatar, Stars, Theme, Button } from '../components/index';
+import {store, searchMe, remove} from '../actions.js';
+import { GenericCard, Theme, Button } from '../components/index';
 import Select from 'react-select';
 import queryString from 'query-string';
+
+import {validator, ValidationError} from '../utils/validation';
+
+import {Notify} from 'bc-react-notifier';
+
+import GoogleMapReact from 'google-map-react';
+import markerURL from '../../img/marker.png';
+import PlacesAutocomplete, {geocodeByAddress, getLatLng} from 'react-places-autocomplete';
 
 const ENTITIY_NAME = 'venues';
 
@@ -24,41 +32,51 @@ export const getTalentInitialFilters = (catalog) => {
 export const Location = (data) => {
     
     const _defaults = {
-        //foo: 'bar',
+        id: '',
+        title: '',
+        street_address: '',
+        country: '',
+        latitude: 25.7617,
+        longitude: 80.1918,
+        state: '',
+        zip_code: '',
         serialize: function(){
             
             const newLocation = {
-                //foo: 'bar'
+                latitude: this.latitude.toFixed(6),
+                longitude: this.longitude.toFixed(6)
+//                status: (this.status == 'UNDEFINED') ? 'DRAFT' : this.status,
             };
             
             return Object.assign(this, newLocation);
         }
     };
     
-    let _entity = Object.assign(_defaults, data);
+    let _location = Object.assign(_defaults, data);
     return {
         validate: () => {
-            
-            return _entity;
+            if(validator.isEmpty(_location.title)) throw new ValidationError('The location title cannot be empty');
+            if(validator.isEmpty(_location.street_address)) throw new ValidationError('The location address cannot be empty');
+            if(validator.isEmpty(_location.country)) throw new ValidationError('The location country cannot be empty');
+            if(validator.isEmpty(_location.state)) throw new ValidationError('The location state cannot be empty');
+            if(validator.isEmpty(_location.zip_code)) throw new ValidationError('The location zip_code cannot be empty');
+            return _location;
         },
         defaults: () => {
             return _defaults;
         },
         getFormData: () => {
             const _formShift = {
-                id: _entity.id,
-                //favoriteLists: _entity.favoriteLists.map(fav => ({ label: fav.title, value: fav.id }))
+                id: _location.id.toString(),
+                title: _location.title,
+                street_address: _location.street_address,
+                latitude: parseFloat(_location.latitude),
+                longitude: parseFloat(_location.longitude),
+                country: _location.country,
+                state: _location.state,
+                date: _location.zip_code
             };
             return _formShift;
-        },
-        filters: () => {
-            const _filters = {
-                //positions: _entity.positions.map( item => item.value ),
-                //rating: (typeof _entity.rating == 'object') ? _entity.rating.value : undefined,
-                //badges: _entity.badges.map( item => item.value )
-            };
-            for(let key in _entity) if(typeof _entity[key] == 'function') delete _entity[key];
-            return Object.assign(_entity, _filters);
         }
     };
 };
@@ -86,7 +104,7 @@ export class ManageLocations extends Flux.DashView {
     }
     
     filter(locations=null){
-        search(ENTITIY_NAME, window.location.search);
+        searchMe(ENTITIY_NAME, window.location.search);
     }
     
     render() {
@@ -97,12 +115,17 @@ export class ManageLocations extends Flux.DashView {
                 {({bar}) => (<span>
                     <h1><span id="talent_search_header">Location Search</span></h1>
                     {this.state.locations.map((l,i) => (
-                        <GenericCard key={i} onClick={() => bar.show({ slug: "show_single_location", data: l, allowLevels })}>
-                            <p>{l.title}</p>
-                            <div className="btn-bar">
-                                <Button icon="pencil" onClick={() => null}><label>Edit</label></Button>
-                                <Button icon="trash" onClick={() => bar.show({ slug: "delete_location", data: l, allowLevels })}><label>Delete</label></Button>
+                        <GenericCard key={i} onClick={() => bar.show({ slug: "update_location", data: l, allowLevels })}>
+                            <div className="btn-group">
+                                <Button icon="pencil" onClick={() => bar.show({ slug: "update_location", data: l, allowLevels })}></Button>
+                                <Button icon="trash" onClick={() => {
+                                    const noti = Notify.info("Are you sure you want to delete this location?",(answer) => {
+                                        if(answer) remove('venues', l);
+                                        noti.remove();
+                                    });
+                                }}></Button>
                             </div>
+                            <p>{l.title}</p>
                         </GenericCard>
                     ))}
                 </span>)}
@@ -177,27 +200,139 @@ FilterLocations.propTypes = {
 };
 
 /**
- * Talent Details
+ * Add a Location
  */
-export const LocationDetails = (props) => {
-    const employee = props.catalog.employee;
-    return (<Theme.Consumer>
-        {({bar}) => 
-            (<li className="aplication-details">
-                <Avatar url={process.env.API_HOST+employee.user.profile.picture} />
-                <p>{typeof employee.fullName == 'function' ? employee.fullName() : employee.first_name + ' ' + employee.last_name}</p>
-                <div>
-                    <Stars className="float-left" rating={Number(employee.rating)} jobCount={employee.job_count}  />
-                </div>
-                <p>$ {employee.minimum_hourly_rate} /hr Minimum Rate</p>
-                <p>{employee.user.profile.bio}</p>
-                <div className="btn-bar">
-                    <Button color="primary" onClick={() => bar.show({ slug: "invite_talent", data: employee, allowLevels:true })}>Invite to shift</Button>
-                    <Button color="success" onClick={() => bar.show({ slug: "add_to_favlist", data: employee, allowLevels:true })}>Add to favorites</Button>
-                </div>
-            </li>)}
-    </Theme.Consumer>);
+function createMapOptions(maps) {
+  // next props are exposed at maps
+  // "Animation", "ControlPosition", "MapTypeControlStyle", "MapTypeId",
+  // "NavigationControlStyle", "ScaleControlStyle", "StrokePosition", "SymbolPath", "ZoomControlStyle",
+  // "DirectionsStatus", "DirectionsTravelMode", "DirectionsUnitSystem", "DistanceMatrixStatus",
+  // "DistanceMatrixElementStatus", "ElevationStatus", "GeocoderLocationType", "GeocoderStatus", "KmlLayerStatus",
+  // "MaxZoomStatus", "StreetViewStatus", "TransitMode", "TransitRoutePreference", "TravelMode", "UnitSystem"
+  return {
+    zoomControlOptions: {
+      position: maps.ControlPosition.RIGHT_CENTER,
+      style: maps.ZoomControlStyle.SMALL
+    },
+    zoomControl: true,
+    scaleControl: false,
+    fullscreenControl: false,
+    mapTypeControl: false
+  };
+}
+const Marker = ({ text }) => (<div><img style={{maxWidth: "25px"}} src={markerURL} /></div>);
+Marker.propTypes = {
+    text: PropTypes.string
 };
-LocationDetails.propTypes = {
-  catalog: PropTypes.object.isRequired
+export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData}) => (<Theme.Consumer>
+    {({bar}) => (<div>
+        <div className="row">
+            <div className="col-12">
+                <label>Address</label>
+                <PlacesAutocomplete 
+                    value={formData.street_address || ''} 
+                    onChange={(value)=>onChange({ street_address: value })}
+                    onSelect={(address) => {
+                        onChange({ street_address: address });
+                        geocodeByAddress(address)
+                          .then(results => {
+                                const title = address.split(',')[0];
+                                const pieces = results[0].address_components;
+                                const getPiece = (name) => pieces.find((comp) => typeof comp.types.find(type => type == name) != 'undefined');
+                                const country = getPiece('country');
+                                const state = getPiece('administrative_area_level_1');
+                                const zipcode = getPiece('postal_code');
+                                onChange({ title, country: country.long_name, state: state.long_name, zip_code: zipcode.long_name });
+                                return getLatLng(results[0]);
+                          })
+                          .then(coord => onChange({ latitude: coord.lat, longitude: coord.lng }))
+                          .catch(error => Notify.error('There was an error obtaining the location coordinates'));
+                    }}
+                >
+                    {({ getInputProps, getSuggestionItemProps, suggestions, loading }) => (
+                        <div className="autocomplete-root">
+                            <input {...getInputProps()} className="form-control" />
+                            <div className="autocomplete-dropdown-container bg-white">
+                                {loading && <div>Loading...</div>}
+                                {suggestions.map((suggestion,i) => (
+                                    <div key={i} {...getSuggestionItemProps(suggestion)} className="p-2">
+                                        <span>{suggestion.description}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </PlacesAutocomplete>
+            </div>
+        </div>
+        <div className="row">
+            <div className="col-12">
+                <label>Location nickname</label>
+                <input type="text" className="form-control" 
+                    value={formData.title}
+                    onChange={(e)=>onChange({title: e.target.value})} 
+                />
+            </div>
+        </div>
+        <div className="row">
+            <div className="col-6 pr-0">
+                <label>Location</label>
+                <div className="location-map">
+                    <GoogleMapReact
+                        bootstrapURLKeys={{ key: process.env.GOOGLE_MAPS_KEY }}
+                        defaultCenter={{
+                          lat: 25.7617,
+                          lng: -80.1918
+                        }}
+                        width="100%"
+                        height="100%"
+                        center={{
+                          lat: formData.latitude,
+                          lng: formData.longitude
+                        }}
+                        options={createMapOptions}
+                        defaultZoom={12}
+                    >
+                        <Marker
+                            lat={formData.latitude}
+                            lng={formData.longitude}
+                            text={'Jobcore'}
+                        />
+                    </GoogleMapReact>
+                </div>
+            </div>
+            <div className="col-6">
+                <label>Country</label>
+                <input type="text" className="form-control" 
+                    value={formData.country}
+                    onChange={(e)=>onChange({country: e.target.value})} 
+                />
+                <label>State</label>
+                <input type="text" className="form-control" 
+                    value={formData.state}
+                    onChange={(e)=>onChange({state: e.target.value})} 
+                />
+                <label>Zip</label>
+                <input type="number" className="form-control" 
+                    value={formData.zip_code}
+                    onChange={(e)=>onChange({zip_code: e.target.value})} 
+                />
+            </div>
+        </div>
+        <div className="row">
+            <div className="col-12">
+                <div className="btn-bar">
+                    <button type="button" className="btn btn-success" onClick={() => onSave()}>Save</button>
+                    <button type="button" className="btn btn-default" onClick={() => bar.close()}>Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>)}
+</Theme.Consumer>);
+AddOrEditLocation.propTypes = {
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  formData: PropTypes.object,
+  catalog: PropTypes.object //contains the data needed for the form to load
 };

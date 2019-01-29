@@ -161,7 +161,7 @@ export class ManageTalents extends Flux.DashView {
                         <EmployeeExtendedCard key={i} employee={s} hover={true} 
                             onClick={() => bar.show({ slug: "show_single_talent", data: s, allowLevels })}>
                             <Button icon="favorite" onClick={() => bar.show({ slug: "add_to_favlist", data: s, allowLevels })}><label>Favorites</label></Button>
-                            <Button icon="favorite" onClick={() => bar.show({ slug: "invite_talent", data: s, allowLevels })}><label>Invite</label></Button>
+                            <Button icon="favorite" onClick={() => bar.show({ slug: "invite_talent_to_shift", data: s, allowLevels })}><label>Invite</label></Button>
                         </EmployeeExtendedCard>
                     ))}
                 </span>)}
@@ -252,7 +252,7 @@ export const TalentDetails = (props) => {
                 <p>$ {employee.minimum_hourly_rate} /hr Minimum Rate</p>
                 <p>{employee.user.profile.bio}</p>
                 <div className="btn-bar">
-                    <Button color="primary" onClick={() => bar.show({ slug: "invite_talent", data: employee, allowLevels:true })}>Invite to shift</Button>
+                    <Button color="primary" onClick={() => bar.show({ slug: "invite_talent_to_shift", data: employee, allowLevels:true })}>Invite to shift</Button>
                     <Button color="success" onClick={() => bar.show({ slug: "add_to_favlist", data: employee, allowLevels:true })}>Add to favorites</Button>
                 </div>
             </li>)}

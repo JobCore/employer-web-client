@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from 'react-router-dom';
 import Flux from "@4geeksacademy/react-flux-dash";
-import {store, acceptCandidate, rejectCandidate} from '../actions.js';
+import {store} from '../actions.js';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
@@ -12,12 +12,11 @@ import DateTime from 'react-datetime';
 import {Notify} from 'bc-react-notifier';
 import queryString from 'query-string';
 import {ShiftCard, Wizard, Theme, SearchCatalogSelect, Button, ApplicantCard} from '../components/index';
-import {DATETIME_FORMAT, NOW} from '../components/utils.js';
+import {DATETIME_FORMAT, NOW, YESTERDAY} from '../components/utils.js';
 import {validator, ValidationError} from '../utils/validation';
 import {callback, hasTutorial} from '../utils/tutorial';
-import GoogleMapReact from 'google-map-react';
-import markerURL from '../../img/marker.png';
-import PlacesAutocomplete, {geocodeByAddress, getLatLng} from 'react-places-autocomplete';
+import { AddOrEditLocation } from '../views/locations';
+
 import moment from 'moment';
 import {GET} from '../utils/api_wrapper';
 const SHIFT_POSSIBLE_STATUS = ['UNDEFINED','DRAFT','OPEN','CANCELLED'];
@@ -34,8 +33,9 @@ export const Shift = (data) => {
         maximum_allowed_employees: '1',
         application_restriction: 'ANYONE',
         minimum_hourly_rate: '8',
-        starting_at: NOW,
-        ending_at: NOW,
+        starting_at: NOW(),
+        ending_at: NOW(),
+        employees: [],
         pending_invites: [],
         pending_jobcore_invites: [],
         candidates:[],
@@ -75,7 +75,7 @@ export const Shift = (data) => {
                     const list = store.get('favlists', fav.id || fav);
                     return (list) ? {value: list.id, label: list.title} : null;
                 }),
-                expired: moment(this.ending_at).isBefore(NOW),
+                expired: moment(this.ending_at).isBefore(NOW()),
                 price: {
                     currency: 'usd',
                     currencySymbol: '$',
@@ -103,7 +103,7 @@ export const Shift = (data) => {
             if(!validator.isInt(_shift.position, { min: 1 })) throw new ValidationError('The shift is missing a position');
             if(!validator.isInt(_shift.maximum_allowed_employees, { min: 1, max: 25 })) throw new ValidationError('The shift needs to employ at least 1 talent and no more than 25');
             if(!validator.isFloat(_shift.minimum_hourly_rate, { min: 7 })) throw new ValidationError('The minimum allowed hourly rate is $7');
-            if(!start.isValid() || start.isBefore(NOW)) throw new ValidationError('The shift date has to be greater than today');
+            if(!start.isValid() || start.isBefore(NOW())) throw new ValidationError('The shift date has to be greater than today');
             if(!finish.isValid() || finish.isBefore(start)) throw new ValidationError('The shift ending time has to be grater than the starting time');
             if(!validator.isInt(_shift.venue, { min: 1 })) throw new ValidationError('The shift is missing a venue');
             if(SHIFT_POSSIBLE_STATUS.indexOf(_shift.status) == -1) throw new Error('Invalid status "'+_shift.status+'" for shift');
@@ -135,25 +135,6 @@ export const Shift = (data) => {
         }
     };
 };
-
-function createMapOptions(maps) {
-  // next props are exposed at maps
-  // "Animation", "ControlPosition", "MapTypeControlStyle", "MapTypeId",
-  // "NavigationControlStyle", "ScaleControlStyle", "StrokePosition", "SymbolPath", "ZoomControlStyle",
-  // "DirectionsStatus", "DirectionsTravelMode", "DirectionsUnitSystem", "DistanceMatrixStatus",
-  // "DistanceMatrixElementStatus", "ElevationStatus", "GeocoderLocationType", "GeocoderStatus", "KmlLayerStatus",
-  // "MaxZoomStatus", "StreetViewStatus", "TransitMode", "TransitRoutePreference", "TravelMode", "UnitSystem"
-  return {
-    zoomControlOptions: {
-      position: maps.ControlPosition.RIGHT_CENTER,
-      style: maps.ZoomControlStyle.SMALL
-    },
-    zoomControl: true,
-    scaleControl: false,
-    fullscreenControl: false,
-    mapTypeControl: false
-  };
-}
 
 export class ManageShifts extends Flux.DashView {
     
@@ -353,20 +334,37 @@ FilterShifts.propTypes = {
  * ShiftApplicants
  */
 export const ShiftApplicants = ({onCancel, onSave, catalog}) => {
-    const htmlApplicants = catalog.applicants.map((apli,i) => (
-        <ApplicantCard key={i} applicant={apli} shift={catalog.shift} 
-            onAccept={() => acceptCandidate(catalog.shift.id, apli)} 
-            onReject={() => rejectCandidate(catalog.shift.id, apli)} 
+    const htmlApplicants = catalog.applicants.map((applicant,i) => (
+        <ApplicantCard key={i} applicant={applicant} shift={catalog.shift} 
+            onAccept={() => {
+                onSave({ 
+                    shift: catalog.shift, applicant,
+                    executed_action: 'accept_applicant'
+                });
+            }} 
+            onReject={() => {
+                onSave({ 
+                    shift: catalog.shift, applicant,
+                    executed_action: 'reject_applicant'
+                });
+            }} 
         />)
     );
     return (<Theme.Consumer>
         {({ bar }) => (<div className="sidebar-applicants">
+            <div className="top-bar">
+                <button type="button" className="btn btn-primary btn-sm"  onClick={() => bar.show({ slug: "invite_talent_to_shift", allowLevels: true })}>
+                    invite
+                </button>
+            </div>
             <h3>Shift applicants:</h3>
             {
                 htmlApplicants.length > 0 ? 
                     htmlApplicants
                 :
-                    <p>No applicants were found for this shift.</p>
+                    <p>No applicants were found for this shift, <span className="anchor"
+                        onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift", allowLevels: true })}
+                    >click here to invite more talents</span></p>
             }
         </div>)}
     </Theme.Consumer>);
@@ -379,9 +377,9 @@ ShiftApplicants.propTypes = {
 };
 
 /**
- * EditShift
+ * EditOrAddShift
  */
-const EditShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar }) => {
+const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar }) => {
     return (
         <form>
             <div className="row">
@@ -421,23 +419,58 @@ const EditShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar }
                 </div>
             </div>
             <div className="row">
+                <div className="col-12">
+                    <label>Date</label>
+                    <DateTime 
+                        timeFormat={false}
+                        value={formData.starting_at}
+                        isValidDate={( current ) => {
+                            return current.isAfter( YESTERDAY );
+                        }}
+                        renderInput={(properties) => {
+                            const { value, ...rest } = properties;
+                            return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
+                        }}
+                        onChange={(value)=>onChange({ starting_at: moment( value.format("MM-DD-YYYY")+" "+formData.starting_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a") })}
+                    />
+                </div>
+            </div>
+            <div className="row">
                 <div className="col-6">
                     <label>From</label>
                     <DateTime 
+                        dateFormat={false}
                         timeFormat={DATETIME_FORMAT}
                         timeConstraints={{ minutes: { step: 15 }}}
                         value={formData.starting_at}
-                        onChange={(value)=>onChange({starting_at: value})}
+                        renderInput={(properties) => {
+                            const { value, ...rest } = properties;
+                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                        }}
+                        onChange={(value)=> {
+                            const starting = moment( formData.starting_at.format("MM-DD-YYYY")+" "+value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                            onChange({ starting_at: starting });
+                        }}
                     />
                 </div>
                 <div className="col-6">
                     <label>To</label>
                     <DateTime 
                         className="picker-left"
+                        dateFormat={false}
                         timeFormat={DATETIME_FORMAT}
                         timeConstraints={{ minutes: { step: 15 }}}
                         value={formData.ending_at}
-                        onChange={(value)=>onChange({ending_at: value})}
+                        renderInput={(properties) => {
+                            const { value, ...rest } = properties;
+                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                        }}
+                        onChange={(value)=> {
+                            const starting = formData.starting_at;
+                            var ending = moment( formData.starting_at.format("MM-DD-YYYY")+" "+value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                            if(ending.isBefore(starting)) ending = ending.add( 1, 'days' );
+                            onChange({ ending_at: ending });
+                        }}
                     />
                 </div>
             </div>
@@ -446,9 +479,9 @@ const EditShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar }
                     <label>Location</label>
                     <Select 
                         value={ catalog.venues.find((ven) => ven.value == formData.venue)}
-                        options={[{ label: "Add a location", value: 'new_venue', component: AddVenue }].concat(catalog.venues)}
+                        options={[{ label: "Add a location", value: 'new_venue', component: AddOrEditLocation }].concat(catalog.venues)}
                         onChange={(selection)=> {
-                            if(selection.value == 'new_venue') bar.show({ slug: "create_venue", allowLevels: true });
+                            if(selection.value == 'new_venue') bar.show({ slug: "create_location", allowLevels: true });
                             else onChange({ venue: selection.value.toString() });
                         }}
                     />
@@ -502,7 +535,7 @@ const EditShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar }
                                 isMulti={true}
                                 value={formData.pending_invites}
                                 onChange={(selections)=> {
-                                    const invite = selections.find(opt => opt.value == 'invite_talent');
+                                    const invite = selections.find(opt => opt.value == 'invite_talent_to_jobcore');
                                     if(invite) bar.show({ 
                                         allowLevels: true,
                                         slug: "invite_talent_to_jobcore", 
@@ -513,7 +546,7 @@ const EditShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar }
                                 searchFunction={(search) => new Promise((resolve, reject) => 
                                     GET('catalog/employees?full_name='+search)
                                         .then(talents => resolve([
-                                            { label: `${(talents.length==0) ? 'No one found: ':''}Invite "${search}" to jobcore`, value: 'invite_talent' }
+                                            { label: `${(talents.length==0) ? 'No one found: ':''}Invite "${search}" to jobcore`, value: 'invite_talent_to_jobcore' }
                                         ].concat(talents)))
                                         .catch(error => reject(error))
                                 )}
@@ -532,30 +565,39 @@ const EditShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar }
                 </div> : ''
             }
             <div className="btn-bar">
-                { (formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ? 
-                    <button type="button" className="btn btn-primary" onClick={() => onSave({status: 'DRAFT'})}>Save as draft</button>:''
+                { (formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ? // create shift
+                    <button type="button" className="btn btn-primary" onClick={() => onSave({
+                        executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift', 
+                        status: 'DRAFT'
+                    })}>Save as draft</button>:''
                 }
                 { (formData.status == 'DRAFT') ? 
                     <button type="button" className="btn btn-success" onClick={() => {
                         const noti = Notify.info("Are you sure?",(answer) => {
-                            if(answer) onSave({status: 'OPEN'});
+                            if(answer) onSave({
+                                executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift', 
+                                status: 'OPEN'
+                            });
                             noti.remove();
                         });
                     }}>Publish</button>
                     : (formData.status != 'UNDEFINED') ?
                         <button type="button" className="btn btn-primary" onClick={() => {
                             const noti = Notify.info("Are you sure you want to unpublish this shift?",(answer) => {
-                                if(answer) onSave({status: 'DRAFT'});
+                                if(answer) onSave({executed_action: 'update_shift', status: 'DRAFT'});
                                 noti.remove();
                             }, 9999999999999);
                         }}>Unpublish shift</button>
                         :
-                        <button type="button" className="btn btn-success" onClick={() => onSave({status: 'OPEN'})}>Save and publish</button>
+                        <button type="button" className="btn btn-success" onClick={() => onSave({ 
+                            executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift', 
+                            status: 'OPEN'
+                        })}>Save and publish</button>
                 }
                 { (formData.status != 'UNDEFINED') ?
                     <button type="button" className="btn btn-danger" onClick={() => {
                         const noti = Notify.info("Are you sure you want to cancel this shift?",(answer) => {
-                            if(answer) onSave({status: 'CANCELLED'});
+                            if(answer) onSave({ executed_action: 'update_shift', status: 'CANCELLED' });
                             noti.remove();
                         });
                     }}>Delete</button>:''
@@ -564,7 +606,7 @@ const EditShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar }
         </form>
     );
 };
-EditShift.propTypes = {
+EditOrAddShift.propTypes = {
     error: PropTypes.string,
     bar: PropTypes.object,
     onSave: PropTypes.func.isRequired,
@@ -578,29 +620,36 @@ EditShift.propTypes = {
  * ShiftDetails
  */
 export const ShiftDetails = (props) => {
+    const creationMode = isNaN(props.formData.id);
+    
     const shift = props.catalog.shifts.find(s => s.id == props.formData.id);
-    if(!shift || typeof shift === 'undefined') return <div>Loading shift...</div>;
+    if(!creationMode && (!shift || typeof shift === 'undefined')) return <div>Loading shift...</div>;
     return (<Theme.Consumer>
         {({ bar }) => (
             <div>
-                <div className="top-bar">
-                    <button type="button" className="btn btn-primary btn-sm rounded" onClick={() => props.onChange({ status: 'DRAFT', hide_warnings: true })}>
-                        <i className="fas fa-pencil-alt"></i>
-                    </button>
-                    <Button 
-                        icon="candidates" color="primary" size="small" rounded={true} 
-                        onClick={() => bar.show({ slug: "show_shift_applications", data: shift, title: "Shift Applicants", allowLevels: true })}
-                        note={shift.candidates.length > 0 ? "The shift has applications that have not been reviwed" : null}
-                        notePosition="left"
-                    />
-                    { shift.expired === true ?
-                        <Button icon="dollar" color="primary" notePosition="left" size="small" rounded={true} 
-                            note={shift.status !== 'OPEN' ? '': <span>This shift is expired and the payroll has not been processed</span>}
-                            onClick={() => bar.show({ slug: "select_timesheet", data: shift, allowLevels: true })} />
-                        :''
-                    }
-                </div>
-                { props.formData.status === 'DRAFT' ? <EditShift bar={bar} {...props} /> : <ShowShift bar={bar} shift={shift} /> }
+                { (creationMode) ? 
+                    <EditOrAddShift bar={bar} {...props} /> :
+                    <div>
+                        <div className="top-bar">
+                            <button type="button" className="btn btn-primary btn-sm rounded" onClick={() => props.onChange({ status: 'DRAFT', hide_warnings: true })}>
+                                <i className="fas fa-pencil-alt"></i>
+                            </button>
+                            <Button 
+                                icon="candidates" color="primary" size="small" rounded={true} 
+                                onClick={() => bar.show({ slug: "show_shift_applications", data: shift, title: "Shift Applicants", allowLevels: true })}
+                                note={shift.candidates.length > 0 ? "The shift has applications that have not been reviwed" : null}
+                                notePosition="left"
+                            />
+                            { shift.expired === true ?
+                                <Button icon="dollar" color="primary" notePosition="left" size="small" rounded={true} 
+                                    note={shift.status !== 'OPEN' ? '': <span>This shift is expired and the payroll has not been processed</span>}
+                                    onClick={() => bar.show({ slug: "select_timesheet", data: shift, allowLevels: true })} />
+                                :''
+                            }
+                        </div>
+                        { props.formData.status === 'DRAFT' ? <EditOrAddShift bar={bar} {...props} /> : <ShowShift bar={bar} shift={shift} /> }
+                    </div>
+                }
             </div>
         )}
     </Theme.Consumer>);
@@ -618,7 +667,7 @@ ShiftDetails.propTypes = {
 const ShowShift = ({ shift, bar}) => {
     const totalCandidates = (Array.isArray(shift.candidates)) ? shift.candidates.length : 0;
     const totalEmployees = (Array.isArray(shift.employees)) ? shift.employees.length : 0;
-    const openVacancys = shift.maximum_allowed_employees;
+    const openVacancys = shift.maximum_allowed_employees - totalEmployees;
     const startDate = shift.starting_at.format('ll');
     const startTime = shift.starting_at.format('LT');
     const endTime = shift.ending_at.format('LT');
@@ -626,10 +675,10 @@ const ShowShift = ({ shift, bar}) => {
         <h3>{"Shift details"}</h3>
         {
             (shift.status == 'DRAFT') ? 
-                <span href="#" className="badge badge-secondary">D</span> :
-                    (openVacancys == totalEmployees) ? 
-                        <span href="#" className="badge">{totalEmployees}/{openVacancys}</span> :
-                        <span href="#" className="badge badge-danger">{totalEmployees}/{openVacancys}</span>
+                <span href="#" className="badge badge-secondary">draft</span> :
+                    (openVacancys == 0) ? 
+                        <span href="#" className="badge">filled</span> :
+                        <span href="#" className="badge badge-danger">{totalCandidates}/{openVacancys}</span>
         }
         <a href="#" className="shift-position">{shift.position.title}</a> @ 
         <a href="#" className="shift-location"> {shift.venue.title}</a> 
@@ -644,7 +693,7 @@ const ShowShift = ({ shift, bar}) => {
 };
 ShowShift.propTypes = {
     shift: PropTypes.object.isRequired,
-    bar: PropTypes.object.isRequired,
+    bar: PropTypes.object.isRequired
 };
 ShowShift.defaultProps = {
   shift: null,
@@ -663,123 +712,4 @@ export const RateShift = () => (<div className="p-5 listcontents">
     </div>
 </div>);
 RateShift.propTypes = {
-};
-
-/**
- * Add a Location
- */
-const Marker = ({ text }) => (<div><img style={{maxWidth: "25px"}} src={markerURL} /></div>);
-Marker.propTypes = {
-    text: PropTypes.string
-};
-export const AddVenue = ({onSave, onCancel, onChange, catalog, formData}) => (<Theme.Consumer>
-    {({bar}) => (<div>
-        <div className="row">
-            <div className="col-12">
-                <label>Address</label>
-                <PlacesAutocomplete 
-                    value={formData.street_address || ''} 
-                    onChange={(value)=>onChange({ street_address: value })}
-                    onSelect={(address) => {
-                        onChange({ street_address: address });
-                        geocodeByAddress(address)
-                          .then(results => {
-                                const title = address.split(',')[0];
-                                console.log(results[0].address_components);
-                                const pieces = results[0].address_components;
-                                const getPiece = (name) => pieces.find((comp) => typeof comp.types.find(type => type == name) != 'undefined');
-                                const country = getPiece('country');
-                                const state = getPiece('administrative_area_level_1');
-                                const zipcode = getPiece('postal_code');
-                                onChange({ title, country: country.long_name, state: state.long_name, zip_code: zipcode.long_name });
-                                return getLatLng(results[0]);
-                          })
-                          .then(coord => onChange({ latitude: coord.lat, longitude: coord.lng }))
-                          .catch(error => Notify.error('There was an error obtaining the location coordinates'));
-                    }}
-                >
-                    {({ getInputProps, getSuggestionItemProps, suggestions, loading }) => (
-                        <div className="autocomplete-root">
-                            <input {...getInputProps()} className="form-control" />
-                            <div className="autocomplete-dropdown-container bg-white">
-                                {loading && <div>Loading...</div>}
-                                {suggestions.map((suggestion,i) => (
-                                    <div key={i} {...getSuggestionItemProps(suggestion)} className="p-2">
-                                        <span>{suggestion.description}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </PlacesAutocomplete>
-            </div>
-        </div>
-        <div className="row">
-            <div className="col-12">
-                <label>Location nickname</label>
-                <input type="text" className="form-control" 
-                    value={formData.title}
-                    onChange={(e)=>onChange({title: e.target.value})} 
-                />
-            </div>
-        </div>
-        <div className="row">
-            <div className="col-6 pr-0">
-                <label>Location</label>
-                <div className="location-map">
-                    <GoogleMapReact
-                        bootstrapURLKeys={{ key: process.env.GOOGLE_MAPS_KEY }}
-                        defaultCenter={{
-                          lat: 25.7617,
-                          lng: -80.1918
-                        }}
-                        center={{
-                          lat: formData.latitude,
-                          lng: formData.longitude
-                        }}
-                        options={createMapOptions}
-                        defaultZoom={12}
-                    >
-                        <Marker
-                            lat={formData.latitude}
-                            lng={formData.longitude}
-                            text={'Jobcore'}
-                        />
-                    </GoogleMapReact>
-                </div>
-            </div>
-            <div className="col-6">
-                <label>Country</label>
-                <input type="text" className="form-control" 
-                    value={formData.country}
-                    onChange={(e)=>onChange({country: e.target.value})} 
-                />
-                <label>State</label>
-                <input type="text" className="form-control" 
-                    value={formData.state}
-                    onChange={(e)=>onChange({state: e.target.value})} 
-                />
-                <label>Zip</label>
-                <input type="number" className="form-control" 
-                    value={formData.zip_code}
-                    onChange={(e)=>onChange({zip_code: e.target.value})} 
-                />
-            </div>
-        </div>
-        <div className="row">
-            <div className="col-12">
-                <div className="btn-bar">
-                    <button type="button" className="btn btn-success" onClick={() => onSave()}>Save</button>
-                    <button type="button" className="btn btn-default" onClick={() => bar.close()}>Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>)}
-</Theme.Consumer>);
-AddVenue.propTypes = {
-  onSave: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  onChange: PropTypes.func.isRequired,
-  formData: PropTypes.object,
-  catalog: PropTypes.object //contains the data needed for the form to load
 };

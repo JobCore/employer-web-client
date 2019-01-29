@@ -21,8 +21,8 @@ const ENTITIY_NAME = 'payroll';
 export const getPayrollInitialFilters = (catalog) => {
     let query = queryString.parse(window.location.search);
     if(typeof query == 'undefined') return {
-        starting_at: NOW,
-        ending_at: new Date().setDate(NOW.getDate() - 7)
+        starting_at: NOW(),
+        ending_at: new Date().setDate(NOW().getDate() - 7)
     };
     return {
         starting_at: query.starting_at,
@@ -36,8 +36,8 @@ export const Clockin = (data) => {
         author: null,
         employee: null,
         shift: null,
-        started_at: NOW,
-        ended_at: NOW,
+        started_at: NOW(),
+        ended_at: NOW(),
         latitude: [],
         longitude: [],
         status: 'PENDING',
@@ -85,7 +85,7 @@ export const Clockin = (data) => {
         },
         getFormData: () => {
             const _formCheckin = {
-                id: _checkin.id.toString(),
+                id: _checkin.id.toString()
             };
             return _formCheckin;
         }
@@ -256,8 +256,6 @@ ClockinRow.propTypes = {
  
 const filterClockins = (formChanges, formData, onChange) => {
     onChange(Object.assign(formChanges, {employees: [], loading: true }));
-    
-    console.log("Form Changes", formChanges);
     
     const query = queryString.stringify({
         starting_at: formChanges.starting_at ? formChanges.starting_at.format('YYYY-MM-DD') : null,

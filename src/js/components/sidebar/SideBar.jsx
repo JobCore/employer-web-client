@@ -8,6 +8,7 @@ const SideBar = (props) => {
       (<RightBar key={i} 
           level={i}
           isCollapsable={(i == props.sideBarLevels.length-1)}
+          parent={(i > 0) ? props.sideBarLevels[i-1] : null}
           catalog={props.catalog}
           option={sb.option}
           formData={sb.formData}
