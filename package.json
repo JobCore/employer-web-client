@@ -1,6 +1,6 @@
 {
   "name": "jobcore-employee-web",
-  "version": "0.0.19",
+  "version": "0.0.2",
   "description": "",
   "main": "index.js",
   "scripts": {

@@ -54,7 +54,7 @@ class RightBar extends React.Component {
                 break;
                 case 'invite_talent_to_shift':{
                         create(
-                            {url: 'shifts/invites', slug: 'shiftinvites'}, 
+                            {url: 'shifts/invites', slug: 'invites'}, 
                             ShiftInvite(this.state.formData).validate().serialize()
                         );
                         this.props.onClose();
@@ -163,6 +163,7 @@ class RightBar extends React.Component {
         const styles = { width: this.props.width , right: (this.props.level * (this.props.width/3))};
         
         return (<div className={"right-bar"+(!this.props.isCollapsable ? " collapsed" : '')} style={styles}>
+            <span className="backdrop" onClick={() => this.props.onBackdropClick() } />
             {
                 (this.state.error) ? <div className="alert alert-danger">{this.state.error}</div> : ''
             }
@@ -200,6 +201,7 @@ RightBar.propTypes = {
   level: PropTypes.number,
   width: PropTypes.number,
   onClose: PropTypes.func.isRequired,
+  onBackdropClick: PropTypes.func,
   isCollapsable: PropTypes.bool,
   history: PropTypes.object.isRequired,
   option: PropTypes.object.isRequired,
@@ -209,6 +211,7 @@ RightBar.propTypes = {
 RightBar.defaultProps = {
   formData: null,
   parent: null,
+  onBackdropClick: null,
   isCollapsable: false,
   level: 0,
   width: 370

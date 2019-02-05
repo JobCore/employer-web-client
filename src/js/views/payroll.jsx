@@ -103,7 +103,7 @@ export class ManagePayroll extends Flux.DashView {
     
     componentDidMount(){
         
-        this.setState({ single_payroll_projection: store.getState('payment_period') });
+        this.setState({ single_payroll_projection: store.getState('single_payroll_projection') });
         this.subscribe(store, 'single_payroll_projection', (single_payroll_projection) => {
             this.setState({ single_payroll_projection });
         });

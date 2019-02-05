@@ -1,13 +1,13 @@
 import React from 'react';
 import Flux from '@4geeksacademy/react-flux-dash';
 import { Route, Switch, NavLink } from 'react-router-dom';
-import {logout, fetchAll, fetchSingle, fetchAllMe} from './actions';
+import {logout, fetchAll, fetchSingle, fetchAllMe, searchMe} from './actions';
 import Dashboard from './views/Dashboard';
 import ButtonBar from './views/ButtonBar';
 import { Session } from 'bc-react-session';
 import LoadBar from './components/load-bar/LoadBar.jsx';
 import {Theme, SideBar} from './components/index';
-import {ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters, RateShift } from './views/shifts';
+import {ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters, RateShift, ShiftInvites } from './views/shifts';
 import {ManageApplicantions, ApplicationDetails,FilterApplications, getApplicationsInitialFilters} from './views/applications';
 import {Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilters, TalentDetails} from './views/talents';
 import {PendingInvites, SearchShiftToInviteTalent, InviteTalentToJobcore, SearchTalentToInviteToShift} from './views/invites';
@@ -89,6 +89,14 @@ class PrivateLayout extends Flux.DashView{
                         case 'shift_details':
                             fetchSingle('shifts', option.data.id);
                             this.showRightBar(ShiftDetails, option, {formData: Shift(option.data).getFormData() });
+                        break;
+                        case 'review_shift_invites':
+                            searchMe('invites', '?shift='+option.data.id ).then((data) =>
+                                this.showRightBar(ShiftInvites, option, { formData: { 
+                                    invites: data,
+                                    shift: option.data
+                                }})
+                            );
                         break;
                         case 'favlist_employees':
                             option.title = "List Details";
@@ -212,7 +220,7 @@ class PrivateLayout extends Flux.DashView{
         });
         this.currentPath = this.props.history.location.pathname;
         this.removeHistoryListener = this.props.history.listen((e) => {
-            if(this.currentPath != e.pathname) this.closeRightBar(true);
+            if(this.currentPath != e.pathname) this.closeRightBar('all');
             this.currentPath = e.pathname;
         });
         //this.showRightBar(AddShift);
@@ -236,13 +244,14 @@ class PrivateLayout extends Flux.DashView{
             catalog
         });
     }
-    closeRightBar(all=false){
+    closeRightBar(level='last'){
+        level = level == 'all' ?  0 : level == 'last' ? this.state.sideBarLevels.length-1 : parseInt(level,10);
         // const lastLevel = this.state.sideBarLevels[this.state.sideBarLevels.length-1];
         // if(Array.isArray(lastLevel.watchers)) lastLevel.watchers.forEach((w) => w.unsubscribe());
-        const newLevels = this.state.sideBarLevels.filter((e,i) => i < this.state.sideBarLevels.length-1);
+        const newLevels = this.state.sideBarLevels.filter((e,i) => i < level);
         this.setState({
-            showRightBar: (all) ? 0 : newLevels.length,
-            sideBarLevels: (all) ? [] : newLevels
+            showRightBar: level,
+            sideBarLevels: newLevels
         });
     }
     
@@ -310,6 +319,7 @@ class PrivateLayout extends Flux.DashView{
                                 sideBarLevels={this.state.sideBarLevels}
                                 catalog={this.state.catalog}
                                 onClose={() => this.closeRightBar()}
+                                onBackdropClick={() => this.closeRightBar()}
                             />:''
                     }
                 </div>

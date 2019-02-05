@@ -15,6 +15,7 @@ const SideBar = (props) => {
           component={sb.component} 
           goFetch={props.goFetch} 
           onClose={() => props.onClose()}
+          onBackdropClick={() => props.onBackdropClick ? props.onBackdropClick() : null}
       />));
   
     return (<div className={"sidebar "+props.className}>
@@ -26,11 +27,13 @@ SideBar.propTypes = {
   goFetch: PropTypes.func, 
   catalog: PropTypes.object.isRequired,
   className: PropTypes.string,
-  onClose: PropTypes.func.isRequired
+  onClose: PropTypes.func.isRequired,
+  onBackdropClick: PropTypes.func
 };
 SideBar.defaultProps = {
   className: '',
-  goFetch: null 
+  goFetch: null,
+  onBackdropClick: null 
 };
 
 export default SideBar;

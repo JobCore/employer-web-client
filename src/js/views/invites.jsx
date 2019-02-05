@@ -8,6 +8,7 @@ import Select from 'react-select';
 import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
 import {Button, Theme, ShiftOption, ShiftOptionSelected, SearchCatalogSelect} from '../components/index';
 import moment from 'moment';
+
 export const Invite = (data) => {
     
     const _defaults = {

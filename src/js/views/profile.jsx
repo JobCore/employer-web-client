@@ -139,8 +139,17 @@ export class PayrollSettings extends Flux.DashView {
     render() {
         const autoClockout = this.state.employer.maximum_clockout_delay_minutes == null ? false : true;
         const weekday = this.state.employer.payroll_period_starting_time.isoWeekday();
+        
+        let nextDate = this.state.employer.payroll_period_starting_time.clone();
+        while(nextDate.isBefore(NOW())) nextDate = nextDate.add(7,'days');
+        
         return (<div className="p-1 listcontents company-payroll-settings">
             <h1><span id="company_details">Your Payroll Settings</span></h1>
+            <div className="row mt-2">
+                <div className="col-12">
+                    <h4>Next payroll will run on {nextDate.format("dddd, MMMM Do YYYY, h:mm a")}</h4>
+                </div>
+            </div>
             <form>
                 <div className="row mt-2">
                     <div className="col-12">
@@ -161,13 +170,13 @@ export class PayrollSettings extends Flux.DashView {
                                 });
                             }}
                         >
-                            <option value={1}>Monday{"'"}</option>
-                            <option value={2}>Tuesday{"'"}</option>
-                            <option value={3}>Wednesday{"'"}</option>
-                            <option value={4}>Thursday{"'"}</option>
-                            <option value={5}>Friday{"'"}</option>
-                            <option value={6}>Saturday{"'"}</option>
-                            <option value={7}>Sunday{"'"}</option>
+                            <option value={1}>Monday{"'s"}</option>
+                            <option value={2}>Tuesday{"'s"}</option>
+                            <option value={3}>Wednesday{"'s"}</option>
+                            <option value={4}>Thursday{"'s"}</option>
+                            <option value={5}>Friday{"'s"}</option>
+                            <option value={6}>Saturday{"'s"}</option>
+                            <option value={7}>Sunday{"'s"}</option>
                         </select>
                         <span> at </span>
                         <DateTime 

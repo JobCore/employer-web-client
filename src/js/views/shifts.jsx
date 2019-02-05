@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from 'react-router-dom';
 import Flux from "@4geeksacademy/react-flux-dash";
-import {store} from '../actions.js';
+import {store, create} from '../actions.js';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
@@ -11,11 +11,12 @@ import DateTime from 'react-datetime';
 
 import {Notify} from 'bc-react-notifier';
 import queryString from 'query-string';
-import {ShiftCard, Wizard, Theme, SearchCatalogSelect, Button, ApplicantCard} from '../components/index';
+import {ShiftCard, Wizard, Theme, SearchCatalogSelect, Button, ApplicantCard, GenericCard} from '../components/index';
 import {DATETIME_FORMAT, NOW, YESTERDAY} from '../components/utils.js';
 import {validator, ValidationError} from '../utils/validation';
 import {callback, hasTutorial} from '../utils/tutorial';
 import { AddOrEditLocation } from '../views/locations';
+import { ShiftInvite } from '../views/talents';
 
 import moment from 'moment';
 import {GET} from '../utils/api_wrapper';
@@ -353,7 +354,7 @@ export const ShiftApplicants = ({onCancel, onSave, catalog}) => {
     return (<Theme.Consumer>
         {({ bar }) => (<div className="sidebar-applicants">
             <div className="top-bar">
-                <button type="button" className="btn btn-primary btn-sm"  onClick={() => bar.show({ slug: "invite_talent_to_shift", allowLevels: true })}>
+                <button type="button" className="btn btn-primary btn-sm"  onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift", allowLevels: true })}>
                     invite
                 </button>
             </div>
@@ -364,7 +365,9 @@ export const ShiftApplicants = ({onCancel, onSave, catalog}) => {
                 :
                     <p>No applicants were found for this shift, <span className="anchor"
                         onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift", allowLevels: true })}
-                    >click here to invite more talents</span></p>
+                    >invite more talents</span> or  <span className="anchor"
+                        onClick={() => bar.show({ slug: "review_shift_invites", allowLevels: true, data: catalog.shift })}
+                    >review previous invites</span></p>
             }
         </div>)}
     </Theme.Consumer>);
@@ -373,6 +376,43 @@ ShiftApplicants.propTypes = {
   onSave: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
   catalog: PropTypes.object, //contains the data needed for the form to load
+  context: PropTypes.object //contact any additional data for context purposes
+};
+
+/**
+ * ShiftApplicants
+ */
+export const ShiftInvites = ({ onCancel, onSave, formData }) => {
+    const htmlInvites = formData.invites.map((invite,i) => (
+        <GenericCard key={i}>
+            <div className="btn-group">
+                <Button onClick={() => create(
+                    {url: 'shifts/invites', slug: 'invites'}, 
+                    ShiftInvite({
+                        shifts: [formData.shift],
+                        employee: invite.employee.id
+                    }).validate().serialize()
+                )}>Resend</Button>
+            </div>
+            <p>{invite.employee.user.first_name} {invite.employee.user.last_name}</p>
+        </GenericCard>)
+    );
+    return (<Theme.Consumer>
+        {({ bar }) => (<div className="sidebar-applicants">
+            <h3>Already invited to this shift:</h3>
+            {
+                htmlInvites.length > 0 ? 
+                    htmlInvites
+                :
+                    <p>No invites have been sent</p>
+            }
+        </div>)}
+    </Theme.Consumer>);
+};
+ShiftInvites.propTypes = {
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  formData: PropTypes.object, //contains the data needed for the form to load
   context: PropTypes.object //contact any additional data for context purposes
 };
 
@@ -423,6 +463,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                     <label>Date</label>
                     <DateTime 
                         timeFormat={false}
+                        closeOnSelect={true}
                         value={formData.starting_at}
                         isValidDate={( current ) => {
                             return current.isAfter( YESTERDAY );
@@ -441,6 +482,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                     <DateTime 
                         dateFormat={false}
                         timeFormat={DATETIME_FORMAT}
+                        closeOnTab={true}
                         timeConstraints={{ minutes: { step: 15 }}}
                         value={formData.starting_at}
                         renderInput={(properties) => {
@@ -448,8 +490,10 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                             return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
                         }}
                         onChange={(value)=> {
+                            if(typeof value == 'string') value = moment(value);
+                            
                             const starting = moment( formData.starting_at.format("MM-DD-YYYY")+" "+value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-                            onChange({ starting_at: starting });
+                            if(typeof starting !== 'undefined' && starting.isValid()) onChange({ starting_at: starting });
                         }}
                     />
                 </div>
@@ -466,10 +510,13 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                             return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
                         }}
                         onChange={(value)=> {
+                            if(typeof value == 'string') value = moment(value);
                             const starting = formData.starting_at;
                             var ending = moment( formData.starting_at.format("MM-DD-YYYY")+" "+value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-                            if(ending.isBefore(starting)) ending = ending.add( 1, 'days' );
-                            onChange({ ending_at: ending });
+                            if(typeof ending !== 'undefined' && ending.isValid()){
+                                if(ending.isBefore(starting)) ending = ending.add( 1, 'days' );
+                                onChange({ ending_at: ending });
+                            }
                         }}
                     />
                 </div>

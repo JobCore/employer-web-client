@@ -188,9 +188,7 @@ export class ManageApplicantions extends Flux.DashView {
                     <h1><span id="applicant_details_header">Applicant Details</span></h1>
                     {
                         (applicansHTML.length == 0) ?
-                            <p>No applicants were found for this shift, <span className="anchor"
-                                onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift", allowLevels: true })}
-                            >click here to invite talents</span></p>
+                            <p>No applicants were found</p>
                         :
                             applicansHTML
                     }
@@ -259,22 +257,6 @@ export const ApplicationDetails = (props) => {
                 <span>Doing 4 jobs</span>
                 <p>$ 13 /hr Minimum Rate</p>
                 <p>{applicant.user.profile.bio}</p>
-                {/*
-                <AcceptReject
-                    showLabels={true}
-                    onAccept={() => {
-                        props.onSave({ 
-                            shift, applicant,
-                            executed_action: 'accept_applicant'
-                        });
-                    }} 
-                    onReject={() => {
-                        props.onSave({ 
-                            shift, applicant,
-                            executed_action: 'reject_applicant'
-                        });
-                    }} 
-                />*/}
             </li>)}
     </Theme.Consumer>);
 };

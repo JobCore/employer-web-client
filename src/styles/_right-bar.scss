@@ -13,7 +13,7 @@
     @media screen and (min-height: 700px) {
         padding-top: 75px;
     }
-    &.collapsed:before{
+    &.collapsed .backdrop{
         content: ' ';
         background: rgba(0,0,0,0.2);
         width: 370px;

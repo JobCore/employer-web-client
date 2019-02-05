@@ -374,7 +374,7 @@ class _Store extends Flux.DashStore{
         super();
         this.addEvent('positions');
         this.addEvent('venues');
-        this.addEvent('shiftinvites');
+        this.addEvent('invites');
         this.addEvent('jobcore-invites');
         this.addEvent('employees', (employees) => {
             
@@ -395,6 +395,7 @@ class _Store extends Flux.DashStore{
         });
         this.addEvent('favlists');
         this.addEvent('badges');
+        this.addEvent('single_payroll_projection');
         
         this.addEvent('applications', (applicants) => {
             return (!applicants || (Object.keys(applicants).length === 0 && applicants.constructor === Object)) ? [] : applicants.map(app => {

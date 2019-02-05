@@ -12,7 +12,7 @@ class ButtonBar extends React.Component {
                     { slug: "invite_talent_to_jobcore", title: 'Invite Talent to JobCore', to: 'talents'}
                 ],
                 locations: [
-                    { slug: "create_venue", title: 'Create a location', to: 'locations'},
+                    { slug: "create_location", title: 'Create a location', to: 'locations'},
                 ],
                 shifts: [
                     { slug: "create_shift", title: 'Create shifts', to: 'shifts'},

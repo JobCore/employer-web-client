@@ -223,7 +223,7 @@ export const FavlistEmployees = ({ formData, onChange, onSave, catalog }) => {
                     <div className="row">
                         <div className="col-12">
                             <label>Talents: </label>
-                            {(!favlist || favlist.employees.length == 0) ? <span>There are no talents in this list yet, <span className="anchor" onClick={() => onChange({ mode_addNewTalent: true })}>click here to add a new one</span></span>:'' }
+                            {(!favlist || favlist.employees.length == 0) ? <span>There are no talents in this list yet, <span className="anchor" onClick={() => onChange({ _mode: 'add_talent' })}>click here to add a new one</span></span>:'' }
                         </div>
                     </div>:''
                 }
