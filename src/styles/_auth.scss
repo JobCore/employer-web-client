@@ -6,7 +6,7 @@
     text-align: center;
 
     &.login_view{
-        .banner{margin: 40px 0px 30px 0px;}
+        .banner{margin: 40px 0px 30px 0px; width: 100%; padding: 10px; max-width: 650px;}
         form{margin-top: 50px;}
     }
 }

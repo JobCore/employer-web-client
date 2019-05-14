@@ -23,6 +23,7 @@ export const getTalentInitialFilters = (catalog) => {
 
 export const Talent = (data) => {
     
+    const session = Session.getPayload();
     const _defaults = {
         //foo: 'bar',
         serialize: function(){
@@ -33,7 +34,19 @@ export const Talent = (data) => {
             };
             
             return Object.assign(this, newShift);
+        },
+        unserialize: function(){
+            this.fullName = function() { return (this.user.first_name.length>0) ? this.user.first_name + ' ' + this.user.last_name : 'No name specified'; };
+            if(typeof session.user.profile.employer != 'undefined'){
+                if(typeof this.favoriteLists =='undefined') this.favoriteLists = this.favoritelist_set.filter(fav => fav.employer == session.user.profile.employer);
+                else{
+                    this.favoriteLists = this.favoritelist_set.map(fav => store.get('favlists', fav.id || fav));
+                }
+            }
+            
+            return this;
         }
+        
     };
     
     let _entity = Object.assign(_defaults, data);

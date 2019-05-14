@@ -58,16 +58,6 @@ ul{
     &.badge-success{ background: $green-600; color: white; }
     &.badge-secondary{ background: $green-300; color: white; }
 }
-.bcnotifier{
-    .alert{
-        position: fixed;
-        text-align: center;
-        top: 0;
-        left: 0;
-        width: 100%;
-        z-index: 102;
-    }
-}
 
 .scroll{
     &::-webkit-scrollbar { width: 5px; }
@@ -90,4 +80,7 @@ ul{
 .bg-dark{
     background: $green-600 !important;
     color: white;
+}
+.alert{
+    padding: 2px 5px;
 }

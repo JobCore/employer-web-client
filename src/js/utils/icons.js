@@ -13,11 +13,13 @@ import faPlus from '@fortawesome/fontawesome-free-solid/faPlus';
 import faUsers from '@fortawesome/fontawesome-free-solid/faUsers';
 import faExclamationTriangle from '@fortawesome/fontawesome-free-solid/faExclamationTriangle';
 import faDollarSign from '@fortawesome/fontawesome-free-solid/faDollarSign';
+import faUserCheck from '@fortawesome/fontawesome-free-solid/faUserCheck';
+import faClipboardList from '@fortawesome/fontawesome-free-solid/faClipboardList';
 
 fontawesome.config = {
   autoReplaceSvg: 'nest'
 };
 fontawesome.library.add(
-    faStar, faStarHalf, faEmptyStar, faTimesCircle, faCheckCircle, faAngleDoubleRight,
-    faTrashAlt, faQuestion, faPencilAlt, faPlus, faUsers, faExclamationTriangle, faDollarSign
+    faStar, faStarHalf, faEmptyStar, faTimesCircle, faCheckCircle, faAngleDoubleRight, faUserCheck,
+    faTrashAlt, faQuestion, faPencilAlt, faPlus, faUsers, faExclamationTriangle, faDollarSign, faClipboardList
 );

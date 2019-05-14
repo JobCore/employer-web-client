@@ -6,9 +6,13 @@ const icons = {
   favorite: 'icon icon-favorite icon-xs',
   trash: 'fas fa-trash-alt',
   candidates: 'fas fa-users',
+  clipboard: 'fas fa-clipboard-list',
   pencil: 'fas fa-pencil-alt',
   dollar: 'fas fa-dollar-sign',
-  plus: 'fas fa-plus'
+  user_check: 'fas fa-user-check',
+  plus: 'fas fa-plus',
+  check: 'fas fa-check-circle',
+  times: 'fas fa-times-circle'
 };
  
 const sizes = {

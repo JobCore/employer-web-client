@@ -45,7 +45,7 @@ module.exports = {
           }]
         }, //css only files
         { 
-          test: /\.(png|svg|jpg|gif)$/, use: {
+          test: /\.(png|jpg|gif)$/, use: {
             loader: 'file-loader',
             options: { name: '[name].[ext]' } 
           }
@@ -54,7 +54,7 @@ module.exports = {
             test: /\.svg$/,
             loader: 'svg-inline-loader'
         },
-        { test: /\.woff($|\?)|\.woff2($|\?)|\.ttf($|\?)|\.eot($|\?)|\.svg($|\?)/, use: ['file-loader'] } //for fonts
+        { test: /\.woff($|\?)|\.woff2($|\?)|\.ttf($|\?)|\.eot($|\?)/, use: ['file-loader'] } //for fonts
     ]
   },
   resolve: {

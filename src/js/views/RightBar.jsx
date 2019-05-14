@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {create, update, remove, acceptCandidate, rejectCandidate} from '../actions';
+import {create, update, remove, acceptCandidate, rejectCandidate, deleteShiftEmployee} from '../actions';
 import {withRouter} from 'react-router-dom';
 import queryString from 'query-string';
 import {Shift} from '../views/shifts';
@@ -53,6 +53,14 @@ class RightBar extends React.Component {
                     }
                 break;
                 case 'invite_talent_to_shift':{
+                        create(
+                            {url: 'shifts/invites', slug: 'invites'}, 
+                            ShiftInvite(this.state.formData).validate().serialize()
+                        );
+                        this.props.onClose();
+                    }
+                break;
+                case 'search_talent_and_invite_to_shift':{
                         create(
                             {url: 'shifts/invites', slug: 'invites'}, 
                             ShiftInvite(this.state.formData).validate().serialize()
@@ -123,6 +131,11 @@ class RightBar extends React.Component {
                 break;
                 case 'reject_applicant':{
                         rejectCandidate(data.shift.id, data.applicant);
+                        this.props.onClose();
+                    }
+                break;
+                case 'delete_shift_employee':{
+                        deleteShiftEmployee(data.shift.id, data.employee);
                         this.props.onClose();
                     }
                 break;

@@ -1,3 +1,15 @@
+.bcnotifier{
+    .alert{
+        position: fixed;
+        text-align: center;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 102;
+        padding: 20px;
+        border-radius: 0px;
+    }
+}
 .right_pane .bcnotifier.withconfirm{
     &:before{
         content: ' ';

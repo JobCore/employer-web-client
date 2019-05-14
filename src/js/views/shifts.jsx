@@ -11,12 +11,12 @@ import DateTime from 'react-datetime';
 
 import {Notify} from 'bc-react-notifier';
 import queryString from 'query-string';
-import {ShiftCard, Wizard, Theme, SearchCatalogSelect, Button, ApplicantCard, GenericCard} from '../components/index';
+import {ShiftCard, Wizard, Theme, SearchCatalogSelect, Button, ApplicantCard, GenericCard, EmployeeExtendedCard} from '../components/index';
 import {DATETIME_FORMAT, NOW, YESTERDAY} from '../components/utils.js';
 import {validator, ValidationError} from '../utils/validation';
 import {callback, hasTutorial} from '../utils/tutorial';
 import { AddOrEditLocation } from '../views/locations';
-import { ShiftInvite } from '../views/talents';
+import { ShiftInvite, Talent } from '../views/talents';
 
 import moment from 'moment';
 import {GET} from '../utils/api_wrapper';
@@ -334,25 +334,11 @@ FilterShifts.propTypes = {
 /**
  * ShiftApplicants
  */
-export const ShiftApplicants = ({onCancel, onSave, catalog}) => {
-    const htmlApplicants = catalog.applicants.map((applicant,i) => (
-        <ApplicantCard key={i} applicant={applicant} shift={catalog.shift} 
-            onAccept={() => {
-                onSave({ 
-                    shift: catalog.shift, applicant,
-                    executed_action: 'accept_applicant'
-                });
-            }} 
-            onReject={() => {
-                onSave({ 
-                    shift: catalog.shift, applicant,
-                    executed_action: 'reject_applicant'
-                });
-            }} 
-        />)
-    );
+export const ShiftApplicants = (props) => {
+    const { onCancel, onSave, catalog } = props;
     return (<Theme.Consumer>
         {({ bar }) => (<div className="sidebar-applicants">
+            { catalog.shift.expired && <div className="alert alert-warning">This shift has already expired</div> }
             <div className="top-bar">
                 <button type="button" className="btn btn-primary btn-sm"  onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift", allowLevels: true })}>
                     invite
@@ -360,8 +346,31 @@ export const ShiftApplicants = ({onCancel, onSave, catalog}) => {
             </div>
             <h3>Shift applicants:</h3>
             {
-                htmlApplicants.length > 0 ? 
-                    htmlApplicants
+                catalog.applicants.length > 0 ? 
+                    catalog.applicants.map((tal,i) => (
+                        <EmployeeExtendedCard 
+                            key={i} 
+                            employee={tal} 
+                            hover={false} 
+                            showFavlist={false}
+                            onClick={() => bar.show({ slug: "show_single_talent", data: Talent(tal,i).defaults().unserialize(), allowLevels: true })}
+                        >
+                            { !catalog.shift.expired && 
+                                <Button className="mt-0" icon="check" label="Delete" onClick={() => onSave({
+                                    executed_action: 'accept_applicant',
+                                    applicant: tal,
+                                    shift: catalog.shift
+                                })}/>
+                            }
+                            { !catalog.shift.expired && 
+                                <Button className="mt-0" icon="times" label="Delete" onClick={() => onSave({
+                                    executed_action: 'reject_applicant',
+                                    applicant: tal,
+                                    shift: catalog.shift
+                                })}/>
+                            }
+                        </EmployeeExtendedCard>)
+                    )
                 :
                     <p>No applicants were found for this shift, <span className="anchor"
                         onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift", allowLevels: true })}
@@ -373,6 +382,56 @@ export const ShiftApplicants = ({onCancel, onSave, catalog}) => {
     </Theme.Consumer>);
 };
 ShiftApplicants.propTypes = {
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  catalog: PropTypes.object, //contains the data needed for the form to load
+  context: PropTypes.object //contact any additional data for context purposes
+};
+
+/**
+ * ShiftApplicants
+ */
+export const ShiftEmployees = (props) => {
+    const { onCancel, onSave, catalog } = props;
+    return (<Theme.Consumer>
+        {({ bar }) => (<div className="sidebar-applicants">
+            { catalog.shift.expired && <div className="alert alert-warning">This shift has already expired</div> }
+            <div className="top-bar">
+                <button type="button" className="btn btn-primary btn-sm"  onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift", allowLevels: true })}>
+                    invite
+                </button>
+            </div>
+            <h3>Shift Scheduled Employees:</h3>
+            {
+                catalog.shift.employees.length > 0 ? 
+                    catalog.shift.employees.map((emp,i) => (
+                        <EmployeeExtendedCard 
+                            key={i} 
+                            employee={emp} 
+                            hover={false} 
+                            showFavlist={false}
+                            onClick={() => bar.show({ slug: "show_single_talent", data: Talent(emp).defaults().unserialize(), allowLevels: true })}
+                        >
+                            { !catalog.shift.expired && 
+                                <Button className="mt-0" icon="trash" label="Delete" onClick={() => onSave({
+                                    executed_action: 'delete_shift_employee',
+                                    employee: emp,
+                                    shift: catalog.shift
+                                })}/>
+                            }
+                        </EmployeeExtendedCard>)
+                    )
+                :
+                    <p>No talents have been accepted for this shift yet, <span className="anchor"
+                        onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift", allowLevels: true })}
+                    >invite more talents</span> or  <span className="anchor"
+                        onClick={() => bar.show({ slug: "review_shift_invites", allowLevels: true, data: catalog.shift })}
+                    >review previous invites</span></p>
+            }
+        </div>)}
+    </Theme.Consumer>);
+};
+ShiftEmployees.propTypes = {
   onSave: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
   catalog: PropTypes.object, //contains the data needed for the form to load
@@ -684,9 +743,14 @@ export const ShiftDetails = (props) => {
                             <Button 
                                 icon="candidates" color="primary" size="small" rounded={true} 
                                 onClick={() => bar.show({ slug: "show_shift_applications", data: shift, title: "Shift Applicants", allowLevels: true })}
-                                note={shift.candidates.length > 0 ? "The shift has applications that have not been reviwed" : null}
+                                note={shift.candidates.length > 0 ? "There are shift has applications that have not been reviwed" : null}
                                 notePosition="left"
                             />
+                            { shift.status === 'OPEN' || shift.expired == true ?
+                                <Button icon="user_check" color="primary" notePosition="left" size="small" rounded={true} 
+                                    onClick={() => bar.show({ slug: "show_shift_employees", data: shift, title: "Shift Employees", allowLevels: true })} />
+                                :''
+                            }
                             { shift.expired === true ?
                                 <Button icon="dollar" color="primary" notePosition="left" size="small" rounded={true} 
                                     note={shift.status !== 'OPEN' ? '': <span>This shift is expired and the payroll has not been processed</span>}

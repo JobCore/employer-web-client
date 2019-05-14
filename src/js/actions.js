@@ -3,6 +3,7 @@ import Flux from '@4geeksacademy/react-flux-dash';
 import {Session} from 'bc-react-session';
 import {Notify} from 'bc-react-notifier';
 import {Shift} from './views/shifts';
+import {Talent} from './views/talents';
 import {Clockin} from './views/payroll';
 import moment from 'moment';
 import {POST, GET, PUT, DELETE} from './utils/api_wrapper';
@@ -275,6 +276,25 @@ export const rejectCandidate = (shiftId, applicant) => {
     else Notify.error("Shift not found");
 };
 
+export const deleteShiftEmployee = (shiftId, employee) => {
+    const shift = store.get('shifts', shiftId);
+    if(shift){
+        const newEmployees = shift.employees.filter(emp => emp.id != employee.id);
+        const updatedShift = {
+          employees: newEmployees.map(emp => emp.id)
+        };
+        PUT(`employers/me/shifts/${shiftId}/employees`, updatedShift).then(() => {
+            
+            Flux.dispatchEvent('shifts', store.replaceMerged("shifts", shiftId, {
+              employees: newEmployees
+            }));
+            
+            Notify.success("The employee was successfully deleted");
+        });
+    }
+    else Notify.error("Shift not found");
+};
+
 export const acceptCandidate = (shiftId, applicant) => new Promise((accept, reject) => {
     const shift = store.get('shifts', shiftId);
     if(shift){
@@ -377,21 +397,8 @@ class _Store extends Flux.DashStore{
         this.addEvent('invites');
         this.addEvent('jobcore-invites');
         this.addEvent('employees', (employees) => {
-            
             if(!Array.isArray(employees)) return [];
-            
-            const payload = Session.getPayload();
-            return employees.map((em) => {
-                //if the talent has an employer
-                em.fullName = function() { return (this.user.first_name.length>0) ? this.user.first_name + ' ' + this.user.last_name : 'No name specified'; };
-                if(typeof payload.user.profile.employer != 'undefined'){
-                    if(typeof em.favoriteLists =='undefined') em.favoriteLists = em.favoritelist_set.filter(fav => fav.employer == payload.user.profile.employer);
-                    else{
-                        em.favoriteLists = em.favoritelist_set.map(fav => store.get('favlists', fav.id || fav));
-                    }
-                }
-                return em;
-            });
+            return employees.map(em => Talent(em).defaults().unserialize());
         });
         this.addEvent('favlists');
         this.addEvent('badges');

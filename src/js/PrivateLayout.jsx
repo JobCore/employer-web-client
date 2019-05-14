@@ -7,7 +7,7 @@ import ButtonBar from './views/ButtonBar';
 import { Session } from 'bc-react-session';
 import LoadBar from './components/load-bar/LoadBar.jsx';
 import {Theme, SideBar} from './components/index';
-import {ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters, RateShift, ShiftInvites } from './views/shifts';
+import {ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters, RateShift, ShiftInvites, ShiftEmployees } from './views/shifts';
 import {ManageApplicantions, ApplicationDetails,FilterApplications, getApplicationsInitialFilters} from './views/applications';
 import {Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilters, TalentDetails} from './views/talents';
 import {PendingInvites, SearchShiftToInviteTalent, InviteTalentToJobcore, SearchTalentToInviteToShift} from './views/invites';
@@ -82,6 +82,9 @@ class PrivateLayout extends Flux.DashView{
                                 applicants: option.data.candidates,
                                 shift: option.data 
                             });
+                        }break;
+                        case 'show_shift_employees':{
+                            this.showRightBar(ShiftEmployees, option, { shift: option.data });
                         }break;
                         case 'show_single_applicant':
                             this.showRightBar(ApplicationDetails, option, {applicant: option.data });

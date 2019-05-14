@@ -6,6 +6,12 @@ import {Notifier} from 'bc-react-notifier';
 import loginBanner from '../../img/login-banner.png';
 import {validator, onlyLetters} from '../utils/validation';
 
+import { BrowserView, MobileView } from "react-device-detect";
+
+import googleIcon from '../../img/icons/google-play.svg';
+import appleIcon from '../../img/icons/apple-store.svg';
+import SVG from 'react-svg-inline';
+
 export class Login extends React.Component{
     constructor(){
         super();
@@ -16,36 +22,47 @@ export class Login extends React.Component{
             <div className="public_view login_view">
                 <img className="banner" src={loginBanner} />
                 <Notifier />
-                <form className="col-10 col-sm-5 col-md-4 col-lg-3 mx-auto"
-                    onSubmit={(e)=> {
-                        e.preventDefault();
-                        this.setState({loading: true});
-                        actions.login(this.state.email, this.state.password, this.props.history)
-                            .then(() => this.setState({loading: false}))
-                            .catch(() => this.setState({loading: false}));
-                    }}
-                >
-                    <div className="form-group">
-                        <input type="email" className="form-control rounded" aria-describedby="emailHelp" placeholder="Email"
-                            value={this.state.email}
-                            onChange={(e) => this.setState({email: e.target.value})}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <input type="password" className="form-control rounded" id="exampleInputPassword1" placeholder="Password"
-                             onChange={(e) => this.setState({password: e.target.value})} value={this.state.password}
-                        />
-                    </div>
-                    {(this.state.loading) ?
-                        <button type="submit" className="btn btn-default form-control" disabled>Loading...</button>
-                    :
-                        <button type="submit" className="btn btn-primary form-control">Sign In</button>
-                    }
-                    <div className="extra-actions">
-                        <Link to="/signup" className="float-left ml-4 mt-2">Sign Up</Link>
-                        <Link to="/forgot" className="float-right mr-4 mt-2">Forgot Password</Link>
-                    </div>
-                </form>
+                <MobileView>
+                    <h4>Please login from the mobile application</h4>
+                    <a href="#">
+                        <SVG className="store-icon" svg={googleIcon} />
+                    </a>
+                    <a href="#">
+                        <SVG className="store-icon" svg={appleIcon} />
+                    </a>
+                </MobileView>
+                <BrowserView>
+                    <form className="col-10 col-sm-5 col-md-4 col-lg-3 mx-auto"
+                        onSubmit={(e)=> {
+                            e.preventDefault();
+                            this.setState({loading: true});
+                            actions.login(this.state.email, this.state.password, this.props.history)
+                                .then(() => this.setState({loading: false}))
+                                .catch(() => this.setState({loading: false}));
+                        }}
+                    >
+                        <div className="form-group">
+                            <input type="email" className="form-control rounded" aria-describedby="emailHelp" placeholder="Email"
+                                value={this.state.email}
+                                onChange={(e) => this.setState({email: e.target.value})}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <input type="password" className="form-control rounded" id="exampleInputPassword1" placeholder="Password"
+                                 onChange={(e) => this.setState({password: e.target.value})} value={this.state.password}
+                            />
+                        </div>
+                        {(this.state.loading) ?
+                            <button type="submit" className="btn btn-default form-control" disabled>Loading...</button>
+                        :
+                            <button type="submit" className="btn btn-primary form-control">Sign In</button>
+                        }
+                        <div className="extra-actions">
+                            <Link to="/signup" className="float-left ml-4 mt-2">Sign Up</Link>
+                            <Link to="/forgot" className="float-right mr-4 mt-2">Forgot Password</Link>
+                        </div>
+                    </form>
+                </BrowserView>
             </div>
         );
     }
@@ -56,7 +73,7 @@ Login.propTypes = {
 export class Signup extends React.Component{
     constructor(){
         super();
-        this.state = { email: 'aalejo@gmail.com', password: '', first_name: '', last_name:'', company: 2, loading: false, errors: [] };
+        this.state = { email: 'aalejo@gmail.com', password: '', first_name: '', last_name:'', company: 1, loading: false, errors: [] };
     }
     validate(formData){
         let errors = [];
@@ -196,7 +213,8 @@ export class Invite extends React.Component{
             email: '', 
             password: '', 
             first_name: '',
-            last_name: '' 
+            last_name: '',
+            error: null
         };
     }
     render(){
@@ -215,10 +233,11 @@ export class Invite extends React.Component{
                                 last_name: this.state.last_name,
                                 account_type: 'employee'
                             }, this.props.history)
-                                .then(() => this.setState({loading: false}))
-                                .catch(() => this.setState({loading: false}));
+                                .then(() => this.setState({loading: false, error: null }))
+                                .catch((error) => this.setState({loading: false, error }));
                         }}
                     >
+                        { this.state.error && <div className="alert alert-danger">{this.state.error}</div> }
                         <div className="form-group">
                             <input type="text" className="form-control rounded" aria-describedby="emailHelp" placeholder="First Name"
                                 onChange={(e) => this.setState({first_name: e.target.value})}
