@@ -9,6 +9,7 @@ php_errorlog
 
 # track this file .gitignore (i.e. do NOT ignore it)
 !composer.json
+!.gitpod.yml
 !webpack.config.js
 !package.json
 !webpack.production.js
