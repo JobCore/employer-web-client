@@ -12,9 +12,10 @@ const icons = {
   user_check: 'fas fa-user-check',
   plus: 'fas fa-plus',
   check: 'fas fa-check-circle',
-  times: 'fas fa-times-circle'
+  times: 'fas fa-times-circle',
+  clock: 'fas fa-clock'
 };
- 
+
 const sizes = {
   medium: '',
   small: 'btn-sm'
@@ -23,7 +24,7 @@ const sizes = {
 const Button = ({ color, onClick, propagate, icon, children, className, note, rounded, size, onMouseEnter, onMouseLeave, onFocus, notePosition }) => {
   return (
       <button
-        type="button" 
+        type="button"
         className={"jc-button btn btn-"+color+" "+notePosition+" "+sizes[size]+(note ? ' with-note':'')+(rounded ? ' rounded':'')+" "+className}
         onMouseEnter={(e) => (onMouseEnter) ? onMouseEnter(e):null}
         onMouseLeave={(e) => (onMouseLeave) ? onMouseLeave(e):null}

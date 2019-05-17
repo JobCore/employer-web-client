@@ -27,7 +27,7 @@ const logoStyles = {
 };
 
 class PrivateLayout extends Flux.DashView{
-    
+
     constructor(){
         super();
         this.currentPath = null;
@@ -78,9 +78,9 @@ class PrivateLayout extends Flux.DashView{
                             this.showRightBar(FilterApplications, option, {formData: getApplicationsInitialFilters(this.state.catalog)});
                         break;
                         case 'show_shift_applications':{
-                            this.showRightBar(ShiftApplicants, option, { 
+                            this.showRightBar(ShiftApplicants, option, {
                                 applicants: option.data.candidates,
-                                shift: option.data 
+                                shift: option.data
                             });
                         }break;
                         case 'show_shift_employees':{
@@ -95,7 +95,15 @@ class PrivateLayout extends Flux.DashView{
                         break;
                         case 'review_shift_invites':
                             searchMe('invites', '?shift='+option.data.id ).then((data) =>
-                                this.showRightBar(ShiftInvites, option, { formData: { 
+                                this.showRightBar(ShiftInvites, option, { formData: {
+                                    invites: data,
+                                    shift: option.data
+                                }})
+                            );
+                        break;
+                        case 'talent_shift_clockins':
+                            searchMe('clockins', '?shift='+option.data.id ).then((data) =>
+                                this.showRightBar(ShiftInvites, option, { formData: {
                                     invites: data,
                                     shift: option.data
                                 }})
@@ -170,31 +178,31 @@ class PrivateLayout extends Flux.DashView{
         };
         this.watchers = [];
     }
-    
-    
+
+
     componentDidMount(){
-        
+
         const session = Session.get();
         if(typeof session == 'undefined' || typeof session.active == 'undefined' || session.active == false) this.props.history.push('/login');
-        
+
         const reduce = (list) => list.map(itm => {
-            return ({ 
-                label: itm.title || itm.user.first_name + ' ' + itm.user.last_name, 
-                value: itm.id 
+            return ({
+                label: itm.title || itm.user.first_name + ' ' + itm.user.last_name,
+                value: itm.id
             });
         });
-        
-        
+
+
         fetchAll(['positions', 'badges', 'jobcore-invites']);
         fetchAllMe(['venues', 'favlists'])
             .then(() => fetchAllMe(['shifts']));
-        
+
         this.subscribe(store, 'jobcore-invites', (jcInvites) => this.setCatalog({jcInvites: jcInvites || []}));
         this.subscribe(store, 'venues', (venues) => this.setCatalog({venues: reduce(venues)}));
         this.subscribe(store, 'positions', (positions) => this.setCatalog({positions: reduce(positions)}));
         this.subscribe(store, 'badges', (badges) => this.setCatalog({badges: reduce(badges)}));
         this.subscribe(store, 'favlists', (favlists) => {
-            
+
             let favoriteEmployees = [];
             let favoriteEmployeesIds = [];
             if(Array.isArray(favlists)){
@@ -202,15 +210,15 @@ class PrivateLayout extends Flux.DashView{
                     favoriteEmployees = favoriteEmployees.concat(favlist.employees.filter(em => favoriteEmployeesIds.indexOf(em.id) == -1));
                     favoriteEmployeesIds = favoriteEmployeesIds.concat(favlist.employees.map(em => em.id));
                 });
-            } 
+            }
             this.setCatalog({
-                favlists: reduce(favlists), 
+                favlists: reduce(favlists),
                 favoriteEmployees: reduce(favoriteEmployees)
             });
-            
+
         });
         this.subscribe(store, 'shifts', (shifts) => {
-            
+
             this.setCatalog({ shifts });
             if(this.state.showRightBar && this.state.rightBarOption){
                 if(this.state.rightBarOption.slug == 'show_shift_applicants'){
@@ -228,16 +236,16 @@ class PrivateLayout extends Flux.DashView{
         });
         //this.showRightBar(AddShift);
     }
-    
+
     componentWillUnmount(){
         if(this.removeHistoryListener) this.removeHistoryListener();
     }
-    
+
     showRightBar(component, option, incomingCatalog={}, watcherScopes=[]){
         const catalog = Object.assign(this.state.catalog, incomingCatalog);
-        
+
         // const watchers = watcherScopes.map(eventName => store.subscribe(eventName, (state) => {
-            
+
         // }));
         const newLevel = [{ component, option, formData: incomingCatalog.formData || null }];
         const levels = (option.allowLevels) ? this.state.sideBarLevels.concat(newLevel) : newLevel;
@@ -257,12 +265,12 @@ class PrivateLayout extends Flux.DashView{
             sideBarLevels: newLevels
         });
     }
-    
+
     setCatalog(incomingCatalog){
         const catalog = Object.assign(this.state.catalog, incomingCatalog);
         this.setState({catalog});
     }
-    
+
     render() {
         const Logo = () => (<span className="svg_img" style={logoStyles} />);
         return (
@@ -278,14 +286,14 @@ class PrivateLayout extends Flux.DashView{
                             <li><NavLink to="/payroll"><i className="icon icon-shifts"></i>Payroll</NavLink></li>
                             <li><NavLink to="/profile"><i className="icon icon-companyprofile"></i>Your Profile</NavLink></li>
                             <li>
-                                <a 
-                                    href="#" 
+                                <a
+                                    href="#"
                                     onClick={() => {
                                         const noty = Notify.error("Hey! Are you sure?", (answer) => {
                                             if(answer){
                                                 logout();
                                                 this.props.history.push('/login');
-                                            } 
+                                            }
                                             noty.remove();
                                         });
                                     }}>
@@ -313,11 +321,11 @@ class PrivateLayout extends Flux.DashView{
                             <Route exact path='/rate' component={RateShift} />
                             <Route exact path='/home' component={Dashboard} />
                             <Route exact path='/' component={Dashboard} />
-                        </Switch>    
+                        </Switch>
                     </div>
                     <ButtonBar onClick={(option) => this.state.bar.show(option)} />
                     {
-                        (this.state.showRightBar) ? 
+                        (this.state.showRightBar) ?
                             <SideBar
                                 sideBarLevels={this.state.sideBarLevels}
                                 catalog={this.state.catalog}
@@ -329,6 +337,6 @@ class PrivateLayout extends Flux.DashView{
             </Theme.Provider>
         );
     }
-    
+
 }
 export default PrivateLayout;

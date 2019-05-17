@@ -15,11 +15,12 @@ import faExclamationTriangle from '@fortawesome/fontawesome-free-solid/faExclama
 import faDollarSign from '@fortawesome/fontawesome-free-solid/faDollarSign';
 import faUserCheck from '@fortawesome/fontawesome-free-solid/faUserCheck';
 import faClipboardList from '@fortawesome/fontawesome-free-solid/faClipboardList';
+import faClock from '@fortawesome/fontawesome-free-solid/faClock';
 
 fontawesome.config = {
   autoReplaceSvg: 'nest'
 };
 fontawesome.library.add(
-    faStar, faStarHalf, faEmptyStar, faTimesCircle, faCheckCircle, faAngleDoubleRight, faUserCheck,
+    faStar, faStarHalf, faEmptyStar, faTimesCircle, faCheckCircle, faAngleDoubleRight, faUserCheck, faClock,
     faTrashAlt, faQuestion, faPencilAlt, faPlus, faUsers, faExclamationTriangle, faDollarSign, faClipboardList
 );

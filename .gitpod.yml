@@ -1,2 +1,5 @@
 ports:
     - port: 8080
+tasks:
+    - init: >
+        npm install
