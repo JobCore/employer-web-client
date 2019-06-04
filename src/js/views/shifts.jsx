@@ -684,7 +684,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                 }
                 { (formData.status == 'DRAFT') ?
                     <button type="button" className="btn btn-success" onClick={() => {
-                        const noti = Notify.info("Are you sure?",(answer) => {
+                        const noti = Notify.info("Are you sure? All talents will have to apply again the shift because the information was updated.",(answer) => {
                             if(answer) onSave({
                                 executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
                                 status: 'OPEN'

@@ -156,13 +156,11 @@ class PrivateLayout extends Flux.DashView{
                             this.showRightBar(AddTalentToFavlist, option, {formData: Favlist(option.data).getFormData() });
                         break;
                         case 'select_timesheet':
-                            this.showRightBar(SelectTimesheet, option, {
-                                formData: {
-                                    shift: null,
-                                    starting_at: NOW().subtract( 7, 'day' ),
-                                    ending_at: moment()
-                                }
-                            });
+                            searchMe('payroll-periods').then((periods) =>
+                                this.showRightBar(SelectTimesheet, option, { formData: {
+                                    periods: periods
+                                }})
+                            );
                         break;
                         case 'filter_timesheet':
                             this.showRightBar(SelectTimesheet, option, { formData: option.data });

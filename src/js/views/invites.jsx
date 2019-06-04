@@ -10,7 +10,7 @@ import {Button, Theme, ShiftOption, ShiftOptionSelected, SearchCatalogSelect} fr
 import moment from 'moment';
 
 export const Invite = (data) => {
-    
+
     const _defaults = {
         first_name: '',
         last_name: '',
@@ -18,15 +18,15 @@ export const Invite = (data) => {
         created_at: NOW(),
         email: '',
         serialize: function(){
-            
+
             const newShift = {
                 sender: Session.getPayload().user.profile.id
             };
-            
+
             return Object.assign(this, newShift);
         }
     };
-    
+
     let _entity = Object.assign(_defaults, data);
     return {
         validate: () => {
@@ -59,7 +59,7 @@ export const Invite = (data) => {
  * AddShift
  */
 export const SearchShiftToInviteTalent = (props) => {
-    
+
     const shifts = props.catalog.shifts.filter(s => s.status == 'OPEN').map(item => ({ value: item, label: '' }));
     return (<form>
         <div className="row">
@@ -68,7 +68,7 @@ export const SearchShiftToInviteTalent = (props) => {
                 <Select isMulti className="select-shifts"
                     value={props.formData.shifts}
                     components={{ Option: ShiftOption, MultiValue: ShiftOptionSelected }}
-                    onChange={(selectedOption)=>props.onChange({shifts: selectedOption})} 
+                    onChange={(selectedOption)=>props.onChange({shifts: selectedOption})}
                     options={shifts}
                 >
                 </Select>
@@ -97,19 +97,19 @@ export const SearchTalentToInviteToShift = ({ formData, onSave, onChange }) => {
             <div className="row">
                 <div className="col-12">
                     <label>Seach the JobCore Database:</label>
-                    <SearchCatalogSelect 
+                    <SearchCatalogSelect
                         isMulti={true}
                         value={formData.pending_invites}
                         onChange={(selections)=> {
                             const invite = selections.find(opt => opt.value == 'invite_talent_to_jobcore');
-                            if(invite) bar.show({ 
+                            if(invite) bar.show({
                                 allowLevels: true,
-                                slug: "invite_talent_to_jobcore", 
+                                slug: "invite_talent_to_jobcore",
                                 onSave: (emp) => onChange({ pending_jobcore_invites: formData.pending_jobcore_invites.concat(emp) })
                             });
                             else onChange({ pending_invites: selections });
                         }}
-                        searchFunction={(search) => new Promise((resolve, reject) => 
+                        searchFunction={(search) => new Promise((resolve, reject) =>
                             GET('catalog/employees?full_name='+search)
                                 .then(talents => resolve([
                                     { label: `${(talents.length==0) ? 'No one found: ':''}Invite "${search}" to jobcore`, value: 'invite_talent_to_jobcore' }
@@ -154,25 +154,25 @@ export const InviteTalentToJobcore = ({ onSave, onCancel, onChange, catalog, for
                 <div className="col-12">
                     <label>Talent First Name</label>
                     <input type="text" className="form-control"
-                        onChange={(e)=>onChange({first_name: e.target.value})} 
+                        onChange={(e)=>onChange({first_name: e.target.value})}
                     />
                 </div>
                 <div className="col-12">
                     <label>Talent Last Name</label>
                     <input type="text" className="form-control"
-                        onChange={(e)=>onChange({last_name: e.target.value})} 
+                        onChange={(e)=>onChange({last_name: e.target.value})}
                     />
                 </div>
                 <div className="col-12">
                     <label>Talent email</label>
                     <input type="email" className="form-control"
-                        onChange={(e)=>onChange({email: e.target.value})} 
+                        onChange={(e)=>onChange({email: e.target.value})}
                     />
                 </div>
                 <div className="col-12">
                     <label>Talent Phone</label>
                     <input type="tel" className="form-control"
-                        onChange={(e)=>onChange({phone_number: e.target.value})} 
+                        onChange={(e)=>onChange({phone_number: e.target.value})}
                     />
                 </div>
             </div>
@@ -199,18 +199,18 @@ export const PendingInvites = ({ catalog, formData }) => (<div>
         <div className="col">
             <h2>These are your pending invites</h2>
             <ul className="li-white">
-                { (catalog.jcInvites.length > 0) ? 
-                    catalog.jcInvites.map((inv, i) => 
+                { (catalog.jcInvites.length > 0) ?
+                    catalog.jcInvites.map((inv, i) =>
                         (<li key={i}>
-                            <button 
+                            <button
                                 className="btn btn-primary float-right mt-2 btn-sm"
                                 onClick={() => update('jobcore-invites', inv)}
                             >Resend</button>
                             <p className="p-0 m-0">
                                 <span>{inv.first_name} {inv.last_name} </span>
                             </p>
-                            <span className="badge">{inv.status}</span>
-                            <span>{moment(inv.created_at, "YYYYMMDD").fromNow()}</span>
+                            <span className="badge">{moment(inv.created_at, "YYYYMMDD").fromNow()}</span>
+                            <small>{inv.email}</small>
                         </li>)
                     ):
                     <p className="text-center">No pending invites</p>

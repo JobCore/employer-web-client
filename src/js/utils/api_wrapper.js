@@ -21,7 +21,7 @@ let PendingReq = {
     this._requests = this._requests.filter(r => r !== req);
     if(this._requests.length == 0){
       setLoading(false);
-    } 
+    }
   }
 };
 
@@ -63,13 +63,13 @@ const appendCompany = (data) => {
 export const GET = async (endpoint, queryString = null, extraHeaders = {}) => {
   let url = `${rootAPIendpoint}/${endpoint}`;
   if(queryString) url += queryString;
-  
+
   HEADERS['Authorization'] = `JWT ${getToken()}`;
   const REQ = {
     method: 'GET',
     headers: Object.assign(HEADERS,extraHeaders)
   };
-  
+
   const req = new Promise((resolve, reject) => fetch(url, REQ)
     .then((resp) => processResp(resp, req))
     .then(data => resolve(data))
@@ -83,17 +83,17 @@ export const GET = async (endpoint, queryString = null, extraHeaders = {}) => {
 };
 
 export const POST = (endpoint, postData, extraHeaders = {}) => {
-  
+
   if(['user/register', 'login', 'user/password/reset'].indexOf(endpoint) == -1){
     HEADERS['Authorization'] = `JWT ${getToken()}`;
     postData = appendCompany(postData);
-  } 
+  }
   const REQ = {
     method: 'POST',
     headers: Object.assign(HEADERS,extraHeaders),
     body: JSON.stringify(postData)
   };
-  
+
   const req = new Promise((resolve, reject) => fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
     .then((resp) => processResp(resp, req))
     .then(data => resolve(data))
@@ -107,16 +107,16 @@ export const POST = (endpoint, postData, extraHeaders = {}) => {
 };
 
 export const PUT = (endpoint, putData, extraHeaders = {}) => {
-  
+
   if(['register', 'login'].indexOf(endpoint) == -1){
     HEADERS['Authorization'] = `JWT ${getToken()}`;
-  } 
+  }
   const REQ = {
     method: 'PUT',
     headers: Object.assign(HEADERS,extraHeaders),
     body: JSON.stringify(putData)
   };
-  
+
   const req = new Promise((resolve, reject) => fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
     .then((resp) => processResp(resp, req))
     .then(data => resolve(data))
@@ -130,14 +130,14 @@ export const PUT = (endpoint, putData, extraHeaders = {}) => {
 };
 
 export const DELETE = (endpoint, extraHeaders = {}) => {
-  
+
   HEADERS['Authorization'] = `JWT ${getToken()}`;
-  
+
   const REQ = {
     method: 'DELETE',
     headers: Object.assign(HEADERS,extraHeaders)
   };
-  
+
   const req = new Promise((resolve, reject) => fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
     .then((resp) => processResp(resp, req))
     .then(data => resolve(data))
@@ -162,15 +162,15 @@ const processResp = function(resp, req=null){
     else if(resp.status == 503){
       logout();
       reject(new Error('The JobCore API seems to be unavailable'));
-    } 
+    }
     else if(resp.status == 401){
       logout();
       reject(new Error('You are not authorized for this action'));
-    } 
+    }
     else if(resp.status >= 500 && resp.status < 600){
       resp.json().then(err => reject(new Error(err.detail)))
         .catch((errorMsg) => reject(new Error('Something bad happened while completing your request! Please try again later.')));
-    } 
+    }
     else reject(new Error('Something went wrong'));
   });
 };
@@ -185,7 +185,8 @@ const parseError = (error) => new Promise(function(resolve, reject){
   errorPromise.then(json => {
     let errorMsg = '';
     for(let type in json){
-      errorMsg += json[type].join(',');
+        if(Array.isArray(json[type])) errorMsg += json[type].join(',');
+        else errorMsg += json[type];
     }
     reject(errorMsg);
   })

@@ -24,7 +24,7 @@ export const login = (email, password, history) => new Promise((resolve, reject)
         }
         else{
             Session.start({ payload: {
-                user: data.user, access_token: data.token 
+                user: data.user, access_token: data.token
             }});
             history.push('/');
             resolve();
@@ -86,11 +86,11 @@ export const fetchAll = (entities) => new Promise((resolve, reject) => {
                 else resolve();
             }
         };
-        
+
     entities.forEach((entity) => {
         const currentRequest = { entity: entity.slug || entity, pending: true, error: false};
         requests.push(currentRequest);
-        
+
         GET(entity.slug || entity)
         .then(function(list){
             if(typeof entity.callback == 'function') entity.callback();
@@ -102,7 +102,7 @@ export const fetchAll = (entities) => new Promise((resolve, reject) => {
         .catch(function(error) {
             Notify.error(error.message || error);
             log.error(error);
-            
+
             currentRequest.pending = false;
             currentRequest.error = true;
             checkPromiseResolution();
@@ -120,11 +120,11 @@ export const fetchAllMe = (entities) => new Promise((resolve, reject) => {
                 else resolve();
             }
         };
-        
+
     entities.forEach((entity) => {
         const currentRequest = { entity: entity.slug || entity, pending: true, error: false};
         requests.push(currentRequest);
-        
+
         GET('employers/me/'+(entity.slug || entity))
         .then(function(list){
             if(typeof entity.callback == 'function') entity.callback();
@@ -136,7 +136,7 @@ export const fetchAllMe = (entities) => new Promise((resolve, reject) => {
         .catch(function(error) {
             Notify.error(error.message || error);
             log.error(error);
-            
+
             currentRequest.pending = false;
             currentRequest.error = true;
             checkPromiseResolution();
@@ -169,7 +169,7 @@ export const fetchTemporal = (url, event_name, callback=null) => {
         });
 };
 
-export const search = (entity, queryString) => new Promise((accept, reject) => 
+export const search = (entity, queryString=null) => new Promise((accept, reject) =>
     GET(entity, queryString)
         .then(function(list){
             if(typeof entity.callback == 'function') entity.callback();
@@ -182,7 +182,7 @@ export const search = (entity, queryString) => new Promise((accept, reject) =>
             reject(error);
         })
 );
-export const searchMe = (entity, queryString) => new Promise((accept, reject) => 
+export const searchMe = (entity, queryString) => new Promise((accept, reject) =>
     GET('employers/me/'+entity, queryString)
         .then(function(list){
             if(typeof entity.callback == 'function') entity.callback();
@@ -208,7 +208,7 @@ export const create = (entity, data) => POST('employers/me/'+(entity.url || enti
         Notify.error(error.message || error);
         log.error(error);
     });
-    
+
 export const update = (entity, data) => {
     const path = (typeof entity == 'string') ? `employers/me/${entity}/${data.id}` : `${entity.path}/${data.id}`;
     const event_name = (typeof entity == 'string') ? entity : entity.event_name;
@@ -216,7 +216,7 @@ export const update = (entity, data) => {
         .then(function(incomingObject){
             let entities = store.replaceMerged(event_name, data.id, data);
             Flux.dispatchEvent(event_name, entities);
-            
+
             const name = path.split('/');
             Notify.success("The "+name[0].substring(0, name[0].length - 1)+" was updated successfully");
         })
@@ -246,7 +246,7 @@ export const remove = (entity, data) => {
         .then(function(incomingObject){
             let entities = store.remove(event_name, data.id);
             Flux.dispatchEvent(event_name, entities);
-            
+
             const name = path.split('/');
             Notify.success("The "+name[0].substring(0, name[0].length - 1)+" was deleted successfully");
         })
@@ -264,12 +264,12 @@ export const rejectCandidate = (shiftId, applicant) => {
           candidates: newCandidates.map(cand => cand.id)
         };
         PUT(`employers/me/shifts/${shiftId}/candidates`, updatedShift).then(() => {
-            
+
             Flux.dispatchEvent('shifts', store.replaceMerged("shifts", shiftId, {
               candidates: newCandidates
             }));
             Flux.dispatchEvent('applicants', store.remove("applicants", applicant.id));
-            
+
             Notify.success("The candidate was successfully rejected");
         });
     }
@@ -284,11 +284,11 @@ export const deleteShiftEmployee = (shiftId, employee) => {
           employees: newEmployees.map(emp => emp.id)
         };
         PUT(`employers/me/shifts/${shiftId}/employees`, updatedShift).then(() => {
-            
+
             Flux.dispatchEvent('shifts', store.replaceMerged("shifts", shiftId, {
               employees: newEmployees
             }));
-            
+
             Notify.success("The employee was successfully deleted");
         });
     }
@@ -299,15 +299,15 @@ export const acceptCandidate = (shiftId, applicant) => new Promise((accept, reje
     const shift = store.get('shifts', shiftId);
     if(shift){
         if (shift.status === 'OPEN' || shift.employees.length < shift.maximum_allowed_employees) {
-            
+
             const newEmployees = shift.employees.concat([applicant]);
             const newCandidates = shift.candidates.filter(c => Number.isInteger(c) ? c !== applicant.id : c.id !== applicant.id);
-            const shiftData = { 
-                employees: newEmployees.map(emp => Number.isInteger(emp) ? emp : emp.id),  
+            const shiftData = {
+                employees: newEmployees.map(emp => Number.isInteger(emp) ? emp : emp.id),
                 candidates: newCandidates.map(can => Number.isInteger(can) ? can : can.id)
             };
             PUT(`employers/me/shifts/${shiftId}/candidates`, shiftData).then((data) => {
-                
+
                 const applications = store.getState("applications");
                 if(applications) Flux.dispatchEvent('applications', store.filter("applications", (item) => (item.shift.id != shiftId || item.employee.id != applicant.id)));
                 Flux.dispatchEvent('shifts', store.replaceMerged("shifts", shiftId, {
@@ -325,7 +325,7 @@ export const acceptCandidate = (shiftId, applicant) => new Promise((accept, reje
     else{
         Notify.error("Shift not found");
         reject();
-    } 
+    }
 });
 
 export const updateTalentList = (action, employee, listId) => {
@@ -340,7 +340,7 @@ export const updateTalentList = (action, employee, listId) => {
               employeeIdsArr = employeeIdsArr.filter((id) => id != (employee.id || employee));
             }
             PUT('employers/me/favlists/'+listId, { employees: employeeIdsArr }).then((updatedFavlist) => {
-                Flux.dispatchEvent('favlists', store.replaceMerged("favlists", listId, { 
+                Flux.dispatchEvent('favlists', store.replaceMerged("favlists", listId, {
                     employees: updatedFavlist.employees
                 }));
                 Notify.success(`The talent was successfully ${(action == 'add') ? 'added' : 'removed'}`);
@@ -368,12 +368,12 @@ export const fillPayrollBlocks = (payroll) => {
 };
 
 export const updatePayroll = (payroll) => new Promise((resolve, reject) => {
-    
+
     const newPayroll = payroll.clockins.map(c => {
         c.status = payroll.status;
         return Clockin(c).defaults().serialize();
     });
-    
+
     return PUT(`employees/${payroll.talent.id}/payroll`, newPayroll.filter(c => c.selected === true))
     .then(function(data){
         resolve();
@@ -402,8 +402,7 @@ class _Store extends Flux.DashStore{
         });
         this.addEvent('favlists');
         this.addEvent('badges');
-        this.addEvent('single_payroll_projection');
-        
+
         this.addEvent('applications', (applicants) => {
             return (!applicants || (Object.keys(applicants).length === 0 && applicants.constructor === Object)) ? [] : applicants.map(app => {
                 app.shift = Shift(app.shift).defaults().unserialize();
@@ -411,28 +410,28 @@ class _Store extends Flux.DashStore{
             });
         });
         this.addEvent('shifts', (shifts) => {
-            
+
             const newShifts = (!shifts || (Object.keys(shifts).length === 0 && shifts.constructor === Object)) ? [] : shifts.map((shift) => {
                 //already transformed
                 return Shift(shift).defaults().unserialize();
             });
-            
+
             const applicants = this.getState('applications');
             if(!applicants && Session.get().isValid) fetchAllMe(['applications']);
-            
+
             return newShifts;
         });
-        
+
         // Payroll related data
-        this.addEvent('payroll');
-        
+        this.addEvent('payroll-periods');
+
         //temporal storage (for temporal views, information that is read only)
         this.addEvent('current_employer', employer => {
             employer.payroll_period_starting_time = moment.isMoment(employer.payroll_period_starting_time) ? employer.payroll_period_starting_time : moment(employer.payroll_period_starting_time);
             return employer;
         });
         this.addEvent('single_payroll_detail', (payroll) => {
-            
+
             const clockins = payroll.clockins;
             let approved = true;
             let paid = true;
@@ -441,12 +440,12 @@ class _Store extends Flux.DashStore{
                 if (clockin.status == 'PENDING'){
                     approved = false;
                     paid = false;
-                } 
+                }
                 else if (clockin.status != 'PAID') paid = false;
-                
+
                 return Clockin(clockin).defaults().unserialize();
             });
-            
+
             if(typeof payroll.talent != 'undefined') payroll.talent.paymentsApproved = approved;
             if(typeof payroll.talent != 'undefined') payroll.talent.paymentsPaid = paid;
             payroll.approved = approved;
@@ -454,7 +453,7 @@ class _Store extends Flux.DashStore{
             return payroll;
         });
     }
-    
+
     get(type, id){
         const entities = this.getState(type);
         if(entities) return entities.find(ent => ent.id == parseInt(id, 10));
@@ -469,7 +468,7 @@ class _Store extends Flux.DashStore{
     replace(type, id, item){
         const entities = this.getState(type);
         if(!entities) throw new Error("No item found in "+type);
-        
+
         if(Array.isArray(entities)){
             return entities.concat([]).map(ent => {
                 if(ent.id != parseInt(id, 10)) return ent;

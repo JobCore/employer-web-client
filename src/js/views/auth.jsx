@@ -85,7 +85,7 @@ export class Signup extends React.Component{
         if(validator.isEmpty(formData.last_name)) errors.push('The last name cannot be empty');
         if(validator.isEmpty(formData.password)) errors.push('The password cannot be empty');
         if(!validator.isLength(formData.password, { min: 8, max: 50 })) errors.push('Password must have between 8 and 50 characters');
-        
+
         this.setState({ errors, loading: false });
         return errors.length == 0;
     }
@@ -105,7 +105,7 @@ export class Signup extends React.Component{
                     onSubmit={(e)=> {
                         this.setState({loading: true});
                         e.preventDefault();
-                        
+
                         const formData = {
                             email: this.state.email,
                             password: this.state.password,
@@ -209,9 +209,10 @@ Forgot.propTypes = {
 export class Invite extends React.Component{
     constructor(){
         super();
-        this.state = { 
-            email: '', 
-            password: '', 
+        this.state = {
+            email: '',
+            password: '',
+            repPassword: '',
             first_name: '',
             last_name: '',
             error: null
@@ -226,15 +227,20 @@ export class Invite extends React.Component{
                     <form className="col-12 col-lg-10 mx-auto"
                         onSubmit={(e)=> {
                             e.preventDefault();
-                            actions.signup({
-                                email: this.state.email,
-                                password: this.state.password,
-                                first_name: this.state.first_name,
-                                last_name: this.state.last_name,
-                                account_type: 'employee'
-                            }, this.props.history)
-                                .then(() => this.setState({loading: false, error: null }))
-                                .catch((error) => this.setState({loading: false, error }));
+                            this.setState({ error: null });
+                            if(this.state.password != this.state.repPassword) this.setState({ error: `Your passwords don't match` });
+                            else{
+                                actions.signup({
+                                    email: this.state.email,
+                                    password: this.state.password,
+                                    first_name: this.state.first_name,
+                                    last_name: this.state.last_name,
+                                    account_type: 'employee'
+                                }, this.props.history)
+                                    .then(() => this.setState({loading: false, error: null }))
+                                    .catch((error) => this.setState({loading: false, error }));
+                            }
+
                         }}
                     >
                         { this.state.error && <div className="alert alert-danger">{this.state.error}</div> }
@@ -257,6 +263,11 @@ export class Invite extends React.Component{
                         <div className="form-group">
                             <input type="password" className="form-control rounded" id="exampleInputPassword1" placeholder="Password"
                                  onChange={(e) => this.setState({password: e.target.value})} value={this.state.password}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <input type="password" className="form-control rounded" id="exampleInputPassword1" placeholder="Password"
+                                 onChange={(e) => this.setState({repPassword: e.target.value})} value={this.state.repPassword}
                             />
                         </div>
                         <button type="submit" className="btn btn-primary form-control">Sign Up</button>

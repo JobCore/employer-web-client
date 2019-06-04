@@ -9,25 +9,25 @@ import {Session} from 'bc-react-session';
 import {GET} from '../utils/api_wrapper';
 
 export const Favlist = (data) => {
-    
+
     const _defaults = {
         title: '',
         auto_accept_employees_on_this_list: true,
         employees: [],
         employer: Session.getPayload().user.profile.employer,
         serialize: function(filters=[]){
-            
+
             const newEntity = {
                 id: data.id,
                 employees: _defaults.employees.map((emp) => emp.id || emp)
             };
             let response = Object.assign(this, newEntity);
-            
+
             filters.forEach((property) => delete response[property]);
             return response;
         }
     };
-    
+
     let _entity = Object.assign(_defaults, data);
     return {
         validate: () => {
@@ -58,7 +58,7 @@ export const Favlist = (data) => {
 };
 
 export class ManageFavorites extends Flux.DashView {
-    
+
     constructor(){
         super();
         this.state = {
@@ -78,16 +78,16 @@ export class ManageFavorites extends Flux.DashView {
             ]
         };
     }
-    
+
     componentDidMount(){
-        
+
         const lists = store.getState('favlists');
         this.subscribe(store, 'favlists', (lists) => {
             this.setState({ lists });
         });
         this.setState({ lists: (lists) ? lists:[], runTutorial: true });
     }
-    
+
     render() {
         return (<div className="p-1 listcontents">
             <Wizard continuous
@@ -97,12 +97,12 @@ export class ManageFavorites extends Flux.DashView {
             />
             <h1><span id="your-favorites-heading">Your favorite lists</span></h1>
             <Theme.Consumer>
-                {({bar}) => 
+                {({bar}) =>
                     (this.state.lists.length == 0) ?
                         <p>You have no favorite lists yet, <a href="#" className="text-primary" onClick={() => bar.show({ slug: "create_favlist" })}>click here</a> to create your first</p>
                     :
                     this.state.lists.map((list,i) => (
-                        <ListCard key={i} list={list} onClick={() => 
+                        <ListCard key={i} list={list} onClick={() =>
                             bar.show({ slug: "favlist_employees", data: list, title: "List Details" })}
                         >
                             <button type="button" className="btn btn-secondary"
@@ -166,19 +166,19 @@ export const AddorUpdateFavlist = ({ formData, onChange, onSave, onCancel }) => 
     <div className="row">
         <div className="col-12">
             <label>List name:</label>
-            <input type="text" className="form-control" 
+            <input type="text" className="form-control"
                 placeholder="List name"
-                value={formData.title} 
-                onChange={(e)=> onChange({title: e.target.value})} 
+                value={formData.title}
+                onChange={(e)=> onChange({title: e.target.value})}
             />
         </div>
     </div>
     <div className="row mt-1">
         <div className="col-1 text-center">
-            <input type="checkbox" 
+            <input type="checkbox"
                 placeholder="List name"
-                checked={formData.auto_accept_employees_on_this_list} 
-                onChange={(e)=> onChange({ auto_accept_employees_on_this_list: e.target.checked})} 
+                checked={formData.auto_accept_employees_on_this_list}
+                onChange={(e)=> onChange({ auto_accept_employees_on_this_list: e.target.checked})}
             />
         </div>
         <div className="col-11">
@@ -206,7 +206,7 @@ export const FavlistEmployees = ({ formData, onChange, onSave, catalog }) => {
         <Theme.Consumer>
             {({bar}) => (<span>
                 <div className="top-bar">
-                    <button type="button" className="btn btn-primary btn-sm rounded" onClick={() => 
+                    <button type="button" className="btn btn-primary btn-sm rounded" onClick={() =>
                             bar.show({ slug: "update_favlist", data: formData, allowLevels: true })
                         }><i className="fas fa-pencil-alt"></i></button>
                     <button type="button" className="btn btn-secondary btn-sm rounded" onClick={() => onChange({ _mode: 'add_talent' })}>
@@ -215,11 +215,11 @@ export const FavlistEmployees = ({ formData, onChange, onSave, catalog }) => {
                 </div>
                 <div className="row">
                     <div className="col-12">
-                        <label>Title: </label>
+                        <label>Title:{' '}</label>
                         <span>{favlist.title}</span>
                     </div>
                 </div>
-                { (typeof formData._mode == 'undefined' || formData._mode == 'default') ? 
+                { (typeof formData._mode == 'undefined' || formData._mode == 'default') ?
                     <div className="row">
                         <div className="col-12">
                             <label>Talents: </label>
@@ -227,14 +227,14 @@ export const FavlistEmployees = ({ formData, onChange, onSave, catalog }) => {
                         </div>
                     </div>:''
                 }
-                { (typeof formData._mode != 'undefined' && formData._mode=='add_talent') ? 
+                { (typeof formData._mode != 'undefined' && formData._mode=='add_talent') ?
                     <div className="row mb-2">
                         <div className="col-12">
                             <label>Search for the talents you want to add</label>
-                            <SearchCatalogSelect 
+                            <SearchCatalogSelect
                                 isMulti={false}
                                 onChange={(selection)=> {
-                                    if(selection.value == 'invite_talent_to_jobcore') bar.show({ 
+                                    if(selection.value == 'invite_talent_to_jobcore') bar.show({
                                         allowLevels: true,
                                         slug: "invite_talent_to_jobcore"
                                     });
@@ -242,7 +242,7 @@ export const FavlistEmployees = ({ formData, onChange, onSave, catalog }) => {
                                             .then(() => onChange({ _mode: 'default'  }))
                                             .catch((error) => alert(error));
                                 }}
-                                searchFunction={(search) => new Promise((resolve, reject) => 
+                                searchFunction={(search) => new Promise((resolve, reject) =>
                                     GET('catalog/employees?full_name='+search)
                                         .then(talents => resolve([
                                             { label: `${(talents.length==0) ? 'No one found: ':''}, Invite "${search}" to JobCore?`, value: 'invite_talent_to_jobcore' }
@@ -253,15 +253,15 @@ export const FavlistEmployees = ({ formData, onChange, onSave, catalog }) => {
                         </div>
                     </div>:''
                 }
-                {(favlist && favlist.employees.length > 0) ? 
+                {(favlist && favlist.employees.length > 0) ?
                     <div className="row">
                         <div className="col-12">
                             <ul>
                                 {favlist.employees.map((em,i) => (
-                                    <EmployeeExtendedCard 
-                                        key={i} 
-                                        employee={em} 
-                                        hover={false} 
+                                    <EmployeeExtendedCard
+                                        key={i}
+                                        employee={em}
+                                        hover={false}
                                         showFavlist={false}
                                         onClick={() => bar.show({ slug: "show_single_talent", data: em, allowLevels: true })}
                                     >
