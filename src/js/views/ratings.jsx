@@ -9,7 +9,7 @@ import queryString from 'query-string';
 import {Session} from 'bc-react-session';
 
 //gets the querystring and creats a formData object to be used when opening the rightbar
-export const getTalentInitialFilters = (catalog) => {
+export const getRatingInitialFilters = (catalog) => {
     let query = queryString.parse(window.location.search);
     if(typeof query == 'undefined') return {};
     if(!Array.isArray(query.positions)) query.positions = (typeof query.positions == 'undefined') ? [] : [query.positions];
@@ -21,28 +21,21 @@ export const getTalentInitialFilters = (catalog) => {
     };
 };
 
-export const Talent = (data) => {
+export const Rating = (data) => {
 
     const session = Session.getPayload();
     const _defaults = {
         //foo: 'bar',
         serialize: function(){
 
-            const newShift = {
+            const newRating = {
                 //foo: 'bar'
-                favoritelist_set: data.favoriteLists.map(fav => fav.value)
             };
 
-            return Object.assign(this, newShift);
+            return Object.assign(this, newRating);
         },
         unserialize: function(){
-            this.fullName = function() { return (this.user.first_name.length>0) ? this.user.first_name + ' ' + this.user.last_name : 'No name specified'; };
-            if(typeof session.user.profile.employer != 'undefined'){
-                if(typeof this.favoriteLists =='undefined') this.favoriteLists = this.favoritelist_set.filter(fav => fav.employer == session.user.profile.employer);
-                else{
-                    this.favoriteLists = this.favoritelist_set.map(fav => store.get('favlists', fav.id || fav));
-                }
-            }
+            //this.fullName = function() { return (this.user.first_name.length>0) ? this.user.first_name + ' ' + this.user.last_name : 'No name specified'; };
 
             return this;
         }
@@ -59,56 +52,10 @@ export const Talent = (data) => {
             return _defaults;
         },
         getFormData: () => {
-            const _formShift = {
-                id: _entity.id,
-                favoriteLists: _entity.favoriteLists.map(fav => ({ label: fav.title, value: fav.id }))
+            const _formRating = {
+                //id: _entity.id,
             };
-            return _formShift;
-        },
-        filters: () => {
-            const _filters = {
-                positions: _entity.positions.map( item => item.value ),
-                rating: (typeof _entity.rating == 'object') ? _entity.rating.value : undefined,
-                badges: _entity.badges.map( item => item.value )
-            };
-            for(let key in _entity) if(typeof _entity[key] == 'function') delete _entity[key];
-            return Object.assign(_entity, _filters);
-        }
-    };
-};
-
-export const ShiftInvite = (data) => {
-    const user = Session.getPayload().user;
-    const _defaults = {
-        //foo: 'bar',
-        serialize: function(){
-
-            const newShiftInvite = {
-                //foo: 'bar'
-                sender: user.id,
-                shifts: data.shifts.map(s => s.id || s.value.id),
-                employees: data.employees
-            };
-
-            return Object.assign(this, newShiftInvite);
-        }
-    };
-
-    let _entity = Object.assign(_defaults, data);
-    return {
-        validate: () => {
-
-            return _entity;
-        },
-        defaults: () => {
-            return _defaults;
-        },
-        getFormData: () => {
-            const _formShift = {
-                employees: _entity.employees || [_entity.id],
-                shifts: _entity.shifts
-            };
-            return _formShift;
+            return _formRating;
         },
         filters: () => {
             const _filters = {
@@ -120,12 +67,12 @@ export const ShiftInvite = (data) => {
     };
 };
 
-export class ManageTalents extends Flux.DashView {
+export class ManageRating extends Flux.DashView {
 
     constructor(){
         super();
         this.state = {
-            employees: [],
+            ratings: [],
             runTutorial: hasTutorial(),
             steps: [
                 {
@@ -145,7 +92,7 @@ export class ManageTalents extends Flux.DashView {
     componentDidMount(){
 
         this.filter();
-        this.subscribe(store, 'employees', (employees) => {
+        this.subscribe(store, 'ratings', (employees) => {
             this.setState({ employees });
         });
 

@@ -72,7 +72,7 @@ To include images, styles or any other type of file just use the **import** comm
 
     //This will include file.js into your bundle.
     import 'js/file2.js';
-    
+
     //this will include the styles at index.scss to your bundle.
     import '../styles/index.scss';
 
@@ -81,15 +81,16 @@ To include images, styles or any other type of file just use the **import** comm
 1. All your JS and CSS code must go inside the src/ directory, and webpack will automaticly bundle them and export them into the public folder.
 
 2. The HTML code must be inside public/index.html
-3. 
+3.
 
 
-To publish into firebase:
-1) Login 
+## To publish into firebase:
+
+1) Login
 ```
 $ firebase login --no-localhost
 ```
-2) 
+2)
 ```
 $ firebase deploy
 ```

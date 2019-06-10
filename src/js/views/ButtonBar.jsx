@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {withRouter} from 'react-router-dom';
 class ButtonBar extends React.Component {
-    
+
     constructor(){
         super();
         this.state = {
@@ -34,14 +34,15 @@ class ButtonBar extends React.Component {
                 ],
                 profile: [
                     { slug: "manage_locations", title: 'Company Locations', to: 'locations'},
-                    { slug: "payroll_settings", title: 'Payroll Settings', to: 'payroll-settings'}
+                    { slug: "payroll_settings", title: 'Payroll Settings', to: 'payroll-settings'},
+                    { slug: "my_ratings", title: 'Company Ratings', to: 'my-ratings'}
                 ]
             },
             currentButtons: []
         };
         this.removeHistoryListener = null;
     }
-    
+
     componentDidMount(){
         let key = this.props.history.location.pathname.replace('/','');
         if(key=='') key='home';
@@ -51,7 +52,7 @@ class ButtonBar extends React.Component {
             this.setState({currentButtons: this.state.buttonBarActions[key] || [] });
         });
     }
-    
+
     componentWillUnmount(){
         if(this.removeHistoryListener) this.removeHistoryListener();
     }

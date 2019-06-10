@@ -15,7 +15,7 @@ import {ManageFavorites, AddFavlistsToTalent, FavlistEmployees, AddTalentToFavli
 import { ManageLocations, AddOrEditLocation, Location } from './views/locations';
 import { ManagePayroll, SelectTimesheet } from './views/payroll';
 import {Profile, PayrollSettings} from './views/profile';
-import {store} from './actions';
+import {store, resendValidationLink} from './actions';
 import {NOW} from './components/utils.js';
 import {Notifier, Notify} from 'bc-react-notifier';
 import log from './utils/log';
@@ -36,6 +36,7 @@ class PrivateLayout extends Flux.DashView{
             showRightBar: 0,
             showButtonBar: true,
             loading: true,
+            userStatus: null,
             sideBarLevels: [],
             catalog:{
                 positions: [],
@@ -182,6 +183,7 @@ class PrivateLayout extends Flux.DashView{
 
         const session = Session.get();
         if(typeof session == 'undefined' || typeof session.active == 'undefined' || session.active == false) this.props.history.push('/login');
+        else this.setState({ userStatus: session.payload.user.profile.status, user: session.payload.user });
 
         const reduce = (list) => list.map(itm => {
             return ({
@@ -301,6 +303,17 @@ class PrivateLayout extends Flux.DashView{
                         </ul>
                     </div>
                     <div className="right_pane bc-scrollbar">
+                        {
+                            this.state.userStatus === 'PENDING_EMAIL_VALIDATION' &&
+                                <div className="alert alert-warning p-2 text-center" style={{marginLeft: "-15px"}}>You need to validate your email to receive notifications
+                                    <button
+                                        className="btn btn-success btn-sm ml-2"
+                                        onClick={() => resendValidationLink(this.state.user.email)}
+                                    >
+                                        Resend validation link
+                                    </button>
+                                </div>
+                        }
                         <Notifier />
                         <div className="row">
                             <div className="col-12">
@@ -313,6 +326,7 @@ class PrivateLayout extends Flux.DashView{
                             <Route exact path='/talents' component={ManageTalents} />
                             <Route exact path='/favorites' component={ManageFavorites} />
                             <Route exact path='/locations' component={ManageLocations} />
+                            {/* <Route exact path='/my-ratings' component={ManageRatings} /> */}
                             <Route exact path='/payroll-settings' component={PayrollSettings} />
                             <Route exact path='/profile' component={Profile} />
                             <Route exact path='/payroll' component={ManagePayroll} />

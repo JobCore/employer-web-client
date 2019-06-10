@@ -340,7 +340,12 @@ export const ShiftApplicants = (props) => {
         {({ bar }) => (<div className="sidebar-applicants">
             { catalog.shift.expired && <div className="alert alert-warning">This shift has already expired</div> }
             <div className="top-bar">
-                <button type="button" className="btn btn-primary btn-sm"  onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift", allowLevels: true })}>
+                <button type="button" className="btn btn-primary btn-sm"  onClick={() => bar.show({
+                        slug: "search_talent_and_invite_to_shift",
+                        data: { shifts: [catalog.shift], employees: [] },
+                        allowLevels: true
+                    })}
+                >
                     invite
                 </button>
             </div>

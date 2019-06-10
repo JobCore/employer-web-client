@@ -106,6 +106,34 @@ export const POST = (endpoint, postData, extraHeaders = {}) => {
   return req;
 };
 
+export const PUTFiles = (endpoint, files) => {
+
+    const headers = {
+        'Authorization': `JWT ${getToken()}`
+    };
+
+    var fetchBody = new FormData();
+    for (const file of files) fetchBody.append('image',file,file.name);
+
+    const REQ = {
+        headers,
+        method: 'PUT',
+        body: fetchBody
+    };
+
+    const req = new Promise((resolve, reject) => fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
+        .then((resp) => processResp(resp, req))
+        .then(data => resolve(data))
+        .catch(err => {
+            processFailure(err, req);
+            reject(err);
+        })
+    );
+    PendingReq.add(req);
+    
+    return req;
+};
+
 export const PUT = (endpoint, putData, extraHeaders = {}) => {
 
   if(['register', 'login'].indexOf(endpoint) == -1){

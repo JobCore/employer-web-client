@@ -1,8 +1,10 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
-import {store, fetchTemporal, update} from '../actions.js';
+import {store, fetchTemporal, update, updateProfileImage} from '../actions.js';
 import {TIME_FORMAT, DATETIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
+import {Button} from '../components/index';
 import {validator, ValidationError} from '../utils/validation';
+import Dropzone from 'react-dropzone';
 import DateTime from 'react-datetime';
 import moment from 'moment';
 
@@ -14,6 +16,8 @@ export const Employer = (data={}) => {
         payroll_period_starting_time: NOW(),
         maximum_clockout_delay_minutes: 0,
         bio: '',
+        uploadCompanyLogo: null,
+        editingImage: false,
         response_time: 'not yet calculated',
         rating: 'not yet calculated',
         serialize: function(){
@@ -79,6 +83,31 @@ export class Profile extends Flux.DashView {
                 </div>
                 <div className="row">
                     <div className="col-12">
+                        <label>Company Logo</label>
+                        { !this.state.editingImage ? 
+                            <div className="company-logo" style={{ backgroundImage: `url(${this.state.employer.picture})`}}>
+                                <Button color="primary" size="small" onClick={() => this.setState({ editingImage: true })} icon="pencil" />
+                            </div>
+                            :
+                            <div>
+                                <Dropzone onDrop={acceptedFiles => this.setState({ uploadCompanyLogo: acceptedFiles[0] })}>
+                                    {({getRootProps, getInputProps}) => (
+                                        <section className="upload-zone">
+                                            <div {...getRootProps()}>
+                                                <input {...getInputProps()} />
+                                                <p>Drag & drop some files here, or click to select files</p>
+                                            </div>
+                                        </section>
+                                    )}
+                                </Dropzone>
+                                <Button onClick={() => this.setState({ editingImage: false })} color="secondary">Cancel</Button>
+                                <Button onClick={() => updateProfileImage(this.state.uploadCompanyLogo)} color="success">Save</Button>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col-12">
                         <label>Company Name</label>
                         <input type="text" className="form-control" value={this.state.employer.title} 
                             onChange={(e) => this.setEmployer({ title: e.target.value })}
@@ -105,7 +134,7 @@ export class Profile extends Flux.DashView {
                     <button 
                         type="button" 
                         className="btn btn-primary" 
-                        onClick={() => update({path: 'employers', event_name: 'current_employer'}, Employer(this.state.employer).validate().serialize())}
+                        onClick={() => update({path: 'employers/me', event_name: 'current_employer'}, Employer(this.state.employer).validate().serialize())}
                     >Save</button>
                 </div>
             </form>

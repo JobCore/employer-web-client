@@ -14,7 +14,7 @@ const ApplicantCard = (props) => {
         {({bar}) => 
             (<li className="aplicantcard"
                 onClick={() => bar.show({ slug: "show_single_applicant", data: props.applicant, title: "Application Details", allowLevels: true })}>
-                <Avatar url={process.env.API_HOST+applicant.user.profile.picture} />
+                <Avatar url={applicant.user.profile.picture} />
                 <AcceptReject
                     onAccept={() => props.onAccept(props.shift.id, applicant)} 
                     onReject={() => props.onReject(props.shift.id, applicant)} 

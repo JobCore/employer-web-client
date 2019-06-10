@@ -6,7 +6,7 @@ import {Shift} from './views/shifts';
 import {Talent} from './views/talents';
 import {Clockin} from './views/payroll';
 import moment from 'moment';
-import {POST, GET, PUT, DELETE} from './utils/api_wrapper';
+import {POST, GET, PUT, DELETE, PUTFiles} from './utils/api_wrapper';
 import log from './utils/log';
 
 export const login = (email, password, history) => new Promise((resolve, reject) => POST('login', {
@@ -19,8 +19,8 @@ export const login = (email, password, history) => new Promise((resolve, reject)
             reject("Only employers are allowed to login into this application");
         }
         else if(!data.user.is_active){
-            Notify.error("You need to validate your email before being able to login");
-            reject("You need to validate your email before being able to login");
+            Notify.error("Your account seems to be innactive, contact support for any further details");
+            reject("Your account seems to be innactive, contact support for any further details");
         }
         else{
             Session.start({ payload: {
@@ -64,6 +64,21 @@ export const remind = (email) => new Promise((resolve, reject) => POST('user/pas
     .then(function(data){
         resolve();
         Notify.success("Check your email!");
+    })
+    .catch(function(error) {
+        Notify.error(error.message || error);
+        reject(error.message || error);
+        log.error(error);
+    })
+);
+
+
+export const resendValidationLink = (email) => new Promise((resolve, reject) => POST('user/email/validate/send/'+email, {
+      email: email
+    })
+    .then(function(data){
+        resolve();
+        Notify.success("We have sent you a validation link, check your email!");
     })
     .catch(function(error) {
         Notify.error(error.message || error);
@@ -210,7 +225,7 @@ export const create = (entity, data) => POST('employers/me/'+(entity.url || enti
     });
 
 export const update = (entity, data) => {
-    const path = (typeof entity == 'string') ? `employers/me/${entity}/${data.id}` : `${entity.path}/${data.id}`;
+    const path = (typeof entity == 'string') ? `employers/me/${entity}/${data.id}` : entity.path + (typeof data.id == 'string' ? `/${data.id }`:'');
     const event_name = (typeof entity == 'string') ? entity : entity.event_name;
     PUT(path, data)
         .then(function(incomingObject){
@@ -225,6 +240,17 @@ export const update = (entity, data) => {
             log.error(error);
         });
 };
+
+export const updateProfileImage = (file) => PUTFiles('employers/me/image', [file])
+        .then(function(incomingObject){
+            const payload = Session.getPayload();
+            const user = Object.assign(payload.user, { profile: incomingObject });
+            Session.setPayload({ user });
+        })
+        .catch(function(error) {
+            Notify.error(error.message || error);
+            log.error(error);
+        });
 
 export const updateProfile = (data) => {
     PUT(`profiles/${data.id}`, data)

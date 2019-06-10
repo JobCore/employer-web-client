@@ -68,7 +68,7 @@ export const SearchShiftToInviteTalent = (props) => {
                 <Select isMulti className="select-shifts"
                     value={props.formData.shifts}
                     components={{ Option: ShiftOption, MultiValue: ShiftOptionSelected }}
-                    onChange={(selectedOption)=>props.onChange({shifts: selectedOption})}
+                    onChange={(selectedOption)=>props.onChange({ shifts: selectedOption })}
                     options={shifts}
                 >
                 </Select>
@@ -107,7 +107,7 @@ export const SearchTalentToInviteToShift = ({ formData, onSave, onChange }) => {
                                 slug: "invite_talent_to_jobcore",
                                 onSave: (emp) => onChange({ pending_jobcore_invites: formData.pending_jobcore_invites.concat(emp) })
                             });
-                            else onChange({ pending_invites: selections });
+                            else onChange({ pending_invites: selections, employees: selections.map(opt => opt.value) });
                         }}
                         searchFunction={(search) => new Promise((resolve, reject) =>
                             GET('catalog/employees?full_name='+search)
