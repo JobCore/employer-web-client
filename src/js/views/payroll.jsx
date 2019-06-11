@@ -1,7 +1,7 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import { store, search, fillPayrollBlocks, updatePayroll } from '../actions.js';
+import { store, search, fillPayrollBlocks, updatePayroll, fetchSingle } from '../actions.js';
 
 import DateTime from 'react-datetime';
 import moment from 'moment';
@@ -92,23 +92,89 @@ export const Clockin = (data) => {
     };
 };
 
+export const PayrollPeriod = (data) => {
+
+    const _defaults = {
+        employer: null,
+        id: null,
+        length: 0,
+        length_type: "DAYS",
+        payments: [],
+        starting_at: null,
+        status: null,
+        serialize: function(){
+
+            const newObj = {
+                employer: (!this.employer || typeof this.employer.id === 'undefined') ? this.employer : this.employer.id
+            };
+
+            return Object.assign(this, newObj);
+        },
+        unserialize: function(){
+            const newObject = {
+                //shift: (typeof this.shift != 'object') ? store.get('shift', this.shift) : Shift(this.shift).defaults().unserialize(),
+            };
+
+            return Object.assign(this, newObject);
+        }
+
+    };
+
+    let _period = Object.assign(_defaults, data);
+    return {
+        get: () => {
+            return _period;
+        },
+        validate: () => {
+            const start = _period.starting_at;
+            const finish = _period.ending_at;
+
+            //if(SHIFT_POSSIBLE_STATUS.indexOf(_shift.status) == -1) throw new Error('Invalid status "'+_shift.status+'" for shift');
+
+            return _period;
+        },
+        defaults: () => {
+            return _defaults;
+        },
+        getFormData: () => {
+            const _formCheckin = {
+                id: _period.id.toString()
+            };
+            return _formCheckin;
+        }
+    };
+};
+
 export class ManagePayroll extends Flux.DashView {
 
     constructor(){
         super();
         this.state = {
-            payrollPeriods: []
+            payrollPeriods: [],
+            singlePayrollPeriod: null
         };
     }
 
     componentDidMount(){
 
         const payrollPeriods = store.getState('payroll-periods');
-        this.setState({ payrollPeriods  });
         this.subscribe(store, 'payroll-periods', (_payrollPeriods) => {
-            this.setState({ payrollPeriods: _payrollPeriods });
+            this.updatePayrollPeriod(_payrollPeriods);
         });
 
+        this.updatePayrollPeriod(payrollPeriods);
+    }
+
+    updatePayrollPeriod(payrollPeriods){
+
+        if(payrollPeriods == null) return;
+
+        let singlePayrollPeriod = null;
+        if(typeof this.props.match.params.period_id !== 'undefined'){
+            singlePayrollPeriod = payrollPeriods.find(pp => pp.id == this.props.params.match.period_id);
+        }
+
+        this.setState({ payrollPeriods, singlePayrollPeriod: singlePayrollPeriod || null  });
     }
 
 
@@ -131,7 +197,7 @@ export class ManagePayroll extends Flux.DashView {
                         :
                         <p>Pick a timeframe and employe to review</p>
                     }
-                    {(!this.state.single_payroll_projection || !Array.isArray(this.state.single_payroll_projection.clockins)) ? '' :
+                    {(!this.state.singlePayrollPeriod) ? '' :
                         (this.state.single_payroll_projection.clockins.length > 0) ?
                             <div>
                                 <table className="table table-striped payroll-summary">
@@ -268,24 +334,7 @@ const filterClockins = (formChanges, formData, onChange) => {
     );
 };
 
-const payrollPeriods = (() => {
-    let end = moment().subtract(360, "days").startOf('week');
-    let payrollPeriods = [];
-    while(moment().isAfter(end)){
-        const start = end.clone();
-        end = end.clone().add(7,"days");
-        payrollPeriods.push({
-            value: {
-                starting_at: start,
-                ending_at: end
-            },
-            label: `From ${start.format('MMM Do YY')} to ${end.format('MMM Do YY')}`
-        });
-    }
-    return payrollPeriods;
-})();
-
-export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel }) => (<Theme.Consumer>
+export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel, history }) => (<Theme.Consumer>
     {({bar}) => (<div>
         <div className="row">
             <div className="col-12">
@@ -296,48 +345,43 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel 
                             value: null,
                             label: `Select a payment period`
                         }}
-                        defaultValue={payrollPeriods.length > 0 ? payrollPeriods[0] : null}
+                        defaultValue={{
+                            value: null,
+                            label: `Select a payment period`
+                        }}
                         components={{ Option: ShiftOption, SingleValue: ShiftOption }}
-                        onChange={(selectedOption)=> null}
-                        options={formData.periods}
+                        onChange={(selectedOption)=> fetchSingle("payroll-periods", selectedOption.id).then((period) => {
+                            onChange({ selectedPayments: period.payments, selectedPeriod: period });
+                        })}
+                        options={[{
+                            value: null,
+                            label: `Select a payment period`
+                        }].concat(formData.periods)}
                     />
                 </div>
             </div>
-            {(formData && typeof formData.employees != 'undefined' && formData.employees.length > 0) ?
+            {(formData && typeof formData.selectedPayments != 'undefined' && formData.selectedPayments.length > 0) ?
                 <div className="col-12 mt-3">
                     <ul>
-                        {formData.employees.map((block,i) => {
-
-                            var approved = true;
-                            var paid = true;
-                            block.clockins.forEach(b => {
-                                if (b.status == 'PENDING'){
-                                    approved = false;
-                                    paid = false;
-                                }
-                                else if (b.status != 'PAID') paid = false;
-                            });
+                        {formData.selectedPayments.map((payment,i) => {
                             return (<EmployeeExtendedCard
                                     key={i}
-                                employee={block.talent}
-                                showFavlist={false}
-                                showButtonsOnHover={false}
-                                onClick={() => {
-                                    fillPayrollBlocks(block);
-                                    bar.show({
-                                        to: "/payroll?"+queryString.stringify({
-                                            starting_at: formData.shift ? '' : formData.starting_at.format('YYYY-MM-DD'),
-                                            talent_id: block.talent.id,
-                                            shift: formData.shift ? formData.shift.id : ''
-                                        })
-                                    });
-                                }}
-                            >
+                                    employee={payment.employee}
+                                    showFavlist={false}
+                                    showButtonsOnHover={false}
+                                    onClick={() => {
+                                        bar.show({
+                                            to: `/payroll/period/${formData.selectedPeriod.id}?`+queryString.stringify({
+                                                talent_id: payment.employee.id
+                                            })
+                                        });
+                                    }}
+                                >
                                 {
-                                    (!approved) ?
+                                    (payment.status === "PENDING") ?
                                         <span> pending <i className="fas fa-exclamation-triangle mr-2"></i></span>
                                         :
-                                        (!paid) ?
+                                        (payment.status === "PAID") ?
                                             <span> unpaid <i className="fas fa-dollar-sign mr-2"></i></span>
                                             :
                                             <i className="fas fa-check-circle mr-2"></i>
@@ -357,6 +401,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel 
 SelectTimesheet.propTypes = {
     onSave: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
+    history: PropTypes.object.isRequired,
     onChange: PropTypes.func,
     formData: PropTypes.object,
     catalog: PropTypes.object //contains the data needed for the form to load

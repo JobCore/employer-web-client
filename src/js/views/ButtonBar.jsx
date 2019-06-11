@@ -7,32 +7,32 @@ class ButtonBar extends React.Component {
         super();
         this.state = {
             buttonBarActions: {
-                home: [
+                "home": [
                     { slug: "create_shift", title: 'Create shifts', to: 'shifts'},
                     { slug: "invite_talent_to_jobcore", title: 'Invite Talent to JobCore', to: 'talents'}
                 ],
-                locations: [
+                "locations": [
                     { slug: "create_location", title: 'Create a location', to: 'locations'},
                 ],
-                shifts: [
+                "shifts": [
                     { slug: "create_shift", title: 'Create shifts', to: 'shifts'},
                     { slug: "filter_shift", title: 'Filter shifts', to: 'shifts'}
                 ],
-                applicants: [
+                "applicants": [
                     { slug: "filter_applications", title: 'Filter Applications', to: 'applicants'}
                 ],
-                talents: [
+                "talents": [
                     { slug: "filter_talent", title: 'Filter Talents', to: 'talents'},
                     { slug: "invite_talent_to_jobcore", title: 'Invite New Talent', to: 'talents'}
                 ],
-                favorites: [
+                "favorites": [
                     { slug: "create_favlist", title: 'Create Favorite List', to: 'favorites'},
                     { slug: "invite_talent_to_jobcore", title: 'Invite New Talent', to: 'favorites'}
                 ],
-                payroll: [
+                "payroll/*": [
                     { slug: "select_timesheet", title: 'Select Timesheet', to: 'payroll'}
                 ],
-                profile: [
+                "profile": [
                     { slug: "manage_locations", title: 'Company Locations', to: 'locations'},
                     { slug: "payroll_settings", title: 'Payroll Settings', to: 'payroll-settings'},
                     { slug: "my_ratings", title: 'Company Ratings', to: 'my-ratings'}
@@ -43,10 +43,20 @@ class ButtonBar extends React.Component {
         this.removeHistoryListener = null;
     }
 
+    getMatchingExpression(actions){
+        const path = this.props.history.location.pathname;
+        for(let expression in actions)
+            if(path.match(expression))
+                return expression;
+
+        return null;
+    }
+
     componentDidMount(){
-        let key = this.props.history.location.pathname.replace('/','');
-        if(key=='') key='home';
-        this.setState({currentButtons: this.state.buttonBarActions[key] || [] });
+
+        const key = this.getMatchingExpression(this.state.buttonBarActions);
+
+        this.setState({ currentButtons:  this.state.buttonBarActions[key] });
         this.removeHistoryListener = this.props.history.listen((data) => {
             let key = data.pathname.replace('/','').replace('#','');
             this.setState({currentButtons: this.state.buttonBarActions[key] || [] });

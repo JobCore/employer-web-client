@@ -4,10 +4,16 @@ import {Session} from 'bc-react-session';
 import {Notify} from 'bc-react-notifier';
 import {Shift} from './views/shifts';
 import {Talent} from './views/talents';
-import {Clockin} from './views/payroll';
+import {Clockin, PayrollPeriod} from './views/payroll';
 import moment from 'moment';
 import {POST, GET, PUT, DELETE, PUTFiles} from './utils/api_wrapper';
 import log from './utils/log';
+
+const Models = {
+    "shifts": Shift,
+    "payroll-periods": PayrollPeriod,
+    "talents": Talent
+};
 
 export const login = (email, password, history) => new Promise((resolve, reject) => POST('login', {
       username_or_email: email,
@@ -162,7 +168,7 @@ export const fetchAllMe = (entities) => new Promise((resolve, reject) => {
 export const fetchSingle = (entity, id) =>  new Promise((resolve, reject) => {
     GET('employers/me/'+entity+'/'+id)
         .then(function(data){
-            Flux.dispatchEvent(entity, store.replaceMerged("shifts", data.id, Shift(data).defaults().unserialize()));
+            Flux.dispatchEvent(entity, store.replaceMerged(entity, data.id, Models[entity](data).defaults().unserialize()));
             resolve(data);
         })
         .catch(function(error) {
@@ -385,14 +391,6 @@ export const updateTalentList = (action, employee, listId) => {
     });
 };
 
-export const fillPayrollBlocks = (payroll) => {
-    payroll.clockins = payroll.clockins.map(c => {
-        c.selected = (c.status === 'PENDING');
-        return c;
-    });
-    Flux.dispatchEvent('single_payroll_detail', payroll);
-};
-
 export const updatePayroll = (payroll) => new Promise((resolve, reject) => {
 
     const newPayroll = payroll.clockins.map(c => {
@@ -449,7 +447,12 @@ class _Store extends Flux.DashStore{
         });
 
         // Payroll related data
-        this.addEvent('payroll-periods');
+        this.addEvent('payroll-periods', (period) => {
+            return (!period || (Object.keys(period).length === 0 && period.constructor === Object)) ? [{ label: "Loading payment periods...", value: null}] : period.map(p => {
+                p.label = `From ${p.starting_at.substring(0,10)} to ${p.ending_at.substring(0,10)} (${p.payments.length} Payments)`;
+                return p;
+            });
+        });
 
         //temporal storage (for temporal views, information that is read only)
         this.addEvent('current_employer', employer => {

@@ -330,6 +330,7 @@ class PrivateLayout extends Flux.DashView{
                             <Route exact path='/payroll-settings' component={PayrollSettings} />
                             <Route exact path='/profile' component={Profile} />
                             <Route exact path='/payroll' component={ManagePayroll} />
+                            <Route exact path='/payroll/period/:period_id' component={ManagePayroll} />
                             <Route exact path='/rate' component={RateShift} />
                             <Route exact path='/home' component={Dashboard} />
                             <Route exact path='/' component={Dashboard} />

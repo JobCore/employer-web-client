@@ -6,11 +6,11 @@ import PrivateLayout from './PrivateLayout';
 import {PrivateRoute} from 'bc-react-session';
 
 class Layout extends Flux.View{
-    
+
     render() {
         return (
             <div className="layout">
-                
+
                 <BrowserRouter>
                     <div>
                         <Switch>
@@ -27,7 +27,7 @@ class Layout extends Flux.View{
                             <PrivateRoute exact path='/shifts' component={PrivateLayout} />
                             <PrivateRoute exact path='/talents' component={PrivateLayout} />
                             <PrivateRoute exact path='/locations' component={PrivateLayout} />
-                            <PrivateRoute exact path='/payroll' component={PrivateLayout} />
+                            <PrivateRoute path='/payroll' component={PrivateLayout} />
                             <PrivateRoute exact path='/payroll-settings' component={PrivateLayout} />
                             <PrivateRoute exact path='/home' component={PrivateLayout} />
                             <Route render={() => (<p className="text-center mt-5">Not found</p>)} />
@@ -37,6 +37,6 @@ class Layout extends Flux.View{
             </div>
         );
     }
-    
+
 }
 export default Layout;
