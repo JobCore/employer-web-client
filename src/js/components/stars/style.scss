@@ -1,4 +1,8 @@
 @import '../theme/style';
 .starrating{
     font-size: 14px;
+    &.clickable i:hover{
+        color: $orange;
+        font-weight: 900;
+    }
 }

@@ -4,6 +4,7 @@ import {Session} from 'bc-react-session';
 import {Notify} from 'bc-react-notifier';
 import {Shift} from './views/shifts';
 import {Talent} from './views/talents';
+import {Rating} from './views/ratings';
 import {Clockin, PayrollPeriod} from './views/payroll';
 import moment from 'moment';
 import {POST, GET, PUT, DELETE, PUTFiles} from './utils/api_wrapper';
@@ -11,6 +12,7 @@ import log from './utils/log';
 
 const Models = {
     "shifts": Shift,
+    "ratings": Rating,
     "payroll-periods": PayrollPeriod,
     "talents": Talent
 };
@@ -47,6 +49,7 @@ export const signup = (formData, history) => new Promise((resolve, reject) => PO
       email: formData.email,
       account_type: formData.account_type,
       employer: formData.company,
+      token: formData.token || '',
       username: formData.email,
       first_name: formData.first_name,
       last_name: formData.last_name,
@@ -54,7 +57,7 @@ export const signup = (formData, history) => new Promise((resolve, reject) => PO
     })
     .then(function(data){
         Notify.success("You have signed up successfully, proceed to log in");
-        history.push('/login');
+        history.push(`/login?type=${formData.account_type}`);
         resolve();
     })
     .catch(function(error) {
@@ -420,6 +423,7 @@ class _Store extends Flux.DashStore{
         this.addEvent('venues');
         this.addEvent('invites');
         this.addEvent('jobcore-invites');
+        this.addEvent('ratings');
         this.addEvent('employees', (employees) => {
             if(!Array.isArray(employees)) return [];
             return employees.map(em => Talent(em).defaults().unserialize());

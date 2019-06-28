@@ -338,17 +338,20 @@ export const ShiftApplicants = (props) => {
     const { onCancel, onSave, catalog } = props;
     return (<Theme.Consumer>
         {({ bar }) => (<div className="sidebar-applicants">
-            { catalog.shift.expired && <div className="alert alert-warning">This shift has already expired</div> }
-            <div className="top-bar">
-                <button type="button" className="btn btn-primary btn-sm"  onClick={() => bar.show({
-                        slug: "search_talent_and_invite_to_shift",
-                        data: { shifts: [catalog.shift], employees: [] },
-                        allowLevels: true
-                    })}
-                >
-                    invite
-                </button>
-            </div>
+            { catalog.shift.expired ?
+                <div className="alert alert-warning">This shift has already expired</div>
+                :
+                <div className="top-bar">
+                    <button type="button" className="btn btn-primary btn-sm"  onClick={() => bar.show({
+                            slug: "search_talent_and_invite_to_shift",
+                            data: { shifts: [catalog.shift], employees: [] },
+                            allowLevels: true
+                        })}
+                    >
+                        invite
+                    </button>
+                </div>
+            }
             <h3>Shift applicants:</h3>
             {
                 catalog.applicants.length > 0 ?
@@ -400,12 +403,15 @@ export const ShiftEmployees = (props) => {
     const { onCancel, onSave, catalog } = props;
     return (<Theme.Consumer>
         {({ bar }) => (<div className="sidebar-applicants">
-            { catalog.shift.expired && <div className="alert alert-warning">This shift has already expired</div> }
-            <div className="top-bar">
-                <button type="button" className="btn btn-primary btn-sm"  onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift", allowLevels: true })}>
-                    invite
-                </button>
-            </div>
+            { catalog.shift.expired ?
+                <div className="alert alert-warning">This shift has already expired</div>
+                :
+                <div className="top-bar">
+                    <button type="button" className="btn btn-primary btn-sm"  onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift", allowLevels: true })}>
+                        invite
+                    </button>
+                </div>
+            }
             <h3>Shift Scheduled Employees:</h3>
             {
                 catalog.shift.employees.length > 0 ?
@@ -422,7 +428,9 @@ export const ShiftEmployees = (props) => {
                                 onClick={() => bar.show({ slug: "talent_shift_clockins", allowLevels: true })}
                             />
 
-                            { !catalog.shift.expired &&
+                            { catalog.shift.expired ?
+                                <Button className="mt-0" icon="favorite" label="Review" onClick={() => bar.show({ slug: "review_talent", data: { employee: emp, shift: catalog.shift } , allowLevels: true })}/>
+                                :
                                 <Button className="mt-0" icon="trash" label="Delete" onClick={() => onSave({
                                     executed_action: 'delete_shift_employee',
                                     employee: emp,
@@ -431,7 +439,9 @@ export const ShiftEmployees = (props) => {
                             }
                         </EmployeeExtendedCard>)
                     )
-                :
+                : catalog.shift.expired ?
+                    <p>No talents every worked on this shift</p>
+                    :
                     <p>No talents have been accepted for this shift yet, <span className="anchor"
                         onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift", allowLevels: true })}
                     >invite more talents</span> or  <span className="anchor"
@@ -746,28 +756,31 @@ export const ShiftDetails = (props) => {
                 { (creationMode) ?
                     <EditOrAddShift bar={bar} {...props} /> :
                     <div>
-                        <div className="top-bar">
-                            <button type="button" className="btn btn-primary btn-sm rounded" onClick={() => props.onChange({ status: 'DRAFT', hide_warnings: true })}>
-                                <i className="fas fa-pencil-alt"></i>
-                            </button>
-                            <Button
-                                icon="candidates" color="primary" size="small" rounded={true}
-                                onClick={() => bar.show({ slug: "show_shift_applications", data: shift, title: "Shift Applicants", allowLevels: true })}
-                                note={shift.candidates.length > 0 ? "There are shift has applications that have not been reviwed" : null}
-                                notePosition="left"
-                            />
-                            { shift.status === 'OPEN' || shift.expired == true ?
+                        { !shift.expired ?
+                            <div className="top-bar">
+                                <button type="button" className="btn btn-primary btn-sm rounded" onClick={() => props.onChange({ status: 'DRAFT', hide_warnings: true })}>
+                                    <i className="fas fa-pencil-alt"></i>
+                                </button>
+                                <Button
+                                    icon="candidates" color="primary" size="small" rounded={true}
+                                    onClick={() => bar.show({ slug: "show_shift_applications", data: shift, title: "Shift Applicants", allowLevels: true })}
+                                    note={shift.candidates.length > 0 ? "There are shift has applications that have not been reviwed" : null}
+                                    notePosition="left"
+                                />
+                                { shift.status === 'OPEN' &&
+                                    <Button icon="user_check" color="primary" notePosition="left" size="small" rounded={true}
+                                        onClick={() => bar.show({ slug: "show_shift_employees", data: shift, title: "Shift Employees", allowLevels: true })} />
+                                }
+                            </div>
+                            :
+                            <div className="top-bar">
                                 <Button icon="user_check" color="primary" notePosition="left" size="small" rounded={true}
                                     onClick={() => bar.show({ slug: "show_shift_employees", data: shift, title: "Shift Employees", allowLevels: true })} />
-                                :''
-                            }
-                            { shift.expired === true ?
                                 <Button icon="dollar" color="primary" notePosition="left" size="small" rounded={true}
                                     note={shift.status !== 'OPEN' ? '': <span>This shift is expired and the payroll has not been processed</span>}
                                     onClick={() => bar.show({ slug: "select_timesheet", data: shift, allowLevels: true })} />
-                                :''
-                            }
-                        </div>
+                            </div>
+                        }
                         { props.formData.status === 'DRAFT' ? <EditOrAddShift bar={bar} {...props} /> : <ShowShift bar={bar} shift={shift} /> }
                     </div>
                 }

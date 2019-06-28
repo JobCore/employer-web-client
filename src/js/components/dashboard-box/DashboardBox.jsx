@@ -1,24 +1,30 @@
 import './style.scss';
-import React from 'react';
+import React, { useState } from 'react';
 import ShiftCard from '../shift-card';
 import {Link} from "react-router-dom";
 import PropTypes from 'prop-types';
 
 const DashboardBox = ({shifts, title, status, id}) => {
+
+    const [ collapsed, setCollapsed ] = useState(true);
+
     const shiftsHTML = (!Array.isArray(shifts)) ? [] : shifts.map((s,i) => (<ShiftCard key={i} shift={s} clickForDetails={true} showStatus={true} />));
-    return (<div className="dashboard_box">
+    return (<div className="dashboard_box collapsable">
         <div className="row header no-gutters">
-            <div className="col-5">
-                <h2 id={id} className="header-title">{title}</h2>
+            <div className="col-6" onClick={() => setCollapsed(!collapsed)}>
+                <h2 id={id} className="header-title">
+                    <span className="badge badge-light float-right">{shiftsHTML.length}</span>
+                    {title}
+                </h2>
             </div>
-            <div className="col-7">
+            <div className="col-6">
                 <span className="bar mt-2"></span>
             </div>
         </div>
-        <div className="row">
+        <div className={`row ${collapsed ? 'hidden':''}`}>
             <div className="col-10 content scroll">
                 <ul>
-                    { (shiftsHTML.length == 0) ? 
+                    { (shiftsHTML.length == 0) ?
                         <li>You have not shifts with status {status}</li>
                         :
                         shiftsHTML

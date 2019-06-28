@@ -10,9 +10,10 @@ import {Favlist} from '../views/favorites';
 import {Talent, ShiftInvite} from '../views/talents';
 import {Application} from '../views/applications';
 import {ValidationError} from '../utils/validation';
+import {Notify} from 'bc-react-notifier';
 
 class RightBar extends React.Component {
-    
+
     constructor(){
         super();
         this.state = {
@@ -54,7 +55,7 @@ class RightBar extends React.Component {
                 break;
                 case 'invite_talent_to_shift':{
                         create(
-                            {url: 'shifts/invites', slug: 'invites'}, 
+                            {url: 'shifts/invites', slug: 'invites'},
                             ShiftInvite(this.state.formData).validate().serialize()
                         );
                         this.props.onClose();
@@ -62,7 +63,7 @@ class RightBar extends React.Component {
                 break;
                 case 'search_talent_and_invite_to_shift':{
                         create(
-                            {url: 'shifts/invites', slug: 'invites'}, 
+                            {url: 'shifts/invites', slug: 'invites'},
                             ShiftInvite(this.state.formData).validate().serialize()
                         );
                         this.props.onClose();
@@ -135,8 +136,13 @@ class RightBar extends React.Component {
                     }
                 break;
                 case 'delete_shift_employee':{
-                        deleteShiftEmployee(data.shift.id, data.employee);
-                        this.props.onClose();
+                        const noti = Notify.error("Are you sure?", (answer) => {
+                            if(answer){
+                                deleteShiftEmployee(data.shift.id, data.employee);
+                                this.props.onClose();
+                            }
+                            noti.remove();
+                        });
                     }
                 break;
                 default: throw new Error("Missing logic onSave() for "+this.props.option.slug);
@@ -148,39 +154,39 @@ class RightBar extends React.Component {
             }
             else throw error;
         }
-            
+
     }
-    
+
     componentDidMount(){
         if(this.props.formData) this.setState({ formData: this.props.formData });
     }
-    
+
     static getDerivedStateFromProps(nextProps, prevState) {
         if (nextProps.formData && prevState.formData !== nextProps.formData) {
             return {
                 formData: nextProps.formData
             };
         }
-        
+
         // Return null to indicate no change to state.
         return null;
     }
-    
+
     onChange(incoming){
         const data = Object.assign(this.state.formData, incoming);
         this.setState({ formData: data });
     }
-    
+
     render(){
         const View = this.props.component;
         const styles = { width: this.props.width , right: (this.props.level * (this.props.width/3))};
-        
+
         return (<div className={"right-bar"+(!this.props.isCollapsable ? " collapsed" : '')} style={styles}>
             <span className="backdrop" onClick={() => this.props.onBackdropClick() } />
             {
                 (this.state.error) ? <div className="alert alert-danger">{this.state.error}</div> : ''
             }
-            <View 
+            <View
                 error={this.state.error}
                 catalog={this.props.catalog}
                 formData={this.state.formData}
@@ -191,10 +197,10 @@ class RightBar extends React.Component {
                     }
                     else this.onSave(data);
                 }}
-                onCancel={(incoming)=>this.props.onClose(incoming)} 
-                onChange={(incoming)=>this.onChange(incoming)} 
+                onCancel={(incoming)=>this.props.onClose(incoming)}
+                onChange={(incoming)=>this.onChange(incoming)}
             />
-            { (this.props.isCollapsable) ? 
+            { (this.props.isCollapsable) ?
                 <button className="collapsebtn"
                     onClick={() => this.props.onClose()}
                 ><i className="fas fa-angle-double-right"></i></button>

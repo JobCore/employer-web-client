@@ -14,7 +14,9 @@ export const ShiftOption = require('./shift-option/ShiftOption').default;
 export const ShiftOptionSelected = require('./shift-option/ShiftOptionSelected').default;
 export const Button = require('./button/Button').default;
 export const LoadBar = require('./load-bar/LoadBar').default;
+
 export const Stars = require('./stars/Stars').default;
+export const StarRating = require('./rating/Rating').default;
+
 export const Modal = require('./modal/Modal').default;
-export const ShiftTimeline = require('./shift-timeline/ShiftTimeline').default;
 export const Theme = require('./theme/Theme').default;

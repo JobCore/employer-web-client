@@ -1,12 +1,13 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import {store, search} from '../actions.js';
+import {store, search, fetchTemporal} from '../actions.js';
 import {callback, hasTutorial} from '../utils/tutorial';
-import {EmployeeExtendedCard, Avatar, Stars, Theme, Button, Wizard} from '../components/index';
+import {GenericCard, Avatar, Stars, Theme, Button, Wizard, StarRating} from '../components/index';
 import Select from 'react-select';
 import queryString from 'query-string';
 import {Session} from 'bc-react-session';
+import moment from 'moment';
 
 //gets the querystring and creats a formData object to be used when opening the rightbar
 export const getRatingInitialFilters = (catalog) => {
@@ -53,7 +54,11 @@ export const Rating = (data) => {
         },
         getFormData: () => {
             const _formRating = {
-                //id: _entity.id,
+                id: _entity.id,
+                comments: _entity.comments,
+                rating: _entity.rating,
+                sender: _entity.sender,
+                created_at: (moment.isMoment(_entity.created_at) ) ? _entity.created_at : moment(_entity.created_at),
             };
             return _formRating;
         },
@@ -74,26 +79,16 @@ export class ManageRating extends Flux.DashView {
         this.state = {
             ratings: [],
             runTutorial: hasTutorial(),
-            steps: [
-                {
-                    target: '#talent_search_header',
-                    content: 'In this page you can search our entire talent network',
-                    placement: 'right'
-                },
-                {
-                    target: '#filter_talent',
-                    content: 'Start by filtering by name, experience, badges or minium star rating',
-                    placement: 'left'
-                }
-            ]
+            steps: [],
+            employer: null
         };
     }
 
     componentDidMount(){
 
         this.filter();
-        this.subscribe(store, 'ratings', (employees) => {
-            this.setState({ employees });
+        this.subscribe(store, 'ratings', (ratings) => {
+            this.setState({ ratings });
         });
 
         this.props.history.listen(() => {
@@ -101,15 +96,18 @@ export class ManageRating extends Flux.DashView {
             this.setState({ firstSearch: false });
         });
         this.setState({ runTutorial: true });
+
+        fetchTemporal('employers/me', 'current_employer');
+        this.subscribe(store, 'current_employer', (employer) => {
+            this.setState({ employer });
+        });
     }
 
-    filter(employees=null){
-        search('employees', window.location.search);
+    filter(ratings=null){
+        search('ratings', window.location.search);
     }
 
     render() {
-        if(this.state.firstSearch) return <p>Please search for an employee</p>;
-        const allowLevels = (window.location.search != '');
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({bar}) => (<span>
@@ -118,108 +116,118 @@ export class ManageRating extends Flux.DashView {
                       run={this.state.runTutorial}
                       callback={callback}
                     />
-                    <h1><span id="talent_search_header">Talent Search</span></h1>
-                    {this.state.employees.map((s,i) => (
-                        <EmployeeExtendedCard key={i} employee={s} hover={true}
-                            onClick={() => bar.show({ slug: "show_single_talent", data: s, allowLevels })}>
-                            <Button icon="favorite" onClick={() => bar.show({ slug: "add_to_favlist", data: s, allowLevels })}><label>Favorites</label></Button>
-                            <Button icon="favorite" onClick={() => bar.show({ slug: "invite_talent_to_shift", data: s, allowLevels })}><label>Invite</label></Button>
-                        </EmployeeExtendedCard>
-                    ))}
+                    <h2>Company Ratings</h2>
+                    <div className="row mt-2">
+                        <div className="col-6">
+                            <label>Total Ratings</label>
+                            <p>You have been rated <span className="text-success">{this.state.employer ? this.state.employer.total_ratings : "0"} times.</span></p>
+                        </div>
+                        <div className="col-6">
+                            <label>Rating</label>
+                            <p>Talents rated you with <span className="text-success">{this.state.employer ? this.state.employer.rating : "0"} points avg.</span></p>
+                        </div>
+                    </div>
+                    <div className="row">
+                        <div className="col-12">
+                            <h3>Recent Ratings</h3>
+                            {this.state.ratings.map((rate,i) => (
+                                <GenericCard key={i} hover={true} onClick={() => bar.show({ slug: "show_single_rating", data: rate, allowLevels: false })}>
+                                    <Avatar url={rate.sender.picture} />
+                                    <Stars className="float-left" rating={Number(rate.rating)}  />
+                                    <span>{`  on ${rate.created_at.substring(0,10)}`}</span>
+                                    <p className="mt-0">{`"${rate.comments}"`}</p>
+                                </GenericCard>
+                            ))}
+                        </div>
+                    </div>
                 </span>)}
             </Theme.Consumer>
         </div>);
     }
 }
 
-/**
- * AddShift
- */
-export const FilterTalents = (props) => {
-    return (<form>
-        <div className="row">
-            <div className="col-6">
-                <label>First Name:</label>
-                <input className="form-control"
-                    value={props.formData.first_name}
-                    onChange={(e)=>props.onChange({ first_name: e.target.value })}
-                />
-            </div>
-            <div className="col-6">
-                <label>Last Name:</label>
-                <input className="form-control"
-                    value={props.formData.last_name}
-                    onChange={(e)=>props.onChange({ last_name: e.target.value })}
-                />
-            </div>
-        </div>
-        <div className="row">
-            <div className="col-12">
-                <label>Experience in past positions:</label>
-                <Select isMulti
-                    value={props.formData.positions}
-                    onChange={(selectedOption)=>props.onChange({positions: selectedOption})}
-                    options={props.catalog.positions}
-                />
-            </div>
-        </div>
-        <div className="row">
-            <div className="col-12">
-                <label>Badges:</label>
-                <Select isMulti
-                    value={props.formData.badges}
-                    onChange={(selectedOption)=>props.onChange({badges: selectedOption})}
-                    options={props.catalog.badges}
-                />
-            </div>
-        </div>
-        <div className="row">
-            <div className="col-12">
-                <label>Minimum start rating</label>
-                <Select
-                    value={props.formData.rating}
-                    onChange={(opt)=>props.onChange({rating: opt})}
-                    options={props.catalog.stars}
-                />
-            </div>
-        </div>
-        <div className="btn-bar">
-            <Button color="primary" onClick={() => props.onSave()}>Apply Filters</Button>
-            <Button color="secondary" onClick={() => props.onSave(false)}>Clear Filters</Button>
-        </div>
-    </form>);
-};
-FilterTalents.propTypes = {
-  onSave: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  onChange: PropTypes.func.isRequired,
-  formData: PropTypes.object,
-  catalog: PropTypes.object //contains the data needed for the form to load
-};
 
 /**
  * Talent Details
  */
-export const TalentDetails = (props) => {
-    const employee = props.catalog.employee;
+export const RatingDetails = (props) => {
+    console.log("RatingDetails props: ", props);
+    const { formData } = props;
     return (<Theme.Consumer>
         {({bar}) =>
             (<li className="aplication-details">
-
-                <Avatar url={employee.user.profile.picture} />
-                <p>{typeof employee.fullName == 'function' ? employee.fullName() : employee.first_name + ' ' + employee.last_name}</p>
+                <Avatar url={formData.sender.picture} />
+                <p>{formData.sender.user.first_name + ' ' + formData.sender.user.last_name}</p>
                 <div>
-                    <Stars className="float-left" rating={Number(employee.rating)} jobCount={employee.job_count}  />
+                    <Stars rating={Number(formData.rating)}  />
                 </div>
-                <p>$ {employee.minimum_hourly_rate} /hr minimum expected rate</p>
-                <p>{employee.user.profile.bio}</p>
+                <h5 className="mt-3">{'"'}{formData.comments}{'"'}</h5>
+            </li>)}
+    </Theme.Consumer>);
+};
+RatingDetails.propTypes = {
+  catalog: PropTypes.object.isRequired,
+  formData: PropTypes.object
+};
+
+
+/**
+ * Talent Details
+ */
+export const PendingRatings = (props) => {
+    return (<Theme.Consumer>
+        {({bar}) =>
+            (<li className="aplication-details">
+            </li>)}
+    </Theme.Consumer>);
+};
+PendingRatings.propTypes = {
+  catalog: PropTypes.object.isRequired,
+  formData: PropTypes.object
+};
+
+
+/**
+ * Talent Details
+ */
+export const ReviewTalent = (props) => {
+    const shift = props.formData.shift;
+    const employee = props.formData.employee;
+    const startDate = shift.starting_at.format('ll');
+    const startTime = shift.starting_at.format('LT');
+    const endTime = shift.ending_at.format('LT');
+    return (<Theme.Consumer>
+        {({bar}) =>
+            (<li className="aplication-details">
+                <h4>How satisfied are you with {employee.user.first_name}{"'"}s performance during this shift?</h4>
+                <p className="mb-3">
+                    <Avatar url={employee.user.profile.picture} />
+                </p>
+                <a href="#" className="shift-position">{shift.position.title}</a> @
+                <a href="#" className="shift-location"> {shift.venue.title}</a>
+                <span className="shift-date"> {startDate} from {startTime} to {endTime} </span>
+                {
+                    (typeof shift.price == 'string') ?
+                        <span className="shift-price"> ${shift.price}</span>
+                        :
+                        <span className="shift-price"> {shift.price.currencySymbol}{shift.price.amount}</span>
+                }
+                <StarRating
+                    placeholderRating={Number(employee.rating ? employee.rating : 1)}
+                    emptySymbol="fa fa-star-o fa-2x"
+                    fullSymbol="fa fa-star fa-2x"
+                    placeholderSymbol={"fa fa-star fa-2x"}
+                />
+                <textarea className="form-control mt-3" placeholder={`Please describe further your experiences with ${employee.user.first_name}`}>
+                </textarea>
                 <div className="btn-bar">
-                    <Button color="primary" onClick={() => bar.show({ slug: "invite_talent_to_shift", data: employee, allowLevels:true })}>Invite to shift</Button>
-                    <Button color="success" onClick={() => bar.show({ slug: "add_to_favlist", data: employee, allowLevels:true })}>Add to favorites</Button>
+                    <Button color="secondary" onClick={() => bar.close()}>Cancel</Button>
+                    <Button color="primary" onClick={() => null}>Send</Button>
                 </div>
             </li>)}
     </Theme.Consumer>);
 };
-TalentDetails.propTypes = {
-  catalog: PropTypes.object.isRequired
+ReviewTalent.propTypes = {
+  catalog: PropTypes.object.isRequired,
+  formData: PropTypes.object
 };

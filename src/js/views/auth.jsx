@@ -1,6 +1,7 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 import PropTypes from 'prop-types';
+import qs from 'query-string';
 import * as actions from '../actions';
 import {Notifier} from 'bc-react-notifier';
 import loginBanner from '../../img/login-banner.png';
@@ -13,9 +14,10 @@ import appleIcon from '../../img/icons/apple-store.svg';
 import SVG from 'react-svg-inline';
 
 export class Login extends React.Component{
-    constructor(){
-        super();
-        this.state = { email: 'aalejo@gmail.com', password: '1234', company: '', loading: false };
+    constructor(props){
+        super(props);
+        const urlVariables = qs.parse(props.location.search);
+        this.state = { email: 'aalejo@gmail.com', password: '1234', type: urlVariables.type || 'company', loading: false };
     }
     render(){
         return (
@@ -23,57 +25,81 @@ export class Login extends React.Component{
                 <img className="banner" src={loginBanner} />
                 <Notifier />
                 <MobileView>
-                    <h4>Please login from the mobile application</h4>
-                    <a href="#">
-                        <SVG className="store-icon" svg={googleIcon} />
-                    </a>
-                    <a href="#">
-                        <SVG className="store-icon" svg={appleIcon} />
-                    </a>
+                    {
+                        this.state.type == 'company' ?
+                            <div>
+                                <h4>Please log in from a desktop computer</h4>
+                            </div>
+                            :
+                            <div>
+                                <h4>Please download our mobile application to log in</h4>
+                                <a href="#">
+                                    <SVG className="store-icon" svg={googleIcon} />
+                                </a>
+                                <a href="https://apps.apple.com/us/app/jobcore-talent/id1437290430">
+                                    <SVG className="store-icon" svg={appleIcon} />
+                                </a>
+                            </div>
+                    }
                 </MobileView>
                 <BrowserView>
-                    <form className="col-10 col-sm-5 col-md-4 col-lg-3 mx-auto"
-                        onSubmit={(e)=> {
-                            e.preventDefault();
-                            this.setState({loading: true});
-                            actions.login(this.state.email, this.state.password, this.props.history)
-                                .then(() => this.setState({loading: false}))
-                                .catch(() => this.setState({loading: false}));
-                        }}
-                    >
-                        <div className="form-group">
-                            <input type="email" className="form-control rounded" aria-describedby="emailHelp" placeholder="Email"
-                                value={this.state.email}
-                                onChange={(e) => this.setState({email: e.target.value})}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <input type="password" className="form-control rounded" id="exampleInputPassword1" placeholder="Password"
-                                 onChange={(e) => this.setState({password: e.target.value})} value={this.state.password}
-                            />
-                        </div>
-                        {(this.state.loading) ?
-                            <button type="submit" className="btn btn-default form-control" disabled>Loading...</button>
-                        :
-                            <button type="submit" className="btn btn-primary form-control">Sign In</button>
-                        }
-                        <div className="extra-actions">
-                            <Link to="/signup" className="float-left ml-4 mt-2">Sign Up</Link>
-                            <Link to="/forgot" className="float-right mr-4 mt-2">Forgot Password</Link>
-                        </div>
-                    </form>
+                    {
+                        this.state.type == 'employee' ?
+                            <div>
+                                <h4>Please download our mobile application to log in</h4>
+                                <a href="#">
+                                    <SVG className="store-icon" svg={googleIcon} />
+                                </a>
+                                <a href="https://apps.apple.com/us/app/jobcore-talent/id1437290430">
+                                    <SVG className="store-icon" svg={appleIcon} />
+                                </a>
+                            </div>
+                            :
+                            <form className="col-10 col-sm-5 col-md-4 col-lg-3 mx-auto"
+                                onSubmit={(e)=> {
+                                    e.preventDefault();
+                                    this.setState({loading: true});
+                                    actions.login(this.state.email, this.state.password, this.props.history)
+                                        .then(() => this.setState({loading: false}))
+                                        .catch(() => this.setState({loading: false}));
+                                }}
+                            >
+                                <div className="form-group">
+                                    <input type="email" className="form-control rounded" aria-describedby="emailHelp" placeholder="Email"
+                                        value={this.state.email}
+                                        onChange={(e) => this.setState({email: e.target.value})}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <input type="password" className="form-control rounded" id="exampleInputPassword1" placeholder="Password"
+                                        onChange={(e) => this.setState({password: e.target.value})} value={this.state.password}
+                                    />
+                                </div>
+                                {(this.state.loading) ?
+                                    <button type="submit" className="btn btn-default form-control" disabled>Loading...</button>
+                                :
+                                    <button type="submit" className="btn btn-primary form-control">Sign In</button>
+                                }
+                                <div className="extra-actions">
+                                    <Link to="/signup" className="float-left ml-4 mt-2">Sign Up</Link>
+                                    <Link to="/forgot" className="float-right mr-4 mt-2">Forgot Password</Link>
+                                </div>
+                            </form>
+                    }
                 </BrowserView>
             </div>
         );
     }
 }
 Login.propTypes = {
-    history: PropTypes.object
+    history: PropTypes.object,
+    location: PropTypes.object
 };
 export class Signup extends React.Component{
-    constructor(){
-        super();
-        this.state = { email: 'aalejo@gmail.com', password: '', first_name: '', last_name:'', company: 1, loading: false, errors: [] };
+    constructor(props){
+        super(props);
+        const urlVariables = qs.parse(props.location.search);
+        this.state = { email: 'aalejo@gmail.com', password: '', first_name: '', last_name:'', company: urlVariables.company || 1, loading: false, errors: [], token: urlVariables.token || null };
     }
     validate(formData){
         let errors = [];
@@ -162,7 +188,8 @@ export class Signup extends React.Component{
     }
 }
 Signup.propTypes = {
-    history: PropTypes.object
+    history: PropTypes.object,
+    location: PropTypes.object
 };
 export class Forgot extends React.Component{
     constructor(){
@@ -207,14 +234,16 @@ Forgot.propTypes = {
 };
 
 export class Invite extends React.Component{
-    constructor(){
-        super();
+    constructor(props){
+        super(props);
+        const urlVariables = qs.parse(props.location.search);
         this.state = {
             email: '',
             password: '',
             repPassword: '',
             first_name: '',
             last_name: '',
+            token: urlVariables.token || '',
             error: null
         };
     }
@@ -223,7 +252,7 @@ export class Invite extends React.Component{
             <div className="row mt-5">
                 <div className="col-12 col-sm-10 col-md-9 col-lg-8 col-xl-6 mx-auto">
                     <img className="banner w-100" src={loginBanner} />
-                    <h2 className="my-4 text-center">The company Fetes Events LLC wants to hire you for an event and its inviting you to apply, please fill the following form to complete your application:</h2>
+                    <h2 className="my-4 text-center">Sign Up to Jobcore and start making money with dozens of job offers every day</h2>
                     <form className="col-12 col-lg-10 mx-auto"
                         onSubmit={(e)=> {
                             e.preventDefault();
@@ -235,6 +264,7 @@ export class Invite extends React.Component{
                                     password: this.state.password,
                                     first_name: this.state.first_name,
                                     last_name: this.state.last_name,
+                                    token: this.state.token,
                                     account_type: 'employee'
                                 }, this.props.history)
                                     .then(() => this.setState({loading: false, error: null }))
@@ -278,5 +308,6 @@ export class Invite extends React.Component{
     }
 }
 Invite.propTypes = {
-    history: PropTypes.object
+    history: PropTypes.object,
+    location: PropTypes.object
 };

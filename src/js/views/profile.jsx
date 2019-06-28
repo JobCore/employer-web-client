@@ -9,7 +9,7 @@ import DateTime from 'react-datetime';
 import moment from 'moment';
 
 export const Employer = (data={}) => {
-    
+
     const _defaults = {
         title: '',
         website: '',
@@ -21,15 +21,15 @@ export const Employer = (data={}) => {
         response_time: 'not yet calculated',
         rating: 'not yet calculated',
         serialize: function(){
-            
+
             const newShift = {
 //                status: (this.status == 'UNDEFINED') ? 'DRAFT' : this.status,
             };
-            
+
             return Object.assign(this, newShift);
         }
     };
-    
+
     let _employer = Object.assign(_defaults, data);
     return {
         validate: () => {
@@ -45,28 +45,28 @@ export const Employer = (data={}) => {
 };
 
 export class Profile extends Flux.DashView {
-    
+
     constructor(){
         super();
         this.state = {
             employer: Employer().defaults()
         };
     }
-    
+
     setEmployer(newEmployer){
         const employer = Object.assign(this.state.employer, newEmployer);
         this.setState({ employer });
     }
-    
+
     componentDidMount(){
-        
+
         fetchTemporal('employers/me', 'current_employer');
         this.subscribe(store, 'current_employer', (employer) => {
             this.setState({ employer });
         });
-        
+
     }
-    
+
     render() {
         return (<div className="p-1 listcontents company-profile">
             <h1><span id="company_details">Company Details</span></h1>
@@ -84,7 +84,7 @@ export class Profile extends Flux.DashView {
                 <div className="row">
                     <div className="col-12">
                         <label>Company Logo</label>
-                        { !this.state.editingImage ? 
+                        { !this.state.editingImage ?
                             <div className="company-logo" style={{ backgroundImage: `url(${this.state.employer.picture})`}}>
                                 <Button color="primary" size="small" onClick={() => this.setState({ editingImage: true })} icon="pencil" />
                             </div>
@@ -109,7 +109,7 @@ export class Profile extends Flux.DashView {
                 <div className="row">
                     <div className="col-12">
                         <label>Company Name</label>
-                        <input type="text" className="form-control" value={this.state.employer.title} 
+                        <input type="text" className="form-control" value={this.state.employer.title}
                             onChange={(e) => this.setEmployer({ title: e.target.value })}
                         />
                     </div>
@@ -125,16 +125,16 @@ export class Profile extends Flux.DashView {
                 <div className="row mt-2">
                     <div className="col-12">
                         <label>Bio</label>
-                        <input type="text" className="form-control" value={this.state.employer.bio} 
+                        <input type="text" className="form-control" value={this.state.employer.bio}
                             onChange={(e) => this.setEmployer({ bio: e.target.value })}
                         />
                     </div>
                 </div>
                 <div className="mt-4 text-right">
-                    <button 
-                        type="button" 
-                        className="btn btn-primary" 
-                        onClick={() => update({path: 'employers/me', event_name: 'current_employer'}, Employer(this.state.employer).validate().serialize())}
+                    <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={() => update({ path: 'employers/me', event_name: 'current_employer' }, Employer(this.state.employer).validate().serialize())}
                     >Save</button>
                 </div>
             </form>
@@ -143,35 +143,35 @@ export class Profile extends Flux.DashView {
 }
 
 export class PayrollSettings extends Flux.DashView {
-    
+
     constructor(){
         super();
         this.state = {
             employer: Employer().defaults()
         };
     }
-    
+
     setEmployer(newEmployer){
         const employer = Object.assign(this.state.employer, newEmployer);
         this.setState({ employer });
     }
-    
+
     componentDidMount(){
-        
+
         fetchTemporal('employers/me', 'current_employer');
         this.subscribe(store, 'current_employer', (employer) => {
             this.setState({ employer });
         });
-        
+
     }
-    
+
     render() {
         const autoClockout = this.state.employer.maximum_clockout_delay_minutes == null ? false : true;
         const weekday = this.state.employer.payroll_period_starting_time.isoWeekday();
-        
+
         let nextDate = this.state.employer.payroll_period_starting_time.clone();
         while(nextDate.isBefore(NOW())) nextDate = nextDate.add(7,'days');
-        
+
         return (<div className="p-1 listcontents company-payroll-settings">
             <h1><span id="company_details">Your Payroll Settings</span></h1>
             <div className="row mt-2">
@@ -188,13 +188,13 @@ export class PayrollSettings extends Flux.DashView {
                             <option>Week</option>
                         </select>
                         <span> starting </span>
-                        <select 
+                        <select
                             value={weekday || 1}
                             className="form-control" style={{ width: "100px", display: "inline-block" }}
                             onChange={(e)=> {
                                 const diff = (e.target.value - weekday);
                                 let newDate =  this.state.employer.payroll_period_starting_time.clone().add(diff, 'days');
-                                this.setEmployer({ 
+                                this.setEmployer({
                                     payroll_period_starting_time: newDate
                                 });
                             }}
@@ -208,7 +208,7 @@ export class PayrollSettings extends Flux.DashView {
                             <option value={7}>Sunday{"'s"}</option>
                         </select>
                         <span> at </span>
-                        <DateTime 
+                        <DateTime
                             dateFormat={false}
                             styles={{ width: "100px", display: "inline-block" }}
                             timeFormat={DATETIME_FORMAT}
@@ -228,7 +228,7 @@ export class PayrollSettings extends Flux.DashView {
                 <div className="row">
                     <div className="col-12">
                         <label className="d-block">When can talents start clocking in?</label>
-                        <select 
+                        <select
                             value={this.state.employer.maximum_clockin_delta_minutes}
                             className="form-control" style={{ width: "100px", display: "inline-block" }}
                             onChange={(e) => this.setEmployer({ maximum_clockin_delta_minutes: e.target.value })}
@@ -252,11 +252,11 @@ export class PayrollSettings extends Flux.DashView {
                             <option value={true}>Only if the talent forgets to checkout</option>
                             <option value={false}>No, leave the shift active until the talent checkouts</option>
                         </select>
-                        { !autoClockout ? '': 
-                        <span> 
-                            , wait 
+                        { !autoClockout ? '':
+                        <span>
+                            , wait
                             <input type="number" style={{width: "60px"}} className="form-control d-inline-block ml-2 mr-2"
-                                value={this.state.employer.maximum_clockout_delay_minutes} 
+                                value={this.state.employer.maximum_clockout_delay_minutes}
                                 onChange={(e) => this.setEmployer({ maximum_clockout_delay_minutes: e.target.value })}
                             />
                             min to auto checkout
@@ -265,10 +265,10 @@ export class PayrollSettings extends Flux.DashView {
                     </div>
                 </div>
                 <div className="mt-4 text-right">
-                    <button 
-                        type="button" 
-                        className="btn btn-primary" 
-                        onClick={() => update({path: 'employers', event_name: 'current_employer'}, Employer(this.state.employer).validate().serialize())}
+                    <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={() => update({path: 'employers/me', event_name: 'current_employer'}, Employer(this.state.employer).validate().serialize())}
                     >Save</button>
                 </div>
             </form>

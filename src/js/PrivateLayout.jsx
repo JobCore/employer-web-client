@@ -14,6 +14,7 @@ import {PendingInvites, SearchShiftToInviteTalent, InviteTalentToJobcore, Search
 import {ManageFavorites, AddFavlistsToTalent, FavlistEmployees, AddTalentToFavlist, Favlist, AddorUpdateFavlist} from './views/favorites';
 import { ManageLocations, AddOrEditLocation, Location } from './views/locations';
 import { ManagePayroll, SelectTimesheet } from './views/payroll';
+import { ManageRating, Rating, RatingDetails, ReviewTalent } from './views/ratings';
 import {Profile, PayrollSettings} from './views/profile';
 import {store, resendValidationLink} from './actions';
 import {NOW} from './components/utils.js';
@@ -155,6 +156,15 @@ class PrivateLayout extends Flux.DashView{
                         case 'add_talent_to_favlist':
                             option.title = "Search for the talent";
                             this.showRightBar(AddTalentToFavlist, option, {formData: Favlist(option.data).getFormData() });
+                        break;
+                        case 'show_single_rating':
+                            option.title = "Rating";
+                            fetchSingle('ratings', option.data.id)
+                                .then(rating => this.showRightBar(RatingDetails, option, {formData: Rating(rating).getFormData() }));
+                        break;
+                        case 'review_talent':
+                            option.title = "Review Talent";
+                            this.showRightBar(ReviewTalent, option, { formData: option.data });
                         break;
                         case 'select_timesheet':
                             searchMe('payroll-periods').then((periods) =>
@@ -326,12 +336,12 @@ class PrivateLayout extends Flux.DashView{
                             <Route exact path='/talents' component={ManageTalents} />
                             <Route exact path='/favorites' component={ManageFavorites} />
                             <Route exact path='/locations' component={ManageLocations} />
-                            {/* <Route exact path='/my-ratings' component={ManageRatings} /> */}
                             <Route exact path='/payroll-settings' component={PayrollSettings} />
                             <Route exact path='/profile' component={Profile} />
                             <Route exact path='/payroll' component={ManagePayroll} />
                             <Route exact path='/payroll/period/:period_id' component={ManagePayroll} />
                             <Route exact path='/rate' component={RateShift} />
+                            <Route exact path='/ratings' component={ManageRating} />
                             <Route exact path='/home' component={Dashboard} />
                             <Route exact path='/' component={Dashboard} />
                         </Switch>

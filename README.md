@@ -92,5 +92,5 @@ $ firebase login --no-localhost
 ```
 2)
 ```
-$ firebase deploy
+$ firebase deploy --project jobcore-employer
 ```

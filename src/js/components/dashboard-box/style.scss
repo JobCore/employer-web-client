@@ -1,12 +1,31 @@
 @import '../theme/style.scss';
 .dashboard_box{
+    &.collapsable{
+        .header{
+            cursor: pointer;
+        }
+        .header h1:hover,.header h2:hover{
+            background: $green-200;
+        }
+        height: auto;
+        .hidden{ height: 0; visibility: hidden; }
+        transition: height 0.2s ease-out;
+    }
     .header{
         .header-title{
             width: 100%;
             border: 1px solid $green-600;
             border-radius: 30px;
             padding: 5px 5px 5px 10px;
-            width: 100%;
+
+            .badge{
+                margin: 3px;
+                background: #27666F;
+                color: white;
+                padding: 5px 15px;
+                border-radius: 10px;
+                font-size: 13px;
+            }
         }
     }
     .kpi{

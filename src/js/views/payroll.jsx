@@ -1,7 +1,7 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import { store, search, fillPayrollBlocks, updatePayroll, fetchSingle } from '../actions.js';
+import { store, search, fillPayrollBlocks, updatePayroll, fetchSingle, searchMe } from '../actions.js';
 
 import DateTime from 'react-datetime';
 import moment from 'moment';
@@ -160,9 +160,30 @@ export class ManagePayroll extends Flux.DashView {
         const payrollPeriods = store.getState('payroll-periods');
         this.subscribe(store, 'payroll-periods', (_payrollPeriods) => {
             this.updatePayrollPeriod(_payrollPeriods);
+            this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
         });
+        if(!payrollPeriods){
+            searchMe('payroll-periods');
+        }
+        else{
+            this.updatePayrollPeriod(payrollPeriods);
+            this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
 
-        this.updatePayrollPeriod(payrollPeriods);
+        }
+
+        this.removeHistoryListener = this.props.history.listen((data) => {
+            this.getSinglePeriod(this.props.match.params.period_id);
+        });
+    }
+
+    getSinglePeriod(periodId, payrollPeriods){
+        if(typeof periodId !== 'undefined'){
+            if(!payrollPeriods) fetchSingle("payroll-periods", periodId);
+            else{
+                const singlePayrollPeriod = payrollPeriods.find(pp => pp.id == periodId);
+                this.setState({ singlePayrollPeriod });
+            }
+        }
     }
 
     updatePayrollPeriod(payrollPeriods){
@@ -171,7 +192,7 @@ export class ManagePayroll extends Flux.DashView {
 
         let singlePayrollPeriod = null;
         if(typeof this.props.match.params.period_id !== 'undefined'){
-            singlePayrollPeriod = payrollPeriods.find(pp => pp.id == this.props.params.match.period_id);
+            singlePayrollPeriod = payrollPeriods.find(pp => pp.id == this.props.match.params.period_id);
         }
 
         this.setState({ payrollPeriods, singlePayrollPeriod: singlePayrollPeriod || null  });
@@ -198,7 +219,7 @@ export class ManagePayroll extends Flux.DashView {
                         <p>Pick a timeframe and employe to review</p>
                     }
                     {(!this.state.singlePayrollPeriod) ? '' :
-                        (this.state.single_payroll_projection.clockins.length > 0) ?
+                        (this.state.singlePayrollPeriod.payments.length > 0) ?
                             <div>
                                 <table className="table table-striped payroll-summary">
                                     <thead>
@@ -214,24 +235,19 @@ export class ManagePayroll extends Flux.DashView {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {this.state.single_payroll_projection.clockins.map((c, i) => (
+                                        {this.state.singlePayrollPeriod.payments.map((p, i) => (
                                             <ClockinRow key={i}
-                                                clockin={c}
-                                                readOnly={c.status !== 'PENDING'}
-                                                shift={c.shift}
-                                                onChange={(clockin) => this.setState({
-                                                    single_payroll_projection: Object.assign(this.state.single_payroll_projection, {
-                                                        clockins: this.state.single_payroll_projection.clockins.map((c) => (c.id == clockin.id) ? clockin : c)
-                                                    })}
-                                                )}
+                                                payment={p}
+                                                readOnly={p.status !== 'PENDING'}
+                                                onChange={(clockin) => null}
                                             />
                                         ))}
                                     </tbody>
                                 </table>
                                 <div className="btn-bar">
-                                    { !this.state.single_payroll_projection.approved ?
+                                    { !this.state.singlePayrollPeriod.status == 'APPROVED' ?
                                         <button type="button" className="btn btn-primary" onClick={() => updatePayroll(Object.assign(this.state.single_payroll_projection, { status: 'APPROVED'}))}>Approve</button>
-                                        : !this.state.single_payroll_projection.paid ?
+                                        : !this.state.singlePayrollPeriod.status == 'PAID' ?
                                             <button type="button" className="btn btn-primary" onClick={() => updatePayroll(Object.assign(this.state.single_payroll_projection, { status: 'PAID'}))}> Mark as PAID</button>
                                             :''
                                     }
@@ -246,7 +262,9 @@ export class ManagePayroll extends Flux.DashView {
     }
 }
 
-const ClockinRow = ({ clockin, shift, onChange, readOnly }) => {
+const ClockinRow = ({ payment, onChange, readOnly }) => {
+    const clockin = Clockin(payment.clockin).defaults().unserialize();
+    const shift = Shift(payment.clockin).defaults().unserialize();
     const startDate = clockin.started_at.format('MM/DD');
     const startTime = clockin.started_at.format('LT');
     const endTime = clockin.ended_at.format('LT');
@@ -254,10 +272,10 @@ const ClockinRow = ({ clockin, shift, onChange, readOnly }) => {
     const duration = moment.duration(clockin.ended_at.diff(clockin.started_at));
     const hours = Math.round(duration.asHours() * 100) / 100;
 
-    const shiftStartTime = clockin.shift.starting_at.format('LT');
-    const shiftEndTime = clockin.shift.ending_at.format('LT');
+    const shiftStartTime = shift.starting_at.format('LT');
+    const shiftEndTime = shift.ending_at.format('LT');
 
-    const shiftDuration = moment.duration(clockin.shift.ending_at.diff(clockin.shift.starting_at));
+    const shiftDuration = moment.duration(shift.ending_at.diff(shift.starting_at));
     const shiftTotalHours = Math.round(shiftDuration.asHours() * 100) / 100;
 
     const diff =  Math.round((shiftTotalHours - hours) * 100) / 100;
@@ -311,8 +329,7 @@ const ClockinRow = ({ clockin, shift, onChange, readOnly }) => {
     </tr>;
 };
 ClockinRow.propTypes = {
-    shift: PropTypes.object,
-    clockin: PropTypes.object,
+    payment: PropTypes.object,
     readOnly: PropTypes.bool,
     onChange: PropTypes.func
 };

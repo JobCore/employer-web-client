@@ -8,13 +8,13 @@ import AcceptReject from '../accept-reject';
  */
 const GenericCard = (props) => {
     return (<Theme.Consumer>
-        {({bar}) => 
-            (<li className="generic-card" onClick={() => props.onClick()}>
+        {({bar}) =>
+            (<li className={"generic-card"+(props.hover ? " show-hover":"")} onClick={() => props.onClick()}>
                 {props.children}
-                { props.onAccept ? 
+                { props.onAccept ?
                     <AcceptReject
-                        onAccept={() => props.onAccept()} 
-                        onReject={() => props.onReject()} 
+                        onAccept={() => props.onAccept()}
+                        onReject={() => props.onReject()}
                     />:''
                 }
             </li>)}
@@ -23,11 +23,13 @@ const GenericCard = (props) => {
 GenericCard.propTypes = {
   children: PropTypes.node.isRequired,
   onClick: PropTypes.func,
+  hover: PropTypes.boolean,
   onAccept: PropTypes.func,
   onReject: PropTypes.func
 };
 
 GenericCard.defaultProps = {
+  hover: false,
   children: null,
   onAccept: null,
   onReject: null

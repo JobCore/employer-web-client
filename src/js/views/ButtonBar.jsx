@@ -13,6 +13,7 @@ class ButtonBar extends React.Component {
                 ],
                 "locations": [
                     { slug: "create_location", title: 'Create a location', to: 'locations'},
+                    { slug: "profile", title: 'Back to company profile', to: 'profile'}
                 ],
                 "shifts": [
                     { slug: "create_shift", title: 'Create shifts', to: 'shifts'},
@@ -29,13 +30,19 @@ class ButtonBar extends React.Component {
                     { slug: "create_favlist", title: 'Create Favorite List', to: 'favorites'},
                     { slug: "invite_talent_to_jobcore", title: 'Invite New Talent', to: 'favorites'}
                 ],
+                "payroll-settings": [
+                    { slug: "profile", title: 'Back to company profile', to: 'profile'}
+                ],
                 "payroll/*": [
-                    { slug: "select_timesheet", title: 'Select Timesheet', to: 'payroll'}
+                    { slug: "select_timesheet", title: 'Select Timesheet', to: 'payroll'},
                 ],
                 "profile": [
                     { slug: "manage_locations", title: 'Company Locations', to: 'locations'},
                     { slug: "payroll_settings", title: 'Payroll Settings', to: 'payroll-settings'},
-                    { slug: "my_ratings", title: 'Company Ratings', to: 'my-ratings'}
+                    { slug: "my_ratings", title: 'Company Ratings', to: 'ratings'},
+                    { slug: "company_users", title: 'Company Users', to: 'company-users'}
+                ],
+                "ratings": [
                 ]
             },
             currentButtons: []
@@ -43,8 +50,9 @@ class ButtonBar extends React.Component {
         this.removeHistoryListener = null;
     }
 
-    getMatchingExpression(actions){
-        const path = this.props.history.location.pathname;
+    getMatchingExpression(path, actions){
+        if(path == '/') return "home";
+
         for(let expression in actions)
             if(path.match(expression))
                 return expression;
@@ -54,11 +62,11 @@ class ButtonBar extends React.Component {
 
     componentDidMount(){
 
-        const key = this.getMatchingExpression(this.state.buttonBarActions);
+        const key = this.getMatchingExpression(this.props.history.location.pathname, this.state.buttonBarActions);
 
         this.setState({ currentButtons:  this.state.buttonBarActions[key] });
         this.removeHistoryListener = this.props.history.listen((data) => {
-            let key = data.pathname.replace('/','').replace('#','');
+            const key = this.getMatchingExpression(data.pathname, this.state.buttonBarActions);
             this.setState({currentButtons: this.state.buttonBarActions[key] || [] });
         });
     }
