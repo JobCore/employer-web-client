@@ -1,12 +1,12 @@
 import React from 'react';
 import Flux from '@4geeksacademy/react-flux-dash';
 import { Route, Switch, NavLink } from 'react-router-dom';
-import {logout, fetchAll, fetchSingle, fetchAllMe, searchMe} from './actions';
+import {logout, fetchAll, fetchSingle, fetchAllMe, searchMe, store, resendValidationLink} from './actions';
 import Dashboard from './views/Dashboard';
 import ButtonBar from './views/ButtonBar';
 import { Session } from 'bc-react-session';
-import LoadBar from './components/load-bar/LoadBar.jsx';
-import {Theme, SideBar} from './components/index';
+import {Theme, SideBar, LoadBar} from './components/index';
+import { ShiftCalendar } from "./views/calendar.js";
 import {ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters, RateShift, ShiftInvites, ShiftEmployees } from './views/shifts';
 import {ManageApplicantions, ApplicationDetails,FilterApplications, getApplicationsInitialFilters} from './views/applications';
 import {Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilters, TalentDetails} from './views/talents';
@@ -16,16 +16,11 @@ import { ManageLocations, AddOrEditLocation, Location } from './views/locations'
 import { ManagePayroll, SelectTimesheet } from './views/payroll';
 import { ManageRating, Rating, RatingDetails, ReviewTalent } from './views/ratings';
 import {Profile, PayrollSettings} from './views/profile';
-import {store, resendValidationLink} from './actions';
 import {NOW} from './components/utils.js';
 import {Notifier, Notify} from 'bc-react-notifier';
 import log from './utils/log';
 import logoURL from '../img/logo.png';
 import moment from 'moment';
-
-const logoStyles = {
-    backgroundImage: `url(${logoURL})`
-};
 
 class PrivateLayout extends Flux.DashView{
 
@@ -282,7 +277,7 @@ class PrivateLayout extends Flux.DashView{
     }
 
     render() {
-        const Logo = () => (<span className="svg_img" style={logoStyles} />);
+        const Logo = () => (<span className="svg_img" style={{ backgroundImage: `url(${logoURL})` }} />);
         return (
             <Theme.Provider value={{bar: this.state.bar}}>
                 <LoadBar />
@@ -331,6 +326,7 @@ class PrivateLayout extends Flux.DashView{
                             </div>
                         </div>
                         <Switch>
+                            <Route exact path='/calendar' component={ShiftCalendar} />
                             <Route exact path='/shifts' component={ManageShifts} />
                             <Route exact path='/applicants' component={ManageApplicantions} />
                             <Route exact path='/talents' component={ManageTalents} />

@@ -43,6 +43,9 @@ class ButtonBar extends React.Component {
                     { slug: "company_users", title: 'Company Users', to: 'company-users'}
                 ],
                 "ratings": [
+                ],
+                "calendar": [
+                    { slug: "create_shift", title: 'Create shifts', to: 'shifts'},
                 ]
             },
             currentButtons: []
