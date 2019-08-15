@@ -53,11 +53,11 @@ export const DayTimeline = ({ events, date, isActive, width, timesToShow }) => {
             {timeDirection === "vertical" && dayLabel && dayLabel(date)}
             {times.map(t => (
                 <TimeBlock
-                key={t.index}
-                label={t.label}
-                start={t.start}
-                end={t.end}
-                occupancy={t.occupancy}
+                    key={t.index}
+                    label={t.label}
+                    start={t.start}
+                    end={t.end}
+                    occupancy={t.occupancy}
                 >
                     {t.events.map((e, i) => (
                         <Event key={i} {...e} />

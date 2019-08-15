@@ -5,14 +5,15 @@ import { useDrop } from "react-dnd";
 import moment from "moment";
 import { ItemTypes } from "./Event";
 
-const Block = React.forwardRef((props, ref) => <div ref={ref} onClick={(e) => props.onClick(e)} style={{
+const blockStyles = (props) => ({
     boxSizing: "border-box",
     fontSize: "10px",
     position: "relative",
-    background: props.isOver ? "pink" : "inherit",
-    width: props.timeDirection === "horizontal" ? props.size : "auto",
+    background: props.isOver ? "pink" : props.style.background || "inherit",
+    width: props.timeDirection === "horizontal" ? props.size : props.style.background || "inherit",
     height: props.timeDirection !== "horizontal" ? props.size : `${props.blockHeight}px`
-}}>{props.children}</div>);
+});
+const Block = React.forwardRef((props, ref) => <div ref={ref} onClick={(e) => props.onClick(e)} style={{...blockStyles(props), ...props.style}}>{props.children}</div>);
 
 const calculateNewEvent = (blockTime, minutesDelta, item, { EVENT, HORIZON_TOP, HORIZON_BOTTOM }) => {
 
@@ -33,7 +34,7 @@ const calculateNewEvent = (blockTime, minutesDelta, item, { EVENT, HORIZON_TOP, 
 };
 
 export const TimeBlock = ({ children, label, events, occupancy, start, end }) => {
-    const { timeDirection, timeBlockMinutes, blockPixelSize, showPreview, updateEvent, dragMode, toggleDragMode, blockLabel, onClick, blockHeight } = useContext(CalendarContext);
+    const { timeDirection, timeBlockMinutes, blockPixelSize, showPreview, updateEvent, dragMode, toggleDragMode, blockLabel, onClick, blockHeight, timeBlockStyles } = useContext(CalendarContext);
     const [{ isOver }, drop] = useDrop({
         accept: [ ItemTypes.EVENT, ItemTypes.HORIZON_TOP, ItemTypes.HORIZON_BOTTOM ],
         drop: (item, monitor) => {
@@ -55,6 +56,7 @@ export const TimeBlock = ({ children, label, events, occupancy, start, end }) =>
             ref={drop}
             timeDirection={timeDirection}
             isOver={isOver}
+            style={timeBlockStyles}
             dragMode={dragMode}
             onClick={e => onClick({ start, end, events, occupancy })}
             size={`${blockPixelSize}px`}

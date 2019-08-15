@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import Calendar from "./Calendar.js";
 import moment from "moment";
@@ -38,19 +38,25 @@ const CalendarView = ({
   yAxisWidth,
   activeDate,
   eventBoxStyles,
+  timeBlockStyles,
   onClick,
-  blockHeight
+  blockHeight,
 }) => {
     let daysToShow = [];
-    const currentDate = activeDate ? activeDate : moment().startOf("day");
-    if (viewMode === "day") daysToShow = [currentDate];
-    else if (viewMode === "week") daysToShow = getDaysOfWeek(currentDate);
+
+    const [ currentDate, setCurrentDate ] = useState(activeDate ? activeDate : moment().startOf("day"));
+    const [ _viewMode, setViewMode ] = useState(viewMode);
+
+    if (_viewMode === "day") daysToShow = [currentDate];
+    else if (_viewMode === "week") daysToShow = getDaysOfWeek(currentDate);
 
     return (
         <div>
             <DayPicker>
-                <button>Day</button>
-                <button>Week</button>
+                <button onClick={() => setCurrentDate(moment(currentDate).add(-1,'days'))}>{'<<'}</button>
+                <button onClick={() => setViewMode('day')}>Day</button>
+                <button onClick={() => setViewMode('week')}>Week</button>
+                <button onClick={() => setCurrentDate(moment(currentDate).add(1,'days'))}>{'>>'}</button>
             </DayPicker>
             <Calendar
                 events={events}
@@ -59,7 +65,7 @@ const CalendarView = ({
                 dayDirection={dayDirection}
                 blockPixelSize={40}
                 onChange={event => onChange && onChange(event)}
-                viewMode={viewMode}
+                viewMode={_viewMode}
                 dayLabel={dayLabel}
                 activeDate={currentDate}
                 yAxisWidth={yAxisWidth}
@@ -72,6 +78,7 @@ const CalendarView = ({
 
                 //styling related props
                 eventBoxStyles={eventBoxStyles}
+                timeBlockStyles={timeBlockStyles}
                 blockHeight={blockHeight}//only applies when its horizontal calendar
             />
         </div>
@@ -103,6 +110,7 @@ CalendarView.propTypes = {
 
     //styling properties
     eventBoxStyles: PropTypes.object,
+    timeBlockStyles: PropTypes.object,
     blockHeight: PropTypes.number,//only applies when its horizontal calendar
 };
 

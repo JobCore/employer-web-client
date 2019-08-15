@@ -23,7 +23,7 @@ const eventBlockStyles = (props) => ({
     width: props.direction === "horizontal" ? props.size : "90%",
     height: props.direction !== "horizontal" ? props.size : `${props.blockHeight}px`,
 });
-const EventBlock = React.forwardRef((props, ref) => <div ref={ref} style={{...eventBlockStyles(props), ...props.style}}>{props.children}</div>);
+const EventBlock = React.forwardRef((props, ref) => <div onClick={e => props.onClick(e)} ref={ref} style={{...eventBlockStyles(props), ...props.style}}>{props.children}</div>);
 EventBlock.propTypes = {
   children: PropTypes.node,
   direction: PropTypes.string,
@@ -31,6 +31,7 @@ EventBlock.propTypes = {
   offset: PropTypes.string,
   isDragging: PropTypes.bool,
   style: PropTypes.object,
+  onClick: PropTypes.func,
   siblingCount: PropTypes.number,
   blockHeight: PropTypes.number
 };
@@ -107,8 +108,8 @@ Horizon.propTypes = {
   index: PropTypes.string
 };
 
-export const Event = ({ label, start, end, duration, index, isPreview, offset }) => {
-    const { timeDirection, blockPixelSize, timeBlockMinutes, toggleDragMode, eventBoxStyles, blockHeight } = useContext(CalendarContext);
+export const Event = ({ label, start, end, duration, index, isPreview, offset, data }) => {
+    const { timeDirection, blockPixelSize, timeBlockMinutes, toggleDragMode, eventBoxStyles, blockHeight, onClick } = useContext(CalendarContext);
     const [{ isDragging }, drag ] = useDrag({
         item: { type: ItemTypes.EVENT, index, duration, start, end },
         collect: monitor => {
@@ -125,6 +126,10 @@ export const Event = ({ label, start, end, duration, index, isPreview, offset })
             isDragging={isDragging}
             isPreview={isPreview}
             offset={offset}
+            onClick={(e) => {
+                e.stopPropagation();
+                onClick({ start, end, duration, index, data });
+            }}
             style={eventBoxStyles}
             direction={timeDirection}
             blockHeight={blockHeight}
@@ -161,10 +166,12 @@ Event.propTypes = {
     end: PropTypes.object,
     duration: PropTypes.number,
     isPreview: PropTypes.bool,
-    offset: PropTypes.number
+    offset: PropTypes.number,
+    data: PropTypes.object
 };
 
 Event.defaultProps = {
   label: "",
-  index: "0"
+  index: "0",
+  data: null
 };

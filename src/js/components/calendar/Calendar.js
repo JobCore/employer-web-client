@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { DndProvider } from "react-dnd";
 import HTML5Backend from "react-dnd-html5-backend";
@@ -58,24 +58,32 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
 
     //calendar active date
     const activeDate = rest.activeDate ? rest.activeDate : moment().startOf("day");
-    let yAxis = [];
 
-    const [calendarEvents, setCalendarEvents] = useState(events);
+    const [calendarEvents, setCalendarEvents] = useState(null);
     const [dragMode, setDragMode] = useState(false);
+    const [yAxis, setYAxis] = useState([]);
     const [direction, setDirection] = useState({
         days: rest.dayDirection,
         time: rest.timeDirection
     });
+    const previousEventsRef = useRef(events);
 
-    if (Array.isArray(calendarEvents)) {
-        if (calendarEvents.length > 0 && typeof calendarEvents[0].index === 'undefined')
-        setCalendarEvents(calendarEvents.map((e, i) => ({ index: i, duration: moment.duration(e.end.diff(e.start)).asMinutes(), ...e })));
-    } else {
-        //The timeDirection set to horizontal because the events came as an object
-        if (direction.days !== "vertical" || direction.time !== "horizontal")
-        setDirection({ days: "vertical", time: "horizontal" });
-        yAxis = generateAxis(calendarEvents);
-    }
+    useEffect(() => {
+        if(previousEventsRef.current !== events || calendarEvents === null){
+            previousEventsRef.current = events;
+            if (Array.isArray(events)) {
+                if (events.length > 0 && typeof events[0].index === 'undefined')
+                setCalendarEvents(events.map((e, i) => ({ index: i, duration: moment.duration(e.end.diff(e.start)).asMinutes(), ...e })));
+            } else {
+                //The timeDirection set to horizontal because the events came as an object
+                if (direction.days !== "vertical" || direction.time !== "horizontal")
+                setDirection({ days: "vertical", time: "horizontal" });
+                console.log("Calendar events", events);
+                setYAxis(generateAxis(events));
+            }
+        }
+
+    }, [ events ]);
 
     const times = [...Array((60 * 24) / rest.timeBlockMinutes)].map((n, i) => {
         const start = moment().startOf("day").add(i * rest.timeBlockMinutes, "minutes");
@@ -176,6 +184,8 @@ Calendar.propTypes = {
     PropTypes.func,
     PropTypes.node
   ]),
+
+  timeBlockStyles: PropTypes.object
 };
 
 Calendar.defaultProps = {
@@ -195,6 +205,7 @@ Calendar.defaultProps = {
 
   //only for horizontal calendar
   blockHeight: 30,
+  timeBlockStyles: {}
 };
 
 export default Calendar;

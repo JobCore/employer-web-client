@@ -63,6 +63,7 @@ class PrivateLayout extends Flux.DashView{
                     log.info("Right Bar Action: ", option.slug);
                     switch (option.slug) {
                         case 'create_shift':
+                            console.log('create_shift', option.data);
                             this.showRightBar(ShiftDetails, option, {formData: Shift(option.data).defaults()});
                         break;
                         case 'filter_talent':
@@ -326,7 +327,7 @@ class PrivateLayout extends Flux.DashView{
                             </div>
                         </div>
                         <Switch>
-                            <Route exact path='/calendar' component={ShiftCalendar} />
+                            <Route exact path='/calendar' render={() => <ShiftCalendar {...this.props} catalog={this.state.catalog} />} />
                             <Route exact path='/shifts' component={ManageShifts} />
                             <Route exact path='/applicants' component={ManageApplicantions} />
                             <Route exact path='/talents' component={ManageTalents} />
