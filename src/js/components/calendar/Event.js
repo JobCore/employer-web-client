@@ -111,7 +111,7 @@ Horizon.propTypes = {
 export const Event = ({ label, start, end, duration, index, isPreview, offset, data }) => {
     const { timeDirection, blockPixelSize, timeBlockMinutes, toggleDragMode, eventBoxStyles, blockHeight, onClick } = useContext(CalendarContext);
     const [{ isDragging }, drag ] = useDrag({
-        item: { type: ItemTypes.EVENT, index, duration, start, end },
+        item: { type: ItemTypes.EVENT, index, duration, start, end, data },
         collect: monitor => {
             return ({
                 isDragging: !!monitor.isDragging()

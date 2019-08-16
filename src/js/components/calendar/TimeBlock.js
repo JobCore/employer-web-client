@@ -41,7 +41,7 @@ export const TimeBlock = ({ children, label, events, occupancy, start, end }) =>
             let coord = monitor.getDifferenceFromInitialOffset();
             const minutesDelta = timeDirection === "horizontal" ? Math.round(coord.x / blockPixelSize) * timeBlockMinutes : Math.round(coord.y / blockPixelSize) * timeBlockMinutes;
             const newEvent = calculateNewEvent({ start, end }, minutesDelta, item, ItemTypes);
-            let updatedEvent = { index: item.index, start: newEvent.start, end: newEvent.end, duration: newEvent.duration };
+            let updatedEvent = { index: item.index, start: newEvent.start, end: newEvent.end, duration: newEvent.duration, data: item.data };
 
             if(showPreview) toggleDragMode(false);
             updateEvent(updatedEvent);

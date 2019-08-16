@@ -5,7 +5,8 @@ import queryString from 'query-string';
 import moment from "moment";
 import _ from "lodash";
 import PropTypes from 'prop-types';
-import { store, searchMe } from '../actions.js';
+import { Shift } from "./shifts.jsx";
+import { store, searchMe, update } from '../actions.js';
 import Select from 'react-select';
 
 //gets the querystring and creats a formData object to be used when opening the rightbar
@@ -32,8 +33,13 @@ const gf = {
     venues: {
         grouping: (s) => s.venue.title,
         label: (s) => s.position.title
+    },
+    employees: {
+        label: (s) => s.position.title
     }
 };
+
+const getEmployees = (shifts) => shifts.map(s => s.employees).flat();
 
 export const ShiftCalendar = ({ catalog }) => {
 
@@ -43,16 +49,31 @@ export const ShiftCalendar = ({ catalog }) => {
     const [ groupedLabel , setGroupedLabel ] = useState(null);
 
     const groupShifts = (sh, l) => {
-        let _shifts = _.groupBy(sh, gf[l.value].grouping);
-        catalog[l.value].forEach(pos => {
-            if(Array.isArray(_shifts[pos.label])) _shifts[pos.label] = _shifts[pos.label].map(s => ({
-                start: moment(s.starting_at),
-                end: moment(s.ending_at),
-                label: gf[l.value].label(s),
-                data: s
-            }));
-            else _shifts[pos.label] = [];
-        });
+        let _shifts = {};
+
+        if(l.value === "employees"){
+            const employees = getEmployees(sh);
+            employees.forEach(emp => {
+                _shifts[`${emp.user.first_name} ${emp.user.last_name}`] = sh.filter(s => s.employees.find(e => emp.id === e.id)).map(s => ({
+                    start: moment(s.starting_at),
+                    end: moment(s.ending_at),
+                    label: gf[l.value].label(s),
+                    data: s
+                }));
+            });
+        }
+        else{
+            _shifts = _.groupBy(sh, gf[l.value].grouping);
+            catalog[l.value].forEach(pos => {
+                if(Array.isArray(_shifts[pos.label])) _shifts[pos.label] = _shifts[pos.label].map(s => ({
+                    start: moment(s.starting_at),
+                    end: moment(s.ending_at),
+                    label: gf[l.value].label(s),
+                    data: s
+                }));
+                else _shifts[pos.label] = [];
+            });
+        }
         setGroupedShifts(_shifts);
         setGroupedLabel(l);
     };
@@ -66,19 +87,28 @@ export const ShiftCalendar = ({ catalog }) => {
         }));
 
     }, []);
+
     return <Theme.Consumer>
         {({ bar }) => <div className="row">
             <div className="col-10">
                 <Select
                     onChange={(l)=> groupShifts(shifts, l)}
-                    options={[{ label: "Position", value: "positions"}, {label: "Venue", value: "venues" }]}
+                    options={[{ label: "Position", value: "positions"}, {label: "Venue", value: "venues" }, {label: "Employees", value: "employees" }]}
                     value={groupedLabel}
                 />
                 { groupedShifts &&
                     <CalendarView
                         timeDirection={'horizontal'}
                         dayDirection={'vertical'}
-                        onChange={(value) => console.log(value)}
+                        onChange={(evt) => {
+                            let shift = {
+                                id: evt.data.id,
+                                starting_at: moment(evt.start),
+                                ending_at: moment(evt.end)
+                            };
+                            update('shifts', shift);
+                            console.log("An event has been changed!", evt);
+                        }}
                         viewMode={"day"}
                         timeBlockMinutes={10}
                         yAxisWidth={120}
