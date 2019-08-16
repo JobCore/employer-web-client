@@ -33,15 +33,16 @@ const calculateNewEvent = (blockTime, minutesDelta, item, { EVENT, HORIZON_TOP, 
     };
 };
 
-export const TimeBlock = ({ children, label, events, occupancy, start, end }) => {
-    const { timeDirection, timeBlockMinutes, blockPixelSize, showPreview, updateEvent, dragMode, toggleDragMode, blockLabel, onClick, blockHeight, timeBlockStyles } = useContext(CalendarContext);
+export const TimeBlock = ({ children, label, events, occupancy, start, end, blockHeight }) => {
+    const { timeDirection, timeBlockMinutes, blockPixelSize, showPreview, updateEvent, dragMode, toggleDragMode, blockLabel, onClick, timeBlockStyles } = useContext(CalendarContext);
     const [{ isOver }, drop] = useDrop({
         accept: [ ItemTypes.EVENT, ItemTypes.HORIZON_TOP, ItemTypes.HORIZON_BOTTOM ],
         drop: (item, monitor) => {
             let coord = monitor.getDifferenceFromInitialOffset();
             const minutesDelta = timeDirection === "horizontal" ? Math.round(coord.x / blockPixelSize) * timeBlockMinutes : Math.round(coord.y / blockPixelSize) * timeBlockMinutes;
             const newEvent = calculateNewEvent({ start, end }, minutesDelta, item, ItemTypes);
-            let updatedEvent = { index: item.index, start: newEvent.start, end: newEvent.end, duration: newEvent.duration, data: item.data };
+            const blockLevel = occupancy.length;
+            let updatedEvent = { index: item.index, start: newEvent.start, end: newEvent.end, duration: newEvent.duration, data: item.data, blockLevel };
 
             if(showPreview) toggleDragMode(false);
             updateEvent(updatedEvent);
@@ -61,7 +62,7 @@ export const TimeBlock = ({ children, label, events, occupancy, start, end }) =>
             onClick={e => onClick({ start, end, events, occupancy })}
             size={`${blockPixelSize}px`}
             blockHeight={blockHeight}
-            ocupied={occupancy.length > 0}
+            ocupied={occupancy.length}
         >
             {blockLabel && blockLabel(start, end, events, occupancy)}
             {children}
@@ -73,6 +74,7 @@ TimeBlock.propTypes = {
   occupancy: PropTypes.array,
   children: PropTypes.node,
   label: PropTypes.string,
+  blockHeight: PropTypes.number,
   end: PropTypes.object.isRequired,
   start: PropTypes.object.isRequired,
 };

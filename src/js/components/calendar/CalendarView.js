@@ -72,6 +72,7 @@ const CalendarView = ({
                 blockLabel={blockLabel}
                 showFrom={5}
                 showUntil={24}
+                eventOffset={5}
 
                 //events related props
                 onClick={(e) => onClick && onClick(e)}

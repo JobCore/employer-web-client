@@ -45,6 +45,7 @@ const generateAxis = events => {
       label: key,
       events: events[key].map((e, i) => {
         e.index = key + i;
+        e.blockLevel = null; //Number from 0 to X,  blockLevel avoids visual collition of events, if 2 evens collide they will be at different blockLevels
         e.duration = moment.duration(e.end.diff(e.start)).asMinutes();
         return e;
       })
@@ -73,7 +74,12 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
             previousEventsRef.current = events;
             if (Array.isArray(events)) {
                 if (events.length > 0 && typeof events[0].index === 'undefined')
-                setCalendarEvents(events.map((e, i) => ({ index: i, duration: moment.duration(e.end.diff(e.start)).asMinutes(), ...e })));
+                setCalendarEvents(events.map((e, i) => ({
+                    index: i,
+                    blockLevel: null,  // Number from 0 to X, blockLevel avoids visual collition of events, if 2 evens collide they will be at different blockLevels
+                    duration: moment.duration(e.end.diff(e.start)).asMinutes(),
+                    ...e
+                })));
             } else {
                 //The timeDirection set to horizontal because the events came as an object
                 if (direction.days !== "vertical" || direction.time !== "horizontal")
@@ -108,7 +114,6 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
                     toggleDragMode: (value=null) => value ? setDragMode(value) : setDragMode(!dragMode),
                     updateEvent: uEv => {
                         if (onChange) {
-                            onChange(uEv);
                             const newEvents = yAxis.length === 0 ?
                                 calendarEvents.map(e => e.index === uEv.index ? { ...e, ...uEv } : e)
                                 :
@@ -120,6 +125,7 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
                                     return newEvents;
                                 })();
                             setCalendarEvents(newEvents);
+                            //onChange(uEv);
                         }
                     }
                 }}>
@@ -169,6 +175,7 @@ Calendar.propTypes = {
   daysToShow: PropTypes.array,
   viewMode: PropTypes.string,
   activeDate: PropTypes.object,
+  eventOffset: PropTypes.number, //small margin to separete event from the edge (it makes easier drag&droping on ver busy schedules)
   events: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),
   timeBlockMinutes: PropTypes.number,
   dayWidth: PropTypes.string,
@@ -202,6 +209,7 @@ Calendar.defaultProps = {
   yAxisWidth: 40,
   dayLabel: null,
   blockLabel: null,
+  eventOffset: 0,
 
   //only for horizontal calendar
   blockHeight: 30,

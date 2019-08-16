@@ -28,7 +28,7 @@ EventBlock.propTypes = {
   children: PropTypes.node,
   direction: PropTypes.string,
   index: PropTypes.string,
-  offset: PropTypes.string,
+  offset: PropTypes.number,
   isDragging: PropTypes.bool,
   style: PropTypes.object,
   onClick: PropTypes.func,
@@ -36,7 +36,8 @@ EventBlock.propTypes = {
   blockHeight: PropTypes.number
 };
 EventBlock.defaultProps = {
-  siblingCount: 0
+  siblingCount: 0,
+  offset: 0
 };
 
 

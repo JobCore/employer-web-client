@@ -106,7 +106,10 @@ export const ShiftCalendar = ({ catalog }) => {
                                 starting_at: moment(evt.start),
                                 ending_at: moment(evt.end)
                             };
-                            update('shifts', shift);
+                            const sh = shifts.map(s => s.id !== shift.id ? s : ({...s.data, ...shift}));
+                            setShifts(sh);
+                            groupShifts(sh, groupedLabel);
+                            //update('shifts', shift);
                             console.log("An event has been changed!", evt);
                         }}
                         viewMode={"day"}
