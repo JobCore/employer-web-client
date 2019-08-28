@@ -6,21 +6,30 @@ const engine = {
         LIVE: 'live',
         POSPONED: 'posponed'
     },
-    isValid: (actionName)=>{
-        const possibleActions = [/PUTemployers\/me\/shifts\/(\d+)/gm];
-        for(let i =0; i<possibleActions.length;i++){
-            if(possibleActions[i].exec(actionName)) return true;
-        }
-        return false;
-
+    total: 0,
+    changes: {
+        shifts: {}
     },
-    changes: [],
+    isValid: function(action){
+        if(typeof this.changes[action.entity] == "undefined") return false;
+
+        return true;
+    },
+    get: function(entity, id){
+        if(typeof this.changes[entity] == "undefined") return null;
+        else return this.changes[entity][id];
+    },
     add: function(action){
-        console.log("New change", action);
-        if(!this.isValid(action.method+action.path)){
-            throw new Error(`Invalid action ${action.method+action.path}`);
+        const { entity, method, id, data } = action;
+        if(!this.isValid(action)){
+            throw new Error(`Invalid posponed action ${method} for ${entity}`);
         }
-        this.changes.push(action);
+
+        if(typeof this.changes[entity][id] === "undefined")  this.changes[entity][id] = data;
+        else this.changes[entity][id] = Object.assign(this.changes[entity][id], data);
+
+        this.total = 0;
+        for(let key in this.changes) this.total++;
     }
 };
 
@@ -35,9 +44,9 @@ const styles = {
 };
 export const EngineComponent = () => {
     const value = React.useContext(WEngine);
-    return value.changes.length && <div className="write-engine">
-        <span className="mr-2">You have changes to {value.changes.length} shifts without saving</span>
-        <Button color="primary">Apply Changes to Shifts</Button>
+    return value.total && <div className="write-engine">
+        <span className="mr-2">You have changes to {value.total} changes without saving</span>
+        <Button color="primary">Apply Changes</Button>
     </div>;
 };
 

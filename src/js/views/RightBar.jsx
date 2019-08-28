@@ -33,7 +33,7 @@ class RightBar extends React.Component {
                 break;
                 case 'update_shift':
                     if(typeof data.status != 'undefined' && data.status === 'CANCELLED') update('shifts', Shift(this.state.formData).get().serialize().withStatus(data.status));
-                    else update('shifts', Shift(this.state.formData).validate().withStatus(data.status).serialize());
+                    else update('shifts', Shift(this.state.formData).validate().withStatus(data.status).serialize(), WEngine.modes.POSPONED);
                     this.props.onClose();
                 break;
                 case 'delete_shift':

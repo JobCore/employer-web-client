@@ -172,6 +172,8 @@ export const fetchAllMe = (entities) => new Promise((resolve, reject) => {
 export const fetchSingle = (entity, id) =>  new Promise((resolve, reject) => {
     GET('employers/me/'+entity+'/'+id)
         .then(function(data){
+            const cachedEntity = WEngine.get(entity, id);
+            if(cachedEntity) data = Object.assign(data, cachedEntity);
             Flux.dispatchEvent(entity, store.replaceMerged(entity, data.id, Models[entity](data).defaults().unserialize()));
             resolve(data);
         })
@@ -239,7 +241,7 @@ export const update = (entity, data, mode=WEngine.modes.LIVE) => new Promise((re
     const event_name = (typeof entity == 'string') ? entity : entity.event_name;
 
     if(mode === WEngine.modes.POSPONED){
-        WEngine.add({ method: 'PUT', path, data });
+        WEngine.add({ entity: event_name, method: 'PUT', data, id: data.id });
         let entities = store.replaceMerged(event_name, data.id, data);
         Flux.dispatchEvent(event_name, entities);
     }
