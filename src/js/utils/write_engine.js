@@ -1,12 +1,19 @@
 import {Button} from '../components/index';
-import React  from "react";
+import EventEmitter from 'events';
+import React, { useState }  from "react";
+import {POST, GET, PUT, DELETE, PUTFiles} from './api_wrapper';
 
+class MyEmitter extends EventEmitter {}
+const _emitter = new MyEmitter();
 const engine = {
     modes: {
         LIVE: 'live',
         POSPONED: 'posponed'
     },
     total: 0,
+    defaults: {
+        shifts: {}
+    },
     changes: {
         shifts: {}
     },
@@ -30,11 +37,23 @@ const engine = {
 
         this.total = 0;
         for(let key in this.changes) this.total++;
+        _emitter.emit('changes');
+    },
+    commit: function(){
+
+        POST('employers/me/batch', { changes: this.changes })
+            .then((data) => {
+                console.log("The commit was a success!!");
+                this.changes = Object.assign({}, this.defaults);
+                this.total = 0;
+                _emitter.emit('changes');
+            })
+            .catch(err => {
+                console.error(err);
+                throw new Error(err);
+            });
     }
 };
-
-const WEngine = React.createContext(engine);
-export const EngineProducer = (propers) => <WEngine.Provider value={engine}>{propers.children}</WEngine.Provider>;
 
 
 const styles = {
@@ -43,10 +62,17 @@ const styles = {
     left: 0
 };
 export const EngineComponent = () => {
-    const value = React.useContext(WEngine);
-    return value.total && <div className="write-engine">
-        <span className="mr-2">You have changes to {value.total} changes without saving</span>
-        <Button color="primary">Apply Changes</Button>
+
+    const [,refresh] = React.useState(null);
+    React.useEffect(() => {
+        _emitter.on('changes', () => {
+            refresh(engine.changes);
+            console.log("pupupupupupupu");
+        });
+    },[]);
+    return engine.total && <div className="write-engine">
+        <span className="mr-2">You have changes to {engine.total} changes without saving</span>
+        <Button onClick={() => engine.commit()} color="primary">Apply Changes</Button>
     </div>;
 };
 

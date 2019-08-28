@@ -11,6 +11,7 @@ import {Talent, ShiftInvite} from '../views/talents';
 import {Application} from '../views/applications';
 import {ValidationError} from '../utils/validation';
 import {Notify} from 'bc-react-notifier';
+import WEngine from "../utils/write_engine.js";
 
 class RightBar extends React.Component {
 

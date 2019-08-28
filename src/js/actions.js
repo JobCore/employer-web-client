@@ -237,21 +237,20 @@ export const create = (entity, data, status='live') => POST('employers/me/'+(ent
     });
 
 export const update = (entity, data, mode=WEngine.modes.LIVE) => new Promise((resolve, reject) => {
-    const path = (typeof entity == 'string') ? `employers/me/${entity}/${data.id}` : entity.path + (typeof data.id == 'string' ? `/${data.id }`:'');
+    let path = (typeof entity == 'string') ? `employers/me/${entity}/${data.id}` : entity.path + (typeof data.id == 'string' ? `/${data.id }`:'');
     const event_name = (typeof entity == 'string') ? entity : entity.event_name;
 
-    if(mode === WEngine.modes.POSPONED){
-        WEngine.add({ entity: event_name, method: 'PUT', data, id: data.id });
-        let entities = store.replaceMerged(event_name, data.id, data);
-        Flux.dispatchEvent(event_name, entities);
-    }
-    else PUT(path, data)
+    if(mode === WEngine.modes.POSPONED) path += "?posponed=true";
+    PUT(path, data)
         .then(function(incomingObject){
+
+            if(mode === WEngine.modes.POSPONED)
+                WEngine.add({ entity: event_name, method: 'PUT', data, id: data.id });
+            else
+                Notify.success("The "+path.split('/')[0].substring(0, name[0].length - 1)+" was updated successfully");
+
             let entities = store.replaceMerged(event_name, data.id, data);
             Flux.dispatchEvent(event_name, entities);
-
-            const name = path.split('/');
-            Notify.success("The "+name[0].substring(0, name[0].length - 1)+" was updated successfully");
             resolve(data);
         })
         .catch(function(error) {
