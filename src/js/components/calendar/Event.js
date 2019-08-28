@@ -78,7 +78,7 @@ const horizonStyles = (props) => {
     result[props.orientation] = "0px";
     return result;
 };
-const Horizon = ({ className, orientation, eventStart, eventEnd, duration, index }) => {
+const Horizon = ({ className, orientation, eventStart, eventEnd, duration, index, data }) => {
     const { toggleDragMode } = useContext(CalendarContext);
     const [props, drag] = useDrag({
         item: {
@@ -89,6 +89,7 @@ const Horizon = ({ className, orientation, eventStart, eventEnd, duration, index
             index,
             start: eventStart,
             end: eventEnd,
+            data,
             duration
         },
         begin: monitor => toggleDragMode(true)
@@ -106,7 +107,8 @@ Horizon.propTypes = {
   eventStart: PropTypes.object,
   eventEnd: PropTypes.object,
   duration: PropTypes.number,
-  index: PropTypes.string
+  index: PropTypes.string,
+  data: PropTypes.object
 };
 
 export const Event = ({ label, start, end, duration, index, isPreview, offset, data }) => {
@@ -143,6 +145,7 @@ export const Event = ({ label, start, end, duration, index, isPreview, offset, d
                         index={index}
                         orientation={timeDirection === "vertical" ? "top" : "left"}
                         eventStart={start}
+                        data={data}
                         duration={duration}
                         eventEnd={end}
                     />
@@ -151,6 +154,7 @@ export const Event = ({ label, start, end, duration, index, isPreview, offset, d
                         index={index}
                         orientation={timeDirection === "vertical" ? "bottom" : "right"}
                         eventStart={start}
+                        data={data}
                         duration={duration}
                         eventEnd={end}
                     />

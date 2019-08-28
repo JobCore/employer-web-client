@@ -74,12 +74,12 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
             previousEventsRef.current = events;
             if (Array.isArray(events)) {
                 if (events.length > 0 && typeof events[0].index === 'undefined')
-                setCalendarEvents(events.map((e, i) => ({
-                    index: i,
-                    blockLevel: null,  // Number from 0 to X, blockLevel avoids visual collition of events, if 2 evens collide they will be at different blockLevels
-                    duration: moment.duration(e.end.diff(e.start)).asMinutes(),
-                    ...e
-                })));
+                    setCalendarEvents(events.map((e, i) => ({
+                        index: i,
+                        blockLevel: null,  // Number from 0 to X, blockLevel avoids visual collition of events, if 2 evens collide they will be at different blockLevels
+                        duration: moment.duration(e.end.diff(e.start)).asMinutes(),
+                        ...e
+                    })));
             } else {
                 //The timeDirection set to horizontal because the events came as an object
                 if (direction.days !== "vertical" || direction.time !== "horizontal")
@@ -113,19 +113,21 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
                     dragMode,
                     toggleDragMode: (value=null) => value ? setDragMode(value) : setDragMode(!dragMode),
                     updateEvent: uEv => {
-                        if (onChange) {
-                            const newEvents = yAxis.length === 0 ?
-                                calendarEvents.map(e => e.index === uEv.index ? { ...e, ...uEv } : e)
-                                :
-                                (() => {
-                                    let newEvents = {};
-                                    yAxis.forEach(key => {
-                                        newEvents[key.label] = key.events.map(e => e.index === uEv.index ? { ...e, ...uEv } : e);
-                                    });
-                                    return newEvents;
-                                })();
+                        const newEvents = yAxis.length === 0 ?
+                            calendarEvents.map(e => e.index === uEv.index ? { ...e, ...uEv } : e)
+                            :
+                            (() => {
+                                let newEvents = {};
+                                yAxis.forEach(key => {
+                                    newEvents[key.label] = key.events.map(e => e.index === uEv.index ? { ...e, ...uEv } : e);
+                                });
+                                return newEvents;
+                            })();
+                        console.log("Update event", uEv);
+                        if (onChange) onChange(uEv);
+                        else{
                             setCalendarEvents(newEvents);
-                            //onChange(uEv);
+                            setYAxis(generateAxis(newEvents));
                         }
                     }
                 }}>

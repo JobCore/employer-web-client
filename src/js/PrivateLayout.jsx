@@ -21,6 +21,7 @@ import {Notifier, Notify} from 'bc-react-notifier';
 import log from './utils/log';
 import logoURL from '../img/logo.png';
 import moment from 'moment';
+import {EngineComponent} from "./utils/write_engine";
 
 class PrivateLayout extends Flux.DashView{
 
@@ -343,6 +344,7 @@ class PrivateLayout extends Flux.DashView{
                             <Route exact path='/' component={Dashboard} />
                         </Switch>
                     </div>
+                    <EngineComponent />
                     <ButtonBar onClick={(option) => this.state.bar.show(option)} />
                     {
                         (this.state.showRightBar) ?

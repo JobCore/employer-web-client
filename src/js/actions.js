@@ -9,6 +9,7 @@ import {Clockin, PayrollPeriod} from './views/payroll';
 import moment from 'moment';
 import {POST, GET, PUT, DELETE, PUTFiles} from './utils/api_wrapper';
 import log from './utils/log';
+import WEngine from "./utils/write_engine.js";
 
 const Models = {
     "shifts": Shift,
@@ -220,7 +221,7 @@ export const searchMe = (entity, queryString) => new Promise((accept, reject) =>
         })
 );
 
-export const create = (entity, data) => POST('employers/me/'+(entity.url || entity), data)
+export const create = (entity, data, status='live') => POST('employers/me/'+(entity.url || entity), data)
     .then(function(incoming){
         let entities = store.getState(entity.slug || entity);
         data.id = incoming.id;
@@ -233,22 +234,30 @@ export const create = (entity, data) => POST('employers/me/'+(entity.url || enti
         log.error(error);
     });
 
-export const update = (entity, data) => {
+export const update = (entity, data, mode=WEngine.modes.LIVE) => new Promise((resolve, reject) => {
     const path = (typeof entity == 'string') ? `employers/me/${entity}/${data.id}` : entity.path + (typeof data.id == 'string' ? `/${data.id }`:'');
     const event_name = (typeof entity == 'string') ? entity : entity.event_name;
-    PUT(path, data)
+
+    if(mode === WEngine.modes.POSPONED){
+        WEngine.add({ method: 'PUT', path, data });
+        let entities = store.replaceMerged(event_name, data.id, data);
+        Flux.dispatchEvent(event_name, entities);
+    }
+    else PUT(path, data)
         .then(function(incomingObject){
             let entities = store.replaceMerged(event_name, data.id, data);
             Flux.dispatchEvent(event_name, entities);
 
             const name = path.split('/');
             Notify.success("The "+name[0].substring(0, name[0].length - 1)+" was updated successfully");
+            resolve(data);
         })
         .catch(function(error) {
             Notify.error(error.message || error);
             log.error(error);
+            reject(error);
         });
-};
+});
 
 export const updateProfileImage = (file) => PUTFiles('employers/me/image', [file])
         .then(function(incomingObject){

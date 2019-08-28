@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { CalendarView } from "../components/calendar/index.js";
-import {Theme} from '../components/index';
+import {Theme, Button} from '../components/index';
 import queryString from 'query-string';
 import moment from "moment";
 import _ from "lodash";
@@ -8,6 +8,7 @@ import PropTypes from 'prop-types';
 import { Shift } from "./shifts.jsx";
 import { store, searchMe, update } from '../actions.js';
 import Select from 'react-select';
+import WEngine from "../utils/write_engine.js";
 
 //gets the querystring and creats a formData object to be used when opening the rightbar
 export const getCalendarFilters = () => {
@@ -45,6 +46,7 @@ export const ShiftCalendar = ({ catalog }) => {
 
     const [ filters , setFilters ] = useState(getCalendarFilters());
     const [ shifts , setShifts ] = useState(null);
+    const [ shiftChanges , setShiftChanges ] = useState([]);
     const [ groupedShifts , setGroupedShifts ] = useState(null);
     const [ groupedLabel , setGroupedLabel ] = useState(null);
 
@@ -81,10 +83,13 @@ export const ShiftCalendar = ({ catalog }) => {
     useEffect(() => {
         //getCalendarFilters()
         //if(!shifts) shifts = store.getState('shifts');
-        searchMe('shifts',window.location.search).then((sh => {
+
+        store.subscribe('shifts', (sh) => {
             setShifts(sh);
             groupShifts(sh, {label: "Venue", value: "venues" });
-        }));
+        });
+        searchMe('shifts',window.location.search);
+
 
     }, []);
 
@@ -101,16 +106,18 @@ export const ShiftCalendar = ({ catalog }) => {
                         timeDirection={'horizontal'}
                         dayDirection={'vertical'}
                         onChange={(evt) => {
+                            console.log("Event Updatedd", evt);
                             let shift = {
                                 id: evt.data.id,
                                 starting_at: moment(evt.start),
                                 ending_at: moment(evt.end)
                             };
-                            const sh = shifts.map(s => s.id !== shift.id ? s : ({...s.data, ...shift}));
-                            setShifts(sh);
-                            groupShifts(sh, groupedLabel);
-                            //update('shifts', shift);
-                            console.log("An event has been changed!", evt);
+                            const sh = shifts.map(s => s.id !== shift.id ? s : ({...s, ...shift}));
+
+                            update('shifts', shift, WEngine.modes.POSPONED).then(s => {
+                                setShifts(sh);
+                                groupShifts(sh, groupedLabel);
+                            });
                         }}
                         viewMode={"day"}
                         timeBlockMinutes={10}
