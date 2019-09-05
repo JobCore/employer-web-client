@@ -9,11 +9,11 @@ const blockStyles = (props) => ({
     boxSizing: "border-box",
     fontSize: "10px",
     position: "relative",
-    background: props.isOver ? "pink" : props.style.background || "inherit",
+    background: props.isOver ? "pink" : props.ocupied ? "blue" : props.style.background || "inherit",
     width: props.timeDirection === "horizontal" ? props.size : props.style.background || "inherit",
     height: props.timeDirection !== "horizontal" ? props.size : `${props.blockHeight}px`
 });
-const Block = React.forwardRef((props, ref) => <div ref={ref} onClick={(e) => props.onClick(e)} style={{...blockStyles(props), ...props.style}}>{props.children}</div>);
+const Block = React.forwardRef((props, ref) => <div className="time-block" ref={ref} onClick={(e) => props.onClick(e)} style={{...blockStyles(props), ...props.style}}>{props.children}</div>);
 
 const calculateNewEvent = (blockTime, minutesDelta, item, { EVENT, HORIZON_TOP, HORIZON_BOTTOM }) => {
 

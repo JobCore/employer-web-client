@@ -23,7 +23,7 @@ const eventBlockStyles = (props) => ({
     width: props.direction === "horizontal" ? props.size : "90%",
     height: props.direction !== "horizontal" ? props.size : `${props.blockHeight}px`,
 });
-const EventBlock = React.forwardRef((props, ref) => <div onClick={e => props.onClick(e)} ref={ref} style={{...eventBlockStyles(props), ...props.style}}>{props.children}</div>);
+const EventBlock = React.forwardRef((props, ref) => <div className="event-block" onClick={e => props.onClick(e)} ref={ref} style={{...eventBlockStyles(props), ...props.style}}>{props.children}</div>);
 EventBlock.propTypes = {
   children: PropTypes.node,
   direction: PropTypes.string,
@@ -137,7 +137,7 @@ export const Event = ({ label, start, end, duration, index, isPreview, offset, d
             direction={timeDirection}
             blockHeight={blockHeight}
             index={index}
-            size={`${Math.floor((duration / timeBlockMinutes) * blockPixelSize)}px`}
+            size={`${timeBlockMinutes == 1439 ? "100%" : Math.floor((duration / timeBlockMinutes) * blockPixelSize)}px`}
         >
             { !isPreview &&
                 <Invisible>

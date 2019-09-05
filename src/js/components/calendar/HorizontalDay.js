@@ -3,14 +3,14 @@ import { DayBlock } from "./DayBlock";
 import { CalendarContext } from "./Calendar";
 import PropTypes from "prop-types";
 
-const Day = (props) => <div style={{
+const Day = (props) => <div className="horizontal-day" style={{
   boxSizing: "border-box",
   width: "100%",
   display: "flex",
   justifyContent: "left"
 }}>{props.children}</div>;
 Day.propTypes = {
-  children: PropTypes.node,
+  children: PropTypes.node
 };
 
 const HorizontalLabel = (props) => <div style={{
@@ -44,5 +44,5 @@ export const HorizontalDay = ({ events, days, yAxis, timesToShow }) => {
 HorizontalDay.propTypes = {
     events: PropTypes.oneOfType([ PropTypes.array, PropTypes.object ]),
     children: PropTypes.node,
-    minWidth: PropTypes.number,
+    minWidth: PropTypes.number
 };

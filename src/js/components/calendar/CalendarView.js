@@ -22,6 +22,25 @@ const datePickerStyles = {
     position: "relative",
     flexDirection: "row"
 };
+
+const _modes = {
+    day: {
+        _timeBlockMinutes: 30,
+        _yAxisWidth: 120,
+        _dayDirection: 'vertical',
+        _timeDirection: 'horizontal',
+        _blockHeight: 50,
+        _blockPixelSize: 50
+    },
+    week: {
+        _timeBlockMinutes: 1439,
+        _yAxisWidth: 120,
+        _dayDirection: 'horizontal',
+        _timeDirection: 'horizontal',
+        _blockHeight: 50,
+        _blockPixelSize: 119
+    }
+};
 const DayPicker = (props) => <div style={datePickerStyles}>{props.children}</div>;
 DayPicker.propTypes = {
     children: PropTypes.node,
@@ -31,6 +50,8 @@ const CalendarView = ({
   events,
   timeDirection,
   dayDirection,
+  timeBlockMinutes,
+  blockPixelSize,
   onChange,
   viewMode,
   dayLabel,
@@ -47,8 +68,13 @@ const CalendarView = ({
     const [ currentDate, setCurrentDate ] = useState(activeDate ? activeDate : moment().startOf("day"));
     const [ _viewMode, setViewMode ] = useState(viewMode);
 
-    if (_viewMode === "day") daysToShow = [currentDate];
-    else if (_viewMode === "week") daysToShow = getDaysOfWeek(currentDate);
+    if (_viewMode === "day"){
+        daysToShow = [currentDate];
+    }
+    else if (_viewMode === "week"){
+        daysToShow = getDaysOfWeek(currentDate);
+    }
+    const { _timeBlockMinutes, _yAxisWidth, _dayDirection, _timeDirection, _blockHeight, _blockPixelSize } = _modes[_viewMode];
 
     return (
         <div>
@@ -59,16 +85,19 @@ const CalendarView = ({
                 <button onClick={() => setCurrentDate(moment(currentDate).add(1,'days'))}>{'>>'}</button>
             </DayPicker>
             <Calendar
+                timeDirection={timeDirection || _timeDirection}
+                dayDirection={dayDirection || _dayDirection}
+                yAxisWidth={yAxisWidth || _yAxisWidth}
+                blockHeight={blockHeight || _blockHeight}//only applies when its horizontal calendar
+                timeBlockMinutes={timeBlockMinutes || _timeBlockMinutes}
+                blockPixelSize={blockPixelSize || _blockPixelSize}
+
                 events={events}
                 daysToShow={daysToShow}
-                timeDirection={timeDirection}
-                dayDirection={dayDirection}
-                blockPixelSize={40}
                 onChange={event => onChange && onChange(event)}
                 viewMode={_viewMode}
                 dayLabel={dayLabel}
                 activeDate={currentDate}
-                yAxisWidth={yAxisWidth}
                 blockLabel={blockLabel}
                 showFrom={5}
                 showUntil={24}
@@ -80,7 +109,6 @@ const CalendarView = ({
                 //styling related props
                 eventBoxStyles={eventBoxStyles}
                 timeBlockStyles={timeBlockStyles}
-                blockHeight={blockHeight}//only applies when its horizontal calendar
             />
         </div>
     );
@@ -88,9 +116,9 @@ const CalendarView = ({
 
 CalendarView.propTypes = {
     children: PropTypes.node,
-    viewMode: PropTypes.string,
-    timeDirection: PropTypes.string,
+    viewMode: PropTypes.oneOf(['day', 'week', 'month']),
     dayDirection: PropTypes.string,
+    timeDirection: PropTypes.string,
     onChange: PropTypes.func,
     showPreview: PropTypes.bool,
     events: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),
@@ -112,7 +140,8 @@ CalendarView.propTypes = {
     //styling properties
     eventBoxStyles: PropTypes.object,
     timeBlockStyles: PropTypes.object,
-    blockHeight: PropTypes.number,//only applies when its horizontal calendar
+    blockPixelSize: PropTypes.number,
+    blockHeight: PropTypes.number//only applies when its horizontal calendar
 };
 
 CalendarView.defaultProps = {
@@ -122,13 +151,14 @@ CalendarView.defaultProps = {
   events: [],
   dayLabel: null,
   blockLabel: null,
-  yAxisWidth: 40,
-  timeBlockMinutes: 30,
-
-
   onClick: null,
 
-  blockHeight: 30
+  timeDirection: null,
+  dayDirection: null,
+  yAxisWidth: null,
+  timeBlockMinutes: null,
+  blockHeight: null,
+  blockPixelSize: null
 };
 
 export default CalendarView;

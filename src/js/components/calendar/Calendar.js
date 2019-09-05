@@ -91,7 +91,7 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
 
     }, [ events ]);
 
-    const times = [...Array((60 * 24) / rest.timeBlockMinutes)].map((n, i) => {
+    const times = [...Array(Math.round((60 * 24) / rest.timeBlockMinutes))].map((n, i) => {
         const start = moment().startOf("day").add(i * rest.timeBlockMinutes, "minutes");
         let end = moment(start).add(rest.timeBlockMinutes, "minutes");
         return {
@@ -132,27 +132,32 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
                     }
                 }}>
                     {Array.isArray(calendarEvents) ? (
-                        <DayBlock timesToShow={times} days={daysToShow} events={calendarEvents} />)
+                        <div className="vertical-day"><DayBlock timesToShow={times} days={daysToShow} events={calendarEvents} /></div>)
                         :
                         (<div>
                             {daysToShow.map((d,i) =>
-                                <div key={i}>
-                                    {rest.dayLabel &&
+                                <div className="day_header" style={{ display: "inline-block" }} key={i}>
+                                    {/* Show the day label */}
+                                    {  rest.dayLabel &&
                                         <div style={{ width: (60 * 24) / rest.timeBlockMinutes * rest.blockPixelSize, marginLeft: i === 0 ? rest.yAxisWidth+"px": "0" }}>
                                             {rest.dayLabel(d, moment(activeDate).add(1, "day").isSame(d))}
                                         </div>
                                     }
-                                    <Time yAxisWidth={rest.yAxisWidth} width={(60 * 24) / rest.timeBlockMinutes * rest.blockPixelSize}>
-                                        {times.map((t, i) =>
-                                            <li key={i} style={{
-                                                width: rest.blockPixelSize+"px",
-                                                display: "inline-block",
-                                                listStyle: "none"
-                                            }}>
-                                                {t.startTime.minutes() === 0 && t.startTime.format('ha')}
-                                            </li>
-                                        )}
-                                    </Time>
+
+                                    {/* Build the header with the times */}
+                                    { rest.viewMode === "day" &&
+                                        <Time yAxisWidth={rest.yAxisWidth} width={(60 * 24) / rest.timeBlockMinutes * rest.blockPixelSize}>
+                                            {times.map((t, i) =>
+                                                <li className="time_header" key={i} style={{
+                                                    width: rest.blockPixelSize+"px",
+                                                    display: "inline-block",
+                                                    listStyle: "none"
+                                                }}>
+                                                    {t.startTime.minutes() === 0 && t.startTime.format('ha')}
+                                                </li>
+                                            )}
+                                        </Time>
+                                    }
                                 </div>
                             )}
                             <HorizontalDay
@@ -175,7 +180,7 @@ Calendar.propTypes = {
   blockPixelSize: PropTypes.number,
   onChange: PropTypes.func,
   daysToShow: PropTypes.array,
-  viewMode: PropTypes.string,
+  viewMode: PropTypes.oneOf(['day', 'week', 'month']),
   activeDate: PropTypes.object,
   eventOffset: PropTypes.number, //small margin to separete event from the edge (it makes easier drag&droping on ver busy schedules)
   events: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),

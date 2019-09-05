@@ -20,11 +20,11 @@ export const getCalendarFilters = () => {
     };
 };
 
-const DayLabel = (propers) => <h2 style={{
+const DayLabel = (propers) => <h3 style={{
     width: "100%",
     margin: 0,
     background: propers.active ? "orange" : "#f1f1f1"
-    }}>{propers.children}</h2>;
+    }}>{propers.children}</h3>;
 
 const gf = {
     positions: {
@@ -103,8 +103,7 @@ export const ShiftCalendar = ({ catalog }) => {
                 />
                 { groupedShifts &&
                     <CalendarView
-                        timeDirection={'horizontal'}
-                        dayDirection={'vertical'}
+                        viewMode={"day"}
                         onChange={(evt) => {
                             console.log("Event Updatedd", evt);
                             let shift = {
@@ -119,9 +118,6 @@ export const ShiftCalendar = ({ catalog }) => {
                                 groupShifts(sh, groupedLabel);
                             });
                         }}
-                        viewMode={"day"}
-                        timeBlockMinutes={10}
-                        yAxisWidth={120}
                         eventBoxStyles={{
                             background: "#c3f0f5"
                         }}
@@ -144,8 +140,6 @@ export const ShiftCalendar = ({ catalog }) => {
                         }
                         dayLabel={(day, active) => <DayLabel active={active}>{day.format("dddd")}</DayLabel>}
                         events={groupedShifts}
-
-                        blockHeight={50}
                     />
                 }
             </div>
