@@ -11,7 +11,7 @@ const blockStyles = (props) => ({
     display: "inline-block",
     position: "relative",
     margin: 0,
-    background: props.isOver ? "pink" : props.ocupied ? "blue" : props.style.background || "inherit",
+    background: props.isOver ? "pink" : props.style.background || "none",
     minWidth: props.timeDirection === "horizontal" ? props.size : "inherit",
     width: props.timeBlockMinutes === 1439 ? "100%" : props.timeDirection === "horizontal" ? props.size : props.style.background || "inherit",
     height: props.timeDirection !== "horizontal" ? props.size : `${props.blockHeight}px`

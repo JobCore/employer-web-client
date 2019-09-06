@@ -13,7 +13,7 @@ export const DayBlock = ({ days, events, timesToShow, width }) => {
             date={d}
             timesToShow={timesToShow}
             width={width}
-            isActive={viewMode === "week" && d.diff(activeDate.startOf("day")) === 0}
+            isActive={d.diff(activeDate.startOf("day")) === 0}
             events={events.filter(e => e.start.isBetween(d, moment(d).add(1, "day")) || e.start.isSame(d))}
         />
     ));

@@ -16,16 +16,17 @@ const getDaysOfWeek = activeDate => {
 };
 
 const getDaysOfMonth = activeDate => {
-  const startWithOffset = moment(activeDate).startOf("week");
-  const end = moment(activeDate).endOf("month");
-  const endWithOffset = moment(end).endOf("week");
-  let days = [startWithOffset];
-  let current = moment(startWithOffset).add(1, "day");
-  while (current.isBefore(endWithOffset)) {
+    const start = moment(activeDate).startOf("month");
+    const startWithOffset = moment(start).startOf("week");
+    const end = moment(activeDate).endOf("month");
+    const endWithOffset = moment(end).endOf("week");
+    let days = [startWithOffset];
+    let current = moment(startWithOffset).add(1, "day");
+    while (current.isBefore(endWithOffset)) {
     days.push(current);
     current = moment(current).add(1, "day");
-  }
-  return days;
+    }
+    return days;
 };
 
 const datePickerStyles = {
@@ -43,8 +44,11 @@ const _modes = {
         _dayDirection: 'vertical',
         _timeDirection: 'horizontal',
         _blockHeight: 50,
-        _blockPixelSize: 50,
+        _blockPixelSize: 20,
         _allowResize: true,
+        _timeBlockStyles: {
+            //borderRight: "1px solid #e3e3e3",
+        },
         _dayHeader: (day, active) => <span style={{ backgroundColor: active ? "yellow" : "inherit" }}>{day.format("MMM Do YYYY")}</span>
     },
     week: {
@@ -55,7 +59,7 @@ const _modes = {
         _blockHeight: 50,
         _blockPixelSize: 100,
         _allowResize: false,
-        _dayHeader: (day, active) => <span style={{ backgroundColor: active ? "yellow" : "inherit" }}>{day.format("ddd Do")}</span>
+        _dayHeader: (day, active) => <span style={{ backgroundColor: active ? "yellow" : "inherit", padding: "5px" }}>{day.format("ddd Do")}</span>
     },
     month: {
         _timeBlockMinutes: 1439,
@@ -65,8 +69,8 @@ const _modes = {
         _blockHeight: 50,
         _blockPixelSize: 100,
         _allowResize: false,
-        _dayHeader: (day) => <span>{day.format("dddd")}</span>,
-        _dayLabel: (day, active) => <span style={{ position: "absolute", top: 0, left: 0}}>{day.format("MMM DD")}</span>
+        _dayHeader: (day) => <span style={{ padding: "5px" }}>{day.format("dddd")}</span>,
+        _dayLabel: (day, active) => <span style={{ position: "absolute", top: 0, left: 0, color: active ? "#a90089" : "inherit", fontWeight: 900 }}>{active ? "Today" : day.format("MMM DD")}</span>
     }
 };
 const DayPicker = (props) => <div style={datePickerStyles}>{props.children}</div>;
@@ -89,6 +93,7 @@ const CalendarView = ({
   activeDate,
   eventBoxStyles,
   timeBlockStyles,
+  dayBlockStyles,
   onClick,
   blockHeight,
   allowResize
@@ -107,16 +112,16 @@ const CalendarView = ({
     else if (_viewMode === "month"){
         daysToShow = getDaysOfMonth(currentDate);
     }
-    const { _timeBlockMinutes, _yAxisWidth, _dayDirection, _timeDirection, _blockHeight, _blockPixelSize, _allowResize, _dayHeader, _dayLabel } = _modes[_viewMode];
+    const { _timeBlockMinutes, _yAxisWidth, _dayDirection, _timeDirection, _blockHeight, _blockPixelSize, _allowResize, _dayHeader, _dayLabel, _timeBlockStyles } = _modes[_viewMode];
     console.log(timeDirection,_timeDirection);
     return (
         <div>
             <DayPicker>
-                <button onClick={() => setCurrentDate(moment(currentDate).add(-1,'days'))}>{'<<'}</button>
+                <button onClick={() => setCurrentDate(moment(currentDate).add(-1,_viewMode))}>{'<<'}</button>
                 <button onClick={() => setViewMode('day')}>Day</button>
                 <button onClick={() => setViewMode('week')}>Week</button>
                 <button onClick={() => setViewMode('month')}>Month</button>
-                <button onClick={() => setCurrentDate(moment(currentDate).add(1,'days'))}>{'>>'}</button>
+                <button onClick={() => setCurrentDate(moment(currentDate).add(1,_viewMode))}>{'>>'}</button>
             </DayPicker>
             <Calendar
                 timeDirection={timeDirection || _timeDirection}
@@ -144,7 +149,8 @@ const CalendarView = ({
 
                 //styling related props
                 eventBoxStyles={eventBoxStyles}
-                timeBlockStyles={timeBlockStyles}
+                timeBlockStyles={timeBlockStyles || _timeBlockStyles || ({})}
+                dayBlockStyles={dayBlockStyles}
             />
         </div>
     );
@@ -181,6 +187,7 @@ CalendarView.propTypes = {
     //styling properties
     eventBoxStyles: PropTypes.object,
     timeBlockStyles: PropTypes.object,
+    dayBlockStyles: PropTypes.object,
     blockPixelSize: PropTypes.number,
     blockHeight: PropTypes.number//only applies when its horizontal calendar
 };
@@ -200,7 +207,10 @@ CalendarView.defaultProps = {
   yAxisWidth: null,
   timeBlockMinutes: null,
   blockHeight: null,
-  blockPixelSize: null
+  blockPixelSize: null,
+
+  dayBlockStyles: {},
+  timeBlockStyles: null
 };
 
 export default CalendarView;

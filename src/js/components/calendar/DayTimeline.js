@@ -11,16 +11,17 @@ export const ItemTypes = {
 
 const dayStyles = (props) => ({
     fontSize: "10px",
-    padding: 0,
+    padding: "10px 0 0 0",
     //borderRight: "1px solid grey",
     position: "relative",
     minWidth: props.width,
     maxWidth: props.width
 });
-const Day = (props) => <td className="day-block" style={dayStyles(props)}>{props.children}</td>;
+const Day = (props) => <td className="day-block" style={{...dayStyles(props), ...props.style}}>{props.children}</td>;
 Day.propTypes = {
   children: PropTypes.node,
   width: PropTypes.string,
+  style: PropTypes.object,
   direction: PropTypes.string,
 };
 
@@ -31,7 +32,7 @@ const getCollidingEvents = (originalEv, events) => events.filter(
             e.end.isBetween(originalEv.start, originalEv.end)
         );
 export const DayTimeline = ({ events, date, isActive, width, timesToShow }) => {
-    const { timeDirection, dayLabel, blockHeight, eventOffset } = useContext(CalendarContext);
+    const { timeDirection, dayLabel, blockHeight, eventOffset, dayBlockStyles } = useContext(CalendarContext);
     let maxDayOccupancy = 1;
     events.forEach(e => {
         if(!e.blockLevel){
@@ -66,7 +67,7 @@ export const DayTimeline = ({ events, date, isActive, width, timesToShow }) => {
 
     if (!date) return "Loading...";
     return (
-        <Day width={width} active={isActive} direction={timeDirection}>
+        <Day width={width} style={dayBlockStyles} active={isActive} direction={timeDirection}>
             { dayLabel && dayLabel(date, isActive)}
             {times.map(t => (
                 <TimeBlock

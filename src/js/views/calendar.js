@@ -115,7 +115,7 @@ export const ShiftCalendar = ({ catalog }) => {
                         eventBoxStyles={{
                             background: "#c3f0f5"
                         }}
-                        timeBlockStyles={{
+                        dayBlockStyles={{
                             backgroundColor: "rgba(255,255,255,0.3)",
                             borderRight: "1px solid #e3e3e3",
                             borderBottom: "1px solid #e3e3e3",

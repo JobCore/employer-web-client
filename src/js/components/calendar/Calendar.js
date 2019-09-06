@@ -216,7 +216,8 @@ Calendar.propTypes = {
     PropTypes.node
   ]),
 
-  timeBlockStyles: PropTypes.object
+  timeBlockStyles: PropTypes.object,
+  dayBlockStyles: PropTypes.object
 };
 
 Calendar.defaultProps = {
@@ -238,7 +239,8 @@ Calendar.defaultProps = {
 
   //only for horizontal calendar
   blockHeight: 30,
-  timeBlockStyles: {}
+  timeBlockStyles: {},
+  dayBlockStyles: {}
 };
 
 export default Calendar;
