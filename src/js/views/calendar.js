@@ -20,12 +20,6 @@ export const getCalendarFilters = () => {
     };
 };
 
-const DayLabel = (propers) => <h3 style={{
-    width: "100%",
-    margin: 0,
-    background: propers.active ? "orange" : "#f1f1f1"
-    }}>{propers.children}</h3>;
-
 const gf = {
     positions: {
         grouping: (s) => s.position.title,
@@ -138,7 +132,6 @@ export const ShiftCalendar = ({ catalog }) => {
                                 ending_at: e.end,
                             }})
                         }
-                        dayLabel={(day, active) => <DayLabel active={active}>{day.format("dddd")}</DayLabel>}
                         events={groupedShifts}
                     />
                 }

@@ -8,7 +8,9 @@ import { ItemTypes } from "./Event";
 const blockStyles = (props) => ({
     boxSizing: "border-box",
     fontSize: "10px",
+    display: "inline-block",
     position: "relative",
+    margin: 0,
     background: props.isOver ? "pink" : props.ocupied ? "blue" : props.style.background || "inherit",
     minWidth: props.timeDirection === "horizontal" ? props.size : "inherit",
     width: props.timeBlockMinutes === 1439 ? "100%" : props.timeDirection === "horizontal" ? props.size : props.style.background || "inherit",

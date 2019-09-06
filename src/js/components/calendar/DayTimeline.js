@@ -10,13 +10,12 @@ export const ItemTypes = {
 };
 
 const dayStyles = (props) => ({
-    boxSizing: "border-box",
     fontSize: "10px",
+    padding: 0,
     //borderRight: "1px solid grey",
-    display: "flex",
     position: "relative",
-    width: "100%",
-    flexDirection: props.direction === "horizontal" ? "row" : "column"
+    minWidth: props.width,
+    maxWidth: props.width
 });
 const Day = (props) => <td className="day-block" style={dayStyles(props)}>{props.children}</td>;
 Day.propTypes = {
@@ -68,6 +67,7 @@ export const DayTimeline = ({ events, date, isActive, width, timesToShow }) => {
     if (!date) return "Loading...";
     return (
         <Day width={width} active={isActive} direction={timeDirection}>
+            { dayLabel && dayLabel(date, isActive)}
             {times.map(t => (
                 <TimeBlock
                     key={t.index}

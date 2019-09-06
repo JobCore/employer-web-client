@@ -5,20 +5,15 @@ import PropTypes from "prop-types";
 
 const Day = (props) => <tr className="horizontal-day" style={{
   boxSizing: "border-box",
-  width: "100%",
-  display: "flex",
-  justifyContent: "left"
+  width: "100%"
 }}>{props.children}</tr>;
 Day.propTypes = {
   children: PropTypes.node
 };
 
 const HorizontalLabel = (props) => <td style={{
-    boxSizing: "border-box",
-    display: "block",
     background: "#f1f1f1",
     padding: "5px",
-    overflow: "hidden",
     minWidth: `${props.width}px`,
     maxWidth: `${props.width}px`
 }}>{props.children}</td>;
@@ -30,9 +25,10 @@ HorizontalLabel.propTypes = {
 
 export const HorizontalDay = ({ events, days, yAxis, timesToShow, width, showRow }) => {
     const { yAxisWidth } = useContext(CalendarContext);
+    console.log("After",yAxis.map(a => a.events));
     return yAxis.map((row, i) => (
         <Day key={i}>
-            { showRow && <HorizontalLabel width={yAxisWidth}>{row.label}</HorizontalLabel> }
+            { (yAxisWidth > 0) && <HorizontalLabel width={yAxisWidth}>{row.label}</HorizontalLabel> }
             <DayBlock
                 timesToShow={timesToShow}
                 key={row.index}
