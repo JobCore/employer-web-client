@@ -10,7 +10,8 @@ const blockStyles = (props) => ({
     fontSize: "10px",
     position: "relative",
     background: props.isOver ? "pink" : props.ocupied ? "blue" : props.style.background || "inherit",
-    width: props.timeDirection === "horizontal" ? props.size : props.style.background || "inherit",
+    minWidth: props.timeDirection === "horizontal" ? props.size : "inherit",
+    width: props.timeBlockMinutes === 1439 ? "100%" : props.timeDirection === "horizontal" ? props.size : props.style.background || "inherit",
     height: props.timeDirection !== "horizontal" ? props.size : `${props.blockHeight}px`
 });
 const Block = React.forwardRef((props, ref) => <div className="time-block" ref={ref} onClick={(e) => props.onClick(e)} style={{...blockStyles(props), ...props.style}}>{props.children}</div>);
@@ -58,6 +59,7 @@ export const TimeBlock = ({ children, label, events, occupancy, start, end, bloc
             timeDirection={timeDirection}
             isOver={isOver}
             style={timeBlockStyles}
+            timeBlockMinutes={timeBlockMinutes}
             dragMode={dragMode}
             onClick={e => onClick({ start, end, events, occupancy })}
             size={`${blockPixelSize}px`}

@@ -15,10 +15,10 @@ const dayStyles = (props) => ({
     //borderRight: "1px solid grey",
     display: "flex",
     position: "relative",
-    width: props.width,
+    width: "100%",
     flexDirection: props.direction === "horizontal" ? "row" : "column"
 });
-const Day = (props) => <div className="day-block" style={dayStyles(props)}>{props.children}</div>;
+const Day = (props) => <td className="day-block" style={dayStyles(props)}>{props.children}</td>;
 Day.propTypes = {
   children: PropTypes.node,
   width: PropTypes.string,
@@ -52,7 +52,7 @@ export const DayTimeline = ({ events, date, isActive, width, timesToShow }) => {
                 (e.start.isBefore(start) && e.end.isAfter(end)) ||
                 e.end.isBetween(start, end)
             );
-        console.log("Occupancy for "+start.format('MM Do, h:mm')+" and "+end.format('MM Do, h:mm'), events.map(e => e.start.format('MMMM Do, h:mm')));
+        //console.log("Occupancy for "+start.format('MM Do, h:mm')+" and "+end.format('MM Do, h:mm'), events.map(e => e.start.format('MMMM Do, h:mm')));
         if(occupancy.length > maxDayOccupancy) maxDayOccupancy = occupancy.length;
         return {
             start,
@@ -68,7 +68,6 @@ export const DayTimeline = ({ events, date, isActive, width, timesToShow }) => {
     if (!date) return "Loading...";
     return (
         <Day width={width} active={isActive} direction={timeDirection}>
-            {timeDirection === "vertical" && dayLabel && dayLabel(date)}
             {times.map(t => (
                 <TimeBlock
                     key={t.index}

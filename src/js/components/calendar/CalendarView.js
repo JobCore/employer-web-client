@@ -15,6 +15,18 @@ const getDaysOfWeek = activeDate => {
   return days;
 };
 
+const getDaysOfMonth = activeDate => {
+  const start = moment(activeDate).startOf("month");
+  const end = moment(activeDate).endOf("month");
+  let days = [start];
+  let current = moment(start).add(1, "day");
+  while (current.isBefore(end)) {
+    days.push(current);
+    current = moment(current).add(1, "day");
+  }
+  return days;
+};
+
 const datePickerStyles = {
     boxSizing: "border-box",
     fontSize: "10px",
@@ -30,7 +42,8 @@ const _modes = {
         _dayDirection: 'vertical',
         _timeDirection: 'horizontal',
         _blockHeight: 50,
-        _blockPixelSize: 50
+        _blockPixelSize: 50,
+        _allowResize: true
     },
     week: {
         _timeBlockMinutes: 1439,
@@ -38,7 +51,17 @@ const _modes = {
         _dayDirection: 'horizontal',
         _timeDirection: 'horizontal',
         _blockHeight: 50,
-        _blockPixelSize: 119
+        _blockPixelSize: 100,
+        _allowResize: false
+    },
+    month: {
+        _timeBlockMinutes: 1439,
+        _yAxisWidth: 120,
+        _dayDirection: 'horizontal',
+        _timeDirection: 'horizontal',
+        _blockHeight: 50,
+        _blockPixelSize: 100,
+        _allowResize: false
     }
 };
 const DayPicker = (props) => <div style={datePickerStyles}>{props.children}</div>;
@@ -62,6 +85,7 @@ const CalendarView = ({
   timeBlockStyles,
   onClick,
   blockHeight,
+  allowResize
 }) => {
     let daysToShow = [];
 
@@ -74,14 +98,18 @@ const CalendarView = ({
     else if (_viewMode === "week"){
         daysToShow = getDaysOfWeek(currentDate);
     }
-    const { _timeBlockMinutes, _yAxisWidth, _dayDirection, _timeDirection, _blockHeight, _blockPixelSize } = _modes[_viewMode];
-
+    else if (_viewMode === "month"){
+        daysToShow = getDaysOfMonth(currentDate);
+    }
+    const { _timeBlockMinutes, _yAxisWidth, _dayDirection, _timeDirection, _blockHeight, _blockPixelSize, _allowResize } = _modes[_viewMode];
+    console.log(timeDirection,_timeDirection);
     return (
         <div>
             <DayPicker>
                 <button onClick={() => setCurrentDate(moment(currentDate).add(-1,'days'))}>{'<<'}</button>
                 <button onClick={() => setViewMode('day')}>Day</button>
                 <button onClick={() => setViewMode('week')}>Week</button>
+                <button onClick={() => setViewMode('month')}>Month</button>
                 <button onClick={() => setCurrentDate(moment(currentDate).add(1,'days'))}>{'>>'}</button>
             </DayPicker>
             <Calendar
@@ -91,6 +119,7 @@ const CalendarView = ({
                 blockHeight={blockHeight || _blockHeight}//only applies when its horizontal calendar
                 timeBlockMinutes={timeBlockMinutes || _timeBlockMinutes}
                 blockPixelSize={blockPixelSize || _blockPixelSize}
+                allowResize={allowResize || _allowResize}
 
                 events={events}
                 daysToShow={daysToShow}
@@ -120,6 +149,7 @@ CalendarView.propTypes = {
     dayDirection: PropTypes.string,
     timeDirection: PropTypes.string,
     onChange: PropTypes.func,
+    allowResize: PropTypes.bool,
     showPreview: PropTypes.bool,
     events: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),
     timeBlockMinutes: PropTypes.number,

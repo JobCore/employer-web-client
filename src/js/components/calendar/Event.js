@@ -9,7 +9,9 @@ export const ItemTypes = {
   HORIZON_BOTTOM: "event-horizon-bottom"
 };
 
-const eventBlockStyles = (props) => ({
+const eventBlockStyles = (props) => {
+    console.log("direcvtion", props.direction);
+    return ({
     background: "blue",
     border: "1px solid black",
     position: "absolute",
@@ -20,9 +22,10 @@ const eventBlockStyles = (props) => ({
     marginLeft: `${props.index * 2}px`,
     marginTop: `${props.offset}px`,
     opacity: props.isDragging ? 0.4 : 0.95,
-    width: props.direction === "horizontal" ? props.size : "90%",
+    width: props.timeBlockMinutes === 1439 ? "100%" : props.direction === "horizontal" ? props.size : "90%",
     height: props.direction !== "horizontal" ? props.size : `${props.blockHeight}px`,
 });
+};
 const EventBlock = React.forwardRef((props, ref) => <div className="event-block" onClick={e => props.onClick(e)} ref={ref} style={{...eventBlockStyles(props), ...props.style}}>{props.children}</div>);
 EventBlock.propTypes = {
   children: PropTypes.node,
@@ -112,7 +115,7 @@ Horizon.propTypes = {
 };
 
 export const Event = ({ label, start, end, duration, index, isPreview, offset, data }) => {
-    const { timeDirection, blockPixelSize, timeBlockMinutes, toggleDragMode, eventBoxStyles, blockHeight, onClick } = useContext(CalendarContext);
+    const { timeDirection, blockPixelSize, timeBlockMinutes, toggleDragMode, eventBoxStyles, blockHeight, onClick, allowResize } = useContext(CalendarContext);
     const [{ isDragging }, drag ] = useDrag({
         item: { type: ItemTypes.EVENT, index, duration, start, end, data },
         collect: monitor => {
@@ -137,27 +140,32 @@ export const Event = ({ label, start, end, duration, index, isPreview, offset, d
             direction={timeDirection}
             blockHeight={blockHeight}
             index={index}
-            size={`${timeBlockMinutes == 1439 ? "100%" : Math.floor((duration / timeBlockMinutes) * blockPixelSize)}px`}
+            timeBlockMinutes={timeBlockMinutes}
+            size={`${Math.floor((duration / timeBlockMinutes) * blockPixelSize)}px`}
         >
             { !isPreview &&
                 <Invisible>
-                    <Horizon
-                        index={index}
-                        orientation={timeDirection === "vertical" ? "top" : "left"}
-                        eventStart={start}
-                        data={data}
-                        duration={duration}
-                        eventEnd={end}
-                    />
+                    { allowResize &&
+                        <Horizon
+                            index={index}
+                            orientation={timeDirection === "vertical" ? "top" : "left"}
+                            eventStart={start}
+                            data={data}
+                            duration={duration}
+                            eventEnd={end}
+                        />
+                    }
                     <EventLabel>{label}</EventLabel>
-                    <Horizon
-                        index={index}
-                        orientation={timeDirection === "vertical" ? "bottom" : "right"}
-                        eventStart={start}
-                        data={data}
-                        duration={duration}
-                        eventEnd={end}
-                    />
+                    { allowResize &&
+                        <Horizon
+                            index={index}
+                            orientation={timeDirection === "vertical" ? "bottom" : "right"}
+                            eventStart={start}
+                            data={data}
+                            duration={duration}
+                            eventEnd={end}
+                        />
+                    }
                 </Invisible>
             }
         </EventBlock>

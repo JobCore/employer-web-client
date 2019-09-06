@@ -25,14 +25,10 @@ Layout.propTypes = {
 };
 
 const timeStyles = (props) => ({
-    margin: 0,
-    padding: 0,
     fontSize: "12px",
-    background: "#b1b1b1",
-    marginLeft: `${props.yAxisWidth}px`,
-    width: !props.width ? "100%" : `${props.width}px`
+    background: "#b1b1b1"
 });
-const Time = (props) => <ul style={timeStyles(props)}>{props.children}</ul>;
+const Time = (props) => <tr style={timeStyles(props)}>{props.children}</tr>;
 Time.propTypes = {
     children: PropTypes.node,
 };
@@ -67,6 +63,10 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
         days: rest.dayDirection,
         time: rest.timeDirection
     });
+    if(rest.timeDirection != direction.time) setDirection({
+        days: rest.dayDirection,
+        time: rest.timeDirection
+    });
     const previousEventsRef = useRef(events);
 
     useEffect(() => {
@@ -82,9 +82,9 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
                     })));
             } else {
                 //The timeDirection set to horizontal because the events came as an object
-                if (direction.days !== "vertical" || direction.time !== "horizontal")
-                setDirection({ days: "vertical", time: "horizontal" });
-                console.log("Calendar events", events);
+                // if (direction.days !== "vertical" || direction.time !== "horizontal")
+                // setDirection({ days: "vertical", time: "horizontal" });
+                // console.log("Calendar events", events);
                 setYAxis(generateAxis(events));
             }
         }
@@ -101,6 +101,7 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
     });
 
     if (!daysToShow) return "Loading...";
+    console.log("Direction", direction);
     return (
         <Layout direction={direction.days}>
             <DndProvider backend={HTML5Backend}>
@@ -135,37 +136,47 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
                         <div className="vertical-day"><DayBlock timesToShow={times} days={daysToShow} events={calendarEvents} /></div>)
                         :
                         (<div>
-                            {daysToShow.map((d,i) =>
-                                <div className="day_header" style={{ display: "inline-block" }} key={i}>
-                                    {/* Show the day label */}
-                                    {  rest.dayLabel &&
-                                        <div style={{ width: (60 * 24) / rest.timeBlockMinutes * rest.blockPixelSize, marginLeft: i === 0 ? rest.yAxisWidth+"px": "0" }}>
-                                            {rest.dayLabel(d, moment(activeDate).add(1, "day").isSame(d))}
-                                        </div>
-                                    }
-
-                                    {/* Build the header with the times */}
-                                    { rest.viewMode === "day" &&
-                                        <Time yAxisWidth={rest.yAxisWidth} width={(60 * 24) / rest.timeBlockMinutes * rest.blockPixelSize}>
+                            <table style={{ width: rest.viewMode === "day" ? (60 * 24) / rest.timeBlockMinutes * rest.blockPixelSize : `calc(100% - ${rest.yAxisWidth}px` }}>
+                                {/* Show the day labelS */}
+                                {  rest.dayLabel &&
+                                    <tr>
+                                        { rest.viewMode !== "month" && <td style={{width: rest.yAxisWidth+"px"}}>&nbsp;</td>}
+                                        {daysToShow.filter((d,i) => i < 7).map((d,i) =>
+                                            <td style={{ width: rest.blockPixelSize }} key={i}>
+                                                {rest.dayLabel(d, moment(activeDate).add(1, "day").isSame(d))}
+                                            </td>
+                                        )}
+                                    </tr>
+                                }
+                                {/* Build the header with the times */}
+                                { rest.viewMode === "day" &&
+                                    <Time yAxisWidth={rest.yAxisWidth} width={(60 * 24) / rest.timeBlockMinutes * rest.blockPixelSize}>
+                                        <td style={{width: rest.yAxisWidth+"px"}}>&nbsp;</td>
+                                        <td>
                                             {times.map((t, i) =>
-                                                <li className="time_header" key={i} style={{
+                                                <div className="time_header" key={i} style={{
                                                     width: rest.blockPixelSize+"px",
                                                     display: "inline-block",
                                                     listStyle: "none"
                                                 }}>
                                                     {t.startTime.minutes() === 0 && t.startTime.format('ha')}
-                                                </li>
+                                                </div>
                                             )}
-                                        </Time>
+                                        </td>
+                                    </Time>
+                                }
+
+                                <HorizontalDay
+                                    showRow={rest.viewMode !== "month"}
+                                    days={daysToShow}
+                                    timesToShow={times}
+                                    events={calendarEvents}
+                                    yAxis={yAxis}
+                                    width={
+                                        rest.viewMode === "day" ? `100%` : (60 * 24) / rest.timeBlockMinutes * rest.blockPixelSize
                                     }
-                                </div>
-                            )}
-                            <HorizontalDay
-                                days={daysToShow}
-                                timesToShow={times}
-                                events={calendarEvents}
-                                yAxis={yAxis}
-                            />
+                                />
+                            </table>
                         </div>
                     )}
                 </CalendarContext.Provider>
@@ -179,6 +190,7 @@ Calendar.propTypes = {
   dayDirection: PropTypes.string,
   blockPixelSize: PropTypes.number,
   onChange: PropTypes.func,
+  allowResize: PropTypes.bool,
   daysToShow: PropTypes.array,
   viewMode: PropTypes.oneOf(['day', 'week', 'month']),
   activeDate: PropTypes.object,
@@ -217,6 +229,7 @@ Calendar.defaultProps = {
   dayLabel: null,
   blockLabel: null,
   eventOffset: 0,
+  allowResize: true,
 
   //only for horizontal calendar
   blockHeight: 30,
