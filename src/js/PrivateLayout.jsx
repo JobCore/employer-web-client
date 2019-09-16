@@ -2,7 +2,7 @@ import React from 'react';
 import Flux from '@4geeksacademy/react-flux-dash';
 import { Route, Switch, NavLink } from 'react-router-dom';
 import {logout, fetchAll, fetchSingle, fetchAllMe, searchMe, store, resendValidationLink} from './actions';
-import Dashboard from './views/Dashboard';
+import Dashboard from './views/Dashboard.js';
 import ButtonBar from './views/ButtonBar';
 import { Session } from 'bc-react-session';
 import {Theme, SideBar, LoadBar} from './components/index';

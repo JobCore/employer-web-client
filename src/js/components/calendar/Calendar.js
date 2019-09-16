@@ -38,6 +38,7 @@ const generateAxis = (events, viewMode) => {
   if(typeof(events) !== "object") throw new Error('The events property must be an object');
 
   for (let key in events) {
+    validateEvents(events[key]);
     axis.push({
       label: key,
       events: events[key].map((e, i) => {
@@ -50,6 +51,17 @@ const generateAxis = (events, viewMode) => {
   }
 
   return axis;
+};
+
+const validateEvents = (events) => {
+    const total = events.length;
+    for(let i = 0; i<total; i++){
+        const c = events[i];
+        if(!moment(c.start).isValid()) throw new Error("Every event must have a 'start' property with the starting date of the event");
+        if(!moment(c.end).isValid()) throw new Error("Every event must have a 'end' property with the ending date of the event");
+        if(typeof c.label !== "string" ) throw new Error("Every event must have a label (string)");
+    }
+    return true;
 };
 
 const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
@@ -74,7 +86,9 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
         if(previousEventsRef.current !== events || calendarEvents === null){
             previousEventsRef.current = events;
             if (Array.isArray(events)) {
+
                 if (events.length > 0 && typeof events[0].index === 'undefined')
+                    validateEvents(events);
                     setCalendarEvents(events.map((e, i) => ({
                         index: i,
                         blockLevel: null,  // Number from 0 to X, blockLevel avoids visual collition of events, if 2 evens collide they will be at different blockLevels

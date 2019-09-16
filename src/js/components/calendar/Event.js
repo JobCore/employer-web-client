@@ -29,13 +29,13 @@ const eventBlockStyles = (props) => {
 const EventBlock = React.forwardRef((props, ref) => <div className="event-block" onClick={e => props.onClick(e)} ref={ref} style={{...eventBlockStyles(props), ...props.style}}>{props.children}</div>);
 EventBlock.propTypes = {
   children: PropTypes.node,
-  direction: PropTypes.string,
   index: PropTypes.string,
   offset: PropTypes.number,
   isDragging: PropTypes.bool,
   style: PropTypes.object,
   onClick: PropTypes.func,
   siblingCount: PropTypes.number,
+  direction: PropTypes.string,
   blockHeight: PropTypes.number
 };
 EventBlock.defaultProps = {
@@ -47,11 +47,16 @@ EventBlock.defaultProps = {
 const EventLabel = (props) => <label style={{
         float: "left",
         margin: "5px",
-        fontSize: "12px",
+        fontSize: "9px",
+        height: props.direction !== "horizontal" ? props.size : `${props.blockHeight}px`,
+        overflow: "hidden",
         zIndex: 10
     }}>{props.children}</label>;
 EventLabel.propTypes = {
-  children: PropTypes.node
+  children: PropTypes.node,
+  direction: PropTypes.string,
+  blockHeight: PropTypes.number,
+  size: PropTypes.string
 };
 
 const Invisible = (props) => <div style={{
@@ -139,9 +144,9 @@ export const Event = ({ label, start, end, duration, index, isPreview, offset, d
             style={eventBoxStyles}
             direction={timeDirection}
             blockHeight={blockHeight}
+            size={`${Math.floor((duration / timeBlockMinutes) * blockPixelSize)}px`}
             index={index}
             timeBlockMinutes={timeBlockMinutes}
-            size={`${Math.floor((duration / timeBlockMinutes) * blockPixelSize)}px`}
         >
             { !isPreview &&
                 <Invisible>
@@ -155,7 +160,11 @@ export const Event = ({ label, start, end, duration, index, isPreview, offset, d
                             eventEnd={end}
                         />
                     }
-                    <EventLabel>{label}</EventLabel>
+                    <EventLabel
+                        direction={timeDirection}
+                        blockHeight={blockHeight}
+                        size={`${Math.floor((duration / timeBlockMinutes) * blockPixelSize)}px`}
+                    >{label}</EventLabel>
                     { allowResize &&
                         <Horizon
                             index={index}

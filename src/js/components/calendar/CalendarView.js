@@ -80,6 +80,7 @@ DayPicker.propTypes = {
 
 const CalendarView = ({
   events,
+  ToolbarComponent,
   timeDirection,
   dayDirection,
   timeBlockMinutes,
@@ -116,13 +117,18 @@ const CalendarView = ({
     console.log(timeDirection,_timeDirection);
     return (
         <div>
-            <DayPicker>
-                <button onClick={() => setCurrentDate(moment(currentDate).add(-1,_viewMode))}>{'<<'}</button>
-                <button onClick={() => setViewMode('day')}>Day</button>
-                <button onClick={() => setViewMode('week')}>Week</button>
-                <button onClick={() => setViewMode('month')}>Month</button>
-                <button onClick={() => setCurrentDate(moment(currentDate).add(1,_viewMode))}>{'>>'}</button>
-            </DayPicker>
+            {
+                ToolbarComponent ?
+                    <ToolbarComponent currentDate={currentDate} setCurrentDate={setCurrentDate} setViewMode={setViewMode} />
+                    :
+                    <DayPicker>
+                        <button onClick={() => setCurrentDate(moment(currentDate).add(-1,_viewMode))}>{'<<'}</button>
+                        <button onClick={() => setViewMode('day')}>Day</button>
+                        <button onClick={() => setViewMode('week')}>Week</button>
+                        <button onClick={() => setViewMode('month')}>Month</button>
+                        <button onClick={() => setCurrentDate(moment(currentDate).add(1,_viewMode))}>{'>>'}</button>
+                    </DayPicker>
+            }
             <Calendar
                 timeDirection={timeDirection || _timeDirection}
                 dayDirection={dayDirection || _dayDirection}
@@ -158,6 +164,7 @@ const CalendarView = ({
 
 CalendarView.propTypes = {
     children: PropTypes.node,
+    ToolbarComponent: PropTypes.node,
     viewMode: PropTypes.oneOf(['day', 'week', 'month']),
     dayDirection: PropTypes.string,
     timeDirection: PropTypes.string,
@@ -194,6 +201,7 @@ CalendarView.propTypes = {
 
 CalendarView.defaultProps = {
   viewMode: "day",
+  ToolbarComponent: null,
   onChange: null,
   activeDate: null,
   events: [],
