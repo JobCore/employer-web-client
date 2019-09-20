@@ -10,7 +10,6 @@ export const ItemTypes = {
 };
 
 const eventBlockStyles = (props) => {
-    console.log("direcvtion", props.direction);
     return ({
     background: "blue",
     border: "1px solid black",
@@ -18,7 +17,7 @@ const eventBlockStyles = (props) => {
     top: 0,
     left: 0,
     cursor: "pointer",
-    zIndex: props.isPreview ? -1 : 10,
+    zIndex: props.isPreview ? -1 : 0,
     marginLeft: `${props.index * 2}px`,
     marginTop: `${props.offset}px`,
     opacity: props.isDragging ? 0.4 : 0.95,

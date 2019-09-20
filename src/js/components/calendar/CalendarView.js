@@ -103,6 +103,7 @@ const CalendarView = ({
 
     const [ currentDate, setCurrentDate ] = useState(activeDate ? activeDate : moment().startOf("day"));
     const [ _viewMode, setViewMode ] = useState(viewMode);
+    if(viewMode !== _viewMode) setViewMode(viewMode);
 
     if (_viewMode === "day"){
         daysToShow = [currentDate];
@@ -114,7 +115,6 @@ const CalendarView = ({
         daysToShow = getDaysOfMonth(currentDate);
     }
     const { _timeBlockMinutes, _yAxisWidth, _dayDirection, _timeDirection, _blockHeight, _blockPixelSize, _allowResize, _dayHeader, _dayLabel, _timeBlockStyles } = _modes[_viewMode];
-    console.log(timeDirection,_timeDirection);
     return (
         <div>
             {
@@ -132,7 +132,7 @@ const CalendarView = ({
             <Calendar
                 timeDirection={timeDirection || _timeDirection}
                 dayDirection={dayDirection || _dayDirection}
-                yAxisWidth={yAxisWidth || _yAxisWidth}
+                yAxisWidth={yAxisWidth === null ? _yAxisWidth : yAxisWidth}
                 blockHeight={blockHeight || _blockHeight}//only applies when its horizontal calendar
                 timeBlockMinutes={timeBlockMinutes || _timeBlockMinutes}
                 blockPixelSize={blockPixelSize || _blockPixelSize}

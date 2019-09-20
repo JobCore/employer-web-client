@@ -10,13 +10,16 @@ import { store, searchMe, update } from '../actions.js';
 import Select from 'react-select';
 import WEngine from "../utils/write_engine.js";
 
+import {DATETIME_FORMAT, NOW, YESTERDAY} from '../components/utils.js';
+import DateTime from 'react-datetime';
+
 //gets the querystring and creats a formData object to be used when opening the rightbar
-export const getCalendarFilters = () => {
+export const getURLFilters = () => {
     let query = queryString.parse(window.location.search);
     if(typeof query == 'undefined') return {};
     return {
-        startDate: moment(query.start || new Date()),
-        endDate: moment(query.end || new Date())
+        start: moment(query.start || new Date()),
+        end: moment(query.end || new Date())
     };
 };
 
@@ -38,11 +41,25 @@ const getEmployees = (shifts) => shifts.map(s => s.employees).flat();
 
 export const ShiftCalendar = ({ catalog }) => {
 
-    const [ filters , setFilters ] = useState(getCalendarFilters());
+    const [ filters , setFilters ] = useState(getURLFilters());
     const [ shifts , setShifts ] = useState(null);
+    const [ venues , setVenues ] = useState([]);
+    const [ positions , setPositions ] = useState([]);
     const [ shiftChanges , setShiftChanges ] = useState([]);
     const [ groupedShifts , setGroupedShifts ] = useState(null);
     const [ groupedLabel , setGroupedLabel ] = useState(null);
+    const [ viewMode , setViewMode ] = useState('day');
+
+    const setCalendarFilters = (incoming={}) => {
+        const urlFilters = getURLFilters();
+        const r = Object.assign(urlFilters, filters, incoming);
+        setFilters(r);
+
+        const _filters = Object.assign({},r);
+        if(moment.isMoment(_filters.start)) _filters.start = _filters.start.format('YYYY-MM-DD');
+        if(moment.isMoment(_filters.end)) _filters.end = _filters.end.format('YYYY-MM-DD');
+        searchMe('shifts', '?'+queryString.stringify(_filters));
+    };
 
     const groupShifts = (sh, l) => {
         let _shifts = {};
@@ -82,22 +99,67 @@ export const ShiftCalendar = ({ catalog }) => {
             setShifts(sh);
             groupShifts(sh, {label: "Venue", value: "venues" });
         });
-        searchMe('shifts',window.location.search);
+        store.subscribe('venues', (venues) => setVenues(venues));
+        store.subscribe('positions', (positions) => setPositions(positions));
 
+        setCalendarFilters();
 
     }, []);
 
     return <Theme.Consumer>
         {({ bar }) => <div className="row">
             <div className="col-10">
-                <Select
-                    onChange={(l)=> groupShifts(shifts, l)}
-                    options={[{ label: "Position", value: "positions"}, {label: "Venue", value: "venues" }, {label: "Employees", value: "employees" }]}
-                    value={groupedLabel}
-                />
                 { groupedShifts &&
                     <CalendarView
-                        viewMode={"day"}
+                        viewMode={viewMode}
+                        ToolbarComponent={({ setCurrentDate, currentDate }) => <div className="row">
+                            <div className="col">
+                                <Select
+                                    onChange={(l)=> groupShifts(shifts, l)}
+                                    options={[{ label: "Position", value: "positions"}, {label: "Venue", value: "venues" }, {label: "Employees", value: "employees" }]}
+                                    value={groupedLabel}
+                                />
+                            </div>
+                            <div className="col">
+                                <div className="row">
+                                    <DateTime
+                                        className='col'
+                                        timeFormat={false}
+                                        closeOnSelect={true}
+                                        value={filters.start}
+                                        isValidDate={( current ) => {
+                                            return current.isBefore( filters.end );
+                                        }}
+                                        renderInput={(properties) => {
+                                            const { value, ...rest } = properties;
+                                            return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
+                                        }}
+                                        onChange={(value)=> setCalendarFilters({ start: value })}
+                                    />
+                                    <DateTime
+                                        className='col'
+                                        timeFormat={false}
+                                        closeOnSelect={true}
+                                        value={filters.end}
+                                        isValidDate={( current ) => {
+                                            return current.isAfter( filters.start );
+                                        }}
+                                        renderInput={(properties) => {
+                                            const { value, ...rest } = properties;
+                                            return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
+                                        }}
+                                        onChange={(v)=> setCalendarFilters({ end: v })}
+                                    />
+                                </div>
+                            </div>
+                            <div className="col text-right">
+                                <Button size="small" color="light" icon="backward" onClick={() => setCurrentDate(moment(currentDate).add(-1,viewMode))} />
+                                <Button size="small" onClick={() => setViewMode('day')}>Day</Button>
+                                <Button size="small" onClick={() => setViewMode('week')}>Week</Button>
+                                <Button size="small" onClick={() => setViewMode('month')}>Month</Button>
+                                <Button size="small" color="light" icon="forward" onClick={() => setCurrentDate(moment(currentDate).add(1,viewMode))} />
+                            </div>
+                        </div>}
                         onChange={(evt) => {
                             console.log("Event Updatedd", evt);
                             let shift = {
@@ -120,18 +182,25 @@ export const ShiftCalendar = ({ catalog }) => {
                             borderRight: "1px solid #e3e3e3",
                             borderBottom: "1px solid #e3e3e3",
                         }}
-                        onClick={e => e.data ?
-                            bar.show({ slug: "shift_details", data: {
-                                ...e.data,
-                                starting_at: e.start,
-                                ending_at: e.end
-                            }})
-                            :
-                            bar.show({ slug: "create_shift", data: {
-                                starting_at: e.start,
-                                ending_at: e.end,
-                            }})
-                        }
+                        onClick={e => {
+                            const venue = groupedLabel.value === 'venues' ? venues.find(v => v.title == e.yAxis) : undefined;
+                            const position = groupedLabel.value === 'positions' ? positions.find(p => p.title == e.yAxis) : undefined;
+                            if(e.data){
+                                bar.show({ slug: "shift_details", data: {
+                                    ...e.data,
+                                    starting_at: e.start,
+                                    ending_at: e.end
+                                }});
+                            }
+                            else{
+                                bar.show({ slug: "create_shift", data: {
+                                    starting_at: e.start,
+                                    ending_at: e.end,
+                                    venue: venue ? venue.id : null,
+                                    position: position ? position.id : null
+                                }});
+                            }
+                        }}
                         events={groupedShifts}
                     />
                 }

@@ -36,7 +36,7 @@ const calculateNewEvent = (blockTime, minutesDelta, item, { EVENT, HORIZON_TOP, 
     };
 };
 
-export const TimeBlock = ({ children, label, events, occupancy, start, end, blockHeight }) => {
+export const TimeBlock = ({ children, yAxis, events, occupancy, start, end, blockHeight }) => {
     const { timeDirection, timeBlockMinutes, blockPixelSize, showPreview, updateEvent, dragMode, toggleDragMode, blockLabel, onClick, timeBlockStyles } = useContext(CalendarContext);
     const [{ isOver }, drop] = useDrop({
         accept: [ ItemTypes.EVENT, ItemTypes.HORIZON_TOP, ItemTypes.HORIZON_BOTTOM ],
@@ -63,7 +63,7 @@ export const TimeBlock = ({ children, label, events, occupancy, start, end, bloc
             style={timeBlockStyles}
             timeBlockMinutes={timeBlockMinutes}
             dragMode={dragMode}
-            onClick={e => onClick({ start, end, events, occupancy })}
+            onClick={e => onClick({ start, end, events, occupancy, yAxis })}
             size={`${blockPixelSize}px`}
             blockHeight={blockHeight}
             ocupied={occupancy.length}
@@ -78,6 +78,7 @@ TimeBlock.propTypes = {
   occupancy: PropTypes.array,
   children: PropTypes.node,
   label: PropTypes.string,
+  yAxis: PropTypes.string,
   blockHeight: PropTypes.number,
   end: PropTypes.object.isRequired,
   start: PropTypes.object.isRequired,
@@ -85,5 +86,6 @@ TimeBlock.propTypes = {
 
 TimeBlock.defaultProps = {
   events: null,
+  yAxis: null,
   occupancy: []
 };

@@ -15,6 +15,7 @@ const HorizontalLabel = (props) => <td style={{
     background: "#f1f1f1",
     padding: "5px",
     minWidth: `${props.width}px`,
+    width: `${props.width}px`,
     maxWidth: `${props.width}px`
 }}>{props.children}</td>;
 HorizontalLabel.propTypes = {
@@ -25,7 +26,6 @@ HorizontalLabel.propTypes = {
 
 export const HorizontalDay = ({ events, days, yAxis, timesToShow, width, showRow }) => {
     const { yAxisWidth } = useContext(CalendarContext);
-    console.log("After",yAxis.map(a => a.events));
     return yAxis.map((row, i) => (
         <Day key={i}>
             { (yAxisWidth > 0) && <HorizontalLabel width={yAxisWidth}>{row.label}</HorizontalLabel> }
@@ -33,6 +33,7 @@ export const HorizontalDay = ({ events, days, yAxis, timesToShow, width, showRow
                 timesToShow={timesToShow}
                 key={row.index}
                 days={days}
+                yAxisLabel={row.label}
                 width={width}
                 events={row.events}
             />

@@ -13,7 +13,9 @@ const icons = {
   plus: 'fas fa-plus',
   check: 'fas fa-check-circle',
   times: 'fas fa-times-circle',
-  clock: 'fas fa-clock'
+  clock: 'fas fa-clock',
+  backward: 'fas fa-backward',
+  forward: 'fas fa-forward'
 };
 
 const sizes = {

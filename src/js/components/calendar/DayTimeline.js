@@ -22,7 +22,7 @@ Day.propTypes = {
   children: PropTypes.node,
   width: PropTypes.string,
   style: PropTypes.object,
-  direction: PropTypes.string,
+  direction: PropTypes.string
 };
 
 const getCollidingEvents = (originalEv, events) => events.filter(
@@ -31,7 +31,7 @@ const getCollidingEvents = (originalEv, events) => events.filter(
             (e.start.isBefore(originalEv.start) && e.end.isAfter(originalEv.end)) ||
             e.end.isBetween(originalEv.start, originalEv.end)
         );
-export const DayTimeline = ({ events, date, isActive, width, timesToShow }) => {
+export const DayTimeline = ({ events, date, isActive, width, timesToShow, yAxisLabel }) => {
     const { timeDirection, dayLabel, blockHeight, eventOffset, dayBlockStyles } = useContext(CalendarContext);
     let maxDayOccupancy = 1;
     events.forEach(e => {
@@ -56,6 +56,7 @@ export const DayTimeline = ({ events, date, isActive, width, timesToShow }) => {
         if(occupancy.length > maxDayOccupancy) maxDayOccupancy = occupancy.length;
         return {
             start,
+            yAxis: yAxisLabel,
             end,
             index: i,
             events: events.filter(
@@ -74,6 +75,7 @@ export const DayTimeline = ({ events, date, isActive, width, timesToShow }) => {
                     key={t.index}
                     label={t.label}
                     start={t.start}
+                    yAxis={yAxisLabel}
                     end={t.end}
                     occupancy={t.occupancy}
                     blockHeight={(maxDayOccupancy * blockHeight) + eventOffset}
@@ -90,6 +92,7 @@ export const DayTimeline = ({ events, date, isActive, width, timesToShow }) => {
 DayTimeline.propTypes = {
   children: PropTypes.node,
   width: PropTypes.string,
+  yAxisLabel: PropTypes.string,
   events: PropTypes.array,
   timesToShow: PropTypes.array,
   isActive: PropTypes.bool,
@@ -99,5 +102,6 @@ DayTimeline.propTypes = {
 DayTimeline.defaultProps = {
   isActive: false,
   date: null,
+  yAxisLabel: null,
   events: []
 };

@@ -2,7 +2,7 @@ import React from 'react';
 import Flux from '@4geeksacademy/react-flux-dash';
 import { Route, Switch, NavLink } from 'react-router-dom';
 import {logout, fetchAll, fetchSingle, fetchAllMe, searchMe, store, resendValidationLink} from './actions';
-import Dashboard from './views/Dashboard.js';
+import Dashboard from './views/dashboard.js';
 import ButtonBar from './views/ButtonBar';
 import { Session } from 'bc-react-session';
 import {Theme, SideBar, LoadBar} from './components/index';
@@ -77,9 +77,11 @@ class PrivateLayout extends Flux.DashView{
                             this.showRightBar(FilterApplications, option, {formData: getApplicationsInitialFilters(this.state.catalog)});
                         break;
                         case 'show_shift_applications':{
-                            this.showRightBar(ShiftApplicants, option, {
-                                applicants: option.data.candidates,
-                                shift: option.data
+                            fetchAllMe(['applications']).then(() => {
+                                this.showRightBar(ShiftApplicants, option, {
+                                    applicants: option.data.candidates,
+                                    shift: option.data
+                                });
                             });
                         }break;
                         case 'show_shift_employees':{
