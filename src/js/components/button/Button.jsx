@@ -14,6 +14,7 @@ const icons = {
   check: 'fas fa-check-circle',
   times: 'fas fa-times-circle',
   clock: 'fas fa-clock',
+  sync: 'fas fa-sync',
   backward: 'fas fa-backward',
   forward: 'fas fa-forward'
 };

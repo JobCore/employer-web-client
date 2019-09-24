@@ -12,8 +12,8 @@ class ButtonBar extends React.Component {
                     { slug: "invite_talent_to_jobcore", title: 'Invite Talent to JobCore', to: 'talents'}
                 ],
                 "locations": [
-                    { slug: "create_location", title: 'Create a location', to: 'locations'},
-                    { slug: "profile", title: 'Back to company profile', to: 'profile'}
+                    { slug: "profile", title: 'Back to company profile', to: 'profile'},
+                    { slug: "create_location", title: 'Create a location', to: 'locations'}
                 ],
                 "shifts": [
                     { slug: "create_shift", title: 'Create shifts', to: 'shifts'},
@@ -40,9 +40,12 @@ class ButtonBar extends React.Component {
                     { slug: "manage_locations", title: 'Company Locations', to: 'locations'},
                     { slug: "payroll_settings", title: 'Payroll Settings', to: 'payroll-settings'},
                     { slug: "my_ratings", title: 'Company Ratings', to: 'ratings'},
-                    { slug: "company_users", title: 'Company Users', to: 'company-users'}
+                    // { slug: "company_users", title: 'Company Users', to: 'company-users'}
                 ],
                 "ratings": [
+                    { slug: "manage_locations", title: 'Company Locations', to: 'locations'},
+                    { slug: "payroll_settings", title: 'Payroll Settings', to: 'payroll-settings'},
+                    // { slug: "company_users", title: 'Company Users', to: 'company-users'}
                 ],
                 "calendar": [
                     { slug: "create_shift", title: 'Create shifts', to: 'shifts'},

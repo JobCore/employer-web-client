@@ -10,6 +10,7 @@ import moment from 'moment';
 import {POST, GET, PUT, DELETE, PUTFiles} from './utils/api_wrapper';
 import log from './utils/log';
 import WEngine from "./utils/write_engine.js";
+import qs from "query-string";
 
 const Models = {
     "shifts": Shift,
@@ -175,6 +176,20 @@ export const fetchSingle = (entity, id) =>  new Promise((resolve, reject) => {
             const cachedEntity = WEngine.get(entity, id);
             if(cachedEntity) data = Object.assign(data, cachedEntity);
             Flux.dispatchEvent(entity, store.replaceMerged(entity, data.id, Models[entity](data).defaults().unserialize()));
+            resolve(data);
+        })
+        .catch(function(error) {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject();
+        });
+});
+
+export const hook = (hookName) =>  new Promise((resolve, reject) => {
+    const payload = Session.getPayload();
+    const params = { employer: payload.user.profile.employer };
+    GET(`hook/${hookName}?${qs.stringify(params)}`)
+        .then(function(data){
             resolve(data);
         })
         .catch(function(error) {
@@ -404,25 +419,25 @@ export const updateTalentList = (action, employee, listId) => {
     });
 };
 
-export const updatePayroll = (payroll) => new Promise((resolve, reject) => {
+// export const updatePayments = (payments) => new Promise((resolve, reject) => {
 
-    const newPayroll = payroll.clockins.map(c => {
-        c.status = payroll.status;
-        return Clockin(c).defaults().serialize();
-    });
+//     const newPayments = payments.map(c => {
+//         c.status = payroll.status;
+//         return Clockin(c).defaults().serialize();
+//     });
 
-    return PUT(`employees/${payroll.talent.id}/payroll`, newPayroll.filter(c => c.selected === true))
-    .then(function(data){
-        resolve();
-        Notify.success("The Payroll has been updated successfully");
-        Flux.dispatchEvent('single_payroll_detail', newPayroll);
-    })
-    .catch(function(error) {
-        reject(error.message || error);
-        Notify.error(error.message || error);
-        log.error(error);
-    });
-});
+//     return PUT(`employees/${payroll.talent.id}/payroll`, newPayroll.filter(c => c.selected === true))
+//     .then(function(data){
+//         resolve();
+//         Notify.success("The Payroll has been updated successfully");
+//         Flux.dispatchEvent('single_payroll_detail', newPayroll);
+//     })
+//     .catch(function(error) {
+//         reject(error.message || error);
+//         Notify.error(error.message || error);
+//         log.error(error);
+//     });
+// });
 
 export const http = { GET };
 

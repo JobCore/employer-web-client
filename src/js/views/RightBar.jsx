@@ -200,6 +200,7 @@ class RightBar extends React.Component {
                 }}
                 onCancel={(incoming)=>this.props.onClose(incoming)}
                 onChange={(incoming)=>this.onChange(incoming)}
+                history={this.props.history}
             />
             { (this.props.isCollapsable) ?
                 <button className="collapsebtn"

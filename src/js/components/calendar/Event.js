@@ -17,7 +17,7 @@ const eventBlockStyles = (props) => {
     top: 0,
     left: 0,
     cursor: "pointer",
-    zIndex: props.isPreview ? -1 : 0,
+    zIndex: props.isPreview ? -1 : 10,
     marginLeft: `${props.index * 2}px`,
     marginTop: `${props.offset}px`,
     opacity: props.isDragging ? 0.4 : 0.95,

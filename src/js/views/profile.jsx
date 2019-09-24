@@ -95,7 +95,7 @@ export class Profile extends Flux.DashView {
                                         <section className="upload-zone">
                                             <div {...getRootProps()}>
                                                 <input {...getInputProps()} />
-                                                <p>Drag & drop some files here, or click to select files</p>
+                                                <p>Drop your company logo here, or click me to open the file browser</p>
                                             </div>
                                         </section>
                                     )}

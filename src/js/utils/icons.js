@@ -16,6 +16,7 @@ import faDollarSign from '@fortawesome/fontawesome-free-solid/faDollarSign';
 import faUserCheck from '@fortawesome/fontawesome-free-solid/faUserCheck';
 import faClipboardList from '@fortawesome/fontawesome-free-solid/faClipboardList';
 import faClock from '@fortawesome/fontawesome-free-solid/faClock';
+import faSync from '@fortawesome/fontawesome-free-solid/faSync';
 
 import faForward from '@fortawesome/fontawesome-free-solid/faForward';
 import faBackward from '@fortawesome/fontawesome-free-solid/faBackward';
@@ -26,5 +27,5 @@ fontawesome.config = {
 fontawesome.library.add(
     faStar, faStarHalf, faEmptyStar, faTimesCircle, faCheckCircle, faAngleDoubleRight, faUserCheck, faClock,
     faTrashAlt, faQuestion, faPencilAlt, faPlus, faUsers, faExclamationTriangle, faDollarSign, faClipboardList,
-    faForward, faBackward
+    faForward, faBackward, faSync
 );
