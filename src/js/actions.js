@@ -262,7 +262,7 @@ export const update = (entity, data, mode=WEngine.modes.LIVE) => new Promise((re
             if(mode === WEngine.modes.POSPONED)
                 WEngine.add({ entity: event_name, method: 'PUT', data, id: data.id });
             else
-                Notify.success("The "+path.split('/')[0].substring(0, name[0].length - 1)+" was updated successfully");
+                Notify.success("The "+event_name+" was updated successfully");
 
             let entities = store.replaceMerged(event_name, data.id, data);
             Flux.dispatchEvent(event_name, entities);

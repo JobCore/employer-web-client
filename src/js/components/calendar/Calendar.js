@@ -46,6 +46,7 @@ const generateAxis = (events, viewMode) => {
         e.index = key + i;
         e.blockLevel = null; //Number from 0 to X,  blockLevel avoids visual collition of events, if 2 evens collide they will be at different blockLevels
         e.duration = moment.duration(e.end.diff(e.start)).asMinutes();
+        e.isMultiday = !e.start.isSame(e.end, 'day');
         return e;
       })
     });

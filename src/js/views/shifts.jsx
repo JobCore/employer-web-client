@@ -572,12 +572,18 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                             if(typeof value == 'string') value = moment(value);
 
                             const starting = moment( formData.starting_at.format("MM-DD-YYYY")+" "+value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-                            if(typeof starting !== 'undefined' && starting.isValid()) onChange({ starting_at: starting });
+                            var ending = moment(formData.ending_at);
+                            if(typeof starting !== 'undefined' && starting.isValid()){
+                                if(ending.isBefore(starting)){
+                                    ending = ending.add( 1, 'days' );
+                                }
+                                onChange({ starting_at: starting, ending_at: ending });
+                            }
                         }}
                     />
                 </div>
                 <div className="col-6">
-                    <label>To</label>
+                    <label>To {(formData.ending_at.isBefore(formData.starting_at)) && "(next day)"}</label>
                     <DateTime
                         className="picker-left"
                         dateFormat={false}
@@ -593,7 +599,9 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                             const starting = formData.starting_at;
                             var ending = moment( formData.starting_at.format("MM-DD-YYYY")+" "+value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
                             if(typeof ending !== 'undefined' && ending.isValid()){
-                                if(ending.isBefore(starting)) ending = ending.add( 1, 'days' );
+                                if(ending.isBefore(starting)){
+                                    ending = ending.add( 1, 'days' );
+                                }
                                 onChange({ ending_at: ending });
                             }
                         }}
@@ -767,6 +775,7 @@ export const ShiftDetails = (props) => {
                                     note={shift.candidates.length > 0 ? "There are shift has applications that have not been reviwed" : null}
                                     notePosition="left"
                                 />
+
                                 { shift.status === 'OPEN' &&
                                     <Button icon="user_check" color="primary" notePosition="left" size="small" rounded={true}
                                         onClick={() => bar.show({ slug: "show_shift_employees", data: shift, title: "Shift Employees", allowLevels: true })} />

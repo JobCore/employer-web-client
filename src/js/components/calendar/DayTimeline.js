@@ -12,6 +12,7 @@ export const ItemTypes = {
 const dayStyles = (props) => ({
     fontSize: "10px",
     padding: "10px 0 0 0",
+    overflow: "hidden",
     //borderRight: "1px solid grey",
     position: "relative",
     minWidth: props.width,
@@ -60,7 +61,7 @@ export const DayTimeline = ({ events, date, isActive, width, timesToShow, yAxisL
             end,
             index: i,
             events: events.filter(
-                e => e.start.isBetween(start, end) || e.start.isSame(start)
+                e => e.start.isBetween(start, end) || e.start.isSame(start) || (e.isMultiday && e.end.isBetween(start, end))
             ),
             occupancy
         };
@@ -81,7 +82,7 @@ export const DayTimeline = ({ events, date, isActive, width, timesToShow, yAxisL
                     blockHeight={(maxDayOccupancy * blockHeight) + eventOffset}
                 >
                     {t.events.map(({ blockLevel, ...rest}, i) => (
-                        <Event key={i} offset={eventOffset + (blockHeight*blockLevel)}  {...rest} />
+                        <Event key={i} offset={eventOffset + (blockHeight*blockLevel)} {...rest} />
                     ))}
                 </TimeBlock>
             ))}

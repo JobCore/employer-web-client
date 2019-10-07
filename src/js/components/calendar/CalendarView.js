@@ -36,7 +36,7 @@ const datePickerStyles = {
     position: "relative",
     flexDirection: "row"
 };
-
+const getVal = (_default, value) => (_default === null || _default === undefined) ? value : _default;
 const _modes = {
     day: {
         _timeBlockMinutes: 30,
@@ -47,9 +47,9 @@ const _modes = {
         _blockPixelSize: 20,
         _allowResize: true,
         _timeBlockStyles: {
-            //borderRight: "1px solid #e3e3e3",
+            borderRight: "1px solid #e3e3e3",
         },
-        _dayHeader: (day, active) => <span style={{ backgroundColor: active ? "yellow" : "inherit" }}>{day.format("MMM Do YYYY")}</span>
+        _dayHeader: (day, active) => <h2 style={{ backgroundColor: active ? "yellow" : "inherit" }}>{day.diff(moment()) && "Today: "} {day.format("MMM Do YYYY")}</h2>
     },
     week: {
         _timeBlockMinutes: 1439,
@@ -59,7 +59,7 @@ const _modes = {
         _blockHeight: 50,
         _blockPixelSize: 100,
         _allowResize: false,
-        _dayHeader: (day, active) => <span style={{ backgroundColor: active ? "yellow" : "inherit", padding: "5px" }}>{day.format("ddd Do")}</span>
+        _dayHeader: (day, active) => <h2 style={{ backgroundColor: active ? "yellow" : "inherit", padding: "5px" }}>{day.format("ddd Do")}</h2>
     },
     month: {
         _timeBlockMinutes: 1439,
@@ -69,8 +69,8 @@ const _modes = {
         _blockHeight: 50,
         _blockPixelSize: 100,
         _allowResize: false,
-        _dayHeader: (day) => <span style={{ padding: "5px" }}>{day.format("dddd")}</span>,
-        _dayLabel: (day, active) => <span style={{ position: "absolute", top: 0, left: 0, color: active ? "#a90089" : "inherit", fontWeight: 900 }}>{active ? "Today" : day.format("MMM DD")}</span>
+        _dayHeader: (day) => <h2 style={{ padding: "5px" }}>{day.format("dddd")}</h2>,
+        _dayLabel: (day, active) => <span style={{ position: "absolute", top: 0, left: 0, color: active ? "#a90089" : "inherit", fontWeight: 900 }}>{day.format("MMM DD")} {active && "(active)"}</span>
     }
 };
 const DayPicker = (props) => <div style={datePickerStyles}>{props.children}</div>;
@@ -130,15 +130,15 @@ const CalendarView = ({
                     </DayPicker>
             }
             <Calendar
-                timeDirection={timeDirection || _timeDirection}
-                dayDirection={dayDirection || _dayDirection}
-                yAxisWidth={yAxisWidth === null ? _yAxisWidth : yAxisWidth}
-                blockHeight={blockHeight || _blockHeight}//only applies when its horizontal calendar
-                timeBlockMinutes={timeBlockMinutes || _timeBlockMinutes}
-                blockPixelSize={blockPixelSize || _blockPixelSize}
-                allowResize={allowResize || _allowResize}
-                dayHeader={dayHeader || _dayHeader}
-                dayLabel={dayLabel || _dayLabel}
+                timeDirection={getVal(timeDirection,_timeDirection)}
+                dayDirection={getVal(dayDirection,_dayDirection)}
+                yAxisWidth={getVal(yAxisWidth,_yAxisWidth)}
+                blockHeight={getVal(blockHeight,_blockHeight)}//only applies when its horizontal calendar
+                timeBlockMinutes={getVal(timeBlockMinutes,_timeBlockMinutes)}
+                blockPixelSize={getVal(blockPixelSize ,_blockPixelSize)}
+                allowResize={getVal(allowResize,_allowResize)}
+                dayHeader={getVal(dayHeader,_dayHeader)}
+                dayLabel={getVal(dayLabel,_dayLabel)}
 
                 events={events}
                 daysToShow={daysToShow}

@@ -71,12 +71,12 @@ export default class Home extends Flux.DashView {
                             <div className="col-8">
                                 <CalendarView
                                     viewMode={"day"}
+                                    allowResize={false}
                                     yAxisWidth={0}
-                                    readOnly={true}
-                                    ToolbarComponent={({ setCurrentDate, currentDate }) => <div className="text-right">
-                                        {/* <Button onClick={() => setCurrentDate(moment(currentDate ).add(-1,'day'))}>{'<<'}</Button> */}
-                                        <Button onClick={() => this.props.history.push('./calendar?start='+moment(currentDate ).add(1,'month').format('YYYY-MM-DD')+'&end='+moment(currentDate ).add(-1,'month').format('YYYY-MM-DD'))}>Go to calendar</Button>
-                                        {/* <Button onClick={() => setCurrentDate(moment(currentDate).add(1,'day'))}>{'>>'}</Button> */}
+                                    ToolbarComponent={({ setCurrentDate, currentDate }) => <div className="text-right" style={{ position: "absolute", right: 0 }}>
+                                        {<Button size="small" onClick={() => setCurrentDate(moment(currentDate ).add(-1,'day'))}>{'<<'}</Button>}
+                                        {<Button size="small" onClick={() => setCurrentDate(moment(currentDate).add(1,'day'))}>{'>>'}</Button>}
+                                        <Button size="small" onClick={() => this.props.history.push('./calendar?start='+moment(currentDate ).add(1,'month').format('YYYY-MM-DD')+'&end='+moment(currentDate ).add(-1,'month').format('YYYY-MM-DD'))}>Go to calendar</Button>
                                     </div>
                                     }
                                     eventBoxStyles={{
@@ -119,7 +119,7 @@ export default class Home extends Flux.DashView {
                                 />
                                 <DashboardBox id="completed_shifts"
                                     status="EXPIRED"
-                                    title="Past Shifts"
+                                    title="Completed Shifts"
                                     shifts={this.state.shifts.filter(s => moment(s.ending_at).isBefore(NOW())).sort((a,b) => (new Date(b.starting_at) - new Date(a.starting_at)))}
                                 />
                             </div>
