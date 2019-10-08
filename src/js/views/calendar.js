@@ -116,7 +116,7 @@ export const ShiftCalendar = ({ catalog }) => {
                             <div className="col">
                                 <Select
                                     onChange={(l)=> groupShifts(shifts, l)}
-                                    options={[{ label: "Position", value: "positions"}, {label: "Venue", value: "venues" }, {label: "Employees", value: "employees" }]}
+                                    options={[{ label: "Sort by Position", value: "positions"}, {label: "Sort by Venue", value: "venues" }, {label: "Sort by Employees", value: "employees" }]}
                                     value={groupedLabel}
                                 />
                             </div>

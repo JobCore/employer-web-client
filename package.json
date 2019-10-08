@@ -6,7 +6,8 @@
   "scripts": {
     "start": "webpack-dev-server  --config webpack.dev.js --open --port 3000",
     "start:prod": "webpack-dev-server --config webpack.prod.js --open --port 3000",
-    "build": "webpack --config webpack.prod.js"
+    "build": "webpack --config webpack.prod.js",
+    "deploy": "firebase deploy --project jobcore-employer"
   },
   "author": "",
   "license": "ISC",

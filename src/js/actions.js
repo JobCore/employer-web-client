@@ -16,7 +16,8 @@ const Models = {
     "shifts": Shift,
     "ratings": Rating,
     "payroll-periods": PayrollPeriod,
-    "talents": Talent
+    "talents": Talent,
+    "employees": Talent
 };
 
 export const login = (email, password, history) => new Promise((resolve, reject) => POST('login', {
@@ -171,11 +172,12 @@ export const fetchAllMe = (entities) => new Promise((resolve, reject) => {
 });
 
 export const fetchSingle = (entity, id) =>  new Promise((resolve, reject) => {
-    GET('employers/me/'+entity+'/'+id)
+    const _entity = entity.slug || entity;
+    GET(entity.url || 'employers/me/'+_entity+'/'+id)
         .then(function(data){
-            const cachedEntity = WEngine.get(entity, id);
+            const cachedEntity = WEngine.get(_entity, id);
             if(cachedEntity) data = Object.assign(data, cachedEntity);
-            Flux.dispatchEvent(entity, store.replaceMerged(entity, data.id, Models[entity](data).defaults().unserialize()));
+            Flux.dispatchEvent(_entity, store.replaceMerged(_entity, data.id, Models[_entity](data).defaults().unserialize()));
             resolve(data);
         })
         .catch(function(error) {
@@ -252,7 +254,7 @@ export const create = (entity, data, status='live') => POST('employers/me/'+(ent
     });
 
 export const update = (entity, data, mode=WEngine.modes.LIVE) => new Promise((resolve, reject) => {
-    let path = (typeof entity == 'string') ? `employers/me/${entity}/${data.id}` : entity.path + (typeof data.id == 'string' ? `/${data.id }`:'');
+    let path = (typeof entity == 'string') ? `employers/me/${entity}/${data.id}` : entity.path + (typeof data.id !== 'undefined' ? `/${data.id }`:'');
     const event_name = (typeof entity == 'string') ? entity : entity.event_name;
 
     if(mode === WEngine.modes.POSPONED) path += "?posponed=true";

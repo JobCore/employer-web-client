@@ -130,7 +130,8 @@ class PrivateLayout extends Flux.DashView{
                         break;
                         case 'show_single_talent':
                             option.title = "Talent Details";
-                            this.showRightBar(TalentDetails, option, {employee: option.data});
+                            fetchSingle({ url: 'employees/'+option.data.id, slug: 'employees'}, option.data.id)
+                                .then(talent => this.showRightBar(TalentDetails, option, {employee: Talent(talent).defaults().unserialize() }));
                         break;
                         case 'add_to_favlist':
                             option.title = "Add to favorite lists";

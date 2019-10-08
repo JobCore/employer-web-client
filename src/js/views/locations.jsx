@@ -30,7 +30,7 @@ export const getTalentInitialFilters = (catalog) => {
 };
 
 export const Location = (data) => {
-    
+
     const _defaults = {
         id: '',
         title: '',
@@ -41,17 +41,17 @@ export const Location = (data) => {
         state: '',
         zip_code: '',
         serialize: function(){
-            
+
             const newLocation = {
                 latitude: this.latitude.toFixed(6),
                 longitude: this.longitude.toFixed(6)
 //                status: (this.status == 'UNDEFINED') ? 'DRAFT' : this.status,
             };
-            
+
             return Object.assign(this, newLocation);
         }
     };
-    
+
     let _location = Object.assign(_defaults, data);
     return {
         validate: () => {
@@ -82,31 +82,31 @@ export const Location = (data) => {
 };
 
 export class ManageLocations extends Flux.DashView {
-    
+
     constructor(){
         super();
         this.state = {
             locations: []
         };
     }
-    
+
     componentDidMount(){
-        
+
         this.filter();
         this.subscribe(store, ENTITIY_NAME, (locations) => {
             this.setState({ locations });
         });
-        
+
         this.props.history.listen(() => {
             this.filter();
             this.setState({ firstSearch: false });
         });
     }
-    
+
     filter(locations=null){
         searchMe(ENTITIY_NAME, window.location.search);
     }
-    
+
     render() {
         if(this.state.firstSearch) return <p>Search for any location</p>;
         const allowLevels = (window.location.search != '');
@@ -144,14 +144,14 @@ export const FilterLocations = (props) => {
                 <label>First Name:</label>
                 <input className="form-control"
                     value={props.formData.first_name}
-                    onChange={(e)=>props.onChange({ first_name: e.target.value })} 
+                    onChange={(e)=>props.onChange({ first_name: e.target.value })}
                 />
             </div>
             <div className="col-6">
                 <label>Last Name:</label>
                 <input className="form-control"
                     value={props.formData.last_name}
-                    onChange={(e)=>props.onChange({ last_name: e.target.value })} 
+                    onChange={(e)=>props.onChange({ last_name: e.target.value })}
                 />
             </div>
         </div>
@@ -160,7 +160,7 @@ export const FilterLocations = (props) => {
                 <label>Experience in past positions:</label>
                 <Select isMulti
                     value={props.formData.positions}
-                    onChange={(selectedOption)=>props.onChange({positions: selectedOption})} 
+                    onChange={(selectedOption)=>props.onChange({positions: selectedOption})}
                     options={props.catalog.positions}
                 />
             </div>
@@ -170,7 +170,7 @@ export const FilterLocations = (props) => {
                 <label>Badges:</label>
                 <Select isMulti
                     value={props.formData.badges}
-                    onChange={(selectedOption)=>props.onChange({badges: selectedOption})} 
+                    onChange={(selectedOption)=>props.onChange({badges: selectedOption})}
                     options={props.catalog.badges}
                 />
             </div>
@@ -180,7 +180,7 @@ export const FilterLocations = (props) => {
                 <label>Minimum start rating</label>
                 <Select
                     value={props.formData.rating}
-                    onChange={(opt)=>props.onChange({rating: opt})} 
+                    onChange={(opt)=>props.onChange({rating: opt})}
                     options={props.catalog.stars}
                 />
             </div>
@@ -229,8 +229,8 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
         <div className="row">
             <div className="col-12">
                 <label>Address</label>
-                <PlacesAutocomplete 
-                    value={formData.street_address || ''} 
+                <PlacesAutocomplete
+                    value={formData.street_address || ''}
                     onChange={(value)=>onChange({ street_address: value })}
                     onSelect={(address) => {
                         onChange({ street_address: address });
@@ -268,9 +268,9 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
         <div className="row">
             <div className="col-12">
                 <label>Location nickname</label>
-                <input type="text" className="form-control" 
+                <input type="text" className="form-control"
                     value={formData.title}
-                    onChange={(e)=>onChange({title: e.target.value})} 
+                    onChange={(e)=>onChange({title: e.target.value})}
                 />
             </div>
         </div>
@@ -303,19 +303,19 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
             </div>
             <div className="col-6">
                 <label>Country</label>
-                <input type="text" className="form-control" 
+                <input type="text" className="form-control"
                     value={formData.country}
-                    onChange={(e)=>onChange({country: e.target.value})} 
+                    onChange={(e)=>onChange({country: e.target.value})}
                 />
                 <label>State</label>
-                <input type="text" className="form-control" 
+                <input type="text" className="form-control"
                     value={formData.state}
-                    onChange={(e)=>onChange({state: e.target.value})} 
+                    onChange={(e)=>onChange({state: e.target.value})}
                 />
                 <label>Zip</label>
-                <input type="number" className="form-control" 
+                <input type="number" className="form-control"
                     value={formData.zip_code}
-                    onChange={(e)=>onChange({zip_code: e.target.value})} 
+                    onChange={(e)=>onChange({zip_code: e.target.value})}
                 />
             </div>
         </div>

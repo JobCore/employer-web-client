@@ -261,11 +261,13 @@ export const TalentDetails = (props) => {
 
                 <Avatar url={employee.user.profile.picture} />
                 <p>{typeof employee.fullName == 'function' ? employee.fullName() : employee.first_name + ' ' + employee.last_name}</p>
-                <div>
-                    <Stars className="float-left" rating={Number(employee.rating)} jobCount={employee.job_count}  />
-                </div>
+                <p>
+                    <Stars rating={Number(employee.rating)} jobCount={employee.job_count}  />
+                </p>
                 <p>$ {employee.minimum_hourly_rate} /hr minimum expected rate</p>
                 <p>{employee.user.profile.bio}</p>
+                {employee.positions.length > 0 && <p>{employee.positions.map(p => <span key={p.id} className="badge badge-success">{p.title}</span>)}</p>}
+                {employee.badges.length > 0 && <p>{employee.badges.map(b => <span key={b.id} className="badge badge-secondary">{b.title}</span>)}</p>}
                 <div className="btn-bar">
                     <Button color="primary" onClick={() => bar.show({ slug: "invite_talent_to_shift", data: employee, allowLevels:true })}>Invite to shift</Button>
                     <Button color="success" onClick={() => bar.show({ slug: "add_to_favlist", data: employee, allowLevels:true })}>Add to favorites</Button>
