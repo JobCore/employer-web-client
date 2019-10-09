@@ -43,20 +43,20 @@ const _modes = {
         _yAxisWidth: 120,
         _dayDirection: 'vertical',
         _timeDirection: 'horizontal',
-        _blockHeight: 50,
+        _blockHeight: 30,
         _blockPixelSize: 20,
         _allowResize: true,
         _timeBlockStyles: {
             borderRight: "1px solid #e3e3e3",
         },
-        _dayHeader: (day, active) => <h2 style={{ backgroundColor: active ? "yellow" : "inherit" }}>{day.diff(moment()) && "Today: "} {day.format("MMM Do YYYY")}</h2>
+        _dayHeader: (day, active) => <h2 style={{ backgroundColor: active ? "yellow" : "inherit" }}>{day.format("dddd, MMM Do YYYY")}</h2>
     },
     week: {
         _timeBlockMinutes: 1439,
         _yAxisWidth: 120,
         _dayDirection: 'horizontal',
         _timeDirection: 'horizontal',
-        _blockHeight: 50,
+        _blockHeight: 30,
         _blockPixelSize: 100,
         _allowResize: false,
         _dayHeader: (day, active) => <h2 style={{ backgroundColor: active ? "yellow" : "inherit", padding: "5px" }}>{day.format("ddd Do")}</h2>
@@ -66,7 +66,7 @@ const _modes = {
         _yAxisWidth: 0,
         _dayDirection: 'horizontal',
         _timeDirection: 'horizontal',
-        _blockHeight: 50,
+        _blockHeight: 30,
         _blockPixelSize: 100,
         _allowResize: false,
         _dayHeader: (day) => <h2 style={{ padding: "5px" }}>{day.format("dddd")}</h2>,
@@ -97,6 +97,7 @@ const CalendarView = ({
   dayBlockStyles,
   onClick,
   blockHeight,
+  blockHoverIcon,
   allowResize
 }) => {
     let daysToShow = [];
@@ -140,6 +141,8 @@ const CalendarView = ({
                 dayHeader={getVal(dayHeader,_dayHeader)}
                 dayLabel={getVal(dayLabel,_dayLabel)}
 
+                blockHoverIcon={getVal(blockHoverIcon, () => <i className="fas fa-plus position-absolute" style={{ left: 2, top: 2 }}></i>)}
+
                 events={events}
                 daysToShow={daysToShow}
                 onChange={event => onChange && onChange(event)}
@@ -174,6 +177,10 @@ CalendarView.propTypes = {
     events: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),
     timeBlockMinutes: PropTypes.number,
     yAxisWidth: PropTypes.number,
+    blockHoverIcon: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.node
+    ]),
     blockLabel: PropTypes.oneOfType([
         PropTypes.func,
         PropTypes.node
@@ -207,6 +214,7 @@ CalendarView.defaultProps = {
   events: [],
   blockLabel: null,
   onClick: null,
+  blockHoverIcon: null,
 
   dayLabel: null,
   dayHeader: null,

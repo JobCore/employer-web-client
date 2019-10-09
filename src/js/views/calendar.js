@@ -112,11 +112,12 @@ export const ShiftCalendar = ({ catalog }) => {
                 { groupedShifts &&
                     <CalendarView
                         viewMode={viewMode}
-                        ToolbarComponent={({ setCurrentDate, currentDate }) => <div className="row">
+                        ToolbarComponent={({ setCurrentDate, currentDate }) => <div className="row mb-2">
                             <div className="col">
+                                <p className="mb-0">Sort by:</p>
                                 <Select
                                     onChange={(l)=> groupShifts(shifts, l)}
-                                    options={[{ label: "Sort by Position", value: "positions"}, {label: "Sort by Venue", value: "venues" }, {label: "Sort by Employees", value: "employees" }]}
+                                    options={[{ label: "Position", value: "positions"}, {label: "Venue", value: "venues" }, {label: "Employees", value: "employees" }]}
                                     value={groupedLabel}
                                 />
                             </div>
@@ -152,7 +153,7 @@ export const ShiftCalendar = ({ catalog }) => {
                                     /> */}
                                 </div>
                             </div>
-                            <div className="col text-right">
+                            <div className="col text-right pt-4">
                                 <Button size="small" color="light" icon="backward" onClick={() => setCurrentDate(moment(currentDate).add(-1,viewMode))} />
                                 <Button size="small" onClick={() => setViewMode('day')}>Day</Button>
                                 <Button size="small" onClick={() => setViewMode('week')}>Week</Button>

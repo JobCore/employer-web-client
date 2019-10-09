@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import PropTypes from "prop-types";
 import { CalendarContext } from "./Calendar";
 import { useDrop } from "react-dnd";
@@ -11,12 +11,22 @@ const blockStyles = (props) => ({
     display: "inline-block",
     position: "relative",
     margin: 0,
+    cursor: props.isHover ? "pointer" : "inherit",
     background: props.isOver ? "pink" : props.style.background || "none",
     minWidth: props.timeDirection === "horizontal" ? props.size : "inherit",
     width: props.timeBlockMinutes === 1439 ? "100%" : props.timeDirection === "horizontal" ? props.size : props.style.background || "inherit",
     height: props.timeDirection !== "horizontal" ? props.size : `${props.blockHeight}px`
 });
-const Block = React.forwardRef((props, ref) => <div className="time-block" ref={ref} onClick={(e) => props.onClick(e)} style={{...blockStyles(props), ...props.style}}>{props.children}</div>);
+const Block = React.forwardRef((props, ref) =>
+    <div className="time-block" ref={ref}
+        onClick={(e) => props.onClick(e)}
+        style={{...blockStyles(props), ...props.style}}
+        onMouseEnter={(e) => props.onMouseEnter && props.onMouseEnter(e)}
+        onMouseLeave={(e) => props.onMouseLeave && props.onMouseLeave(e)}
+    >
+        {props.children}
+    </div>
+);
 
 const calculateNewEvent = (blockTime, minutesDelta, item, { EVENT, HORIZON_TOP, HORIZON_BOTTOM }) => {
 
@@ -37,7 +47,9 @@ const calculateNewEvent = (blockTime, minutesDelta, item, { EVENT, HORIZON_TOP, 
 };
 
 export const TimeBlock = ({ children, yAxis, events, occupancy, start, end, blockHeight }) => {
-    const { timeDirection, timeBlockMinutes, blockPixelSize, showPreview, updateEvent, dragMode, toggleDragMode, blockLabel, onClick, timeBlockStyles } = useContext(CalendarContext);
+    const { timeDirection, timeBlockMinutes, blockPixelSize, showPreview, updateEvent, dragMode, toggleDragMode, blockLabel, onClick, timeBlockStyles, blockHoverIcon } = useContext(CalendarContext);
+    const BlockHoverIcon = blockHoverIcon;
+    const [hovered, setHovered] = useState(false);
     const [{ isOver }, drop] = useDrop({
         accept: [ ItemTypes.EVENT, ItemTypes.HORIZON_TOP, ItemTypes.HORIZON_BOTTOM ],
         drop: (item, monitor) => {
@@ -60,6 +72,7 @@ export const TimeBlock = ({ children, yAxis, events, occupancy, start, end, bloc
             ref={drop}
             timeDirection={timeDirection}
             isOver={isOver}
+            isHover={hovered}
             style={timeBlockStyles}
             timeBlockMinutes={timeBlockMinutes}
             dragMode={dragMode}
@@ -67,8 +80,11 @@ export const TimeBlock = ({ children, yAxis, events, occupancy, start, end, bloc
             size={`${blockPixelSize}px`}
             blockHeight={blockHeight}
             ocupied={occupancy.length}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
         >
             {blockLabel && blockLabel(start, end, events, occupancy)}
+            {(hovered && blockHoverIcon) ? <BlockHoverIcon /> : null}
             {children}
         </Block>
     );

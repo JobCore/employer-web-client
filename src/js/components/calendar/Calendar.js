@@ -164,7 +164,7 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
                                     )}
                                 </div>
                             }
-                            <table style={{ width: rest.viewMode === "day" ? (60 * 24) / rest.timeBlockMinutes * rest.blockPixelSize : `calc(100%)` }}>
+                            <table style={{ border: "1px solid #b1b1b1", width: rest.viewMode === "day" ? (60 * 24) / rest.timeBlockMinutes * rest.blockPixelSize : `calc(100%)` }}>
                                 {/* Build the header with the times */}
                                 { rest.viewMode === "day" &&
                                     <Time yAxisWidth={rest.yAxisWidth} width={(60 * 24) / rest.timeBlockMinutes * rest.blockPixelSize}>
@@ -212,6 +212,10 @@ Calendar.propTypes = {
   blockPixelSize: PropTypes.number,
   onChange: PropTypes.func,
   allowResize: PropTypes.bool,
+  blockHoverIcon: PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.node
+  ]),
   showLeftSidebar: PropTypes.bool,
   daysToShow: PropTypes.array,
   viewMode: PropTypes.oneOf(['day', 'week', 'month']),
@@ -253,6 +257,7 @@ Calendar.defaultProps = {
   blockLabel: null,
   eventOffset: 0,
   allowResize: true,
+  blockHoverIcon: null,
   showLeftSidebar: true,
 
   //only for horizontal calendar

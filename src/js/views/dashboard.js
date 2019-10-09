@@ -73,6 +73,7 @@ export default class Home extends Flux.DashView {
                                     viewMode={"day"}
                                     allowResize={false}
                                     yAxisWidth={0}
+                                    blockHoverIcon={false}
                                     ToolbarComponent={({ setCurrentDate, currentDate }) => <div className="text-right" style={{ position: "absolute", right: 0 }}>
                                         {<Button size="small" onClick={() => setCurrentDate(moment(currentDate ).add(-1,'day'))}>{'<<'}</Button>}
                                         {<Button size="small" onClick={() => setCurrentDate(moment(currentDate).add(1,'day'))}>{'>>'}</Button>}

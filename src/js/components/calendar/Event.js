@@ -12,7 +12,7 @@ export const ItemTypes = {
 const eventBlockStyles = (props) => {
     return ({
     background: "blue",
-    border: "1px solid black",
+    //border: "1px solid black",
     position: "absolute",
     top: 0,
     left: 0,
@@ -20,6 +20,7 @@ const eventBlockStyles = (props) => {
     zIndex: props.isPreview ? -1 : 10,
     marginLeft: `${props.index * 2}px`,
     marginTop: `${props.offset}px`,
+    overflow: "hidden",
     opacity: props.isDragging ? 0.4 : 0.95,
     width: props.timeBlockMinutes === 1439 ? "100%" : props.direction === "horizontal" ? props.size : "90%",
     height: props.direction !== "horizontal" ? props.size : `${props.blockHeight}px`,
@@ -45,7 +46,7 @@ EventBlock.defaultProps = {
 
 const EventLabel = (props) => <label style={{
         float: "left",
-        margin: "5px",
+        margin: "2px 10px",
         fontSize: "9px",
         height: props.direction !== "horizontal" ? props.size : `${props.blockHeight}px`,
         overflow: "hidden",
@@ -76,17 +77,23 @@ const horizonStyles = (props) => {
         textAlign: "center",
         margin: "auto",
         width: ["top", "bottom"].includes(props.orientation) ? "100%" : "10px",
-        height: !["top", "bottom"].includes(props.orientation) ? "auto" : "10px",
+        height: !["top", "bottom"].includes(props.orientation) ? props.blockHeight : "10px",
         transform: `rotate(${["top", "bottom"].includes(props.orientation) ? "0" : "90"}deg)`,
 		cursor: ["top", "bottom"].includes(props.orientation) ? "ns-resize": "ew-resize",
         //background: "black",
         //opacity: 0.2,
     };
-    result[props.orientation] = "0px";
+    const deltas = {
+        right: "5px",
+        left: "-10px",
+        bottom: "5px",
+        top: "-10px",
+    };
+    result[props.orientation] = deltas[props.orientation];
     return result;
 };
 const Horizon = ({ className, orientation, eventStart, eventEnd, duration, index, data }) => {
-    const { toggleDragMode } = useContext(CalendarContext);
+    const { toggleDragMode, blockHeight } = useContext(CalendarContext);
     const [props, drag] = useDrag({
         item: {
             type: ["top", "left"].includes(orientation)
@@ -102,7 +109,7 @@ const Horizon = ({ className, orientation, eventStart, eventEnd, duration, index
         begin: monitor => toggleDragMode(true)
     });
     return (
-        <div ref={drag} style={horizonStyles({orientation})} className={className}>
+        <div ref={drag} style={horizonStyles({orientation, blockHeight})} className={className}>
             <i>{"="}</i>
         </div>
     );
