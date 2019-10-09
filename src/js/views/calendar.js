@@ -121,9 +121,9 @@ export const ShiftCalendar = ({ catalog }) => {
                                     value={groupedLabel}
                                 />
                             </div>
-                            <div className="col">
+                            {/*<div className="col">
                                 <div className="row">
-                                    {/* <DateTime
+                                     <DateTime
                                         className='col'
                                         timeFormat={false}
                                         closeOnSelect={true}
@@ -150,9 +150,9 @@ export const ShiftCalendar = ({ catalog }) => {
                                             return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
                                         }}
                                         onChange={(v)=> setCalendarFilters({ end: v })}
-                                    /> */}
+                                    />
                                 </div>
-                            </div>
+                            </div>*/}
                             <div className="col text-right pt-4">
                                 <Button size="small" color="light" icon="backward" onClick={() => setCurrentDate(moment(currentDate).add(-1,viewMode))} />
                                 <Button size="small" onClick={() => setViewMode('day')}>Day</Button>

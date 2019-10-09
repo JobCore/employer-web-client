@@ -98,7 +98,8 @@ const CalendarView = ({
   onClick,
   blockHeight,
   blockHoverIcon,
-  allowResize
+  allowResize,
+  className
 }) => {
     let daysToShow = [];
 
@@ -117,7 +118,7 @@ const CalendarView = ({
     }
     const { _timeBlockMinutes, _yAxisWidth, _dayDirection, _timeDirection, _blockHeight, _blockPixelSize, _allowResize, _dayHeader, _dayLabel, _timeBlockStyles } = _modes[_viewMode];
     return (
-        <div>
+        <div className={className}>
             {
                 ToolbarComponent ?
                     <ToolbarComponent currentDate={currentDate} setCurrentDate={setCurrentDate} setViewMode={setViewMode} />
@@ -166,6 +167,7 @@ const CalendarView = ({
 };
 
 CalendarView.propTypes = {
+    className: PropTypes.string,
     children: PropTypes.node,
     ToolbarComponent: PropTypes.node,
     viewMode: PropTypes.oneOf(['day', 'week', 'month']),
@@ -208,6 +210,7 @@ CalendarView.propTypes = {
 
 CalendarView.defaultProps = {
   viewMode: "day",
+  className: "",
   ToolbarComponent: null,
   onChange: null,
   activeDate: null,

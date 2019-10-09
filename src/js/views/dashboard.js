@@ -71,6 +71,7 @@ export default class Home extends Flux.DashView {
                             <div className="col-8">
                                 <CalendarView
                                     viewMode={"day"}
+                                    className="mb-2"
                                     allowResize={false}
                                     yAxisWidth={0}
                                     blockHoverIcon={false}
@@ -102,7 +103,6 @@ export default class Home extends Flux.DashView {
                                         data: s
                                     })) }}
                                 />
-                                <h1 className="text-right">Shifts</h1>
                                 <DashboardBox id="draft_shifts"
                                     status="DRAFT"
                                     title="Draft Shifts"

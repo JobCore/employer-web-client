@@ -47,7 +47,7 @@ EventBlock.defaultProps = {
 const EventLabel = (props) => <label style={{
         float: "left",
         margin: "2px 10px",
-        fontSize: "9px",
+        fontSize: "12px",
         height: props.direction !== "horizontal" ? props.size : `${props.blockHeight}px`,
         overflow: "hidden",
         zIndex: 10
