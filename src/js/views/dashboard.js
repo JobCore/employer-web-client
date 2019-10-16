@@ -106,22 +106,22 @@ export default class Home extends Flux.DashView {
                                 <DashboardBox id="draft_shifts"
                                     status="DRAFT"
                                     title="Draft Shifts"
-                                    shifts={this.state.shifts.filter(s => s.status == 'DRAFT').sort((a,b) => (new Date(b.starting_at) - new Date(a.starting_at)))}
+                                    shifts={this.state.shifts.filter(s => s.status == 'DRAFT')}
                                 />
                                 <DashboardBox id="open_shifts"
                                     status="OPEN"
                                     title="Open Shifts"
-                                    shifts={this.state.shifts.filter(s => s.maximum_allowed_employees > s.employees.length && moment(s.ending_at).isAfter(NOW())).sort((a,b) => (new Date(b.starting_at) - new Date(a.starting_at)))}
+                                    shifts={this.state.shifts.filter(s => s.status != 'DRAFT' && s.maximum_allowed_employees > s.employees.length && moment(s.ending_at).isAfter(NOW()))}
                                 />
                                 <DashboardBox id="upcoming_shifts"
                                     title="Filled Shifts"
                                     status="FILLED"
-                                    shifts={this.state.shifts.filter(s => (s.maximum_allowed_employees == s.employees.length && moment(s.ending_at).isAfter(NOW()))).sort((a,b) => (new Date(b.starting_at) - new Date(a.starting_at)))}
+                                    shifts={this.state.shifts.filter(s => s.status != 'DRAFT' && s.maximum_allowed_employees == s.employees.length && moment(s.ending_at).isAfter(NOW()))}
                                 />
                                 <DashboardBox id="completed_shifts"
                                     status="EXPIRED"
                                     title="Completed Shifts"
-                                    shifts={this.state.shifts.filter(s => moment(s.ending_at).isBefore(NOW())).sort((a,b) => (new Date(b.starting_at) - new Date(a.starting_at)))}
+                                    shifts={this.state.shifts.filter(s => s.status != 'DRAFT' && moment(s.ending_at).isBefore(NOW()))}
                                 />
                             </div>
                         </div>

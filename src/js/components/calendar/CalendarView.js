@@ -43,7 +43,7 @@ const _modes = {
         _yAxisWidth: 120,
         _dayDirection: 'vertical',
         _timeDirection: 'horizontal',
-        _blockHeight: 30,
+        _blockHeight: 25,
         _blockPixelSize: 20,
         _allowResize: true,
         _timeBlockStyles: {

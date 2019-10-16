@@ -64,7 +64,7 @@ class PrivateLayout extends Flux.DashView{
                     log.info("Right Bar Action: ", option.slug);
                     switch (option.slug) {
                         case 'create_shift':
-                            console.log('create_shift', option.data);
+                            //console.log('create_shift', option.data);
                             this.showRightBar(ShiftDetails, option, {formData: Shift(option.data).defaults()});
                         break;
                         case 'filter_talent':
@@ -169,7 +169,7 @@ class PrivateLayout extends Flux.DashView{
                         case 'select_timesheet':
                             searchMe('payroll-periods').then((periods) =>
                                 this.showRightBar(SelectTimesheet, option, { formData: {
-                                    periods: periods
+                                    periods: periods//.map(p => p.label)
                                 }})
                             );
                         break;

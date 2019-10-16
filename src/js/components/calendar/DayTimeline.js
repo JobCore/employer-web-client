@@ -11,7 +11,7 @@ export const ItemTypes = {
 
 const dayStyles = (props) => ({
     fontSize: "10px",
-    padding: "10px 0 0 0",
+    padding: "0",
     overflow: "hidden",
     //borderRight: "1px solid grey",
     position: "relative",

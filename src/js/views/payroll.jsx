@@ -120,27 +120,82 @@ export const PayrollPeriod = (data) => {
 
     };
 
-    let _period = Object.assign(_defaults, data);
+    let _payment = Object.assign(_defaults, data);
     return {
         get: () => {
-            return _period;
+            return _payment;
         },
         validate: () => {
-            const start = _period.starting_at;
-            const finish = _period.ending_at;
+            const start = _payment.starting_at;
+            const finish = _payment.ending_at;
 
             //if(SHIFT_POSSIBLE_STATUS.indexOf(_shift.status) == -1) throw new Error('Invalid status "'+_shift.status+'" for shift');
 
-            return _period;
+            return _payment;
         },
         defaults: () => {
             return _defaults;
         },
         getFormData: () => {
             const _formCheckin = {
-                id: _period.id.toString()
+                id: _payment.id.toString()
             };
             return _formCheckin;
+        }
+    };
+};
+
+export const Payment = (data) => {
+
+    const _defaults = {
+        //employer: null,
+        //id: null,
+        serialize: function(){
+
+            const newObj = {
+                id: this.id,
+                regular_hours: this.regular_hours,
+                over_time: this.over_time,
+                hourly_rate: this.hourly_rate,
+                total_amount: this.total_amount,
+                status: this.status,
+                splited_payment: this.splited_payment,
+                payroll_period: (!this.employer || typeof this.employer.id === 'undefined') ? this.employer : this.employer.id,
+                employer: (!this.employer || typeof this.employer.id === 'undefined') ? this.employer : this.employer.id,
+                employee: (!this.employee || typeof this.employee.id === 'undefined') ? this.employee : this.employee.id,
+                shift: (!this.shift || typeof this.shift.id === 'undefined') ? this.shift : this.shift.id,
+                clockin: (!this.clockin || typeof this.clockin.id === 'undefined') ? this.clockin : this.clockin.id
+            };
+
+            return Object.assign(this, newObj);
+        },
+        unserialize: function(){
+            const newObject = {
+                //shift: (typeof this.shift != 'object') ? store.get('shift', this.shift) : Shift(this.shift).defaults().unserialize(),
+            };
+
+            return Object.assign(this, newObject);
+        }
+
+    };
+
+    let _payment = Object.assign(_defaults, data);
+    return {
+        get: () => {
+            return _payment;
+        },
+        validate: () => {
+            //if(SHIFT_POSSIBLE_STATUS.indexOf(_shift.status) == -1) throw new Error('Invalid status "'+_shift.status+'" for shift');
+            return _payment;
+        },
+        defaults: () => {
+            return _defaults;
+        },
+        getFormData: () => {
+            const _form = {
+                id: _payment.id.toString()
+            };
+            return _form;
         }
     };
 };
@@ -270,7 +325,15 @@ export class ManagePayroll extends Flux.DashView {
                                                 <PaymentRow key={p.id}
                                                     payment={p}
                                                     readOnly={p.status !== 'PENDING'}
-                                                    onApprove={(payment) => update("payment", Object.assign(p, payment, { status: "APPROVED" }))}
+                                                    onApprove={(payment) => update("payment", {
+                                                        //serialization for updating the payment
+                                                        status: "APPROVED",
+                                                        id: p.id,
+                                                        regular_hours: payment.regular_hours,
+                                                        over_time: payment.over_time,
+                                                        hourly_rate: payment.hourly_rate,
+                                                        total_amount: payment.total_amount
+                                                    })}
                                                 />
                                             )}
                                         </tbody>
@@ -278,9 +341,9 @@ export class ManagePayroll extends Flux.DashView {
                                 )}
                                 <div className="btn-bar text-right">
                                     { this.state.singlePayrollPeriod.status === 'OPEN' ?
-                                        <button type="button" className="btn btn-primary" onClick={() => update(Object.assign(this.state.single_payroll_projection, { status: 'APPROVED'}))}>Approve</button>
+                                        <button type="button" className="btn btn-primary" onClick={() => update(Object.assign(this.state.singlePayrollPeriod, { status: 'APPROVED'}))}>Approve Period</button>
                                         : this.state.singlePayrollPeriod.status == 'APPROVED' ?
-                                            <button type="button" className="btn btn-primary" onClick={() => update(Object.assign(this.state.single_payroll_projection, { status: 'PAID'}))}> Mark as PAID</button>
+                                            <button type="button" className="btn btn-primary" onClick={() => update(Object.assign(this.state.singlePayrollPeriod, { status: 'PAID'}))}> Mark as PAID</button>
                                             : this.state.singlePayrollPeriod.status
                                     }
                                 </div>
@@ -354,7 +417,9 @@ const PaymentRow = ({ payment, onApprove, readOnly }) => {
         <td>{shiftTotalHours}</td>
         <td>{diff}</td>
         <td>
-            {!readOnly &&
+            {readOnly ?
+                payment.status === "APPROVED" && <i className="fas fa-check-circle"></i>
+                :
                 <Button
                     color="success"
                     size="small"
@@ -391,77 +456,85 @@ const filterClockins = (formChanges, formData, onChange) => {
 };
 
 export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel, history }) => (<Theme.Consumer>
-    {({bar}) => (<div>
-        <div className="top-bar">
-            <Button
-                icon="sync" color="primary" size="small" rounded={true}
-                onClick={() => hook('generate_periods').then(() => searchMe('payroll-periods'))}
-                note={"There are pending payroll payments to be generated"}
-                notePosition="left"
-            />
-        </div>
-        <div className="row">
-            <div className="col-12">
-                <div>
-                    <h2 className="mt-1">Select a payment period:</h2>
-                    <Select className="select-shifts" isMulti={false}
-                        value={{
-                            value: null,
-                            label: `Select a payment period`
-                        }}
-                        defaultValue={{
-                            value: null,
-                            label: `Select a payment period`
-                        }}
-                        components={{ Option: ShiftOption, SingleValue: ShiftOption }}
-                        onChange={(selectedOption)=> fetchSingle("payroll-periods", selectedOption.id).then((period) => {
-                            onChange({ selectedPayments: period.payments, selectedPeriod: period });
-                            history.push(`/payroll/period/${formData.selectedPeriod.id}`);
-                        })}
-                        options={[{
-                            value: null,
-                            label: `Select a payment period`
-                        }].concat(formData.periods)}
+    {({bar}) => {
+        let note = null;
+        if(formData.periods.length > 0){
+            const end = moment(formData.periods[0].ending_at);
+            end.add(7,'days');
+            if(end.isBefore(NOW())) note = "Payroll was generated until "+end.format('MM dd');
+        }
+        return (<div>
+            <div className="top-bar">
+                <Button
+                        icon="sync" color="primary" size="small" rounded={true}
+                        onClick={() => hook('generate_periods').then(() => searchMe('payroll-periods'))}
+                        note={note}
+                        notePosition="left"
                     />
-                </div>
+
             </div>
-            {(formData && typeof formData.selectedPayments != 'undefined' && formData.selectedPayments.length > 0) ?
-                <div className="col-12 mt-3">
-                    <ul>
-                        {formData.selectedPayments.map((payment,i) => {
-                            return (<EmployeeExtendedCard
-                                    key={i}
-                                    employee={payment.employee}
-                                    showFavlist={false}
-                                    showButtonsOnHover={false}
-                                    onClick={() => {
-                                        bar.show({
-                                            to: `/payroll/period/${formData.selectedPeriod.id}?`+queryString.stringify({
-                                                talent_id: payment.employee.id
-                                            })
-                                        });
-                                    }}
-                                >
-                                {
-                                    (payment.status === "PENDING") ?
-                                        <span> pending <i className="fas fa-exclamation-triangle mr-2"></i></span>
-                                        :
-                                        (payment.status === "PAID") ?
-                                            <span> unpaid <i className="fas fa-dollar-sign mr-2"></i></span>
-                                            :
-                                            <i className="fas fa-check-circle mr-2"></i>
-                                }
-                            </EmployeeExtendedCard>);
-                        })}
-                    </ul>
+            <div className="row">
+                <div className="col-12">
+                    <div>
+                        <h2 className="mt-1">Select a payment period:</h2>
+                        <Select className="select-shifts" isMulti={false}
+                            value={{
+                                value: null,
+                                label: `Select a payment period`
+                            }}
+                            defaultValue={{
+                                value: null,
+                                label: `Select a payment period`
+                            }}
+                            components={{ Option: ShiftOption, SingleValue: ShiftOption }}
+                            onChange={(selectedOption)=> fetchSingle("payroll-periods", selectedOption.id).then((period) => {
+                                onChange({ selectedPayments: period.payments, selectedPeriod: period });
+                                history.push(`/payroll/period/${formData.selectedPeriod.id}`);
+                            })}
+                            options={[{
+                                value: null,
+                                label: `Select a payment period`
+                            }].concat(formData.periods)}
+                        />
+                    </div>
                 </div>
-                : (typeof formData.loading !== 'undefined' && formData.loading) ?
-                    <div className="col-12 mt-3 text-center">Loading...</div>
-                    :
-                    <div className="col-12 mt-3 text-center">No talents found for this period or shift</div>
-            }
-        </div>
-    </div>)}
+                {(formData && typeof formData.selectedPayments != 'undefined' && formData.selectedPayments.length > 0) ?
+                    <div className="col-12 mt-3">
+                        <ul>
+                            {formData.selectedPayments.map((payment,i) => {
+                                return (<EmployeeExtendedCard
+                                        key={i}
+                                        employee={payment.employee}
+                                        showFavlist={false}
+                                        showButtonsOnHover={false}
+                                        onClick={() => {
+                                            bar.show({
+                                                to: `/payroll/period/${formData.selectedPeriod.id}?`+queryString.stringify({
+                                                    talent_id: payment.employee.id
+                                                })
+                                            });
+                                        }}
+                                    >
+                                    {
+                                        (payment.status === "PENDING") ?
+                                            <span> pending <i className="fas fa-exclamation-triangle mr-2"></i></span>
+                                            :
+                                            (payment.status === "PAID") ?
+                                                <span> unpaid <i className="fas fa-dollar-sign mr-2"></i></span>
+                                                :
+                                                <i className="fas fa-check-circle mr-2"></i>
+                                    }
+                                </EmployeeExtendedCard>);
+                            })}
+                        </ul>
+                    </div>
+                    : (typeof formData.loading !== 'undefined' && formData.loading) ?
+                        <div className="col-12 mt-3 text-center">Loading...</div>
+                        :
+                        <div className="col-12 mt-3 text-center">No talents found for this period or shift</div>
+                }
+            </div>
+        </div>);}}
 </Theme.Consumer>);
 SelectTimesheet.propTypes = {
     onSave: PropTypes.func.isRequired,

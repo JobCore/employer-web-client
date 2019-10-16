@@ -449,11 +449,12 @@ class _Store extends Flux.DashStore{
         this.addEvent('positions');
         this.addEvent('venues');
         this.addEvent('invites');
+        this.addEvent('payment');
         this.addEvent('jobcore-invites');
         this.addEvent('ratings');
         this.addEvent('employees', (employees) => {
             if(!Array.isArray(employees)) return [];
-            return employees.map(em => Talent(em).defaults().unserialize());
+            return employees.filter(em => em.user.profile).map(em => Talent(em).defaults().unserialize());
         });
         this.addEvent('favlists');
         this.addEvent('badges');
@@ -480,7 +481,7 @@ class _Store extends Flux.DashStore{
         // Payroll related data
         this.addEvent('payroll-periods', (period) => {
             return (!period || (Object.keys(period).length === 0 && period.constructor === Object)) ? [{ label: "Loading payment periods...", value: null}] : period.map(p => {
-                p.label = `From ${p.starting_at.substring(0,10)} to ${p.ending_at.substring(0,10)} (${p.payments.length} Payments)`;
+                p.label = `From ${p.starting_at.substring(5,10)} to ${p.ending_at.substring(5,10)} (${p.payments.length} Payments)`;
                 return p;
             });
         });
