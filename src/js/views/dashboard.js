@@ -78,7 +78,7 @@ export default class Home extends Flux.DashView {
                                     ToolbarComponent={({ setCurrentDate, currentDate }) => <div className="text-right" style={{ position: "absolute", right: 0 }}>
                                         {<Button size="small" onClick={() => setCurrentDate(moment(currentDate ).add(-1,'day'))}>{'<<'}</Button>}
                                         {<Button size="small" onClick={() => setCurrentDate(moment(currentDate).add(1,'day'))}>{'>>'}</Button>}
-                                        <Button size="small" onClick={() => this.props.history.push('./calendar?start='+moment(currentDate ).add(1,'month').format('YYYY-MM-DD')+'&end='+moment(currentDate ).add(-1,'month').format('YYYY-MM-DD'))}>Go to calendar</Button>
+                                        <Button size="small" onClick={() => this.props.history.push('./calendar#start='+moment(currentDate ).add(-1,'month').format('YYYY-MM-DD')+'&end='+moment(currentDate ).add(2,'month').format('YYYY-MM-DD'))}>Go to calendar</Button>
                                     </div>
                                     }
                                     eventBoxStyles={{

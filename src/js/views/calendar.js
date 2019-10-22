@@ -15,7 +15,7 @@ import DateTime from 'react-datetime';
 
 //gets the querystring and creats a formData object to be used when opening the rightbar
 export const getURLFilters = () => {
-    let query = queryString.parse(window.location.search);
+    let query = queryString.parse(window.location.hash);
     if(typeof query == 'undefined') return {};
     return {
         start: moment(query.start || new Date()),
@@ -113,7 +113,7 @@ export const ShiftCalendar = ({ catalog }) => {
 
         store.subscribe('shifts', (sh) => {
             setShifts(sh);
-            groupShifts(sh, {label: "Venue", value: "venues" });
+            groupShifts(sh, {label: "Employees", value: "employees" });
         });
         store.subscribe('venues', (venues) => setVenues(venues));
         store.subscribe('positions', (positions) => setPositions(positions));
@@ -174,11 +174,20 @@ export const ShiftCalendar = ({ catalog }) => {
                                 <Button size="small" onClick={() => setViewMode('day')}>Day</Button>
                                 <Button size="small" onClick={() => setViewMode('week')}>Week</Button>
                                 <Button size="small" onClick={() => setViewMode('month')}>Month</Button>
-                                <Button size="small" color="light" icon="forward" onClick={() => setCurrentDate(moment(currentDate).add(1,viewMode))} />
+                                <Button size="small" color="light" icon="forward" onClick={() => {
+                                    const newEndDate = moment(currentDate).add(1,viewMode);
+                                    const oldEndDate = moment(filters.end);
+                                    if(oldEndDate.isBefore(newEndDate)){
+                                        const updatedFilters = { start: moment(newEndDate).add(-2,'months').format('YYYY-MM-DD'), end: moment(newEndDate).add(2,'months').format('YYYY-MM-DD')};
+                                        window.location.hash = queryString.stringify(updatedFilters);
+                                        setCalendarFilters(updatedFilters);
+                                    }
+                                    setCurrentDate(moment(currentDate).add(1,viewMode));
+                                }} />
                             </div>
                         </div>}
                         onChange={(evt) => {
-                            console.log("Event Updatedd", evt);
+                            //console.log("Event Updatedd", evt);
                             let shift = {
                                 id: evt.data.id,
                                 starting_at: moment(evt.start),
