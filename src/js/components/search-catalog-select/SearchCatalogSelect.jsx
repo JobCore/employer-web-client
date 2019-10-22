@@ -20,9 +20,9 @@ export default class SearchCatalogSelect extends React.Component {
                     //const keyword = newValue.replace(/\W/g, '');
                     this.setState({ keyword });
                     return keyword;
-                }} 
+                }}
                 loadOptions={(search) => this.props.searchFunction(search)}
-                onChange={(selection)=> this.props.onChange(selection)}
+                onChange={(selection)=> selection.value && this.props.onChange(selection)}
             />
         );
     }

@@ -5,6 +5,7 @@ export const EmployeeExtendedCard = require('./applicant-card/EmployeeExtendedCa
 export const Avatar = require('./avatar/Avatar').default;
 export const DashboardBox = require('./dashboard-box/DashboardBox').default;
 export const ShiftCard = require('./shift-card/ShiftCard').default;
+export const ShiftBadge = require('./shift-badge/ShiftBadge').default;
 export const GenericCard = require('./generic-card/GenericCard').default;
 export const ListCard = require('./list-card/ListCard').default;
 export const SideBar = require('./sidebar/SideBar').default;

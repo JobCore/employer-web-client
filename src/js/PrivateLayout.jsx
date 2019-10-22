@@ -42,8 +42,8 @@ class PrivateLayout extends Flux.DashView{
                 applicants: [],
                 applicationRestrictions: [
                     { label: "Anyone that qualifies", value: 'ANYONE' },
-                    { label: "Only from my favorites", value: 'FAVORITES' },
-                    { label: "Specific People", value: 'SPECIFIC_PEOPLE' }
+                    { label: "Only from favorite lists", value: 'FAVORITES' },
+                    { label: "Search for specific seople", value: 'SPECIFIC_PEOPLE' }
                 ],
                 stars: [
                     { label: "1 Star", value: 1 },

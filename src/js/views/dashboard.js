@@ -1,7 +1,7 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 //include images into your bundle
-import {DashboardBox, Wizard, Theme, Button } from '../components/index';
+import {DashboardBox, Wizard, Theme, Button, ShiftBadge } from '../components/index';
 import {store} from '../actions.js';
 import {callback, hasTutorial} from '../utils/tutorial';
 import {NOW} from '../components/utils.js';
@@ -99,7 +99,7 @@ export default class Home extends Flux.DashView {
                                     events={{ today: this.state.shifts.map(s => ({
                                         start: moment(s.starting_at),
                                         end: moment(s.ending_at),
-                                        label: s.position.title + " - " + s.venue.title,
+                                        label: <span><ShiftBadge {...s} /> {s.position.title} - {s.venue.title}</span>,
                                         data: s
                                     })) }}
                                 />

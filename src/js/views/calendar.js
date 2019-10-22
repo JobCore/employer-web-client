@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { CalendarView } from "../components/calendar/index.js";
-import {Theme, Button} from '../components/index';
+import {Theme, Button, ShiftBadge} from '../components/index';
 import queryString from 'query-string';
 import moment from "moment";
 import _ from "lodash";
@@ -21,20 +21,6 @@ export const getURLFilters = () => {
         start: moment(query.start || new Date()),
         end: moment(query.end || new Date())
     };
-};
-
-const ShiftBadge = ({ candidates, maximum_allowed_employees, employees }) => {
-    const totalCandidates = (Array.isArray(candidates)) ? candidates.length : 0;
-    const totalEmployees = (Array.isArray(employees)) ? employees.length : 0;
-    const openVacancys = maximum_allowed_employees - totalEmployees;
-    if(status == 'DRAFT') return <span href="#" className="badge badge-secondary">draft</span>;
-    else if(openVacancys == 0) return <span href="#" className="badge">filled</span>;
-    else return <span href="#" className="badge badge-danger">{totalCandidates}/{openVacancys}</span>;
-};
-ShiftBadge.propTypes = {
-  candidates: PropTypes.array,
-  employees: PropTypes.array,
-  maximum_allowed_employees: PropTypes.number
 };
 
 const gf = {

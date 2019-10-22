@@ -105,7 +105,7 @@ export class Signup extends React.Component{
     constructor(props){
         super(props);
         const urlVariables = qs.parse(props.location.search);
-        this.state = { email: 'aalejo@gmail.com', password: '', first_name: '', last_name:'', company: urlVariables.company || 1, loading: false, errors: [], token: urlVariables.token || null };
+        this.state = { email: '', password: '', first_name: '', last_name:'', company: urlVariables.company || 1, loading: false, errors: [], token: urlVariables.token || null };
     }
     validate(formData){
         let errors = [];
