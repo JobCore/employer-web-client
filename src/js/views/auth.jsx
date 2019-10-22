@@ -33,10 +33,10 @@ export class Login extends React.Component{
                             :
                             <div>
                                 <h4>Please download our mobile application to log in</h4>
-                                <a href="#">
+                                <a href={process.env.ANDROID}>
                                     <SVG className="store-icon" svg={googleIcon} />
                                 </a>
-                                <a href="https://apps.apple.com/us/app/jobcore-talent/id1437290430">
+                                <a href={process.env.APPSTORE}>
                                     <SVG className="store-icon" svg={appleIcon} />
                                 </a>
                             </div>
@@ -47,10 +47,10 @@ export class Login extends React.Component{
                         this.state.type == 'employee' ?
                             <div>
                                 <h4>Please download our mobile application to log in</h4>
-                                <a href="#">
+                                <a href={process.env.ANDROID}>
                                     <SVG className="store-icon" svg={googleIcon} />
                                 </a>
-                                <a href="https://apps.apple.com/us/app/jobcore-talent/id1437290430">
+                                <a href={process.env.APPSTORE}>
                                     <SVG className="store-icon" svg={appleIcon} />
                                 </a>
                             </div>
