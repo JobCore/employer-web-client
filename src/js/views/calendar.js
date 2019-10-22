@@ -23,17 +23,33 @@ export const getURLFilters = () => {
     };
 };
 
+const ShiftBadge = ({ candidates, maximum_allowed_employees, employees }) => {
+    const totalCandidates = (Array.isArray(candidates)) ? candidates.length : 0;
+    const totalEmployees = (Array.isArray(employees)) ? employees.length : 0;
+    const openVacancys = maximum_allowed_employees - totalEmployees;
+    return  (status == 'DRAFT') ?
+        <span href="#" className="badge badge-secondary">draft</span> :
+            (openVacancys == 0) ?
+                <span href="#" className="badge">filled</span> :
+                <span href="#" className="badge badge-danger">{totalCandidates}/{openVacancys}</span>;
+};
+ShiftBadge.propTypes = {
+  candidates: PropTypes.array,
+  employees: PropTypes.array,
+  maximum_allowed_employees: PropTypes.number
+};
+
 const gf = {
     positions: {
         grouping: (s) => s.position.title,
-        label: (s) => s.venue.title
+        label: (s) => <span><ShiftBadge {...s} /> {s.venue.title}</span>
     },
     venues: {
         grouping: (s) => s.venue.title,
-        label: (s) => s.position.title
+        label: (s) => <span><ShiftBadge {...s} /> {s.position.title}</span>
     },
     employees: {
-        label: (s) => s.position.title
+        label: (s) => <span><ShiftBadge {...s} /> {s.position.title}</span>
     }
 };
 

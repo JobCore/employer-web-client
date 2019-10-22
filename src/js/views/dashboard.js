@@ -118,10 +118,15 @@ export default class Home extends Flux.DashView {
                                     status="FILLED"
                                     shifts={this.state.shifts.filter(s => s.status != 'DRAFT' && s.maximum_allowed_employees == s.employees.length && moment(s.ending_at).isAfter(NOW()))}
                                 />
-                                <DashboardBox id="completed_shifts"
+                                <DashboardBox id="expired_shifts"
                                     status="EXPIRED"
                                     title="Completed Shifts"
-                                    shifts={this.state.shifts.filter(s => s.status != 'DRAFT' && moment(s.ending_at).isBefore(NOW()))}
+                                    shifts={this.state.shifts.filter(s => !['DRAFT','COMPLETED','CANCELLED'].includes(s.status) && moment(s.ending_at).isBefore(NOW()))}
+                                />
+                                <DashboardBox id="completed_shifts"
+                                    status="COMPLETED"
+                                    title="Paid Shifts"
+                                    shifts={this.state.shifts.filter(s => s.status == 'COMPLETED' && moment(s.ending_at).isBefore(NOW()))}
                                 />
                             </div>
                         </div>

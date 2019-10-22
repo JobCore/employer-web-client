@@ -4,6 +4,13 @@ import ShiftCard from '../shift-card';
 import {Link} from "react-router-dom";
 import PropTypes from 'prop-types';
 
+const statusLabel = {
+    "EXPIRED": "completed",
+    "COMPLETED": "paid",
+    "FILLED": "filled",
+    "OPEN": "open",
+    "DRAFT": "draft"
+};
 const DashboardBox = ({shifts, title, status, id}) => {
 
     const [ collapsed, setCollapsed ] = useState(true);
@@ -25,7 +32,7 @@ const DashboardBox = ({shifts, title, status, id}) => {
             <div className="col-10 content scroll">
                 <ul>
                     { (shiftsHTML.length == 0) ?
-                        <li>You have not shifts with status {status}</li>
+                        <li>You have no {statusLabel[status]} shifts</li>
                         :
                         shiftsHTML
                     }

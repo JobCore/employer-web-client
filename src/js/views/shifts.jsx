@@ -58,7 +58,8 @@ export const Shift = (data) => {
                 status: (this.status == 'UNDEFINED') ? 'DRAFT' : this.status,
                 // starting_at: (moment.isMoment(this.starting_at)) ? this.starting_at.format(DATETIME_FORMAT) : this.starting_at,
                 // ending_at: (moment.isMoment(this.ending_at)) ? this.ending_at.format(DATETIME_FORMAT) : this.ending_at,
-                allowed_from_list: this.allowedFavlists.map(f => f.value)
+                allowed_from_list: this.allowedFavlists.map(f => f.value),
+                multiple_dates: Array.isArray(this.multiple_dates) && this.multiple_dates.length > 0 ? this.multiple_dates : undefined
             };
 
             return Object.assign(this, newShift);
@@ -106,7 +107,7 @@ export const Shift = (data) => {
             if(!validator.isFloat(_shift.minimum_hourly_rate, { min: 7 })) throw new ValidationError('The minimum allowed hourly rate is $7');
             if(!start.isValid() || start.isBefore(NOW())) throw new ValidationError('The shift date has to be greater than today');
             if(!finish.isValid() || finish.isBefore(start)) throw new ValidationError('The shift ending time has to be grater than the starting time');
-            if(!validator.isInt(_shift.venue, { min: 1 })) throw new ValidationError('The shift is missing a venue');
+            if(!validator.isInt(_shift.venue.toString(), { min: 1 })) throw new ValidationError('The shift is missing a venue');
             if(SHIFT_POSSIBLE_STATUS.indexOf(_shift.status) == -1) throw new Error('Invalid status "'+_shift.status+'" for shift');
 
             return _shift;
@@ -504,7 +505,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
             <div className="row">
                 <div className="col-12">
                     { formData.hide_warnings === true ? null : (formData.status == 'DRAFT' && !error ) ?
-                        <div className="alert alert-warning">This shift is a draft, it has not been published</div>
+                        <div className="alert alert-warning d-inline"><i className="fas fa-exclamation-triangle"></i> This shift is a draft</div>
                         : (formData.status != 'UNDEFINED' && !error) ?
                             <div className="alert alert-success">This shift is published, therefore <strong>it needs to be unpublished</strong> before it can be updated</div>
                             :''
@@ -539,20 +540,43 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
             </div>
             <div className="row">
                 <div className="col-12">
-                    <label>Date</label>
-                    <DateTime
-                        timeFormat={false}
-                        closeOnSelect={true}
-                        value={formData.starting_at}
-                        isValidDate={( current ) => {
-                            return current.isAfter( YESTERDAY );
-                        }}
-                        renderInput={(properties) => {
-                            const { value, ...rest } = properties;
-                            return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
-                        }}
-                        onChange={(value)=>onChange({ starting_at: moment( value.format("MM-DD-YYYY")+" "+formData.starting_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a") })}
-                    />
+                    <label className="mb-1">Dates</label>
+                    { formData.multiple_dates && <p className="mb-1 mt-0">
+                        {formData.multiple_dates.map((d, i) => (
+                            <span key={i} className="badge">{d.starting_at.format('MM-DD-YYYY')}
+                                <i
+                                    className="fas fa-trash-alt ml-1 pointer"
+                                    onClick={() => onChange({ multiple_dates: !formData.multiple_dates ? [] : formData.multiple_dates.filter(dt => !dt.starting_at.isSame(d.starting_at))})}
+                                />
+                            </span>
+                        ))}
+                    </p>}
+                    <div className="input-group">
+                        <DateTime
+                            timeFormat={false}
+                            className="shiftdate-picker"
+                            closeOnSelect={true}
+                            value={formData.starting_at}
+                            isValidDate={( current ) => {
+                                return current.isAfter( YESTERDAY );
+                            }}
+                            renderInput={(properties) => {
+                                const { value, ...rest } = properties;
+                                return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
+                            }}
+                            onChange={(value)=> onChange({ starting_at: moment( value.format("MM-DD-YYYY")+" "+formData.starting_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a") })}
+                        />
+                        <div className="input-group-append" onClick={() =>
+                            onChange({
+                                multiple_dates: !formData.multiple_dates ?
+                                    [{ starting_at: formData.starting_at, ending_at: formData.ending_at }]
+                                    :
+                                    formData.multiple_dates.filter(dt => !dt.starting_at.isSame(formData.starting_at)).concat(
+                                        { starting_at: formData.starting_at, ending_at: formData.ending_at }
+                                    )})}>
+                            <span className="input-group-text pointer">More <i className="fas fa-plus ml-1"></i></span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div className="row">
@@ -571,14 +595,24 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                         onChange={(value)=> {
                             if(typeof value == 'string') value = moment(value);
 
-                            const starting = moment( formData.starting_at.format("MM-DD-YYYY")+" "+value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-                            var ending = moment(formData.ending_at);
-                            if(typeof starting !== 'undefined' && starting.isValid()){
-                                if(ending.isBefore(starting)){
-                                    ending = ending.add( 1, 'days' );
+                            const getRealDate = (start, end) => {
+                                const starting = moment( start.format("MM-DD-YYYY")+" "+value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                                var ending = moment(end);
+                                if(typeof starting !== 'undefined' && starting.isValid()){
+                                    if(ending.isBefore(starting)){
+                                        ending = ending.add( 1, 'days' );
+                                    }
+
+                                    return { starting_at: starting, ending_at: ending };
                                 }
-                                onChange({ starting_at: starting, ending_at: ending });
-                            }
+                                return null;
+                            };
+
+                            const mainDate = getRealDate(formData.starting_at, formData.ending_at);
+                            const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
+                            onChange({ ...mainDate, multiple_dates: multipleDates });
+
+
                         }}
                     />
                 </div>
@@ -596,14 +630,26 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                         }}
                         onChange={(value)=> {
                             if(typeof value == 'string') value = moment(value);
-                            const starting = formData.starting_at;
-                            var ending = moment( formData.starting_at.format("MM-DD-YYYY")+" "+value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-                            if(typeof ending !== 'undefined' && ending.isValid()){
-                                if(ending.isBefore(starting)){
-                                    ending = ending.add( 1, 'days' );
+
+                            const getRealDate = (start, end) => {
+
+                                const starting = start;
+                                var ending = moment( start.format("MM-DD-YYYY")+" "+value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+
+                                if(typeof starting !== 'undefined' && starting.isValid()){
+                                    if(ending.isBefore(starting)){
+                                        ending = ending.add( 1, 'days' );
+                                    }
+
+                                    return { starting_at: starting, ending_at: ending };
                                 }
-                                onChange({ ending_at: ending });
-                            }
+                                return null;
+                            };
+
+                            const mainDate = getRealDate(formData.starting_at, formData.ending_at);
+                            const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
+                            onChange({ ...mainDate, multiple_dates: multipleDates });
+
                         }}
                     />
                 </div>

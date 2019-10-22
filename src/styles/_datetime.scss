@@ -4,6 +4,7 @@
 
 .rdt {
   position: relative;
+  &.shiftdate-picker{ width: 266px; }
 }
 .rdtPicker {
   display: none;

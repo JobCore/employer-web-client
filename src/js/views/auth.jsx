@@ -17,7 +17,7 @@ export class Login extends React.Component{
     constructor(props){
         super(props);
         const urlVariables = qs.parse(props.location.search);
-        this.state = { email: 'aalejo@gmail.com', password: '1234', type: urlVariables.type || 'company', loading: false };
+        this.state = { email: 'aalejo@gmail.com', password: '1234', type: urlVariables.type || 'company', loading: false, keep: true };
     }
     render(){
         return (
@@ -59,7 +59,7 @@ export class Login extends React.Component{
                                 onSubmit={(e)=> {
                                     e.preventDefault();
                                     this.setState({loading: true});
-                                    actions.login(this.state.email, this.state.password, this.props.history)
+                                    actions.login(this.state.email, this.state.password, this.state.keep, this.props.history)
                                         .then(() => this.setState({loading: false}))
                                         .catch(() => this.setState({loading: false}));
                                 }}
@@ -70,10 +70,16 @@ export class Login extends React.Component{
                                         onChange={(e) => this.setState({email: e.target.value})}
                                     />
                                 </div>
-                                <div className="form-group">
+                                <div className="form-group mb-0">
                                     <input type="password" className="form-control rounded" id="exampleInputPassword1" placeholder="Password"
                                         onChange={(e) => this.setState({password: e.target.value})} value={this.state.password}
                                     />
+                                </div>
+                                <div className="form-group text-left">
+                                    <input type="checkbox" className="mr-1"
+                                        onChange={(e) => this.setState({keep: !this.state.keep})} checked={this.state.keep}
+                                    />
+                                    Keep Me Logged In
                                 </div>
                                 {(this.state.loading) ?
                                     <button type="submit" className="btn btn-default form-control" disabled>Loading...</button>
@@ -244,21 +250,23 @@ export class Invite extends React.Component{
             first_name: '',
             last_name: '',
             token: urlVariables.token || '',
-            error: null
+            error: null,
+            loading: false
         };
     }
     render(){
         return (
             <div className="row mt-5">
                 <div className="col-12 col-sm-10 col-md-9 col-lg-8 col-xl-6 mx-auto">
-                    <img className="banner w-100" src={loginBanner} />
+                    <p className="m-0 text-center"><img className="banner w-75 mx-auto" src={loginBanner} /></p>
                     <h2 className="my-4 text-center">Sign Up to Jobcore and start making money with dozens of job offers every day</h2>
                     <form className="col-12 col-lg-10 mx-auto"
                         onSubmit={(e)=> {
                             e.preventDefault();
                             this.setState({ error: null });
-                            if(this.state.password != this.state.repPassword) this.setState({ error: `Your passwords don't match` });
+                            if(this.state.password != this.state.repPassword) this.setState({ error: `Your passwords don't match`, loading: false });
                             else{
+                                this.setState({ loading: true });
                                 actions.signup({
                                     email: this.state.email,
                                     password: this.state.password,
@@ -276,31 +284,38 @@ export class Invite extends React.Component{
                         { this.state.error && <div className="alert alert-danger">{this.state.error}</div> }
                         <div className="form-group">
                             <input type="text" className="form-control rounded" aria-describedby="emailHelp" placeholder="First Name"
-                                onChange={(e) => this.setState({first_name: e.target.value})}
+                                onChange={(e) => this.setState({first_name: e.target.value, error: null})}
                             />
                         </div>
                         <div className="form-group">
                             <input type="text" className="form-control rounded" aria-describedby="emailHelp" placeholder="Last Name"
-                                onChange={(e) => this.setState({last_name: e.target.value})}
+                                onChange={(e) => this.setState({last_name: e.target.value, error: null})}
                             />
                         </div>
                         <div className="form-group">
                             <input type="email" className="form-control rounded" aria-describedby="emailHelp" placeholder="Email"
                                 value={this.state.email}
-                                onChange={(e) => this.setState({email: e.target.value})}
+                                onChange={(e) => this.setState({email: e.target.value, error: null})}
                             />
                         </div>
                         <div className="form-group">
                             <input type="password" className="form-control rounded" id="exampleInputPassword1" placeholder="Password"
-                                 onChange={(e) => this.setState({password: e.target.value})} value={this.state.password}
+                                 onChange={(e) => this.setState({password: e.target.value, error: null })} value={this.state.password}
                             />
                         </div>
                         <div className="form-group">
-                            <input type="password" className="form-control rounded" id="exampleInputPassword1" placeholder="Password"
-                                 onChange={(e) => this.setState({repPassword: e.target.value})} value={this.state.repPassword}
+                            <input type="password" className="form-control rounded" id="exampleInputPassword1" placeholder="Repeat your password"
+                                 onChange={(e) => this.setState({repPassword: e.target.value, error: null})} value={this.state.repPassword}
                             />
                         </div>
-                        <button type="submit" className="btn btn-primary form-control">Sign Up</button>
+                        {
+                            this.state.loading ?
+                                <button type="submit" className="btn btn-secondary form-control" disabled={true}>Loading...</button>
+                                : this.state.error ?
+                                    <button type="submit" className="btn btn-danger form-control" disabled={true}>Check errors above</button>
+                                    :
+                                    <button type="submit" className="btn btn-primary form-control">Sign up</button>
+                        }
                     </form>
                 </div>
             </div>

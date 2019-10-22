@@ -70,3 +70,11 @@ $loadbar-height: 5px;
 		background-position: 0% 50%
 	}
 }
+
+
+.load-content{
+    position: fixed;
+    top: 50vh;
+    left: 50vw;
+    transform: translate(-50%, -50%);
+}

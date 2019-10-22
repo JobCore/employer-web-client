@@ -20,6 +20,7 @@ import {NOW} from './components/utils.js';
 import {Notifier, Notify} from 'bc-react-notifier';
 import log from './utils/log';
 import logoURL from '../img/logo.png';
+import loadingURL from '../img/loading2.gif';
 import moment from 'moment';
 import {EngineComponent} from "./utils/write_engine";
 
@@ -285,7 +286,7 @@ class PrivateLayout extends Flux.DashView{
         const Logo = () => (<span className="svg_img" style={{ backgroundImage: `url(${logoURL})` }} />);
         return (
             <Theme.Provider value={{bar: this.state.bar}}>
-                <LoadBar />
+                <LoadBar component={() => <img src={loadingURL} />} style={{ position: "fixed", left: "50vw", top: "50vh" }} />
                 <div className="row sidebar">
                     <div className="left_pane">
                         <ul>

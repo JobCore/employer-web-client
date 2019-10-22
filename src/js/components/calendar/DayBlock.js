@@ -15,7 +15,7 @@ export const DayBlock = ({ days, events, timesToShow, width, yAxisLabel }) => {
             timesToShow={timesToShow}
             width={width}
             isActive={d.diff(activeDate.startOf("day")) === 0}
-            events={events.filter(e => e.start.isBetween(d, moment(d).add(1, "day")) || e.start.isSame(d))}
+            events={events.filter(e => e.start.isBetween(d, moment(d).add(1, "day")) || e.start.isSame(d) || e.end.isBetween(d, moment(d).add(1, "day")))}
         />
     ));
 };

@@ -44,6 +44,11 @@ export const DayTimeline = ({ events, date, isActive, width, timesToShow, yAxisL
             });
         }
     });
+
+    //calculate the real day begginign and end based on the blocks
+    const dayStart = moment(date).set({ h: timesToShow[0].startTime.hours(), m: timesToShow[0].startTime.minutes() });
+    const dayEnd = moment(date).add(1,'days').set({ h: timesToShow[timesToShow.length-1].endTime.hours(), m: timesToShow[timesToShow.length-1].endTime.minutes()-1 });
+
     const times = timesToShow.map(({ startTime,  endTime, ...rest }, i) => {
         const start = moment(date).set({ h: startTime.hours(), m: startTime.minutes() });
         let end = moment(date).set({ h: endTime.hours(), m: endTime.minutes() });
@@ -61,7 +66,9 @@ export const DayTimeline = ({ events, date, isActive, width, timesToShow, yAxisL
             end,
             index: i,
             events: events.filter(
-                e => e.start.isBetween(start, end) || e.start.isSame(start) || (e.isMultiday && e.end.isBetween(start, end))
+                e => e.start.isBetween(start, end) || e.start.isSame(start) ||
+                //if this is the first timeblock of the day, and there are any multiday event coming
+                (i == 0 && e.isMultiday && (e.end.isSame(end) || (e.start.isBefore(start) && e.end.isAfter(end))))
             ),
             occupancy
         };
@@ -82,7 +89,7 @@ export const DayTimeline = ({ events, date, isActive, width, timesToShow, yAxisL
                     blockHeight={(maxDayOccupancy * blockHeight) + eventOffset}
                 >
                     {t.events.map(({ blockLevel, ...rest}, i) => (
-                        <Event key={i} offset={eventOffset + (blockHeight*blockLevel)} {...rest} />
+                        <Event key={i} allowResizeStart={dayStart.isBefore(rest.start)} allowResizeEnd={dayEnd.isAfter(rest.end)} offset={eventOffset + (blockHeight*blockLevel)} {...rest} />
                     ))}
                 </TimeBlock>
             ))}

@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import PropTypes from "prop-types";
 import { CalendarContext } from "./Calendar";
 import { useDrag } from "react-dnd";
@@ -16,24 +16,36 @@ const eventBlockStyles = (props) => {
     position: "absolute",
     top: 0,
     left: 0,
+    borderRadius: "5%",
     cursor: "pointer",
-    zIndex: props.isPreview ? -1 : 10,
+    zIndex: props.isPreview ? -1 : props.isHover ? 11 : 10,
     marginLeft: `${props.index * 2}px`,
     marginTop: `${props.offset}px`,
-    overflow: "hidden",
+    overflow: props.isHover && !props.isDragging ? "initial" : "hidden",
     opacity: props.isDragging ? 0.4 : 0.95,
     width: props.timeBlockMinutes === 1439 ? "100%" : props.direction === "horizontal" ? props.size : "90%",
     height: props.direction !== "horizontal" ? props.size : `${props.blockHeight}px`,
 });
 };
-const EventBlock = React.forwardRef((props, ref) => <div className="event-block" onClick={e => props.onClick(e)} ref={ref} style={{...eventBlockStyles(props), ...props.style}}>{props.children}</div>);
+const EventBlock = React.forwardRef((props, ref) =>
+    <div className="event-block"
+        onClick={e => props.onClick(e)} ref={ref}
+        style={{...eventBlockStyles(props), ...props.style}}
+        onMouseEnter={() => props.onMouseEnter ? props.onMouseEnter(true) : null}
+        onMouseLeave={() => props.onMouseLeave ? props.onMouseLeave(false) : null}
+    >
+        {props.children}
+    </div>);
 EventBlock.propTypes = {
   children: PropTypes.node,
   index: PropTypes.string,
   offset: PropTypes.number,
   isDragging: PropTypes.bool,
+  isHover: PropTypes.bool,
   style: PropTypes.object,
   onClick: PropTypes.func,
+  onMouseEnter: PropTypes.func,
+  onMouseLeave: PropTypes.func,
   siblingCount: PropTypes.number,
   direction: PropTypes.string,
   blockHeight: PropTypes.number
@@ -45,11 +57,15 @@ EventBlock.defaultProps = {
 
 
 const EventLabel = (props) => <label style={{
-        float: "left",
-        margin: "2px 10px",
         fontSize: "12px",
+        width: "max-content",
+        position: "absolute",
+        left: 0,
+        top: 0,
+        cursor: "pointer",
+        padding: '2px 5px',
+        background: "rgb(195, 240, 245, 0.3)",
         height: props.direction !== "horizontal" ? props.size : `${props.blockHeight}px`,
-        overflow: "hidden",
         zIndex: 10
     }}>{props.children}</label>;
 EventLabel.propTypes = {
@@ -125,8 +141,9 @@ Horizon.propTypes = {
   data: PropTypes.object
 };
 
-export const Event = ({ label, start, end, duration, index, isPreview, offset, data }) => {
+export const Event = ({ label, start, end, duration, index, isPreview, offset, data, allowResizeStart, allowResizeEnd }) => {
     const { timeDirection, blockPixelSize, timeBlockMinutes, toggleDragMode, eventBoxStyles, blockHeight, onClick, allowResize } = useContext(CalendarContext);
+    const [hovered, setHovered] = useState(false);
     const [{ isDragging }, drag ] = useDrag({
         item: { type: ItemTypes.EVENT, index, duration, start, end, data },
         collect: monitor => {
@@ -141,6 +158,7 @@ export const Event = ({ label, start, end, duration, index, isPreview, offset, d
         <EventBlock
             ref={drag}
             isDragging={isDragging}
+            isHover={hovered}
             isPreview={isPreview}
             offset={offset}
             onClick={(e) => {
@@ -153,10 +171,12 @@ export const Event = ({ label, start, end, duration, index, isPreview, offset, d
             size={`${Math.floor((duration / timeBlockMinutes) * blockPixelSize)}px`}
             index={index}
             timeBlockMinutes={timeBlockMinutes}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
         >
             { !isPreview &&
                 <Invisible>
-                    { allowResize &&
+                    { allowResize && allowResizeStart &&
                         <Horizon
                             index={index}
                             orientation={timeDirection === "vertical" ? "top" : "left"}
@@ -171,7 +191,7 @@ export const Event = ({ label, start, end, duration, index, isPreview, offset, d
                         blockHeight={blockHeight}
                         size={`${Math.floor((duration / timeBlockMinutes) * blockPixelSize)}px`}
                     >{label}</EventLabel>
-                    { allowResize &&
+                    { allowResize && allowResizeEnd &&
                         <Horizon
                             index={index}
                             orientation={timeDirection === "vertical" ? "bottom" : "right"}
@@ -189,17 +209,26 @@ export const Event = ({ label, start, end, duration, index, isPreview, offset, d
 
 Event.propTypes = {
     index: PropTypes.string.isRequired,
-    label: PropTypes.string,
     start: PropTypes.object,
     end: PropTypes.object,
     duration: PropTypes.number,
     isPreview: PropTypes.bool,
     offset: PropTypes.number,
-    data: PropTypes.object
+    data: PropTypes.object,
+
+    label: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.node
+    ]),
+
+    allowResizeStart: PropTypes.bool,
+    allowResizeEnd: PropTypes.bool
 };
 
 Event.defaultProps = {
-  label: "",
+  label: null,
   index: "0",
-  data: null
+  data: null,
+  allowResizeStart: true,
+  allowResizeEnd: true
 };

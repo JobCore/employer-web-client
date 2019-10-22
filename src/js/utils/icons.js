@@ -17,6 +17,7 @@ import faUserCheck from '@fortawesome/fontawesome-free-solid/faUserCheck';
 import faClipboardList from '@fortawesome/fontawesome-free-solid/faClipboardList';
 import faClock from '@fortawesome/fontawesome-free-solid/faClock';
 import faSync from '@fortawesome/fontawesome-free-solid/faSync';
+//import faExclamationTriangle from '@fortawesome/fontawesome-free-solid/faExclamationTriangle';
 
 import faForward from '@fortawesome/fontawesome-free-solid/faForward';
 import faBackward from '@fortawesome/fontawesome-free-solid/faBackward';

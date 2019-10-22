@@ -341,9 +341,9 @@ export class ManagePayroll extends Flux.DashView {
                                 )}
                                 <div className="btn-bar text-right">
                                     { this.state.singlePayrollPeriod.status === 'OPEN' ?
-                                        <button type="button" className="btn btn-primary" onClick={() => update(Object.assign(this.state.singlePayrollPeriod, { status: 'APPROVED'}))}>Approve Period</button>
+                                        <button type="button" className="btn btn-primary" onClick={() => update('payroll-periods',Object.assign(this.state.singlePayrollPeriod, { status: 'APPROVED'}))}>Approve Period</button>
                                         : this.state.singlePayrollPeriod.status == 'APPROVED' ?
-                                            <button type="button" className="btn btn-primary" onClick={() => update(Object.assign(this.state.singlePayrollPeriod, { status: 'PAID'}))}> Mark as PAID</button>
+                                            <button type="button" className="btn btn-primary" onClick={() => update('payroll-periods',Object.assign(this.state.singlePayrollPeriod, { status: 'PAID'}))}> Mark as PAID</button>
                                             : this.state.singlePayrollPeriod.status
                                     }
                                 </div>

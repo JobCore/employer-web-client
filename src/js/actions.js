@@ -20,9 +20,10 @@ const Models = {
     "employees": Talent
 };
 
-export const login = (email, password, history) => new Promise((resolve, reject) => POST('login', {
+export const login = (email, password, keep, history) => new Promise((resolve, reject) => POST('login', {
       username_or_email: email,
-      password: password
+      password: password,
+      exp_days: keep ? 30 : 1
     })
     .then(function(data){
         if(!data.user.profile.employer){
@@ -243,9 +244,15 @@ export const searchMe = (entity, queryString) => new Promise((accept, reject) =>
 export const create = (entity, data, status='live') => POST('employers/me/'+(entity.url || entity), data)
     .then(function(incoming){
         let entities = store.getState(entity.slug || entity);
-        data.id = incoming.id;
         if(!entities || !Array.isArray(entities)) entities = [];
-        Flux.dispatchEvent(entity.slug || entity, entities.concat([data]));
+
+        if(!Array.isArray(incoming)){
+            Flux.dispatchEvent(entity.slug || entity, entities.concat([{ ...data, id: incoming.id }]));
+        }
+        else{
+            const newShifts = incoming.map(inc => Object.assign({ ...data, id: inc.id }));
+            Flux.dispatchEvent(entity.slug || entity, entities.concat(newShifts));
+        }
         Notify.success("The "+(entity.slug || entity).substring(0, (entity.slug || entity).length - 1)+" was created successfully");
     })
     .catch(function(error) {
@@ -467,7 +474,7 @@ class _Store extends Flux.DashStore{
         });
         this.addEvent('shifts', (shifts) => {
 
-            const newShifts = (!shifts || (Object.keys(shifts).length === 0 && shifts.constructor === Object)) ? [] : shifts.map((shift) => {
+            const newShifts = (!shifts || (Object.keys(shifts).length === 0 && shifts.constructor === Object)) ? [] : shifts.filter(s => s.status !== 'CANCELLED').map((shift) => {
                 //already transformed
                 return Shift(shift).defaults().unserialize();
             });

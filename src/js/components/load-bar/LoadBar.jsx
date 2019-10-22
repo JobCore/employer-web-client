@@ -21,7 +21,7 @@ export default class LoadBar extends React.Component{
     componentDidMount(){
         store.on(NOTIFICATIONS_EVENT, this.setStatus);
     }
-    
+
     componentWillUnmount(){
         store.removeListener(NOTIFICATIONS_EVENT, this.setStatus);
     }
@@ -30,17 +30,19 @@ export default class LoadBar extends React.Component{
         if(this.props.render) return this.props.render(this.state);
         if(this.props.component){
             const Comp = this.props.component;
-            return (<Comp {...this.state} />);
+            return (<div className="load-content"><Comp style={this.props.style} {...this.state} /></div>);
         }
         return (<div className="load-bar">&nbsp;</div>);
     }
 }
 LoadBar.propTypes = {
   render: PropTypes.func,
+  style: PropTypes.object,
   component: PropTypes.node
 };
 LoadBar.defaultProps = {
    render: null,
+   style: {},
    component: null
 };
 
@@ -57,7 +59,7 @@ class NotificationStore extends EventEmitter{
             this.emit(NOTIFICATIONS_EVENT, this.loading);
         });
     }
-    
+
     isLoading(){
         return this.loading;
     }
