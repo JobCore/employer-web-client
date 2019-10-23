@@ -200,7 +200,7 @@ Signup.propTypes = {
 export class Forgot extends React.Component{
     constructor(){
         super();
-        this.state = { email: 'aalejo@gmail.com', loading: false };
+        this.state = { email: '', loading: false };
     }
     render(){
         return (

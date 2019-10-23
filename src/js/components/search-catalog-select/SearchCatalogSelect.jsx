@@ -15,14 +15,17 @@ export default class SearchCatalogSelect extends React.Component {
                 isMulti={this.props.isMulti}
                 value={this.props.value}
                 cacheOptions={true} //The cache will remain until cacheOptions changes value.
-                defaultOptions={[{ label: 'Start typing to search talents', value: null }]} // Options to show before the user starts searching. if true = results for loadOptions('') will be autoloaded.
+                defaultOptions={[{ label: 'Start typing to search talents', value: 'start_typing' }]} // Options to show before the user starts searching. if true = results for loadOptions('') will be autoloaded.
                 onInputChange={(keyword) => { //Function that returns a promise, which is the set of options to be used once the promise resolves.
                     //const keyword = newValue.replace(/\W/g, '');
                     this.setState({ keyword });
                     return keyword;
                 }}
                 loadOptions={(search) => this.props.searchFunction(search)}
-                onChange={(selection)=> selection.value && this.props.onChange(selection)}
+                onChange={(selection)=> {
+                    const found = selection.find(s => s.value === 'start_typing');
+                    if(!found) this.props.onChange(selection);
+                }}
             />
         );
     }
