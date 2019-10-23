@@ -34,7 +34,7 @@ export const Invite = (data) => {
             if(!validator.isEmail(_entity.email)) throw new ValidationError('Please specify the email');
             if(validator.isEmpty(_entity.first_name)) throw new ValidationError('Please specify the first name');
             if(validator.isEmpty(_entity.last_name)) throw new ValidationError('Please specify the last name');
-            //if(validator.isEmpty(_entity.phone_number)) throw new ValidationError('Please specify the last name');
+            //if(validator.isEmpty(_entity.phone_number.toString())) throw new ValidationError('Please specify the last name');
             return _entity;
         },
         defaults: () => {

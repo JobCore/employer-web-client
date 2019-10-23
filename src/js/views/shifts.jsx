@@ -102,9 +102,9 @@ export const Shift = (data) => {
 
             if(_shift.status == 'CANCELLED') return _shift;
 
-            if(!validator.isInt(_shift.position, { min: 1 })) throw new ValidationError('The shift is missing a position');
-            if(!validator.isInt(_shift.maximum_allowed_employees, { min: 1, max: 25 })) throw new ValidationError('The shift needs to employ at least 1 talent and no more than 25');
-            if(!validator.isFloat(_shift.minimum_hourly_rate, { min: 7 })) throw new ValidationError('The minimum allowed hourly rate is $7');
+            if(!validator.isInt(_shift.position.toString(), { min: 1 })) throw new ValidationError('The shift is missing a position');
+            if(!validator.isInt(_shift.maximum_allowed_employees.toString(), { min: 1, max: 25 })) throw new ValidationError('The shift needs to employ at least 1 talent and no more than 25');
+            if(!validator.isFloat(_shift.minimum_hourly_rate.toString(), { min: 7 })) throw new ValidationError('The minimum allowed hourly rate is $7');
             if(!start.isValid() || start.isBefore(NOW())) throw new ValidationError('The shift date has to be greater than today');
             if(!finish.isValid() || finish.isBefore(start)) throw new ValidationError('The shift ending time has to be grater than the starting time');
             if(!validator.isInt(_shift.venue.toString(), { min: 1 })) throw new ValidationError('The shift is missing a venue');
