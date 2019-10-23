@@ -457,6 +457,7 @@ class _Store extends Flux.DashStore{
         this.addEvent('venues');
         this.addEvent('invites');
         this.addEvent('payment');
+        this.addEvent('clockins', clockins => !Array.isArray(clockins) ? [] : clockins.map(c => ({...c, started_at: moment(c.starting_at), ended_at: moment(c.ended_at) })));
         this.addEvent('jobcore-invites');
         this.addEvent('ratings');
         this.addEvent('employees', (employees) => {

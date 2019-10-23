@@ -425,18 +425,20 @@ export const ShiftEmployees = (props) => {
                             onClick={() => bar.show({ slug: "show_single_talent", data: Talent(emp).defaults().unserialize(), allowLevels: true })}
                         >
                             <Button
-                                className="mt-0" icon="clock" label="Clockin log"
-                                onClick={() => bar.show({ slug: "talent_shift_clockins", allowLevels: true })}
+                                className="mt-0 text-white" icon="clock" label="Clockin log"
+                                onClick={() => bar.show({ slug: "talent_shift_clockins", data: { employee: emp, shift: catalog.shift }, allowLevels: true })}
                             />
 
-                            { catalog.shift.expired ?
-                                <Button className="mt-0" icon="favorite" label="Review" onClick={() => bar.show({ slug: "review_talent", data: { employee: emp, shift: catalog.shift } , allowLevels: true })}/>
-                                :
-                                <Button className="mt-0" icon="trash" label="Delete" onClick={() => onSave({
-                                    executed_action: 'delete_shift_employee',
-                                    employee: emp,
-                                    shift: catalog.shift
-                                })}/>
+                            { !catalog.shift.expired && <Button className="mt-0 text-danger" icon="trash" label="Delete" onClick={() => {
+                                    const noti = Notify.info("Are you sure? The Talent will be kicked out of this shift",(answer) => {
+                                        if(answer) onSave({
+                                            executed_action: 'delete_shift_employee',
+                                            employee: emp,
+                                            shift: catalog.shift
+                                        });
+                                        noti.remove();
+                                    });
+                                }}/>
                             }
                         </EmployeeExtendedCard>)
                     )
@@ -901,4 +903,37 @@ export const RateShift = () => (<div className="p-5 listcontents">
     </div>
 </div>);
 RateShift.propTypes = {
+};
+
+/**
+ * RateShift
+ */
+export const ShiftTalentClockins = ({ formData }) => {
+    const { employee, clockins, shift } = formData;
+
+    return (<div className="">
+        <div className="row">
+            <div className="col-12">
+                <h4>Clockins</h4>
+                { clockins.length == 0 ?
+                    <p>{employee.user.first_name} {employee.user.last_name} has not clocked in to this shift yet</p>
+                    :
+                    clockins.map(c => {
+                        let started_at = moment.isMoment(c.started_at) ? c.started_at : moment(c.started_at);
+                        let ended_at = moment.isMoment(c.ended_at) ? c.ended_at : moment(c.ended_at);
+                        return <div key={c.id} className="row p-5">
+                            <div className="col">In: {started_at.format('LT')}</div>
+                            <div className="col">Out: {ended_at.isValid(c.ended_at) ? c.started_at.format('LT') : <span className="badge badge-secondary">Still Working</span>}</div>
+                        </div>;
+                    })
+
+                }
+            </div>
+        </div>
+    </div>);
+};
+ShiftTalentClockins.propTypes = {
+    formData: PropTypes.object.isRequired,
+    catalog: PropTypes.object.isRequired,
+    history: PropTypes.object.isRequired
 };

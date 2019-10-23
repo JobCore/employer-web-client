@@ -142,7 +142,7 @@ const CalendarView = ({
                 dayHeader={getVal(dayHeader,_dayHeader)}
                 dayLabel={getVal(dayLabel,_dayLabel)}
 
-                blockHoverIcon={getVal(blockHoverIcon, () => <i className="fas fa-plus position-absolute" style={{ left: 2, top: 2 }}></i>)}
+                blockHoverIcon={getVal(blockHoverIcon, () => <i className="fas fa-plus position-absolute" style={{ left: 0, top: 0 }}></i>)}
 
                 events={events}
                 daysToShow={daysToShow}

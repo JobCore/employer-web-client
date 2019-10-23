@@ -7,7 +7,8 @@ import ButtonBar from './views/ButtonBar';
 import { Session } from 'bc-react-session';
 import {Theme, SideBar, LoadBar} from './components/index';
 import { ShiftCalendar } from "./views/calendar.js";
-import {ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters, RateShift, ShiftInvites, ShiftEmployees } from './views/shifts';
+import { ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters, RateShift, ShiftInvites, ShiftEmployees,
+    ShiftTalentClockins } from './views/shifts';
 import {ManageApplicantions, ApplicationDetails,FilterApplications, getApplicationsInitialFilters} from './views/applications';
 import {Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilters, TalentDetails} from './views/talents';
 import {PendingInvites, SearchShiftToInviteTalent, InviteTalentToJobcore, SearchTalentToInviteToShift} from './views/invites';
@@ -104,10 +105,11 @@ class PrivateLayout extends Flux.DashView{
                             );
                         break;
                         case 'talent_shift_clockins':
-                            searchMe('clockins', '?shift='+option.data.id ).then((data) =>
-                                this.showRightBar(ShiftInvites, option, { formData: {
-                                    invites: data,
-                                    shift: option.data
+                            searchMe('clockins', `?shift=${option.data.shift.id}&employee=${option.data.employee.id}`).then((data) =>
+                                this.showRightBar(ShiftTalentClockins, option, { formData: {
+                                    employee: option.data.employee,
+                                    clockins: data,
+                                    shift: option.data.shift
                                 }})
                             );
                         break;
