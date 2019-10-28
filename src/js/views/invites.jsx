@@ -62,7 +62,7 @@ export const Invite = (data) => {
  */
 export const SearchShiftToInviteTalent = (props) => {
 
-    const shifts = props.catalog.shifts.filter(s => s.status == 'OPEN').map(item => ({ value: item, label: '' }));
+    const shifts = props.catalog.shifts.filter(s => s.status == 'OPEN' && (s.maximum_allowed_employees - s.employees.length) > 0).map(item => ({ value: item, label: '' }));
     return (<form>
         <div className="row">
             <div className="col-12">

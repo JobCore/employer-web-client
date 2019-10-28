@@ -24,11 +24,11 @@ const sizes = {
   small: 'btn-sm'
 };
 
-const Button = ({ color, onClick, propagate, icon, children, className, note, rounded, size, onMouseEnter, onMouseLeave, onFocus, notePosition }) => {
+const Button = ({ color, onClick, propagate, icon, children, className, note, rounded, size, onMouseEnter, onMouseLeave, onFocus, notePosition, withAlert }) => {
   return (
       <button
         type="button"
-        className={"jc-button btn btn-"+color+" "+notePosition+" "+sizes[size]+(note ? ' with-note':'')+(rounded ? ' rounded':'')+" "+className}
+        className={"jc-button btn btn-"+color+" "+notePosition+" "+sizes[size]+(withAlert ? ' with-note':'')+(rounded ? ' rounded':'')+" "+className}
         onMouseEnter={(e) => (onMouseEnter) ? onMouseEnter(e):null}
         onMouseLeave={(e) => (onMouseLeave) ? onMouseLeave(e):null}
         onFocus={(e) => (onFocus) ? onFocus(e):null}
@@ -57,6 +57,7 @@ Button.propTypes = {
   ]),
   icon: PropTypes.string,
   notePosition: PropTypes.string,
+  withAlert: PropTypes.bool,
   size: PropTypes.string,
   rounded: PropTypes.bool
 };

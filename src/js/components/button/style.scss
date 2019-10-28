@@ -7,14 +7,20 @@
        color: white;
        padding: 5px;
        position: absolute;
-       transform: translateX(-100%);
        &.left{
+            transform: translateX(-100%);
             left: -7px;
             top: 0;
        }
        &.right{
+            transform: translateX(-100%);
            right: -7px;
            top: 0;
+       }
+       &.top{
+            transform: translateX(-50%);
+            left: 0;
+            top: -30px;
        }
     }
     &.with-note:before{
@@ -32,8 +38,8 @@
         position: absolute;
         bottom: 4px;
         left: -10px;
-        width: 0; 
-        height: 0; 
+        width: 0;
+        height: 0;
         border-top: 7px solid transparent;
         border-bottom: 7px solid transparent;
         border-left: 7px solid black;
@@ -43,11 +49,11 @@
         position: absolute;
         bottom: 4px;
         right: -10px;
-        width: 0; 
-        height: 0; 
+        width: 0;
+        height: 0;
         border-top: 7px solid transparent;
-        border-bottom: 7px solid transparent; 
-        border-right: 7px solid black; 
+        border-bottom: 7px solid transparent;
+        border-right: 7px solid black;
     }
     &:hover{
         .btn-tooltip{

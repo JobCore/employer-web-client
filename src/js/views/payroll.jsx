@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
 import { store, search, update, fetchSingle, searchMe, hook } from '../actions.js';
@@ -361,6 +361,10 @@ const PaymentRow = ({ payment, onApprove, readOnly }) => {
 
     const [ clockin, setClockin ] = useState(Clockin(payment.clockin).defaults().unserialize());
 
+    useEffect(() => {
+        // check for updates on the payments
+    }, []);
+
     const shift = Shift(payment.shift).defaults().unserialize();
 
     const startTime = clockin.started_at.format('LT');
@@ -487,9 +491,9 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
                                 label: `Select a payment period`
                             }}
                             components={{ Option: ShiftOption, SingleValue: ShiftOption }}
-                            onChange={(selectedOption)=> fetchSingle("payroll-periods", selectedOption.id).then((period) => {
-                                onChange({ selectedPayments: period.payments, selectedPeriod: period });
-                                history.push(`/payroll/period/${formData.selectedPeriod.id}`);
+                            onChange={(selectedOption)=> searchMe("payment", `?period=${selectedOption.id}`).then((payments) => {
+                                onChange({ selectedPayments: payments, selectedPeriod: selectedOption });
+                                history.push(`/payroll/period/${selectedOption.id}`);
                             })}
                             options={[{
                                 value: null,

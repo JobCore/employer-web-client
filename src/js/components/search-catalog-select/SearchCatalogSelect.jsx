@@ -23,8 +23,15 @@ export default class SearchCatalogSelect extends React.Component {
                 }}
                 loadOptions={(search) => this.props.searchFunction(search)}
                 onChange={(selection)=> {
-                    const found = selection.find(s => s.value === 'start_typing');
-                    if(!found) this.props.onChange(selection);
+                    let found = null;
+                    if(Array.isArray(selection)){
+                        found = selection.find(s => s.value === 'start_typing');
+                        if(!found && selection.length > 0) this.props.onChange(selection);
+                    }
+                    else if(selection){
+                        found = selection.value === 'start_typing';
+                        if(!found) this.props.onChange(selection);
+                    }
                 }}
             />
         );

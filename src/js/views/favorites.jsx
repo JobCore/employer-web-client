@@ -245,7 +245,7 @@ export const FavlistEmployees = ({ formData, onChange, onSave, catalog }) => {
                                 searchFunction={(search) => new Promise((resolve, reject) =>
                                     GET('catalog/employees?full_name='+search)
                                         .then(talents => resolve([
-                                            { label: `${(talents.length==0) ? 'No one found: ':''}, Invite "${search}" to JobCore?`, value: 'invite_talent_to_jobcore' }
+                                            { label: `${(talents.length==0) ? 'No one found: ':''}Invite "${search}" to JobCore?`, value: 'invite_talent_to_jobcore' }
                                         ].concat(talents)))
                                         .catch(error => reject(error))
                                 )}

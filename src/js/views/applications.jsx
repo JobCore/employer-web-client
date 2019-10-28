@@ -3,7 +3,7 @@ import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
 import Select from 'react-select';
 import {AcceptReject, Avatar, Stars, Theme, Wizard } from '../components/index';
-import {store, rejectCandidate, acceptCandidate} from '../actions.js';
+import {store, rejectCandidate, acceptCandidate, fetchAllMe} from '../actions.js';
 import queryString from 'query-string';
 import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
 import moment from 'moment';
@@ -21,24 +21,24 @@ export const getApplicationsInitialFilters = (catalog) => {
 };
 
 export const Application = (data) => {
-    
+
     const _defaults = {
         //foo: 'bar',
         serialize: function(){
-            
+
             const newEntity = {
                 //foo: 'bar'
                 // favoritelist_set: data.favoriteLists.map(fav => fav.value)
             };
-            
+
             return Object.assign(this, newEntity);
         }
     };
-    
+
     let _entity = Object.assign(_defaults, data);
     return {
         validate: () => {
-            
+
             return _entity;
         },
         defaults: () => {
@@ -64,7 +64,7 @@ export const Application = (data) => {
 };
 
 export class ManageApplicantions extends Flux.DashView {
-    
+
     constructor(){
         super();
         this.state = {
@@ -84,21 +84,22 @@ export class ManageApplicantions extends Flux.DashView {
             ]
         };
     }
-    
+
     componentDidMount(){
-        
+
         this.filter();
         this.subscribe(store, 'applications', (applicants) => {
             this.filter(applicants);
         });
-        
+
         this.props.history.listen(() => {
             this.filter();
         });
         this.setState({ runTutorial: true });
-        
+        fetchAllMe(['applications']);
+
     }
-    
+
     filter(applicants=null){
         let filters = this.getFilters();
         if(!applicants) applicants = store.getState('applications');
@@ -109,14 +110,14 @@ export class ManageApplicantions extends Flux.DashView {
                         const matches = filters[f].matches(applicant);
                         if(!matches) return false;
                     }
-                            
+
                     return true;
                 }).sort((applicant) => moment().diff(applicant.created_at, 'minutes'))
             });
         }
         else this.setState({applicant: []});
     }
-    
+
     getFilters(){
         let filters = queryString.parse(window.location.search);
         for(let f in filters){
@@ -128,7 +129,7 @@ export class ManageApplicantions extends Flux.DashView {
                             if(!filters.positions || typeof filters.positions == undefined) return true;
                             else if(!Array.isArray(filters.positions.value)){
                                 return filters.positions.value == application.shift.position.id;
-                            } 
+                            }
                             else{
                                 if(filters.positions.value.length == 0) return true;
                                 return filters.positions.value.find(posId => application.shift.position.id == posId) !== null;
@@ -153,7 +154,7 @@ export class ManageApplicantions extends Flux.DashView {
                             if(!filters.venues || typeof filters.venues == undefined) return true;
                             else if(!Array.isArray(filters.venues.value)){
                                 return filters.venues.value == application.shift.venue.id;
-                            } 
+                            }
                             else{
                                 if(filters.venues.value.length == 0) return true;
                                 return filters.venues.value.find(posId => application.shift.venue.id == posId) !== null;
@@ -174,7 +175,7 @@ export class ManageApplicantions extends Flux.DashView {
         }
         return filters;
     }
-    
+
     render() {
         const applicansHTML = this.state.applicants.map((a,i) => (<ApplicantExtendedCard key={i} applicant={a} shift={a.shift} hover={true} />));
         return (<div className="p-1 listcontents">
@@ -207,22 +208,22 @@ export const ApplicantExtendedCard = (props) => {
     const startTime = props.shift.starting_at.format('LT');
     const endTime = props.shift.ending_at.format('LT');
     return (<Theme.Consumer>
-        {({bar}) => 
+        {({bar}) =>
             (<li className="aplicantcard"
                     onClick={() => bar.show({ slug: "show_single_applicant", data: props.applicant.employee, title: "Application Details" })}
                 >
                 <Avatar url={props.applicant.employee.user.profile.picture} />
                 <AcceptReject
-                    onAccept={() => acceptCandidate(props.shift.id, props.applicant.employee).then(() => props.onAccept ? props.onAccept() : null)} 
-                    onReject={() => rejectCandidate(props.shift.id, props.applicant.employee).then(() => props.onReject ? props.onReject() : null)} 
+                    onAccept={() => acceptCandidate(props.shift.id, props.applicant.employee).then(() => props.onAccept ? props.onAccept() : null)}
+                    onReject={() => rejectCandidate(props.shift.id, props.applicant.employee).then(() => props.onReject ? props.onReject() : null)}
                 />
                 <p>
                     <a href="#" className="shift-position">{props.applicant.employee.user.first_name + " " + props.applicant.employee.user.last_name} </a>
                     is applying for the {props.shift.position.title} position
-                    at the <a href="#" className="shift-location"> {props.shift.venue.title}</a> 
+                    at the <a href="#" className="shift-location"> {props.shift.venue.title}</a>
                     <span className="shift-date"> {startDate} from {startTime} to {endTime} </span>
                     {
-                        (typeof props.shift.price == 'string') ? 
+                        (typeof props.shift.price == 'string') ?
                             <span className="shift-price"> ${props.shift.price}/hr.</span>
                         :
                             <span className="shift-price"> {props.shift.price.currencySymbol}{props.shift.price.amount}/{props.shift.price.timeframe}.</span>
@@ -249,7 +250,7 @@ ApplicantExtendedCard.defaultProps = {
 export const ApplicationDetails = (props) => {
     const applicant = props.catalog.applicant.employee || props.catalog.applicant;
     return (<Theme.Consumer>
-        {({bar}) => 
+        {({bar}) =>
             (<li className="aplication-details">
                 <Avatar url={applicant.user.profile.picture} />
                 <p>{applicant.user.first_name + " " + applicant.user.last_name}</p>

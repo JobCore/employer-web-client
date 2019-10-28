@@ -17,5 +17,6 @@ const _Context = React.createContext({
 export default {
     Theme: Theme,
     Provider: _Context.Provider,
-    Consumer: _Context.Consumer
+    Consumer: _Context.Consumer,
+    Context: _Context
 };

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Link } from 'react-router-dom';
 import Flux from "@4geeksacademy/react-flux-dash";
 import {store, create} from '../actions.js';
@@ -8,11 +8,12 @@ import _ from 'underscore';
 import Select from 'react-select';
 
 import DateTime from 'react-datetime';
+import TimePicker from 'rc-time-picker';
 
 import {Notify} from 'bc-react-notifier';
 import queryString from 'query-string';
 import {ShiftCard, Wizard, Theme, SearchCatalogSelect, Button, ApplicantCard, GenericCard, EmployeeExtendedCard} from '../components/index';
-import {DATETIME_FORMAT, NOW, YESTERDAY} from '../components/utils.js';
+import {DATETIME_FORMAT, TIME_FORMAT, NOW, YESTERDAY} from '../components/utils.js';
 import {validator, ValidationError} from '../utils/validation';
 import {callback, hasTutorial} from '../utils/tutorial';
 import { AddOrEditLocation } from '../views/locations';
@@ -814,27 +815,30 @@ export const ShiftDetails = (props) => {
                     <div>
                         { !shift.expired ?
                             <div className="top-bar">
-                                <button type="button" className="btn btn-primary btn-sm rounded" onClick={() => props.onChange({ status: 'DRAFT', hide_warnings: true })}>
-                                    <i className="fas fa-pencil-alt"></i>
-                                </button>
+                                <Button icon="pencil" color="primary" size="small" rounded={true}
+                                    note="Edit shift" notePosition="left"
+                                    onClick={() => props.onChange({ status: 'DRAFT', hide_warnings: true })}
+                                />
                                 <Button
                                     icon="candidates" color="primary" size="small" rounded={true}
                                     onClick={() => bar.show({ slug: "show_shift_applications", data: shift, title: "Shift Applicants", allowLevels: true })}
-                                    note={shift.candidates.length > 0 ? "There are shift has applications that have not been reviwed" : null}
+                                    note={shift.candidates.length > 0 ? "There shift has applications that have not been reviewed" : "Shift Applicants"}
+                                    withAlert={shift.candidates.length > 0}
                                     notePosition="left"
                                 />
 
                                 { shift.status === 'OPEN' &&
-                                    <Button icon="user_check" color="primary" notePosition="left" size="small" rounded={true}
+                                    <Button icon="user_check" color="primary" notePosition="left" note="Shift accepted employees" size="small" rounded={true}
                                         onClick={() => bar.show({ slug: "show_shift_employees", data: shift, title: "Shift Employees", allowLevels: true })} />
                                 }
                             </div>
                             :
                             <div className="top-bar">
-                                <Button icon="user_check" color="primary" notePosition="left" size="small" rounded={true}
+                                <Button icon="user_check" color="primary" notePosition="left" size="small" rounded={true} note="Shift accepted employees"
                                     onClick={() => bar.show({ slug: "show_shift_employees", data: shift, title: "Shift Employees", allowLevels: true })} />
                                 <Button icon="dollar" color="primary" notePosition="left" size="small" rounded={true}
-                                    note={shift.status !== 'OPEN' ? '': <span>This shift is expired and the payroll has not been processed</span>}
+                                    note={shift.status !== 'OPEN' ? 'Shift Payroll': <span>This shift is expired and the payroll has not been processed</span>}
+                                    withAlert={shift.status !== 'OPEN'}
                                     onClick={() => bar.show({ slug: "select_timesheet", data: shift, allowLevels: true })} />
                             </div>
                         }
@@ -908,25 +912,67 @@ RateShift.propTypes = {
 /**
  * RateShift
  */
-export const ShiftTalentClockins = ({ formData }) => {
+export const ShiftTalentClockins = ({ formData, onChange, onSave }) => {
     const { employee, clockins, shift } = formData;
+    const { bar } = useContext(Theme.Context);
+    const lastClockin = clockins.length === 0 ? null : moment.isMoment(clockins[clockins.length-1].ended_at) ? clockins[clockins.length-1].ended_at : moment(clockins[clockins.length-1].ended_at);
 
     return (<div className="">
         <div className="row">
             <div className="col-12">
-                <h4>Clockins</h4>
-                { clockins.length == 0 ?
-                    <p>{employee.user.first_name} {employee.user.last_name} has not clocked in to this shift yet</p>
-                    :
-                    clockins.map(c => {
+                <div className="top-bar">
+                    <Button size="small" color="primary" rounded={true} className="mr-2"
+                        onClick={() => onChange({ new_clocking: { started_at: null, ended_at: null, shift: shift.id } })}
+                    >add</Button>
+                </div>
+                <h3>Clockins</h3>
+                { clockins.length == 0 && <p>{employee.user.first_name} {employee.user.last_name} has not clocked in to this shift yet</p> }
+                { (clockins.length > 0 || formData.new_clocking) &&
+                    <div className="row px-3 text-center">
+                        <div className="col">In</div>
+                        <div className="col">Out</div>
+                    </div>
+                }
+                { clockins.map(c => {
                         let started_at = moment.isMoment(c.started_at) ? c.started_at : moment(c.started_at);
                         let ended_at = moment.isMoment(c.ended_at) ? c.ended_at : moment(c.ended_at);
-                        return <div key={c.id} className="row p-5">
-                            <div className="col">In: {started_at.format('LT')}</div>
-                            <div className="col">Out: {ended_at.isValid(c.ended_at) ? c.started_at.format('LT') : <span className="badge badge-secondary">Still Working</span>}</div>
+                        return <div key={c.id} className="row px-3 text-center">
+                            <div className="col">{started_at.format('LT')}</div>
+                            <div className="col">{ended_at.isValid(c.ended_at) ? ended_at.format('LT') : <span className="badge badge-secondary">Still Working</span>}</div>
                         </div>;
                     })
-
+                }
+                { formData.new_clocking &&
+                    <div className="row px-3 text-center">
+                        <div className="col-6">
+                            <TimePicker
+                                showSecond={false}
+                                defaultValue={lastClockin ? lastClockin : null}
+                                format={TIME_FORMAT}
+                                onChange={(value) => onChange({ new_clockin: { ...formData.new_clockin, started_at: value } })}
+                                value={formData.new_clocking.started_at}
+                                use12Hours
+                                inputReadOnly
+                            />
+                        </div>
+                        <div className="col-6">
+                            <TimePicker
+                                showSecond={false}
+                                defaultValue={lastClockin ? lastClockin : null}
+                                format={TIME_FORMAT}
+                                onChange={(value) => onChange({ new_clockin: { ...formData.new_clockin, ended_at: value } })}
+                                value={formData.new_clocking.ended_at}
+                                use12Hours
+                                inputReadOnly
+                            />
+                        </div>
+                        <div className="col-6 mt-2">
+                            <Button color="primary" className="w-100" onClick={() => onSave({ executed_action: 'add_clockin', clockin: formData.new_clocking })}>Save</Button>
+                        </div>
+                        <div className="col-6 mt-2">
+                            <Button color="secondary" className="w-100" onClick={() => onChange({ formData: { ...formData, new_clockin: null }})}>Cancel</Button>
+                        </div>
+                    </div>
                 }
             </div>
         </div>
@@ -935,5 +981,7 @@ export const ShiftTalentClockins = ({ formData }) => {
 ShiftTalentClockins.propTypes = {
     formData: PropTypes.object.isRequired,
     catalog: PropTypes.object.isRequired,
+    onChange: PropTypes.func,
+    onSave: PropTypes.func,
     history: PropTypes.object.isRequired
 };
