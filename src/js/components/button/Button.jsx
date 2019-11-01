@@ -16,7 +16,8 @@ const icons = {
   clock: 'fas fa-clock',
   sync: 'fas fa-sync',
   backward: 'fas fa-backward',
-  forward: 'fas fa-forward'
+  forward: 'fas fa-forward',
+  envelope: "fas fa-envelope"
 };
 
 const sizes = {

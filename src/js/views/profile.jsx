@@ -245,12 +245,12 @@ export class PayrollSettings extends Flux.DashView {
                 </div>
                 <div className="row mt-2">
                     <div className="col-12">
-                        <label className="d-block">Do you want automatic checkout?</label>
+                        <label className="d-block">Do you want automatic clock out?</label>
                         <select value={autoClockout} className="form-control" style={{ width: "300px", display: "inline-block" }} onChange={(e) => {
                             this.setEmployer({ maximum_clockout_delay_minutes: e.target.value == 'true' ? 10 : null });
                         }}>
-                            <option value={true}>Only if the talent forgets to checkout</option>
-                            <option value={false}>No, leave the shift active until the talent checkouts</option>
+                            <option value={true}>Yes, clock out when the shift ends (talents still can clock out before that time).</option>
+                            <option value={false}>No, leave the shift active forever or until the talent clocks out</option>
                         </select>
                         { !autoClockout ? '':
                         <span>
@@ -259,7 +259,7 @@ export class PayrollSettings extends Flux.DashView {
                                 value={this.state.employer.maximum_clockout_delay_minutes}
                                 onChange={(e) => this.setEmployer({ maximum_clockout_delay_minutes: e.target.value })}
                             />
-                            min to auto checkout
+                            min to auto clock out
                         </span>
                         }
                     </div>
@@ -268,7 +268,7 @@ export class PayrollSettings extends Flux.DashView {
                     <button
                         type="button"
                         className="btn btn-primary"
-                        onClick={() => update({path: 'employers/me', event_name: 'current_employer'}, Employer(this.state.employer).validate().serialize())}
+                        onClick={() => update({ path: 'employers/me', event_name: 'current_employer' }, Employer({ ...this.state.employer, id: undefined }).validate().serialize())}
                     >Save</button>
                 </div>
             </form>

@@ -91,7 +91,7 @@ export const bar = {
                 this.showRightBar(InviteTalentToJobcore, option);
             break;
             case 'show_pending_jobcore_invites':
-                this.showRightBar(PendingInvites, option);
+                this.showRightBar(PendingJobcoreInvites, option);
             break;
             case 'show_single_talent':
                 option.title = "Talent Details";

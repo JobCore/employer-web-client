@@ -5,6 +5,7 @@ import {Notify} from 'bc-react-notifier';
 import {Shift} from './views/shifts';
 import {Talent} from './views/talents';
 import {Rating} from './views/ratings';
+import {Invite} from './views/invites';
 import {Clockin, PayrollPeriod} from './views/payroll';
 import moment from 'moment';
 import {POST, GET, PUT, DELETE, PUTFiles} from './utils/api_wrapper';
@@ -104,6 +105,10 @@ export const logout = () => {
     Session.destroy();
 };
 
+export const fetchAllIfNull = (entities) => {
+    const _entities = entities.filter(e => !store.getState("entity"));
+    return  fetchAll(_entities);
+};
 export const fetchAll = (entities) => new Promise((resolve, reject) => {
     let requests = [];
     const checkPromiseResolution = () => {
@@ -138,6 +143,10 @@ export const fetchAll = (entities) => new Promise((resolve, reject) => {
     });
 });
 
+export const fetchAllMeIfNull = (entities) => {
+    const _entities = entities.filter(e => !store.getState("entity"));
+    return  fetchAllMe(_entities);
+};
 export const fetchAllMe = (entities) => new Promise((resolve, reject) => {
     let requests = [];
     const checkPromiseResolution = () => {
@@ -455,7 +464,10 @@ class _Store extends Flux.DashStore{
         super();
         this.addEvent('positions');
         this.addEvent('venues');
-        this.addEvent('invites');
+        this.addEvent('invites', (invites) => {
+            if(!Array.isArray(invites)) return [];
+            return invites.map(inv => Invite(inv).defaults().unserialize());
+        });
         this.addEvent('payment');
         this.addEvent('clockins', clockins => !Array.isArray(clockins) ? [] : clockins.map(c => ({...c, started_at: moment(c.starting_at), ended_at: moment(c.ended_at) })));
         this.addEvent('jobcore-invites');
@@ -547,8 +559,9 @@ class _Store extends Flux.DashStore{
         else return item;
     }
     replaceMerged(type, id, item){
-        const entities = this.getState(type);
-        if(!entities) throw new Error("No item found in "+type);
+        let entities = this.getState(type);
+        if(!entities) entities = [];
+
         if(Array.isArray(entities)){
             const result = entities.concat([]).map(ent => {
                 if(ent.id != parseInt(id, 10)) return ent;

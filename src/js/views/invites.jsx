@@ -6,7 +6,8 @@ import PropTypes from 'prop-types';
 import {GET} from '../utils/api_wrapper';
 import Select from 'react-select';
 import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
-import {Button, Theme, ShiftOption, ShiftOptionSelected, SearchCatalogSelect} from '../components/index';
+import {Button, Theme, ShiftOption, ShiftOptionSelected, SearchCatalogSelect, ShiftCard} from '../components/index';
+import {Shift} from "./shifts";
 import moment from 'moment';
 
 export const Invite = (data) => {
@@ -25,6 +26,17 @@ export const Invite = (data) => {
             };
 
             return Object.assign(this, newShift);
+        },
+        unserialize: function(){
+            const dataType = typeof this.created_at;
+            //if its already serialized
+            if((typeof this.position == 'object') && ['number','string'].indexOf(dataType) == -1) return this;
+            const newInvite = {
+                shift: Shift(this.shift).defaults().unserialize(),
+                created_at: (!moment.isMoment(this.created_at)) ? moment(this.created_at) : this.created_at,
+            };
+
+            return Object.assign(this, newInvite);
         }
     };
 
@@ -196,7 +208,7 @@ InviteTalentToJobcore.propTypes = {
 /**
  * ShiftDetails
  */
-export const PendingInvites = ({ catalog, formData }) => (<div>
+export const PendingJobcoreInvites = ({ catalog, formData }) => (<div>
     <div className="row">
         <div className="col">
             <h2>These are your pending invites</h2>
@@ -221,6 +233,31 @@ export const PendingInvites = ({ catalog, formData }) => (<div>
         </div>
     </div>
 </div>);
+PendingJobcoreInvites.propTypes = {
+  formData: PropTypes.object,
+  catalog: PropTypes.object //contains the data needed for the form to load
+};
+
+/**
+ * ShiftDetails
+ */
+export const PendingInvites = ({ catalog, formData }) => {
+    return (<div>
+        <div className="row">
+            <div className="col">
+                <h2>Pending invites for {formData.talent.user.first_name}</h2>
+                <ul className="li-white mx-1">
+                    { (catalog.invites.length > 0) ?
+                        catalog.invites.map((inv, i) =>
+                            (<ShiftCard key={i} shift={inv.shift} showStatus={false} hoverEffect={false} />)
+                        ):
+                        <p className="text-center">No pending invites</p>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>);
+};
 PendingInvites.propTypes = {
   formData: PropTypes.object,
   catalog: PropTypes.object //contains the data needed for the form to load

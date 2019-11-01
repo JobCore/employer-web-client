@@ -8,8 +8,8 @@
     "start:prod": "webpack-dev-server --config webpack.prod.js --open --port 3000",
     "build:prod": "webpack --config webpack.prod.js",
     "build:test": "webpack --config webpack.test.js",
-    "deploy:prod": "npm run build:prod && firebase deploy --project employer",
-    "deploy:test": "npm run build:test && firebase deploy --project employer-test"
+    "deploy:prod": "npm run build:prod && firebase deploy --project employer --token $FIREBASE_TOKEN",
+    "deploy:test": "npm run build:test && firebase deploy --project employer-test --token $FIREBASE_TOKEN"
   },
   "author": "",
   "license": "ISC",

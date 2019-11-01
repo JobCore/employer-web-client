@@ -34,7 +34,8 @@ class ButtonBar extends React.Component {
                     { slug: "profile", title: 'Back to company profile', to: 'profile'}
                 ],
                 "payroll/*": [
-                    { slug: "select_timesheet", title: 'Select Timesheet', to: 'payroll'},
+                    { slug: "payroll_by_timesheet", title: 'Search by Timesheet', to: 'payroll'},
+                    { slug: "payroll_by_shift", title: 'Search by Shift', to: 'payroll'},
                 ],
                 "profile": [
                     { slug: "manage_locations", title: 'Company Locations', to: 'locations'},

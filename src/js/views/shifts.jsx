@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { Link } from 'react-router-dom';
 import Flux from "@4geeksacademy/react-flux-dash";
-import {store, create} from '../actions.js';
+import {store, create, searchMe} from '../actions.js';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
@@ -207,16 +207,38 @@ export class ManageShifts extends Flux.DashView {
                 case "status":
                     filters[f] = {
                         value: filters[f],
-                        matches: (shift) => shift.status == filters.status.value
+                        matches: (shift) => {
+                            let values = filters.status.value.split(',');
+                            if(values.length==1){
+                                if(values.includes("OPEN")){
+                                    if(moment(shift.ending_at).isBefore(NOW())) return false;
+                                }else if(values.includes("FILLED")){
+                                    if(shift.maximum_allowed_employees > shift.employees.length) return false;
+                                }else if(values.includes("EXPIRED")){
+                                    if(moment(shift.ending_at).isAfter(NOW())) return false;
+                                    else values.push('OPEN');
+                                }
+                            }
+                            return values.includes(shift.status);
+                        }
                     };
                 break;
-                case "positions":
+                case "position":
                     filters[f] = {
                         value: filters[f],
                         matches: (shift) => {
                             if(!filters.position.value) return true;
                             if(isNaN(filters.position.value)) return true;
                             return shift.position.id == filters.position.value;
+                        }
+                    };
+                break;
+                case "talent":
+                    filters[f] = {
+                        value: filters[f],
+                        matches: (shift) => {
+                            const emp = shift.employees.find(e => e.id == filters.talent.value);
+                            return emp;
                         }
                     };
                 break;
@@ -244,7 +266,7 @@ export class ManageShifts extends Flux.DashView {
                     filters[f] = {
                         value: filters[f],
                         matches: (shift) => {
-                            const fdate = moment(filters.starting_at.value);
+                            const fdate = moment(filters.date.value);
                             return shift.starting_at.diff(fdate, 'days') == 0;
                         }
                     };
@@ -262,7 +284,7 @@ export class ManageShifts extends Flux.DashView {
             shiftsHTML.push(<div key={date} className="date-group">
                 <p className="date-group-label">{date}</p>
                 <div>
-                    {groupedShifts[date].map((s,i) => (<ShiftCard key={i} shift={s} showStatus={true} hoverEffect={true} />))}
+                    {groupedShifts[date].map((s,i) => (<ShiftCard key={i} shift={s} showStatus={true} />))}
                 </div>
             </div>);
 
@@ -274,6 +296,7 @@ export class ManageShifts extends Flux.DashView {
               callback={callback}
             />
             <h1 className="float-left"><span id="shift-details-header">Shift Details</span></h1>
+            {shiftsHTML.length == 0 && <div className="mt-5">No shifts have been found</div>}
             {shiftsHTML}
         </div>);
     }
@@ -294,13 +317,24 @@ export const FilterShifts = ({onSave, onCancel, onChange, catalog}) => (<form>
         </div>
     </div>
     <div className="row">
-        <div className="col">
+        <div className="col-8">
+            <label>Date</label>
+            <DateTime
+                timeFormat={false}
+                className="w-100"
+                closeOnSelect={true}
+                renderInput={(properties) => {
+                    const { value, ...rest } = properties;
+                    return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
+                }}
+                onChange={(value)=> onChange({
+                    date: value.format("MM-DD-YYYY")
+                })}
+            />
+        </div>
+        <div className="col-4">
             <label>Price / hour</label>
             <input type="number" className="form-control" onChange={(e)=>onChange({minimum_hourly_rate: e.target.value})} />
-        </div>
-        <div className="col">
-            <label>Date</label>
-            <input type="date" className="form-control" onChange={(e)=>onChange({date: e.target.value})} />
         </div>
     </div>
     <div className="row">
@@ -309,6 +343,15 @@ export const FilterShifts = ({onSave, onCancel, onChange, catalog}) => (<form>
             <Select
                 onChange={(selection)=>onChange({venue: selection.value.toString()})}
                 options={catalog.venues}
+            />
+        </div>
+    </div>
+    <div className="row">
+        <div className="col">
+            <label>Worked by a talent:</label>
+            <Select
+                onChange={(selection)=>onChange({ talent: selection.value.toString() })}
+                options={[].concat.apply([], catalog.shifts.map(s => s.employees ))}
             />
         </div>
     </div>
@@ -466,31 +509,27 @@ ShiftEmployees.propTypes = {
  * ShiftApplicants
  */
 export const ShiftInvites = ({ onCancel, onSave, formData }) => {
+    const { bar } = useContext(Theme.Context);
     const htmlInvites = formData.invites.map((invite,i) => (
-        <GenericCard key={i}>
-            <div className="btn-group">
-                <Button onClick={() => create(
-                    {url: 'shifts/invites', slug: 'invites'},
-                    ShiftInvite({
-                        shifts: [formData.shift],
-                        employee: invite.employee.id
-                    }).validate().serialize()
-                )}>Resend</Button>
-            </div>
-            <p>{invite.employee.user.first_name} {invite.employee.user.last_name}</p>
-        </GenericCard>)
+        <EmployeeExtendedCard
+            key={i}
+            employee={invite.employee}
+            hover={false}
+            showFavlist={false}
+            onClick={() => bar.show({ slug: "show_single_talent", data: invite.employee, allowLevels: true })}
+        >
+            <span className="mr-2">{moment(invite.created_at).fromNow()}</span>
+        </EmployeeExtendedCard>)
     );
-    return (<Theme.Consumer>
-        {({ bar }) => (<div className="sidebar-applicants">
-            <h3>Already invited to this shift:</h3>
-            {
-                htmlInvites.length > 0 ?
-                    htmlInvites
-                :
-                    <p>No invites have been sent</p>
-            }
-        </div>)}
-    </Theme.Consumer>);
+    return (<div className="sidebar-applicants">
+        <h3>Already invited to this shift:</h3>
+        {
+            htmlInvites.length > 0 ?
+                htmlInvites
+            :
+                <p>No invites have been sent</p>
+        }
+    </div>);
 };
 ShiftInvites.propTypes = {
   onSave: PropTypes.func.isRequired,
@@ -502,7 +541,7 @@ ShiftInvites.propTypes = {
 /**
  * EditOrAddShift
  */
-const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar }) => {
+const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar, oldShift }) => {
     return (
         <form>
             <div className="row">
@@ -520,7 +559,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                     <label>Looking for</label>
                     <Select
                         value={ catalog.positions.find((pos) => pos.value == formData.position)}
-                        onChange={(selection)=>onChange({position: selection.value.toString()})}
+                        onChange={(selection)=>onChange({position: selection.value.toString(), has_sensitive_updates: true })}
                         options={[{label: 'Select a position', value: ''}].concat(catalog.positions)}
                     />
                 </div>
@@ -530,14 +569,22 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                     <label>How many?</label>
                     <input type="number" className="form-control"
                         value={formData.maximum_allowed_employees}
-                        onChange={(e)=>onChange({maximum_allowed_employees: e.target.value})}
+                        onChange={(e)=> {
+                            if(parseInt(e.target.value, 10) > 0){
+                                if(oldShift && oldShift.employees.length > parseInt(e.target.value, 10)) Notify.error(`${oldShift.employees.length} talents are scheduled to work on this shift already, delete scheduled employees first.`);
+                                else onChange({ maximum_allowed_employees: e.target.value });
+                            }
+                        }}
                     />
                 </div>
                 <div className="col-6">
                     <label>Price / hour</label>
                     <input type="number" className="form-control"
                         value={formData.minimum_hourly_rate}
-                        onChange={(e)=>onChange({minimum_hourly_rate: e.target.value})}
+                        onChange={(e)=>onChange({
+                            minimum_hourly_rate: e.target.value,
+                            has_sensitive_updates: true
+                        })}
                     />
                 </div>
             </div>
@@ -549,7 +596,10 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                             <span key={i} className="badge">{d.starting_at.format('MM-DD-YYYY')}
                                 <i
                                     className="fas fa-trash-alt ml-1 pointer"
-                                    onClick={() => onChange({ multiple_dates: !formData.multiple_dates ? [] : formData.multiple_dates.filter(dt => !dt.starting_at.isSame(d.starting_at))})}
+                                    onClick={() => onChange({
+                                        multiple_dates: !formData.multiple_dates ? [] : formData.multiple_dates.filter(dt => !dt.starting_at.isSame(d.starting_at)),
+                                        has_sensitive_updates: true
+                                    })}
                                 />
                             </span>
                         ))}
@@ -567,7 +617,10 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                                 const { value, ...rest } = properties;
                                 return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
                             }}
-                            onChange={(value)=> onChange({ starting_at: moment( value.format("MM-DD-YYYY")+" "+formData.starting_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a") })}
+                            onChange={(value)=> onChange({
+                                starting_at: moment( value.format("MM-DD-YYYY")+" "+formData.starting_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a"),
+                                has_sensitive_updates: true
+                            })}
                         />
                         <div className="input-group-append" onClick={() =>
                             onChange({
@@ -576,7 +629,9 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                                     :
                                     formData.multiple_dates.filter(dt => !dt.starting_at.isSame(formData.starting_at)).concat(
                                         { starting_at: formData.starting_at, ending_at: formData.ending_at }
-                                    )})}>
+                                    ),
+                                has_sensitive_updates: true
+                            })}>
                             <span className="input-group-text pointer">More <i className="fas fa-plus ml-1"></i></span>
                         </div>
                     </div>
@@ -613,7 +668,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
 
                             const mainDate = getRealDate(formData.starting_at, formData.ending_at);
                             const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
-                            onChange({ ...mainDate, multiple_dates: multipleDates });
+                            onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true  });
 
 
                         }}
@@ -651,7 +706,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
 
                             const mainDate = getRealDate(formData.starting_at, formData.ending_at);
                             const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
-                            onChange({ ...mainDate, multiple_dates: multipleDates });
+                            onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true  });
 
                         }}
                     />
@@ -665,7 +720,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                         options={[{ label: "Add a location", value: 'new_venue', component: AddOrEditLocation }].concat(catalog.venues)}
                         onChange={(selection)=> {
                             if(selection.value == 'new_venue') bar.show({ slug: "create_location", allowLevels: true });
-                            else onChange({ venue: selection.value.toString() });
+                            else onChange({ venue: selection.value.toString(), has_sensitive_updates: true  });
                         }}
                     />
                 </div>
@@ -756,13 +811,16 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                 }
                 { (formData.status == 'DRAFT') ?
                     <button type="button" className="btn btn-success" onClick={() => {
-                        const noti = Notify.info("Are you sure? All talents will have to apply again the shift because the information was updated.",(answer) => {
-                            if(answer) onSave({
-                                executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
-                                status: 'OPEN'
+                        if(!formData.has_sensitive_updates && !isNaN(formData.id)) onSave({ executed_action: 'update_shift', status: 'OPEN' });
+                        else{
+                            const noti = Notify.info("Are you sure? All talents will have to apply again the shift because the information was updated.",(answer) => {
+                                if(answer) onSave({
+                                    executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
+                                    status: 'OPEN'
+                                });
+                                noti.remove();
                             });
-                            noti.remove();
-                        });
+                        }
                     }}>Publish</button>
                     : (formData.status != 'UNDEFINED') ?
                         <button type="button" className="btn btn-primary" onClick={() => {
@@ -791,12 +849,16 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
 };
 EditOrAddShift.propTypes = {
     error: PropTypes.string,
+    oldShift: PropTypes.object,
     bar: PropTypes.object,
     onSave: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
     onChange: PropTypes.func.isRequired,
     formData: PropTypes.object,
     catalog: PropTypes.object //contains the data needed for the form to load
+};
+EditOrAddShift.defaultProps = {
+  oldShift: null
 };
 
 /**
@@ -819,18 +881,18 @@ export const ShiftDetails = (props) => {
                                     note="Edit shift" notePosition="left"
                                     onClick={() => props.onChange({ status: 'DRAFT', hide_warnings: true })}
                                 />
-                                <Button
-                                    icon="candidates" color="primary" size="small" rounded={true}
-                                    onClick={() => bar.show({ slug: "show_shift_applications", data: shift, title: "Shift Applicants", allowLevels: true })}
-                                    note={shift.candidates.length > 0 ? "There shift has applications that have not been reviewed" : "Shift Applicants"}
-                                    withAlert={shift.candidates.length > 0}
-                                    notePosition="left"
-                                />
-
-                                { shift.status === 'OPEN' &&
-                                    <Button icon="user_check" color="primary" notePosition="left" note="Shift accepted employees" size="small" rounded={true}
-                                        onClick={() => bar.show({ slug: "show_shift_employees", data: shift, title: "Shift Employees", allowLevels: true })} />
+                                { ['OPEN','FILLED'].includes(shift.status) &&
+                                    <Button
+                                        icon="candidates" color="primary" size="small" rounded={true}
+                                        onClick={() => bar.show({ slug: "show_shift_applications", data: shift, title: "Shift Applicants", allowLevels: true })}
+                                        note={shift.candidates.length > 0 ? "There shift has applications that have not been reviewed" : "Shift Applicants"}
+                                        withAlert={shift.candidates.length > 0}
+                                        notePosition="left"
+                                    />
                                 }
+
+                                <Button icon="user_check" color="primary" notePosition="left" note="Shift accepted employees" size="small" rounded={true}
+                                    onClick={() => bar.show({ slug: "show_shift_employees", data: shift, title: "Shift Employees", allowLevels: true })} />
                             </div>
                             :
                             <div className="top-bar">
@@ -842,7 +904,7 @@ export const ShiftDetails = (props) => {
                                     onClick={() => bar.show({ slug: "select_timesheet", data: shift, allowLevels: true })} />
                             </div>
                         }
-                        { props.formData.status === 'DRAFT' ? <EditOrAddShift bar={bar} {...props} /> : <ShowShift bar={bar} shift={shift} /> }
+                        { props.formData.status === 'DRAFT' ? <EditOrAddShift bar={bar} {...props} oldShift={shift} /> : <ShowShift bar={bar} shift={shift} /> }
                     </div>
                 }
             </div>

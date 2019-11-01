@@ -17,7 +17,7 @@ export class Login extends React.Component{
     constructor(props){
         super(props);
         const urlVariables = qs.parse(props.location.search);
-        this.state = { email: 'aalejo@gmail.com', password: '1234', type: urlVariables.type || 'company', loading: false, keep: true };
+        this.state = { email: '', password: '', type: urlVariables.type || 'company', loading: false, keep: true };
     }
     render(){
         return (

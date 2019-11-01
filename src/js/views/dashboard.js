@@ -2,7 +2,7 @@ import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 //include images into your bundle
 import {DashboardBox, Wizard, Theme, Button, ShiftBadge } from '../components/index';
-import {store} from '../actions.js';
+import {store, fetchAllMe} from '../actions.js';
 import {callback, hasTutorial} from '../utils/tutorial';
 import {NOW} from '../components/utils.js';
 import {Session} from 'bc-react-session';
@@ -49,8 +49,8 @@ export default class Home extends Flux.DashView {
         };
     }
     componentDidMount(){
-        const shifts = store.getState('shifts');
-        if(Array.isArray(shifts)) this.setState({shifts});
+
+        fetchAllMe(['venues', 'favlists']).then(() => fetchAllMe(['shifts']));
         this.subscribe(store, 'shifts', (shifts) => {
             if(Array.isArray(shifts)) this.setState({shifts});
         });

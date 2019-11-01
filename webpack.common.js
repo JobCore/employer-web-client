@@ -4,7 +4,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: [
-    './src/js/index.js',  
+    './src/js/index.js',
   ],
   output: {
     filename: '[name].bundle.js',
@@ -44,10 +44,10 @@ module.exports = {
               loader: "sass-loader" // compiles Sass to CSS
           }]
         }, //css only files
-        { 
+        {
           test: /\.(png|jpg|gif)$/, use: {
             loader: 'file-loader',
-            options: { name: '[name].[ext]' } 
+            options: { name: '[name].[ext]' }
           }
         }, //for images
         {

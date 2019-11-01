@@ -11,7 +11,7 @@ import { ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getSh
     ShiftTalentClockins } from './views/shifts';
 import {ManageApplicantions, ApplicationDetails,FilterApplications, getApplicationsInitialFilters} from './views/applications';
 import {Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilters, TalentDetails} from './views/talents';
-import {PendingInvites, SearchShiftToInviteTalent, InviteTalentToJobcore, SearchTalentToInviteToShift} from './views/invites';
+import {PendingInvites, PendingJobcoreInvites, SearchShiftToInviteTalent, InviteTalentToJobcore, SearchTalentToInviteToShift} from './views/invites';
 import {ManageFavorites, AddFavlistsToTalent, FavlistEmployees, AddTalentToFavlist, Favlist, AddorUpdateFavlist} from './views/favorites';
 import { ManageLocations, AddOrEditLocation, Location } from './views/locations';
 import { ManagePayroll, SelectTimesheet } from './views/payroll';
@@ -58,7 +58,8 @@ class PrivateLayout extends Flux.DashView{
                     { label: 'Draft', value: 'DRAFT' },
                     { label: 'Open', value: 'OPEN' },
                     { label: 'Filled', value: 'FILLED' },
-                    { label: 'Upcoming', value: 'UPCOMING' }
+                    { label: 'Completed', value: 'EXPIRED' },
+                    { label: 'Paid', value: 'COMPLETED' }
                 ]
             },
             bar: {
@@ -129,7 +130,15 @@ class PrivateLayout extends Flux.DashView{
                             this.showRightBar(InviteTalentToJobcore, option);
                         break;
                         case 'show_pending_jobcore_invites':
-                            this.showRightBar(PendingInvites, option);
+                            this.showRightBar(PendingJobcoreInvites, option);
+                        break;
+                        case 'show_talent_shift_invites':
+                            searchMe('invites', '?status=PENDING&employee='+option.data.id ).then((data) =>
+                                this.showRightBar(PendingInvites, option, { formData: {
+                                    invites: data,
+                                    talent: option.data
+                                }})
+                            );
                         break;
                         case 'show_single_talent':
                             option.title = "Talent Details";
@@ -169,7 +178,7 @@ class PrivateLayout extends Flux.DashView{
                             option.title = "Review Talent";
                             this.showRightBar(ReviewTalent, option, { formData: option.data });
                         break;
-                        case 'select_timesheet':
+                        case 'payroll_by_timesheet':
                             searchMe('payroll-periods').then((periods) =>
                                 this.showRightBar(SelectTimesheet, option, { formData: {
                                     periods: periods//.map(p => p.label)
@@ -207,10 +216,8 @@ class PrivateLayout extends Flux.DashView{
 
 
         fetchAll(['positions', 'badges', 'jobcore-invites']);
-        fetchAllMe(['venues', 'favlists'])
-            .then(() => fetchAllMe(['shifts']));
-
         this.subscribe(store, 'jobcore-invites', (jcInvites) => this.setCatalog({jcInvites: jcInvites || []}));
+        this.subscribe(store, 'invites', (invites) => this.setCatalog({invites}));
         this.subscribe(store, 'venues', (venues) => this.setCatalog({venues: reduce(venues)}));
         this.subscribe(store, 'positions', (positions) => this.setCatalog({positions: reduce(positions)}));
         this.subscribe(store, 'badges', (badges) => this.setCatalog({badges: reduce(badges)}));

@@ -187,7 +187,7 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
                                     const showFrom = weekNumber * 7;
                                     const showTo = showFrom + 7;
                                     const totalDays = daysToShow.length;
-                                    console.log("Before", yAxis.map(a => a.events));
+
                                     return <HorizontalDay
                                         key={weekNumber}
                                         days={daysToShow.slice(showFrom, totalDays < showTo ? totalDays : showTo)}

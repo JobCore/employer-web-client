@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useContext} from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
 import { store, search, update, fetchSingle, searchMe, hook } from '../actions.js';
@@ -541,6 +541,97 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
         </div>);}}
 </Theme.Consumer>);
 SelectTimesheet.propTypes = {
+    onSave: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    history: PropTypes.object.isRequired,
+    onChange: PropTypes.func,
+    formData: PropTypes.object,
+    catalog: PropTypes.object //contains the data needed for the form to load
+};
+
+export const SelectShiftPeriod = ({ catalog, formData, onChange, onSave, onCancel, history }) => {
+    const {bar} = useContext(Theme.Context);
+
+    let note = null;
+    if(formData.periods.length > 0){
+        const end = moment(formData.periods[0].ending_at);
+        end.add(7,'days');
+        if(end.isBefore(NOW())) note = "Payroll was generated until "+end.format('MM dd');
+    }
+    return (<div>
+        <div className="top-bar">
+            <Button
+                    icon="sync" color="primary" size="small" rounded={true}
+                    onClick={() => hook('generate_periods').then(() => searchMe('payroll-periods'))}
+                    note={note}
+                    notePosition="left"
+                />
+
+        </div>
+        <div className="row">
+            <div className="col-12">
+                <div>
+                    <h2 className="mt-1">Select a payment period:</h2>
+                    <Select className="select-shifts" isMulti={false}
+                        value={{
+                            value: null,
+                            label: `Select a payment period`
+                        }}
+                        defaultValue={{
+                            value: null,
+                            label: `Select a payment period`
+                        }}
+                        components={{ Option: ShiftOption, SingleValue: ShiftOption }}
+                        onChange={(selectedOption)=> searchMe("payment", `?period=${selectedOption.id}`).then((payments) => {
+                            onChange({ selectedPayments: payments, selectedPeriod: selectedOption });
+                            history.push(`/payroll/period/${selectedOption.id}`);
+                        })}
+                        options={[{
+                            value: null,
+                            label: `Select a payment period`
+                        }].concat(formData.periods)}
+                    />
+                </div>
+            </div>
+            {(formData && typeof formData.selectedPayments != 'undefined' && formData.selectedPayments.length > 0) ?
+                <div className="col-12 mt-3">
+                    <ul>
+                        {formData.selectedPayments.map((payment,i) => {
+                            return (<EmployeeExtendedCard
+                                    key={i}
+                                    employee={payment.employee}
+                                    showFavlist={false}
+                                    showButtonsOnHover={false}
+                                    onClick={() => {
+                                        bar.show({
+                                            to: `/payroll/period/${formData.selectedPeriod.id}?`+queryString.stringify({
+                                                talent_id: payment.employee.id
+                                            })
+                                        });
+                                    }}
+                                >
+                                {
+                                    (payment.status === "PENDING") ?
+                                        <span> pending <i className="fas fa-exclamation-triangle mr-2"></i></span>
+                                        :
+                                        (payment.status === "PAID") ?
+                                            <span> unpaid <i className="fas fa-dollar-sign mr-2"></i></span>
+                                            :
+                                            <i className="fas fa-check-circle mr-2"></i>
+                                }
+                            </EmployeeExtendedCard>);
+                        })}
+                    </ul>
+                </div>
+                : (typeof formData.loading !== 'undefined' && formData.loading) ?
+                    <div className="col-12 mt-3 text-center">Loading...</div>
+                    :
+                    <div className="col-12 mt-3 text-center">No talents found for this period or shift</div>
+            }
+        </div>
+    </div>);
+};
+SelectShiftPeriod.propTypes = {
     onSave: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
     history: PropTypes.object.isRequired,
