@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import './style.scss';
 
 const icons = {
-  favorite: 'icon icon-favorite icon-xs',
+  favorite: 'icon icon-favorite',
   trash: 'fas fa-trash-alt',
   candidates: 'fas fa-users',
   clipboard: 'fas fa-clipboard-list',
@@ -17,19 +17,20 @@ const icons = {
   sync: 'fas fa-sync',
   backward: 'fas fa-backward',
   forward: 'fas fa-forward',
-  envelope: "fas fa-envelope"
+  envelope: "fas fa-envelope",
+  stopwatch: "fas fa-stopwatch"
 };
 
 const sizes = {
-  medium: '',
-  small: 'btn-sm'
+  medium: { btn: 'btn-md', icon: 'icon-sm' },
+  small: { btn: 'btn-sm', icon: 'icon-xs' }
 };
 
 const Button = ({ color, onClick, propagate, icon, children, className, note, rounded, size, onMouseEnter, onMouseLeave, onFocus, notePosition, withAlert }) => {
   return (
       <button
         type="button"
-        className={"jc-button btn btn-"+color+" "+notePosition+" "+sizes[size]+(withAlert ? ' with-note':'')+(rounded ? ' rounded':'')+" "+className}
+        className={"jc-button btn btn-"+color+" "+notePosition+" "+sizes[size].btn+(withAlert ? ' with-note':'')+(rounded ? ' rounded':'')+" "+className}
         onMouseEnter={(e) => (onMouseEnter) ? onMouseEnter(e):null}
         onMouseLeave={(e) => (onMouseLeave) ? onMouseLeave(e):null}
         onFocus={(e) => (onFocus) ? onFocus(e):null}
@@ -38,7 +39,7 @@ const Button = ({ color, onClick, propagate, icon, children, className, note, ro
           onClick(e);
         }}
       >
-          { (typeof icons[icon] != 'undefined') ? <i className={icons[icon]}></i>:'' }
+          { (typeof icons[icon] != 'undefined') ? <i className={`${icons[icon]} ${sizes[size].icon}`}></i>:'' }
           { (children) ? children:'' }
           { note ? <span className={"btn-tooltip "+notePosition}>{note}</span> : '' }
       </button>);
@@ -71,7 +72,7 @@ Button.defaultProps = {
   onFocus: null,
   note: null,
   className: '',
-  size: sizes['medium'],
+  size: "medium",
   color: 'secondary',
   notePosition: 'left',
   icon: null

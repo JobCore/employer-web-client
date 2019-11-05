@@ -314,8 +314,8 @@ export class ManagePayroll extends Flux.DashView {
                                                 <th>In</th>
                                                 <th>Out</th>
                                                 <th>Total</th>
-                                                <th>Worked</th>
-                                                <th>Scheduled</th>
+                                                <th>Break</th>
+                                                <th>With <br /> Break</th>
                                                 <th>Diff</th>
                                                 <th style={{ minWidth: "80px" }}></th>
                                             </tr>
@@ -329,10 +329,15 @@ export class ManagePayroll extends Flux.DashView {
                                                         //serialization for updating the payment
                                                         status: "APPROVED",
                                                         id: p.id,
+                                                        breaktime_minutes: payment.breaktime_minutes,
                                                         regular_hours: payment.regular_hours,
                                                         over_time: payment.over_time,
                                                         hourly_rate: payment.hourly_rate,
                                                         total_amount: payment.total_amount
+                                                    })}
+                                                    onReject={(payment) => update("payment", {
+                                                        id: p.id,
+                                                        status: "REJECTED"
                                                     })}
                                                 />
                                             )}
@@ -357,29 +362,31 @@ export class ManagePayroll extends Flux.DashView {
     }
 }
 
-const PaymentRow = ({ payment, onApprove, readOnly }) => {
+const PaymentRow = ({ payment, onApprove, onReject, readOnly }) => {
 
     const [ clockin, setClockin ] = useState(Clockin(payment.clockin).defaults().unserialize());
 
-    useEffect(() => {
-        // check for updates on the payments
-    }, []);
+    const init_breaktime = moment().startOf('day').add(payment.breaktime_minutes, 'minutes');
+    const [ breaktime, setBreaktime ] = useState(init_breaktime);
 
     const shift = Shift(payment.shift).defaults().unserialize();
 
     const startTime = clockin.started_at.format('LT');
     const endTime = clockin.ended_at.format('LT');
 
-    const duration = moment.duration(clockin.ended_at.diff(clockin.started_at));
-    const hours = Math.round(duration.asHours() * 100) / 100;
+    const clockInDuration = moment.duration(clockin.ended_at.diff(clockin.started_at));
+    const clockinHours = Math.round(clockInDuration.asHours() * 100) / 100;
 
     const shiftStartTime = shift.starting_at.format('LT');
     const shiftEndTime = shift.ending_at.format('LT');
 
     const shiftDuration = moment.duration(shift.ending_at.diff(shift.starting_at));
-    const shiftTotalHours = Math.round(shiftDuration.asHours() * 100) / 100;
+    const plannedHours = Math.round(shiftDuration.asHours() * 100) / 100;
 
-    const diff =  Math.round((shiftTotalHours - hours) * 100) / 100;
+    const clockInDurationAfterBreak = moment.duration(clockin.ended_at.diff(clockin.started_at)).subtract(breaktime.diff(moment().startOf('day')));
+    const clockInTotalHoursAfterBreak = Math.round(clockInDurationAfterBreak.asHours() * 100) / 100;
+
+    const diff =  Math.round((clockInTotalHoursAfterBreak - plannedHours) * 100) / 100;
     return <tr>
         <td><ShiftCard className="p-0 pl-2" shift={shift} /></td>
         <td className="time">
@@ -416,30 +423,61 @@ const PaymentRow = ({ payment, onApprove, readOnly }) => {
             }
             <small>({shiftEndTime})</small>
         </td>
-        <td>{hours}</td>
-        <td>{hours}</td>
-        <td>{shiftTotalHours}</td>
+        <td style={{ minWidth: "75px", maxWidth: "75px" }}>
+            <p className="mt-1" style={{ marginBottom: "7px" }}>{clockinHours}</p>
+            <small className="d-block my-0">(Plan: {plannedHours})</small>
+        </td>
+        { readOnly ?
+            <td>{
+                moment.duration(breaktime.diff(moment().startOf('day'))).minutes()
+            }</td>
+            :
+            <td style={{ minWidth: "75px", maxWidth: "75px" }} className="text-center">
+                {
+                    <TimePicker showSecond={false} minuteStep={15}
+                        onChange={(value)=> setBreaktime(value)} value={breaktime}
+                    />
+                }
+                <small>hh:mm</small>
+            </td>
+        }
+        <td>{clockInTotalHoursAfterBreak}</td>
         <td>{diff}</td>
-        <td>
-            {readOnly ?
-                payment.status === "APPROVED" && <i className="fas fa-check-circle"></i>
-                :
+        {readOnly ?
+            <td className="text-center">
+                { payment.status === "APPROVED" ? <i className="fas fa-check-circle"></i>
+                    : payment.status === "REJECTED" ? <i className="fas fa-times-circle"></i>
+                        : ''
+                }
+            </td>
+            :
+            <td className="text-center">
                 <Button
                     color="success"
                     size="small"
+                    icon="check"
                     onClick={(value) => onApprove({
-                        regular_hours: hours > shiftTotalHours ? shiftTotalHours : hours,
+                        breaktime_minutes: moment.duration(breaktime.diff(moment().startOf('day'))).minutes(),
+                        regular_hours: plannedHours > clockInTotalHoursAfterBreak ? clockInTotalHoursAfterBreak : plannedHours,
                         over_time: diff < 0 ? 0 : diff
                     })}
-                >Approve</Button>
-            }
-        </td>
+                />
+                <Button
+                    className="mt-1"
+                    color="danger"
+                    size="small"
+                    icon="times"
+                    onClick={(value) => onReject()}
+                />
+            </td>
+        }
     </tr>;
 };
 PaymentRow.propTypes = {
     payment: PropTypes.object,
     readOnly: PropTypes.bool,
-    onApprove: PropTypes.func
+    onApprove: PropTypes.func,
+    onReject: PropTypes.func,
 };
 
 /**
