@@ -3,7 +3,7 @@ const merge = require('webpack-merge');
 const path = require('path');
 const common = require('./webpack.common.js');
 
-module.exports = console.log("this is dist!!!",path.resolve(__dirname, 'dist')) || merge(common, {
+module.exports = merge(common, {
   mode: 'development',
   devtool: "source-map",
   devServer: {

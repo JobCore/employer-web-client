@@ -1,22 +1,22 @@
 import React from 'react';
 import Flux from '@4geeksacademy/react-flux-dash';
 import { Route, Switch, NavLink } from 'react-router-dom';
-import {logout, fetchAll, fetchSingle, fetchAllMe, searchMe, store, resendValidationLink} from './actions';
+import {logout, fetchAll, fetchSingle, fetchAllMe, searchMe, store, resendValidationLink, fetchTemporal} from './actions';
 import Dashboard from './views/dashboard.js';
 import ButtonBar from './views/ButtonBar';
 import { Session } from 'bc-react-session';
 import {Theme, SideBar, LoadBar} from './components/index';
 import { ShiftCalendar } from "./views/calendar.js";
 import { ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters, RateShift, ShiftInvites, ShiftEmployees,
-    ShiftTalentClockins } from './views/shifts';
-import {ManageApplicantions, ApplicationDetails,FilterApplications, getApplicationsInitialFilters} from './views/applications';
-import {Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilters, TalentDetails} from './views/talents';
-import {PendingInvites, PendingJobcoreInvites, SearchShiftToInviteTalent, InviteTalentToJobcore, SearchTalentToInviteToShift} from './views/invites';
-import {ManageFavorites, AddFavlistsToTalent, FavlistEmployees, AddTalentToFavlist, Favlist, AddorUpdateFavlist} from './views/favorites';
-import { ManageLocations, AddOrEditLocation, Location } from './views/locations';
-import { ManagePayroll, SelectTimesheet } from './views/payroll';
-import { ManageRating, Rating, RatingDetails, ReviewTalent } from './views/ratings';
-import {Profile, PayrollSettings} from './views/profile';
+    ShiftTalentClockins } from './views/shifts.js';
+import {ManageApplicantions, ApplicationDetails,FilterApplications, getApplicationsInitialFilters} from './views/applications.js';
+import {Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilters, TalentDetails} from './views/talents.js';
+import {PendingInvites, PendingJobcoreInvites, SearchShiftToInviteTalent, InviteTalentToJobcore, SearchTalentToInviteToShift} from './views/invites.js';
+import {ManageFavorites, AddFavlistsToTalent, FavlistEmployees, AddTalentToFavlist, Favlist, AddorUpdateFavlist} from './views/favorites.js';
+import { ManageLocations, AddOrEditLocation, Location } from './views/locations.js';
+import { ManagePayroll, SelectTimesheet } from './views/payroll.js';
+import { ManageRating, Rating, RatingDetails, ReviewTalent } from './views/ratings.js';
+import {Profile, PayrollSettings} from './views/profile.js';
 import {NOW} from './components/utils.js';
 import {Notifier, Notify} from 'bc-react-notifier';
 import log from './utils/log';
@@ -215,6 +215,7 @@ class PrivateLayout extends Flux.DashView{
         });
 
 
+        fetchTemporal('employers/me','current_employer');
         fetchAll(['positions', 'badges', 'jobcore-invites']);
         this.subscribe(store, 'jobcore-invites', (jcInvites) => this.setCatalog({jcInvites: jcInvites || []}));
         this.subscribe(store, 'invites', (invites) => this.setCatalog({invites}));

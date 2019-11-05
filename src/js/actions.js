@@ -2,11 +2,11 @@ import React from 'react';
 import Flux from '@4geeksacademy/react-flux-dash';
 import {Session} from 'bc-react-session';
 import {Notify} from 'bc-react-notifier';
-import {Shift} from './views/shifts';
-import {Talent} from './views/talents';
-import {Rating} from './views/ratings';
-import {Invite} from './views/invites';
-import {Clockin, PayrollPeriod} from './views/payroll';
+import {Shift} from './views/shifts.js';
+import {Talent} from './views/talents.js';
+import {Rating} from './views/ratings.js';
+import {Invite} from './views/invites.js';
+import {Clockin, PayrollPeriod} from './views/payroll.js';
 import moment from 'moment';
 import {POST, GET, PUT, DELETE, PUTFiles} from './utils/api_wrapper';
 import log from './utils/log';
@@ -211,16 +211,17 @@ export const hook = (hookName) =>  new Promise((resolve, reject) => {
         });
 });
 
-export const fetchTemporal = (url, event_name, callback=null) => {
-    GET(url)
-        .then(function(data){
-            if(typeof callback == 'function') callback();
-            Flux.dispatchEvent(event_name, data);
-        })
-        .catch(function(error) {
-            Notify.error(error.message || error);
-            log.error(error);
-        });
+export const fetchTemporal = async (url, event_name, callback=null) => {
+    try{
+        const data = await GET(url);
+        if(typeof callback == 'function') callback();
+        Flux.dispatchEvent(event_name, data);
+        return data;
+    }catch(error){
+        Notify.error(error.message || error);
+        log.error(error);
+        throw error;
+    }
 };
 
 export const search = (entity, queryString=null) => new Promise((accept, reject) =>
@@ -334,25 +335,40 @@ export const remove = (entity, data) => {
         });
 };
 
-export const rejectCandidate = (shiftId, applicant) => {
-    const shift = store.get('shifts', shiftId);
+export const rejectCandidate = async (shiftId, applicant) => {
+    let shift = store.get('shifts', shiftId);
+    if(!shift) shift = await fetchSingle('shifts', shiftId);
     if(shift){
         const newCandidates = shift.candidates.filter(candidate => candidate.id != applicant.id);
         const updatedShift = {
-          candidates: newCandidates.map(cand => cand.id)
+            candidates: newCandidates.map(cand => cand.id)
         };
-        PUT(`employers/me/shifts/${shiftId}/candidates`, updatedShift).then(() => {
+
+        try{
+            await PUT(`employers/me/shifts/${shiftId}/candidates`, updatedShift);
 
             Flux.dispatchEvent('shifts', store.replaceMerged("shifts", shiftId, {
-              candidates: newCandidates
+            candidates: newCandidates
             }));
-            Flux.dispatchEvent('applicants', store.remove("applicants", applicant.id));
+
+            const applications = store.getState("applications");
+            if(applications) Flux.dispatchEvent('applications', store.filter("applications", (item) => (item.shift.id != shiftId || item.employee.id != applicant.id)));
 
             Notify.success("The candidate was successfully rejected");
-        });
+            return { ...shift, candidates: newCandidates };
+
+        }catch(error){
+            Notify.error(error.message || error);
+            log.error(error);
+            throw error;
+        }
     }
-    else Notify.error("Shift not found");
+    else{
+        Notify.error("Shift not found");
+        throw new Error("Shift not found");
+    }
 };
+
 
 export const deleteShiftEmployee = (shiftId, employee) => {
     const shift = store.get('shifts', shiftId);
@@ -368,15 +384,20 @@ export const deleteShiftEmployee = (shiftId, employee) => {
             }));
 
             Notify.success("The employee was successfully deleted");
+        })
+        .catch(error => {
+            Notify.error(error.message || error);
+            log.error(error);
         });
     }
     else Notify.error("Shift not found");
 };
 
-export const acceptCandidate = (shiftId, applicant) => new Promise((accept, reject) => {
-    const shift = store.get('shifts', shiftId);
+export const acceptCandidate = async (shiftId, applicant) => {
+    let shift = store.get('shifts', shiftId);
+    if(!shift) shift = await fetchSingle('shifts', shiftId);
     if(shift){
-        if (shift.status === 'OPEN' || shift.employees.length < shift.maximum_allowed_employees) {
+        if (shift.status === 'OPEN' || shift.employees.length < shift.maximum_allowed_employees){
 
             const newEmployees = shift.employees.concat([applicant]);
             const newCandidates = shift.candidates.filter(c => Number.isInteger(c) ? c !== applicant.id : c.id !== applicant.id);
@@ -384,7 +405,10 @@ export const acceptCandidate = (shiftId, applicant) => new Promise((accept, reje
                 employees: newEmployees.map(emp => Number.isInteger(emp) ? emp : emp.id),
                 candidates: newCandidates.map(can => Number.isInteger(can) ? can : can.id)
             };
-            PUT(`employers/me/shifts/${shiftId}/candidates`, shiftData).then((data) => {
+
+            try{
+
+                const data = await PUT(`employers/me/shifts/${shiftId}/candidates`, shiftData);
 
                 const applications = store.getState("applications");
                 if(applications) Flux.dispatchEvent('applications', store.filter("applications", (item) => (item.shift.id != shiftId || item.employee.id != applicant.id)));
@@ -393,18 +417,24 @@ export const acceptCandidate = (shiftId, applicant) => new Promise((accept, reje
                     candidates: newCandidates
                 }));
                 Notify.success("The candidate was successfully accepted");
-                accept();
-            });
+                return null;
+
+            }catch(error){
+                Notify.error(error.message || error);
+                log.error(error);
+                throw error;
+            }
+
         } else {
           Notify.error('This shift is already filled.');
-          reject();
+          throw new Error('This shift is already filled.');
         }
     }
     else{
         Notify.error("Shift not found");
-        reject();
+        throw new Error("Shift not found");
     }
-});
+};
 
 export const updateTalentList = (action, employee, listId) => {
     const favoriteList = store.get("favlists", listId);
@@ -508,7 +538,11 @@ class _Store extends Flux.DashStore{
 
         //temporal storage (for temporal views, information that is read only)
         this.addEvent('current_employer', employer => {
-            employer.payroll_period_starting_time = moment.isMoment(employer.payroll_period_starting_time) ? employer.payroll_period_starting_time : moment(employer.payroll_period_starting_time);
+            employer.payroll_period_starting_time =
+                moment.isMoment(employer.payroll_period_starting_time) ?
+                    employer.payroll_period_starting_time :
+                        employer.payroll_period_starting_time ? moment(employer.payroll_period_starting_time) :
+                            null;
             return employer;
         });
         this.addEvent('single_payroll_detail', (payroll) => {

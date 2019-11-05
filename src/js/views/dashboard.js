@@ -50,7 +50,7 @@ export default class Home extends Flux.DashView {
     }
     componentDidMount(){
 
-        fetchAllMe(['venues', 'favlists']).then(() => fetchAllMe(['shifts']));
+        fetchAllMe(['shifts']);
         this.subscribe(store, 'shifts', (shifts) => {
             if(Array.isArray(shifts)) this.setState({shifts});
         });

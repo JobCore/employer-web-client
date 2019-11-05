@@ -158,14 +158,16 @@ export class PayrollSettings extends Flux.DashView {
 
     componentDidMount(){
 
-        fetchTemporal('employers/me', 'current_employer');
         this.subscribe(store, 'current_employer', (employer) => {
-            this.setState({ employer });
+            this.setState({ employer: { ...employer, payroll_period_starting_time: employer.payroll_period_starting_time ? employer.payroll_period_starting_time : NOW() }});
         });
 
     }
 
     render() {
+
+        if(!this.state.employer) return "Loading...";
+
         const autoClockout = this.state.employer.maximum_clockout_delay_minutes == null ? false : true;
         const weekday = this.state.employer.payroll_period_starting_time.isoWeekday();
 

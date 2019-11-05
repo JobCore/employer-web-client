@@ -5,7 +5,7 @@ import queryString from 'query-string';
 import moment from "moment";
 import _ from "lodash";
 import PropTypes from 'prop-types';
-import { Shift } from "./shifts.jsx";
+import { Shift } from "./shifts.js";
 import { store, searchMe, update } from '../actions.js';
 import Select from 'react-select';
 import WEngine from "../utils/write_engine.js";

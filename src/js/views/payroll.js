@@ -8,7 +8,7 @@ import moment from 'moment';
 import {DATETIME_FORMAT, NOW, TIME_FORMAT} from '../components/utils.js';
 import Select from 'react-select';
 
-import {Shift} from './shifts.jsx';
+import {Shift} from './shifts.js';
 import { EmployeeExtendedCard, ShiftOption, ShiftCard, Theme, Button } from '../components/index';
 import queryString from 'query-string';
 
@@ -205,6 +205,7 @@ export class ManagePayroll extends Flux.DashView {
     constructor(){
         super();
         this.state = {
+            employer: store.getState('current_employer'),
             payrollPeriods: [],
             payments: [],
             singlePayrollPeriod: null
@@ -212,6 +213,10 @@ export class ManagePayroll extends Flux.DashView {
     }
 
     componentDidMount(){
+
+        this.subscribe(store, 'current_employer', (employer) => {
+            this.setState({ employer });
+        });
 
         const payrollPeriods = store.getState('payroll-periods');
         this.subscribe(store, 'payroll-periods', (_payrollPeriods) => {
@@ -274,6 +279,14 @@ export class ManagePayroll extends Flux.DashView {
 
 
     render() {
+        if(!this.state.employer) return "Loading...";
+        else if(!this.state.employer.payroll_period_starting_time || !moment.isMoment(this.state.employer.payroll_period_starting_time)){
+            return <div className="p-1 listcontents text-center">
+                <h3>Please setup your payroll settings first.</h3>
+                <Button color="success" onClick={() => this.props.history.push("/payroll-settings")}>Setup Payroll Settings</Button>
+            </div>;
+        }
+
         //const allowLevels = (window.location.search != '');
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
@@ -497,87 +510,96 @@ const filterClockins = (formChanges, formData, onChange) => {
     );
 };
 
-export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel, history }) => (<Theme.Consumer>
-    {({bar}) => {
-        let note = null;
-        if(formData.periods.length > 0){
-            const end = moment(formData.periods[0].ending_at);
-            end.add(7,'days');
-            if(end.isBefore(NOW())) note = "Payroll was generated until "+end.format('MM dd');
-        }
-        return (<div>
-            <div className="top-bar">
-                <Button
-                        icon="sync" color="primary" size="small" rounded={true}
-                        onClick={() => hook('generate_periods').then(() => searchMe('payroll-periods'))}
-                        note={note}
-                        notePosition="left"
-                    />
+export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel, history }) => {
+    const { bar } = useContext(Theme.Context);
+    const employer = store.getState('current_employer');
 
-            </div>
-            <div className="row">
-                <div className="col-12">
-                    <div>
-                        <h2 className="mt-1">Select a payment period:</h2>
-                        <Select className="select-shifts" isMulti={false}
-                            value={{
-                                value: null,
-                                label: `Select a payment period`
-                            }}
-                            defaultValue={{
-                                value: null,
-                                label: `Select a payment period`
-                            }}
-                            components={{ Option: ShiftOption, SingleValue: ShiftOption }}
-                            onChange={(selectedOption)=> searchMe("payment", `?period=${selectedOption.id}`).then((payments) => {
-                                onChange({ selectedPayments: payments, selectedPeriod: selectedOption });
-                                history.push(`/payroll/period/${selectedOption.id}`);
-                            })}
-                            options={[{
-                                value: null,
-                                label: `Select a payment period`
-                            }].concat(formData.periods)}
-                        />
-                    </div>
+    if(!employer || !employer.payroll_period_starting_time || !moment.isMoment(employer.payroll_period_starting_time)){
+        return <div className="text-center">
+            <p>Please setup your payroll settings first.</p>
+            <Button color="success" onClick={() => history.push("/payroll-settings")}>Setup Payroll Settings</Button>
+        </div>;
+    }
+
+    let note = null;
+    if(formData.periods.length > 0){
+        const end = moment(formData.periods[0].ending_at);
+        end.add(7,'days');
+        if(end.isBefore(NOW())) note = "Payroll was generated until "+end.format('MM dd');
+    }
+    return (<div>
+        <div className="top-bar">
+            <Button
+                    icon="sync" color="primary" size="small" rounded={true}
+                    onClick={() => hook('generate_periods').then(() => searchMe('payroll-periods'))}
+                    note={note}
+                    notePosition="left"
+                />
+
+        </div>
+        <div className="row">
+            <div className="col-12">
+                <div>
+                    <h2 className="mt-1">Select a payment period:</h2>
+                    <Select className="select-shifts" isMulti={false}
+                        value={{
+                            value: null,
+                            label: `Select a payment period`
+                        }}
+                        defaultValue={{
+                            value: null,
+                            label: `Select a payment period`
+                        }}
+                        components={{ Option: ShiftOption, SingleValue: ShiftOption }}
+                        onChange={(selectedOption)=> searchMe("payment", `?period=${selectedOption.id}`).then((payments) => {
+                            onChange({ selectedPayments: payments, selectedPeriod: selectedOption });
+                            history.push(`/payroll/period/${selectedOption.id}`);
+                        })}
+                        options={[{
+                            value: null,
+                            label: `Select a payment period`
+                        }].concat(formData.periods)}
+                    />
                 </div>
-                {(formData && typeof formData.selectedPayments != 'undefined' && formData.selectedPayments.length > 0) ?
-                    <div className="col-12 mt-3">
-                        <ul>
-                            {formData.selectedPayments.map((payment,i) => {
-                                return (<EmployeeExtendedCard
-                                        key={i}
-                                        employee={payment.employee}
-                                        showFavlist={false}
-                                        showButtonsOnHover={false}
-                                        onClick={() => {
-                                            bar.show({
-                                                to: `/payroll/period/${formData.selectedPeriod.id}?`+queryString.stringify({
-                                                    talent_id: payment.employee.id
-                                                })
-                                            });
-                                        }}
-                                    >
-                                    {
-                                        (payment.status === "PENDING") ?
-                                            <span> pending <i className="fas fa-exclamation-triangle mr-2"></i></span>
-                                            :
-                                            (payment.status === "PAID") ?
-                                                <span> unpaid <i className="fas fa-dollar-sign mr-2"></i></span>
-                                                :
-                                                <i className="fas fa-check-circle mr-2"></i>
-                                    }
-                                </EmployeeExtendedCard>);
-                            })}
-                        </ul>
-                    </div>
-                    : (typeof formData.loading !== 'undefined' && formData.loading) ?
-                        <div className="col-12 mt-3 text-center">Loading...</div>
-                        :
-                        <div className="col-12 mt-3 text-center">No talents found for this period or shift</div>
-                }
             </div>
-        </div>);}}
-</Theme.Consumer>);
+            {(formData && typeof formData.selectedPayments != 'undefined' && formData.selectedPayments.length > 0) ?
+                <div className="col-12 mt-3">
+                    <ul>
+                        {formData.selectedPayments.map((payment,i) => {
+                            return (<EmployeeExtendedCard
+                                    key={i}
+                                    employee={payment.employee}
+                                    showFavlist={false}
+                                    showButtonsOnHover={false}
+                                    onClick={() => {
+                                        bar.show({
+                                            to: `/payroll/period/${formData.selectedPeriod.id}?`+queryString.stringify({
+                                                talent_id: payment.employee.id
+                                            })
+                                        });
+                                    }}
+                                >
+                                {
+                                    (payment.status === "PENDING") ?
+                                        <span> pending <i className="fas fa-exclamation-triangle mr-2"></i></span>
+                                        :
+                                        (payment.status === "PAID") ?
+                                            <span> unpaid <i className="fas fa-dollar-sign mr-2"></i></span>
+                                            :
+                                            <i className="fas fa-check-circle mr-2"></i>
+                                }
+                            </EmployeeExtendedCard>);
+                        })}
+                    </ul>
+                </div>
+                : (typeof formData.loading !== 'undefined' && formData.loading) ?
+                    <div className="col-12 mt-3 text-center">Loading...</div>
+                    :
+                    <div className="col-12 mt-3 text-center">No talents found for this period or shift</div>
+            }
+        </div>
+    </div>);
+};
 SelectTimesheet.propTypes = {
     onSave: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,

@@ -6,7 +6,7 @@ import '../styles/index.scss';
 import packg from '../../package.json';
 
 //import your own components
-import Layout from './Layout.jsx';
+import Layout from './Layout.js';
 
 console.info(`JobCore: Employer v${packg.version}, DEBUG=${process.env.DEBUG}`);
 

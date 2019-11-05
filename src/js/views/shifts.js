@@ -1,7 +1,7 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { Link } from 'react-router-dom';
 import Flux from "@4geeksacademy/react-flux-dash";
-import {store, create, searchMe} from '../actions.js';
+import {store, create, searchMe, fetchAllMe} from '../actions.js';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
@@ -16,8 +16,8 @@ import {ShiftCard, Wizard, Theme, SearchCatalogSelect, Button, ApplicantCard, Ge
 import {DATETIME_FORMAT, TIME_FORMAT, NOW, YESTERDAY} from '../components/utils.js';
 import {validator, ValidationError} from '../utils/validation';
 import {callback, hasTutorial} from '../utils/tutorial';
-import { AddOrEditLocation } from '../views/locations';
-import { ShiftInvite, Talent } from '../views/talents';
+import { AddOrEditLocation } from '../views/locations.js';
+import { ShiftInvite, Talent } from '../views/talents.js';
 
 import moment from 'moment';
 import {GET} from '../utils/api_wrapper';
@@ -542,6 +542,11 @@ ShiftInvites.propTypes = {
  * EditOrAddShift
  */
 const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar, oldShift }) => {
+    useEffect(() => {
+        const venues = store.getState('venues');
+        const favlists = store.getState('favlists');
+        if(!venues || !favlists) fetchAllMe(['venues', 'favlists']);
+    }, []);
     return (
         <form>
             <div className="row">

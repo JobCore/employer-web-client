@@ -1,7 +1,7 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import {store, update, remove, updateTalentList} from '../actions.js';
+import {store, update, remove, updateTalentList, fetchAllMe} from '../actions.js';
 import {callback, hasTutorial} from '../utils/tutorial';
 import { ListCard, EmployeeExtendedCard, Button, Theme, Wizard, SearchCatalogSelect} from '../components/index';
 import Select from 'react-select';
@@ -87,6 +87,8 @@ export class ManageFavorites extends Flux.DashView {
             this.setState({ lists });
         });
         this.setState({ lists: (lists) ? lists:[], runTutorial: true });
+
+        fetchAllMe(['favlists']);
     }
 
     render() {

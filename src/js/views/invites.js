@@ -7,7 +7,7 @@ import {GET} from '../utils/api_wrapper';
 import Select from 'react-select';
 import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
 import {Button, Theme, ShiftOption, ShiftOptionSelected, SearchCatalogSelect, ShiftCard} from '../components/index';
-import {Shift} from "./shifts";
+import {Shift} from "./shifts.js";
 import moment from 'moment';
 
 export const Invite = (data) => {
