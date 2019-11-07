@@ -3,6 +3,7 @@ import Flux from "@4geeksacademy/react-flux-dash";
 import {store, fetchTemporal, update, updateProfileImage} from '../actions.js';
 import {TIME_FORMAT, DATETIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
 import {Button} from '../components/index';
+import {Notify} from 'bc-react-notifier';
 import {validator, ValidationError} from '../utils/validation';
 import Dropzone from 'react-dropzone';
 import DateTime from 'react-datetime';
@@ -11,11 +12,11 @@ import moment from 'moment';
 export const Employer = (data={}) => {
 
     const _defaults = {
-        title: '',
-        website: '',
+        title: null,
+        website: null,
         payroll_period_starting_time: NOW(),
         maximum_clockout_delay_minutes: 0,
-        bio: '',
+        bio: null,
         uploadCompanyLogo: null,
         editingImage: false,
         response_time: 'not yet calculated',
@@ -33,9 +34,9 @@ export const Employer = (data={}) => {
     let _employer = Object.assign(_defaults, data);
     return {
         validate: () => {
-            if(validator.isEmpty(_employer.bio)) throw new ValidationError('The company bio cannot be empty');
-            if(validator.isEmpty(_employer.title)) throw new ValidationError('The company name cannot be empty');
-            if(validator.isEmpty(_employer.website)) throw new ValidationError('The company website cannot be empty');
+            if(_employer.bio && validator.isEmpty(_employer.bio)) throw new ValidationError('The company bio cannot be empty');
+            if(_employer.title && validator.isEmpty(_employer.title)) throw new ValidationError('The company name cannot be empty');
+            if(_employer.website && validator.isEmpty(_employer.website)) throw new ValidationError('The company website cannot be empty');
             return _employer;
         },
         defaults: () => {
@@ -134,7 +135,7 @@ export class Profile extends Flux.DashView {
                     <button
                         type="button"
                         className="btn btn-primary"
-                        onClick={() => update({ path: 'employers/me', event_name: 'current_employer' }, Employer(this.state.employer).validate().serialize())}
+                        onClick={() => update({ path: 'employers/me', event_name: 'current_employer' }, Employer(this.state.employer).validate().serialize()).catch(e => Notify.error(e.message || e))}
                     >Save</button>
                 </div>
             </form>
@@ -270,7 +271,10 @@ export class PayrollSettings extends Flux.DashView {
                     <button
                         type="button"
                         className="btn btn-primary"
-                        onClick={() => update({ path: 'employers/me', event_name: 'current_employer' }, Employer({ ...this.state.employer, id: undefined }).validate().serialize())}
+                        onClick={() => {
+                            update({ path: 'employers/me', event_name: 'current_employer' }, Employer({ ...this.state.employer, id: undefined }).validate().serialize())
+                                .catch(e => Notify.error(e.message || e));
+                        }}
                     >Save</button>
                 </div>
             </form>

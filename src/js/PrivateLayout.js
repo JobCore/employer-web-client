@@ -14,7 +14,7 @@ import {Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilte
 import {PendingInvites, PendingJobcoreInvites, SearchShiftToInviteTalent, InviteTalentToJobcore, SearchTalentToInviteToShift} from './views/invites.js';
 import {ManageFavorites, AddFavlistsToTalent, FavlistEmployees, AddTalentToFavlist, Favlist, AddorUpdateFavlist} from './views/favorites.js';
 import { ManageLocations, AddOrEditLocation, Location } from './views/locations.js';
-import { ManagePayroll, SelectTimesheet } from './views/payroll.js';
+import { ManagePayroll, PayrollReport, SelectTimesheet } from './views/payroll.js';
 import { ManageRating, Rating, RatingDetails, ReviewTalent } from './views/ratings.js';
 import {Profile, PayrollSettings} from './views/profile.js';
 import {NOW} from './components/utils.js';
@@ -352,6 +352,7 @@ class PrivateLayout extends Flux.DashView{
                             <Route exact path='/profile' component={Profile} />
                             <Route exact path='/payroll' component={ManagePayroll} />
                             <Route exact path='/payroll/period/:period_id' component={ManagePayroll} />
+                            <Route exact path='/payroll/report/:period_id' component={PayrollReport} />
                             <Route exact path='/rate' component={RateShift} />
                             <Route exact path='/ratings' component={ManageRating} />
                             <Route exact path='/home' component={Dashboard} />

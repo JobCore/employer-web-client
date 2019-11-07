@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {validator, ValidationError} from '../utils/validation';
-import {update} from '../actions';
+import {update, searchMe} from '../actions';
 import {Session} from 'bc-react-session';
 import PropTypes from 'prop-types';
 import {GET} from '../utils/api_wrapper';
@@ -74,7 +74,12 @@ export const Invite = (data) => {
  */
 export const SearchShiftToInviteTalent = (props) => {
 
-    const shifts = props.catalog.shifts.filter(s => s.status == 'OPEN' && (s.maximum_allowed_employees - s.employees.length) > 0).map(item => ({ value: item, label: '' }));
+    const [ shifts, setShifts ] = useState([]);
+    useEffect(() => {
+        searchMe('shifts', `?upcoming=true&employee_not=${props.formData.employees.join(',')}&employee_not=${props.formData.employees.join(',')}`)
+            .then(data => setShifts(data.map(item => ({ value: Shift(item).defaults().unserialize(), label: '' }))));
+    }, []);
+
     return (<form>
         <div className="row">
             <div className="col-12">

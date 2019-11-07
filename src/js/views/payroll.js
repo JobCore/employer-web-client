@@ -8,6 +8,8 @@ import moment from 'moment';
 import {DATETIME_FORMAT, NOW, TIME_FORMAT} from '../components/utils.js';
 import Select from 'react-select';
 
+import {Notify} from 'bc-react-notifier';
+
 import {Shift} from './shifts.js';
 import { EmployeeExtendedCard, ShiftOption, ShiftCard, Theme, Button } from '../components/index';
 import queryString from 'query-string';
@@ -310,6 +312,7 @@ export class ManagePayroll extends Flux.DashView {
                     {(!this.state.singlePayrollPeriod) ? '' :
                         (this.state.singlePayrollPeriod.payments.length > 0) ?
                             <div>
+                                { this.state.singlePayrollPeriod.status != "OPEN" && <Button color="info" onClick={() => this.props.history.push('/payroll/report/'+this.state.singlePayrollPeriod.id)}>Take me to the Payroll Report</Button>}
                                 {this.state.payments.map(pay =>
                                     <table key={pay.employee.id} className="table table-striped payroll-summary">
                                         <thead>
@@ -359,10 +362,14 @@ export class ManagePayroll extends Flux.DashView {
                                 )}
                                 <div className="btn-bar text-right">
                                     { this.state.singlePayrollPeriod.status === 'OPEN' ?
-                                        <button type="button" className="btn btn-primary" onClick={() => update('payroll-periods',Object.assign(this.state.singlePayrollPeriod, { status: 'APPROVED'}))}>Approve Period</button>
-                                        : this.state.singlePayrollPeriod.status == 'APPROVED' ?
-                                            <button type="button" className="btn btn-primary" onClick={() => update('payroll-periods',Object.assign(this.state.singlePayrollPeriod, { status: 'PAID'}))}> Mark as PAID</button>
-                                            : this.state.singlePayrollPeriod.status
+                                        <button type="button" className="btn btn-primary" onClick={() => {
+                                            const unapproved = [].concat.apply([], this.state.payments.map(p => p.payments)).find(p => p.status === "PENDING");
+                                            if(unapproved) Notify.error("There are still some payments that need to be approved or rejected");
+                                            else update('payroll-periods',Object.assign(this.state.singlePayrollPeriod, { status: 'FINALIZED'}))
+                                                    .catch(e => Notify.error(e.message || e));
+                                        }}>Finalize Period</button>
+                                        :
+                                        <Button color="info" onClick={() => this.props.history.push('/payroll/report/'+this.state.singlePayrollPeriod.id)}>Take me to the Payroll Report</Button>
                                     }
                                 </div>
                             </div>
@@ -447,8 +454,8 @@ const PaymentRow = ({ payment, onApprove, onReject, readOnly }) => {
             :
             <td style={{ minWidth: "75px", maxWidth: "75px" }} className="text-center">
                 {
-                    <TimePicker showSecond={false} minuteStep={15}
-                        onChange={(value)=> setBreaktime(value)} value={breaktime}
+                    <TimePicker showSecond={false} minuteStep={1}
+                        onChange={(value)=> value && setBreaktime(value)} value={breaktime}
                     />
                 }
                 <small>hh:mm</small>
@@ -471,7 +478,7 @@ const PaymentRow = ({ payment, onApprove, onReject, readOnly }) => {
                     icon="check"
                     onClick={(value) => onApprove({
                         breaktime_minutes: moment.duration(breaktime.diff(moment().startOf('day'))).minutes(),
-                        regular_hours: plannedHours > clockInTotalHoursAfterBreak ? clockInTotalHoursAfterBreak : plannedHours,
+                        regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
                         over_time: diff < 0 ? 0 : diff
                     })}
                 />
@@ -699,3 +706,150 @@ SelectShiftPeriod.propTypes = {
     formData: PropTypes.object,
     catalog: PropTypes.object //contains the data needed for the form to load
 };
+
+export class PayrollReport extends Flux.DashView {
+
+    constructor(){
+        super();
+        this.state = {
+            employer: store.getState('current_employer'),
+            payrollPeriods: [],
+            payments: [],
+            singlePayrollPeriod: null
+        };
+    }
+
+    componentDidMount(){
+
+        this.subscribe(store, 'current_employer', (employer) => {
+            this.setState({ employer });
+        });
+
+        const payrollPeriods = store.getState('payroll-periods');
+        this.subscribe(store, 'payroll-periods', (_payrollPeriods) => {
+            this.updatePayrollPeriod(_payrollPeriods);
+            //if(!this.state.singlePayrollPeriod) this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
+        });
+        if(!payrollPeriods){
+            searchMe('payroll-periods');
+        }
+        else{
+            this.updatePayrollPeriod(payrollPeriods);
+            this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
+
+        }
+
+        this.removeHistoryListener = this.props.history.listen((data) => {
+            const period = /\/payroll\/period\/(\d+)/gm;
+            const periodMatches = period.exec(data.pathname);
+            // const search = /\?talent_id=(\d+)/gm;
+            // const searchMatches = search.exec(data.search);
+            if(periodMatches) this.getSinglePeriod(periodMatches[1]);
+        });
+    }
+
+    groupPayments(singlePeriod){
+        if(!singlePeriod) return null;
+
+        let groupedPayments = {};
+        singlePeriod.payments.forEach(pay => {
+            if(typeof groupedPayments[pay.employee.id] === 'undefined'){
+                groupedPayments[pay.employee.id] = { employee: pay.employee, payments: [] };
+            }
+            groupedPayments[pay.employee.id].payments.push(pay);
+        });
+
+        return Object.values(groupedPayments);
+    }
+
+    getSinglePeriod(periodId, payrollPeriods){
+        if(typeof periodId !== 'undefined'){
+            if(!payrollPeriods) fetchSingle("payroll-periods", periodId);
+            else{
+                const singlePayrollPeriod = payrollPeriods.find(pp => pp.id == periodId);
+                this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod) });
+            }
+        }
+    }
+
+    updatePayrollPeriod(payrollPeriods){
+
+        if(payrollPeriods == null) return;
+
+        let singlePayrollPeriod = null;
+        if(typeof this.props.match.params.period_id !== 'undefined'){
+            singlePayrollPeriod = payrollPeriods.find(pp => pp.id == this.props.match.params.period_id);
+        }
+
+        this.setState({ payrollPeriods, singlePayrollPeriod: singlePayrollPeriod || null, payments: this.groupPayments(singlePayrollPeriod)  });
+    }
+
+
+    render() {
+        if(!this.state.employer) return "Loading...";
+        else if(!this.state.employer.payroll_period_starting_time || !moment.isMoment(this.state.employer.payroll_period_starting_time)){
+            return <div className="p-1 listcontents text-center">
+                <h3>Please setup your payroll settings first.</h3>
+                <Button color="success" onClick={() => this.props.history.push("/payroll-settings")}>Setup Payroll Settings</Button>
+            </div>;
+        }
+
+        //const allowLevels = (window.location.search != '');
+        return (<div className="p-1 listcontents">
+            <Theme.Consumer>
+                {({ bar }) => (<span>
+                    {(!this.state.singlePayrollPeriod) ? '' :
+                        (this.state.singlePayrollPeriod.payments.length > 0) ?
+                            <div>
+                                { this.state.singlePayrollPeriod.status == "OPEN" &&
+                                    <div className="alert alert-warning p-2">This period is still open, <a href="#" onClick={(e) => {
+                                        e.preventDefault();
+                                        this.props.history.push('/payroll/period/'+this.state.singlePayrollPeriod.id);
+                                    }}>click here to review it.</a>
+                                    </div>
+                                }
+                                <table className="table table-striped payroll-summary">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Staff</th>
+                                            <th scope="col">Regular</th>
+                                            <th scope="col">PTO</th>
+                                            <th scope="col">Holiday</th>
+                                            <th scope="col">Sick</th>
+                                            <th scope="col">OT</th>
+                                            <th scope="col">DBL</th>
+                                            <th scope="col">Total</th>
+                                            <th scope="col">Labor</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        { this.state.payments.map(pay => {
+                                            const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
+                                                return {
+                                                    regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
+                                                    total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount)
+                                                };
+                                            }, { regular_hours: 0, total_amount: 0 });
+                                            return <tr key={pay.employee.id}>
+                                                <td>{pay.employee.user.first_name} {pay.employee.user.last_name}</td>
+                                                <td>{total.regular_hours}</td>
+                                                <td>-</td>
+                                                <td>-</td>
+                                                <td>-</td>
+                                                <td>-</td>
+                                                <td>-</td>
+                                                <td>{total.regular_hours}</td>
+                                                <td>${total.total_amount}</td>
+                                            </tr>;
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                            :
+                            <p>No payments to review for this period</p>
+                    }
+                </span>)}
+            </Theme.Consumer>
+        </div>);
+    }
+}
