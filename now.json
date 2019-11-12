@@ -1,0 +1,12 @@
+{
+    "version": 2,
+    "scope": "jobcore",
+    "alias": "employer.jobcore.co",
+    "builds": [
+        {
+        "src": "package.json",
+        "use": "@now/static-build",
+        "config": { "distDir": "public" }
+        }
+    ]
+}

@@ -7,6 +7,7 @@
     "start": "webpack-dev-server  --config webpack.dev.js --open --port 3000",
     "start:prod": "webpack-dev-server --config webpack.prod.js --open --port 3000",
     "start:test": "webpack-dev-server --config webpack.test.js --open --port 3000",
+    "build": "webpack --config webpack.prod.js",
     "build:prod": "webpack --config webpack.prod.js",
     "build:test": "webpack --config webpack.test.js",
     "deploy:prod": "npm run build:prod && firebase deploy --project employer",
