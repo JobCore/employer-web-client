@@ -1,6 +1,7 @@
 {
     "version": 2,
     "scope": "jobcore",
+    "name": "employer-web-client",
     "alias": "employer.jobcore.co",
     "builds": [
         {
