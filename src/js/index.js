@@ -4,14 +4,23 @@ import ReactDOM from 'react-dom';
 import './utils/icons';
 import '../styles/index.scss';
 import packg from '../../package.json';
+import {Session} from 'bc-react-session';
+import queryString from 'query-string';
+import { autoLogin } from './actions.js';
 
 //import your own components
 import Layout from './Layout.js';
 
 console.info(`JobCore: Employer v${packg.version}, DEBUG=${process.env.DEBUG}`);
 
-//render your react application
-ReactDOM.render(
-    <Layout />,
-    document.querySelector('#app')
-);
+const app = document.querySelector('#app');
+let query = queryString.parse(window.location.search);
+
+//if token comes in the URL we have to login with that token;
+if(typeof query.token != 'undefined') 
+    autoLogin(query.token)
+        .then(() => { ReactDOM.render(<Layout />,app); })
+        .catch(() => { ReactDOM.render(<div className="alert alert-danger text-center">Invalid Credentials</div>,app); });
+
+//else normal rendering
+else ReactDOM.render(<Layout />,app);

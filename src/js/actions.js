@@ -21,6 +21,33 @@ const Models = {
     "employees": Talent
 };
 
+export const autoLogin = (token='') => {
+    Session.destroy();
+
+    return new Promise((resolve, reject) => GET('profiles/me', null, {'Authorization': 'JWT '+token})
+        .then(function(profile){
+            if(!profile.employer){
+                Notify.error("Only employers are allowed to login into this application");
+                reject("Only employers are allowed to login into this application");
+            }
+            else if(!profile.status === 'SUSPENDED'){
+                Notify.error("Your account seems to be innactive, contact support for any further details");
+                reject("Your account seems to be innactive, contact support for any further details");
+            }
+            else{
+                const payload = { user: { ...profile.user, profile }, access_token: token };
+                Session.start({ payload });
+                resolve(payload);
+            }
+        })
+        .catch(function(error) {
+            reject(error.message || error);
+            Notify.error(error.message || error);
+            log.error(error);
+        })
+    );
+};
+
 export const login = (email, password, keep, history) => new Promise((resolve, reject) => POST('login', {
       username_or_email: email,
       password: password,
@@ -31,7 +58,7 @@ export const login = (email, password, keep, history) => new Promise((resolve, r
             Notify.error("Only employers are allowed to login into this application");
             reject("Only employers are allowed to login into this application");
         }
-        else if(!data.user.is_active){
+        else if(!data.user.profile.status === 'SUSPENDED'){
             Notify.error("Your account seems to be innactive, contact support for any further details");
             reject("Your account seems to be innactive, contact support for any further details");
         }
