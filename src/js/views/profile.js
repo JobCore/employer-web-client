@@ -12,15 +12,15 @@ import moment from 'moment';
 export const Employer = (data={}) => {
 
     const _defaults = {
-        title: null,
-        website: null,
+        title: undefined,
+        website: undefined,
         payroll_period_starting_time: NOW(),
         maximum_clockout_delay_minutes: 0,
-        bio: null,
+        bio: undefined,
         uploadCompanyLogo: null,
         editingImage: false,
-        response_time: 'not yet calculated',
-        rating: 'not yet calculated',
+        response_time: undefined,
+        rating: undefined,
         serialize: function(){
 
             const newShift = {
@@ -61,7 +61,10 @@ export class Profile extends Flux.DashView {
 
     componentDidMount(){
 
-        fetchTemporal('employers/me', 'current_employer');
+        let employer = store.getState('current_employer');
+        if(!employer) fetchTemporal('employers/me', 'current_employer');
+        else this.setState({ employer });
+
         this.subscribe(store, 'current_employer', (employer) => {
             this.setState({ employer });
         });
@@ -159,8 +162,12 @@ export class PayrollSettings extends Flux.DashView {
 
     componentDidMount(){
 
+        let employer = store.getState('current_employer');
+        if(!employer) fetchTemporal('employers/me', 'current_employer');
+        else this.setState({ employer });
+        
         this.subscribe(store, 'current_employer', (employer) => {
-            this.setState({ employer: { ...employer, payroll_period_starting_time: employer.payroll_period_starting_time ? employer.payroll_period_starting_time : NOW() }});
+            this.setState({ employer });
         });
 
     }

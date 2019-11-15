@@ -313,7 +313,7 @@ export class ManagePayroll extends Flux.DashView {
                         (this.state.singlePayrollPeriod.payments.length > 0) ?
                             <div>
                                 { this.state.singlePayrollPeriod.status != "OPEN" && <Button color="info" onClick={() => this.props.history.push('/payroll/report/'+this.state.singlePayrollPeriod.id)}>Take me to the Payroll Report</Button>}
-                                {this.state.payments.map(pay =>
+                                {this.state.payments.sort((a,b) => a.employee.user.first_name.toLowerCase() > b.employee.user.first_name.toLowerCase() ? 1 : -1).map(pay =>
                                     <table key={pay.employee.id} className="table table-striped payroll-summary">
                                         <thead>
                                             <tr>
