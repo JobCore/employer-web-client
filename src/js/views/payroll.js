@@ -357,6 +357,7 @@ export class ManagePayroll extends Flux.DashView {
                                                     })}
                                                 />
                                             )}
+                                            <tr><td colSpan={8}><Button>Add new clockin</Button></td></tr>
                                         </tbody>
                                     </table>
                                 )}
@@ -418,12 +419,13 @@ const PaymentRow = ({ payment, onApprove, onReject, readOnly }) => {
                     defaultValue={clockin.started_at}
                     format={TIME_FORMAT}
                     onChange={(value) => {
-                        const _c = Object.assign({},clockin,{ started_at: value});
-                        setClockin(_c);
+                        if(value){
+                            const _c = Object.assign({},clockin,{ started_at: value});
+                            setClockin(_c);
+                        }
                     }}
                     value={clockin.started_at}
                     use12Hours
-                    inputReadOnly
                   />
             }
             <small>({shiftStartTime})</small>
@@ -436,9 +438,8 @@ const PaymentRow = ({ payment, onApprove, onReject, readOnly }) => {
                     showSecond={false}
                     defaultValue={clockin.ended_at}
                     format={TIME_FORMAT}
-                    onChange={(value) => setClockin(Object.assign({},clockin,{ ended_at: value}))}
+                    onChange={(value) => value && setClockin(Object.assign({},clockin,{ ended_at: value}))}
                     use12Hours
-                    inputReadOnly
                   />
             }
             <small>({shiftEndTime})</small>
