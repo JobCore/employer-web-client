@@ -226,7 +226,7 @@ export const fetchSingle = (entity, id) =>  new Promise((resolve, reject) => {
 
 export const hook = (hookName) =>  new Promise((resolve, reject) => {
     const payload = Session.getPayload();
-    const params = { employer: payload.user.profile.employer };
+    const params = { employer: payload.user.profile.employer.id || payload.user.profile.employer };
     GET(`hook/${hookName}?${qs.stringify(params)}`)
         .then(function(data){
             resolve(data);
