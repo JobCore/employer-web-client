@@ -168,7 +168,11 @@ export class ManageShifts extends Flux.DashView {
 
     componentDidMount(){
 
-        this.filterShifts();
+        // fetch if not loaded already
+        let shifts = store.getState('shifts');
+        if(!shifts) fetchAllMe(['shifts']);
+        else this.filterShifts(shifts);
+
         this.subscribe(store, 'shifts', (shifts) => {
             this.filterShifts(shifts);
         });
@@ -177,6 +181,7 @@ export class ManageShifts extends Flux.DashView {
             this.filterShifts();
         });
         this.setState({ runTutorial: true });
+
 
     }
 
@@ -211,7 +216,10 @@ export class ManageShifts extends Flux.DashView {
                             let values = filters.status.value.split(',');
                             if(values.length==1){
                                 if(values.includes("OPEN")){
-                                    if(moment(shift.ending_at).isBefore(NOW())) return false;
+                                    if(
+                                        moment(shift.ending_at).isBefore(NOW()) || //has passed
+                                        (shift.maximum_allowed_employees <= shift.employees.length) //or its filled
+                                    ) return false;
                                 }else if(values.includes("FILLED")){
                                     if(shift.maximum_allowed_employees > shift.employees.length) return false;
                                 }else if(values.includes("EXPIRED")){
