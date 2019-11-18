@@ -1,7 +1,8 @@
 import React, {useState, useEffect, useContext} from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import { store, search, update, fetchSingle, searchMe, hook } from '../actions.js';
+import { store, search, update, fetchSingle, searchMe, hook, updatePayments } from '../actions.js';
+import {GET} from '../utils/api_wrapper';
 
 import DateTime from 'react-datetime';
 import moment from 'moment';
@@ -11,7 +12,7 @@ import Select from 'react-select';
 import {Notify} from 'bc-react-notifier';
 
 import {Shift} from './shifts.js';
-import { EmployeeExtendedCard, ShiftOption, ShiftCard, Theme, Button } from '../components/index';
+import { EmployeeExtendedCard, ShiftOption, ShiftCard, Theme, Button, ShiftOptionSelected } from '../components/index';
 import queryString from 'query-string';
 
 import TimePicker from 'rc-time-picker';
@@ -340,24 +341,47 @@ export class ManagePayroll extends Flux.DashView {
                                             { pay.payments.map(p =>
                                                 <PaymentRow key={p.id}
                                                     payment={p}
-                                                    readOnly={p.status !== 'PENDING'}
-                                                    onApprove={(payment) => update("payment", {
-                                                        //serialization for updating the payment
-                                                        status: "APPROVED",
-                                                        id: p.id,
-                                                        breaktime_minutes: payment.breaktime_minutes,
-                                                        regular_hours: payment.regular_hours,
-                                                        over_time: payment.over_time,
-                                                        hourly_rate: payment.hourly_rate,
-                                                        total_amount: payment.total_amount
-                                                    })}
-                                                    onReject={(payment) => update("payment", {
-                                                        id: p.id,
-                                                        status: "REJECTED"
-                                                    })}
+                                                    employee={pay.employee}
+                                                    readOnly={p.status !== 'PENDING' && p.status !== 'NEW'}
+                                                    onApprove={(payment) => updatePayments({
+                                                            //serialization for updating the payment
+                                                            status: "APPROVED",
+                                                            id: p.id,
+                                                            breaktime_minutes: payment.breaktime_minutes,
+                                                            regular_hours: payment.regular_hours,
+                                                            over_time: payment.over_time
+                                                        }, this.state.singlePayrollPeriod)
+                                                    }
+                                                    onReject={(payment) => {
+                                                        if(p.id === undefined) this.setState({ 
+                                                            payments: this.state.payments.map(_pay => {
+                                                                if(_pay.employee.id !== pay.employee.id) return _pay;
+                                                                else{
+                                                                    return {
+                                                                        ..._pay,
+                                                                        payments: _pay.payments.filter(p => p.id != undefined)
+                                                                    };
+                                                                }
+                                                            }) 
+                                                        });
+                                                        else updatePayments({ id: p.id, status: "REJECTED" }, this.state.singlePayrollPeriod);
+                                                    }}
                                                 />
                                             )}
-                                            <tr><td colSpan={8}><Button>Add new clockin</Button></td></tr>
+                                            <tr>
+                                                <td colSpan={5}>
+                                                    <Button icon="plus" size="small" onClick={() => this.setState({ payments: this.state.payments.map(_pay => {
+                                                        if(_pay.employee.id !== pay.employee.id) return _pay;
+                                                        else{
+                                                            return {
+                                                                ..._pay,
+                                                                payments: _pay.payments.concat([Payment({ status: "NEW" }).defaults()])
+                                                            };
+                                                        }
+                                                    })})}>Add new clockin</Button>
+                                                </td>
+                                                <td colSpan={3}>Total: {pay.payments.reduce((next, current) => next ? next + parseFloat(current.regular_hours) : 0, 0)}</td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 )}
@@ -383,14 +407,18 @@ export class ManagePayroll extends Flux.DashView {
     }
 }
 
-const PaymentRow = ({ payment, onApprove, onReject, readOnly }) => {
+const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly }) => {
 
     const [ clockin, setClockin ] = useState(Clockin(payment.clockin).defaults().unserialize());
+    
+    const [ shift, setShift ] = useState(Shift(payment.shift).defaults().unserialize());
+    // const shiftRef = useRef(shift);
+    // shiftRef.current = shift;
+
+    const [ possibleShifts, setPossibleShifts ] = useState(null);
 
     const init_breaktime = moment().startOf('day').add(payment.breaktime_minutes, 'minutes');
     const [ breaktime, setBreaktime ] = useState(init_breaktime);
-
-    const shift = Shift(payment.shift).defaults().unserialize();
 
     const startTime = clockin.started_at.format('LT');
     const endTime = clockin.ended_at.format('LT');
@@ -408,8 +436,31 @@ const PaymentRow = ({ payment, onApprove, onReject, readOnly }) => {
     const clockInTotalHoursAfterBreak = Math.round(clockInDurationAfterBreak.asHours() * 100) / 100;
 
     const diff =  Math.round((clockInTotalHoursAfterBreak - plannedHours) * 100) / 100;
+    useEffect(() => {
+        if(payment.status === "NEW") 
+            GET('employers/me/shifts?status=EXPIRED&employee='+employee.id)
+                .then(_shifts => {
+                    const _posibleShifts = _shifts.map(s => ({ label: '', value: Shift(s).defaults().unserialize() }));
+                    console.log(_posibleShifts);
+                    setPossibleShifts(_posibleShifts);
+                })
+                .catch(e => Notify.error(e.message || e));
+    }, []);
+
     return <tr>
-        <td><ShiftCard className="p-0 pl-2" shift={shift} /></td>
+        <td>{
+            payment.status === "NEW" ? 
+                <Select className="select-shifts"
+                    value={!possibleShifts ? { label: "Loading talent shifts", value: "loading" } : { value: shift }}
+                    components={{ Option: ShiftOption, MultiValue: ShiftOptionSelected }}
+                    onChange={(selectedOption)=> selectedOption && setShift(selectedOption.value)}
+                    options={possibleShifts ? possibleShifts : [{ label: "Loading talent shifts", value: "loading" }]}
+                >
+                </Select>
+            :
+                <ShiftCard className="p-0 pl-2" shift={shift} />
+            }
+        </td>
         <td className="time">
             { readOnly ?
                 <p>{startTime}</p>
@@ -487,8 +538,8 @@ const PaymentRow = ({ payment, onApprove, onReject, readOnly }) => {
                     className="mt-1"
                     color="danger"
                     size="small"
-                    icon="times"
-                    onClick={(value) => onReject()}
+                    icon={payment.status === "NEW" ? "trash" : "times"}
+                    onClick={(value) => onReject({ status: "REJECTED" })}
                 />
             </td>
         }
@@ -496,9 +547,14 @@ const PaymentRow = ({ payment, onApprove, onReject, readOnly }) => {
 };
 PaymentRow.propTypes = {
     payment: PropTypes.object,
+    employee: PropTypes.object,
     readOnly: PropTypes.bool,
     onApprove: PropTypes.func,
     onReject: PropTypes.func,
+    shifts: PropTypes.array
+};
+PaymentRow.defaultProps = {
+  shifts: [],
 };
 
 /**

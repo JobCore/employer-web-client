@@ -177,16 +177,16 @@ export class PayrollSettings extends Flux.DashView {
         if(!this.state.employer) return "Loading...";
 
         const autoClockout = this.state.employer.maximum_clockout_delay_minutes == null ? false : true;
-        const weekday = this.state.employer.payroll_period_starting_time.isoWeekday();
 
+        const weekday = this.state.employer.payroll_period_starting_time.isoWeekday();
         let nextDate = this.state.employer.payroll_period_starting_time.clone();
         while(nextDate.isBefore(NOW())) nextDate = nextDate.add(7,'days');
 
         return (<div className="p-1 listcontents company-payroll-settings">
             <h1><span id="company_details">Your Payroll Settings</span></h1>
-            <div className="row mt-2">
+            <div className="row mt-4">
                 <div className="col-12">
-                    <h4>Next payroll will run on {nextDate.format("dddd, MMMM Do YYYY, h:mm a")}</h4>
+                    {nextDate && <h4>Next payroll will run on {nextDate.format("dddd, MMMM Do YYYY, h:mm a")}</h4>}
                 </div>
             </div>
             <form>
@@ -209,13 +209,13 @@ export class PayrollSettings extends Flux.DashView {
                                 });
                             }}
                         >
-                            <option value={1}>Monday{"'s"}</option>
-                            <option value={2}>Tuesday{"'s"}</option>
-                            <option value={3}>Wednesday{"'s"}</option>
-                            <option value={4}>Thursday{"'s"}</option>
-                            <option value={5}>Friday{"'s"}</option>
-                            <option value={6}>Saturday{"'s"}</option>
-                            <option value={7}>Sunday{"'s"}</option>
+                            <option value={1}>Monday{"s"}</option>
+                            <option value={2}>Tuesday{"s"}</option>
+                            <option value={3}>Wednesday{"s"}</option>
+                            <option value={4}>Thursday{"s"}</option>
+                            <option value={5}>Friday{"s"}</option>
+                            <option value={6}>Saturday{"s"}</option>
+                            <option value={7}>Sunday{"s"}</option>
                         </select>
                         <span> at </span>
                         <DateTime
@@ -235,14 +235,16 @@ export class PayrollSettings extends Flux.DashView {
                         />
                     </div>
                 </div>
+                <h2 className="mt-4 mb-2">Time clock settings</h2>
                 <div className="row">
                     <div className="col-12">
                         <label className="d-block">When can talents start clocking in?</label>
                         <select
                             value={this.state.employer.maximum_clockin_delta_minutes}
                             className="form-control" style={{ width: "100px", display: "inline-block" }}
-                            onChange={(e) => this.setEmployer({ maximum_clockin_delta_minutes: e.target.value })}
+                            onChange={(e) => this.setEmployer({ maximum_clockin_delta_minutes: isNaN(e.target.value) ? null : e.target.value, timeclock_warning: true })}
                         >
+                            <option value={null}>Anytime</option>
                             <option value={5}>5 min</option>
                             <option value={10}>10 min</option>
                             <option value={15}>15 min</option>
@@ -267,13 +269,26 @@ export class PayrollSettings extends Flux.DashView {
                             , wait
                             <input type="number" style={{width: "60px"}} className="form-control d-inline-block ml-2 mr-2"
                                 value={this.state.employer.maximum_clockout_delay_minutes}
-                                onChange={(e) => this.setEmployer({ maximum_clockout_delay_minutes: e.target.value })}
+                                onChange={(e) => this.setEmployer({ maximum_clockout_delay_minutes: e.target.value, timeclock_warning: true })}
                             />
                             min to auto clock out
                         </span>
                         }
                     </div>
                 </div>
+                { this.state.employer.timeclock_warning &&
+                    <div className="alert alert-warning p-2 mt-3">
+                        Apply time clock settings to:
+                        <select
+                            value={this.state.employer.retroactive}
+                            className="form-control w-100" style={{ width: "100px", display: "inline-block" }}
+                            onChange={(e) => this.setEmployer({ retroactive: e.target.value === "true" ? true : false })}
+                            >
+                            <option value={false}>Only new shifts (from now on)</option>
+                            <option value={true}>All shifts (including previously created)</option>
+                        </select>
+                    </div>
+                }
                 <div className="mt-4 text-right">
                     <button
                         type="button"

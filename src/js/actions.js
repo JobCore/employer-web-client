@@ -494,25 +494,24 @@ export const updateTalentList = (action, employee, listId) => {
     });
 };
 
-// export const updatePayments = (payments) => new Promise((resolve, reject) => {
+export const updatePayments = async (payments, period) => {
 
-//     const newPayments = payments.map(c => {
-//         c.status = payroll.status;
-//         return Clockin(c).defaults().serialize();
-//     });
+    if(!Array.isArray(payments)) payments = [payments];
+    for(let i = 0; i < payments.length; i++){
+        const data = payments[i];
+        const _updated = await update("payment", data);
+        period = { 
+            ...period, 
+            payments: period.payments.map(p => {
+                if(p.id === _updated.id) return { ...p, ..._updated };
+                else return p;
+            })
+        };
+    }
 
-//     return PUT(`employees/${payroll.talent.id}/payroll`, newPayroll.filter(c => c.selected === true))
-//     .then(function(data){
-//         resolve();
-//         Notify.success("The Payroll has been updated successfully");
-//         Flux.dispatchEvent('single_payroll_detail', newPayroll);
-//     })
-//     .catch(function(error) {
-//         reject(error.message || error);
-//         Notify.error(error.message || error);
-//         log.error(error);
-//     });
-// });
+    Flux.dispatchEvent('payroll-periods', store.replace("payroll-periods", period.id, period));
+    return period;
+};
 
 export const http = { GET };
 
@@ -569,7 +568,7 @@ class _Store extends Flux.DashStore{
                 moment.isMoment(employer.payroll_period_starting_time) ?
                     employer.payroll_period_starting_time :
                         employer.payroll_period_starting_time ? moment(employer.payroll_period_starting_time) :
-                            null;
+                            moment(employer.created_at).startOf('isoWeek');
             return employer;
         });
         this.addEvent('single_payroll_detail', (payroll) => {
