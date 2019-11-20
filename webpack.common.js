@@ -1,4 +1,5 @@
 const webpack = require('webpack');
+const Dotenv = require('dotenv-webpack');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
@@ -61,10 +62,14 @@ module.exports = {
     extensions: ['*', '.js', '.jsx'],
   },
   plugins: [
+    new Dotenv({ 
+        path: './.env',
+        systemvars: true
+    }),
     new webpack.HotModuleReplacementPlugin(),
     new HtmlWebpackPlugin({
         favicon: 'jobcore.ico',
         template: 'template.html'
     })
-  ]
+  ],
 };

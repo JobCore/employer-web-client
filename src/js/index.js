@@ -11,7 +11,7 @@ import { autoLogin } from './actions.js';
 //import your own components
 import Layout from './Layout.js';
 
-console.info(`JobCore: Employer v${packg.version}, DEBUG=${process.env.DEBUG}`);
+console.info(`JobCore: Employer v${packg.version}, ENVIRONMENT=${process.env.ENVIRONMENT}`);
 
 const app = document.querySelector('#app');
 let query = queryString.parse(window.location.search);

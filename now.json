@@ -2,14 +2,17 @@
     "version": 2,
     "scope": "jobcore",
     "name": "employer-web-client",
-    "alias": "employer.jobcore.co",
+    "alias": ["employer.jobcore.co"],
     "builds": [
         {
-        "src": "package.json",
-        "use": "@now/static-build",
-        "config": { "distDir": "public" }
+            "src": "package.json",
+            "use": "@now/static-build",
+            "config": { "distDir": "public" }
         }
     ],
+    "env": {
+        "API_HOST": "https://jobcore.herokuapp.com"
+    },
     "routes": [
         {
             "src":"/(.*).png",
@@ -27,9 +30,9 @@
             "dest":"/$1.bundle.js"
         },
         {
-        "src": "/(.*)",
-        "headers": { "cache-control": "s-maxage=0" },
-        "dest": "/index.html"
+            "src": "/(.*)",
+            "headers": { "cache-control": "s-maxage=0" },
+            "dest": "/index.html"
         }
   ]
 }

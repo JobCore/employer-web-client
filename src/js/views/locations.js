@@ -279,7 +279,7 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
                 <label>Location</label>
                 <div className="location-map">
                     <GoogleMapReact
-                        bootstrapURLKeys={{ key: process.env.GOOGLE_MAPS_KEY }}
+                        bootstrapURLKeys={{ key: process.env.GOOGLE_MAPS_WEB_KEY }}
                         defaultCenter={{
                           lat: 25.7617,
                           lng: -80.1918

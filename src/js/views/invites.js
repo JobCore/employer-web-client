@@ -86,7 +86,7 @@ export const SearchShiftToInviteTalent = (props) => {
                 <label>Pick your shifts:</label>
                 <Select isMulti className="select-shifts"
                     value={props.formData.shifts}
-                    components={{ Option: ShiftOption, MultiValue: ShiftOptionSelected }}
+                    components={{ Option: ShiftOption, MultiValue: ShiftOptionSelected({ multi: true }) }}
                     onChange={(selectedOption)=>props.onChange({ shifts: selectedOption })}
                     options={shifts}
                 >

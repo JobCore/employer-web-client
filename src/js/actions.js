@@ -278,24 +278,28 @@ export const searchMe = (entity, queryString) => new Promise((accept, reject) =>
         })
 );
 
-export const create = (entity, data, status='live') => POST('employers/me/'+(entity.url || entity), data)
-    .then(function(incoming){
-        let entities = store.getState(entity.slug || entity);
-        if(!entities || !Array.isArray(entities)) entities = [];
+export const create = (entity, data, status='live') => new Promise((resolve, reject) => {
+    POST('employers/me/'+(entity.url || entity), data)
+        .then(function(incoming){
+            let entities = store.getState(entity.slug || entity);
+            if(!entities || !Array.isArray(entities)) entities = [];
 
-        if(!Array.isArray(incoming)){
-            Flux.dispatchEvent(entity.slug || entity, entities.concat([{ ...data, id: incoming.id }]));
-        }
-        else{
-            const newShifts = incoming.map(inc => Object.assign({ ...data, id: inc.id }));
-            Flux.dispatchEvent(entity.slug || entity, entities.concat(newShifts));
-        }
-        Notify.success("The "+(entity.slug || entity).substring(0, (entity.slug || entity).length - 1)+" was created successfully");
-    })
-    .catch(function(error) {
-        Notify.error(error.message || error);
-        log.error(error);
-    });
+            if(!Array.isArray(incoming)){
+                Flux.dispatchEvent(entity.slug || entity, entities.concat([{ ...data, id: incoming.id }]));
+            }
+            else{
+                const newShifts = incoming.map(inc => Object.assign({ ...data, id: inc.id }));
+                Flux.dispatchEvent(entity.slug || entity, entities.concat(newShifts));
+            }
+            Notify.success("The "+(entity.slug || entity).substring(0, (entity.slug || entity).length - 1)+" was created successfully");
+            resolve(incoming);
+        })
+        .catch(function(error) {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject(error);
+        });
+});
 
 export const update = (entity, data, mode=WEngine.modes.LIVE) => new Promise((resolve, reject) => {
     let path = (typeof entity == 'string') ? `employers/me/${entity}/${data.id}` : entity.path + (typeof data.id !== 'undefined' ? `/${data.id }`:'');
@@ -513,6 +517,18 @@ export const updatePayments = async (payments, period) => {
     return period;
 };
 
+export const createPayment = async (payment, period) => {
+
+    const _new = await create("payment", { ...payment, employee: payment.employee.id || payment.employee.id, shift: payment.shift.id || payment.shift });
+    const _period = { 
+        ...period, 
+        payments: period.payments.concat([ { ..._new, employee: payment.employee, shift: payment.shift }])
+    };
+
+    Flux.dispatchEvent('payroll-periods', store.replace("payroll-periods", period.id, _period));
+    return period;
+};
+
 export const http = { GET };
 
 class _Store extends Flux.DashStore{
@@ -564,6 +580,7 @@ class _Store extends Flux.DashStore{
 
         //temporal storage (for temporal views, information that is read only)
         this.addEvent('current_employer', employer => {
+            employer.payroll_configured = employer.payroll_period_starting_time != null;
             employer.payroll_period_starting_time =
                 moment.isMoment(employer.payroll_period_starting_time) ?
                     employer.payroll_period_starting_time :

@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useContext} from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import { store, search, update, fetchSingle, searchMe, hook, updatePayments } from '../actions.js';
+import { store, search, update, fetchSingle, searchMe, hook, updatePayments, createPayment } from '../actions.js';
 import {GET} from '../utils/api_wrapper';
 
 import DateTime from 'react-datetime';
@@ -283,7 +283,7 @@ export class ManagePayroll extends Flux.DashView {
 
     render() {
         if(!this.state.employer) return "Loading...";
-        else if(!this.state.employer.payroll_period_starting_time || !moment.isMoment(this.state.employer.payroll_period_starting_time)){
+        else if(!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)){
             return <div className="p-1 listcontents text-center">
                 <h3>Please setup your payroll settings first.</h3>
                 <Button color="success" onClick={() => this.props.history.push("/payroll-settings")}>Setup Payroll Settings</Button>
@@ -343,15 +343,21 @@ export class ManagePayroll extends Flux.DashView {
                                                     payment={p}
                                                     employee={pay.employee}
                                                     readOnly={p.status !== 'PENDING' && p.status !== 'NEW'}
-                                                    onApprove={(payment) => updatePayments({
-                                                            //serialization for updating the payment
-                                                            status: "APPROVED",
-                                                            id: p.id,
-                                                            breaktime_minutes: payment.breaktime_minutes,
-                                                            regular_hours: payment.regular_hours,
-                                                            over_time: payment.over_time
-                                                        }, this.state.singlePayrollPeriod)
-                                                    }
+                                                    onApprove={(payment) => {
+                                                        p.status !== 'NEW' ?
+                                                            updatePayments({
+                                                                //serialization for updating the payment
+                                                                ...payment,
+                                                                status: "APPROVED",
+                                                                id: p.id,
+                                                            }, this.state.singlePayrollPeriod)
+                                                        :
+                                                            createPayment({
+                                                                ...payment,
+                                                                status: "APPROVED",
+                                                                payroll_period: this.state.singlePayrollPeriod.id
+                                                            }, this.state.singlePayrollPeriod);
+                                                    }}
                                                     onReject={(payment) => {
                                                         if(p.id === undefined) this.setState({ 
                                                             payments: this.state.payments.map(_pay => {
@@ -452,8 +458,14 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly }) => {
             payment.status === "NEW" ? 
                 <Select className="select-shifts"
                     value={!possibleShifts ? { label: "Loading talent shifts", value: "loading" } : { value: shift }}
-                    components={{ Option: ShiftOption, MultiValue: ShiftOptionSelected }}
-                    onChange={(selectedOption)=> selectedOption && setShift(selectedOption.value)}
+                    components={{ Option: ShiftOption, SingleValue: ShiftOptionSelected({ multi: false }) }}
+                    onChange={(selectedOption)=> {
+                        const _shift = selectedOption.value;
+                        if(_shift){
+                            setShift(_shift);
+                            setClockin({ ...clockin, started_at: _shift.starting_at, ended_at: _shift.ending_at });
+                        }
+                    }}
                     options={possibleShifts ? possibleShifts : [{ label: "Loading talent shifts", value: "loading" }]}
                 >
                 </Select>
@@ -528,11 +540,21 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly }) => {
                     color="success"
                     size="small"
                     icon="check"
-                    onClick={(value) => onApprove({
-                        breaktime_minutes: moment.duration(breaktime.diff(moment().startOf('day'))).minutes(),
-                        regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
-                        over_time: diff < 0 ? 0 : diff
-                    })}
+                    onClick={(value) => {
+                        if(payment.status === "NEW") onApprove({
+                                shift: shift,
+                                employee: employee,
+                                clockin: null,
+                                breaktime_minutes: moment.duration(breaktime.diff(moment().startOf('day'))).minutes(),
+                                regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
+                                over_time: diff < 0 ? 0 : diff
+                            });
+                        else onApprove({
+                            breaktime_minutes: moment.duration(breaktime.diff(moment().startOf('day'))).minutes(),
+                            regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
+                            over_time: diff < 0 ? 0 : diff
+                        });
+                    }}
                 />
                 <Button
                     className="mt-1"
@@ -578,7 +600,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
     const { bar } = useContext(Theme.Context);
     const employer = store.getState('current_employer');
 
-    if(!employer || !employer.payroll_period_starting_time || !moment.isMoment(employer.payroll_period_starting_time)){
+    if(!employer || !employer.payroll_configured || !moment.isMoment(employer.payroll_period_starting_time)){
         return <div className="text-center">
             <p>Please setup your payroll settings first.</p>
             <Button color="success" onClick={() => history.push("/payroll-settings")}>Setup Payroll Settings</Button>
@@ -844,7 +866,7 @@ export class PayrollReport extends Flux.DashView {
 
     render() {
         if(!this.state.employer) return "Loading...";
-        else if(!this.state.employer.payroll_period_starting_time || !moment.isMoment(this.state.employer.payroll_period_starting_time)){
+        else if(!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)){
             return <div className="p-1 listcontents text-center">
                 <h3>Please setup your payroll settings first.</h3>
                 <Button color="success" onClick={() => this.props.history.push("/payroll-settings")}>Setup Payroll Settings</Button>

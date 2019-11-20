@@ -102,7 +102,7 @@ class RightBar extends React.Component {
                     }
                 break;
                 case 'update_favlist':{
-                        update('favlists',Favlist(this.state.formData).validate().serialize(['employees']));
+                        update('favlists',Favlist(this.state.formData).validate().serialize(['employees','employer']));
                         this.props.onClose();
                     }
                 break;
