@@ -10,9 +10,6 @@
             "config": { "distDir": "public" }
         }
     ],
-    "env": {
-        "API_HOST": "https://jobcore.herokuapp.com"
-    },
     "routes": [
         {
             "src":"/(.*).png",
