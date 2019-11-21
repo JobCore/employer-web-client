@@ -12,7 +12,7 @@ import Select from 'react-select';
 import {Notify} from 'bc-react-notifier';
 
 import {Shift} from './shifts.js';
-import { EmployeeExtendedCard, ShiftOption, ShiftCard, Theme, Button, ShiftOptionSelected } from '../components/index';
+import { EmployeeExtendedCard, ShiftOption, ShiftCard, Theme, Button, ShiftOptionSelected, GenericCard } from '../components/index';
 import queryString from 'query-string';
 
 import TimePicker from 'rc-time-picker';
@@ -217,23 +217,14 @@ export class ManagePayroll extends Flux.DashView {
 
     componentDidMount(){
 
-        this.subscribe(store, 'current_employer', (employer) => {
-            this.setState({ employer });
-        });
+        this.subscribe(store, 'current_employer', (employer) => this.setState({ employer }));
 
         const payrollPeriods = store.getState('payroll-periods');
         this.subscribe(store, 'payroll-periods', (_payrollPeriods) => {
             this.updatePayrollPeriod(_payrollPeriods);
-            //if(!this.state.singlePayrollPeriod) this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
+            if(this.props.match.params.period_id) this.getSinglePeriod(this.props.match.params.period_id, _payrollPeriods);
         });
-        if(!payrollPeriods){
-            searchMe('payroll-periods');
-        }
-        else{
-            this.updatePayrollPeriod(payrollPeriods);
-            this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
-
-        }
+        if(!payrollPeriods && this.props.match.params.period_id) searchMe('payroll-periods');
 
         this.removeHistoryListener = this.props.history.listen((data) => {
             const period = /\/payroll\/period\/(\d+)/gm;
@@ -313,9 +304,15 @@ export class ManagePayroll extends Flux.DashView {
                     {(!this.state.singlePayrollPeriod) ? '' :
                         (this.state.singlePayrollPeriod.payments.length > 0) ?
                             <div>
-                                { this.state.singlePayrollPeriod.status != "OPEN" && <Button color="info" onClick={() => this.props.history.push('/payroll/report/'+this.state.singlePayrollPeriod.id)}>Take me to the Payroll Report</Button>}
-                                {this.state.payments.sort((a,b) => a.employee.user.first_name.toLowerCase() > b.employee.user.first_name.toLowerCase() ? 1 : -1).map(pay =>
-                                    <table key={pay.employee.id} className="table table-striped payroll-summary">
+                                { this.state.singlePayrollPeriod.status != "OPEN" && 
+                                    <p className="text-right">
+                                        <Button className="btn btn-info" onClick={() => this.props.history.push('/payroll/report/'+this.state.singlePayrollPeriod.id)}>Take me to the Payroll Report</Button>
+                                    </p>
+                                }
+                                {this.state.payments.sort((a,b) => a.employee.user.first_name.toLowerCase() > b.employee.user.first_name.toLowerCase() ? 1 : -1).map(pay => {
+                                    const total_hours = pay.payments.reduce((total, current) => !isNaN(current.regular_hours) ? total + (parseFloat(current.regular_hours) + parseFloat(current.over_time)) : total, 0);
+                                    const total_amount = pay.payments.reduce((total, current) => !isNaN(current.total_amount) ? total + parseFloat(current.total_amount) : total, 0);
+                                    return <table key={pay.employee.id} className="table table-striped payroll-summary">
                                         <thead>
                                             <tr>
                                                 <th>
@@ -349,7 +346,7 @@ export class ManagePayroll extends Flux.DashView {
                                                                 //serialization for updating the payment
                                                                 ...payment,
                                                                 status: "APPROVED",
-                                                                id: p.id,
+                                                                id: p.id
                                                             }, this.state.singlePayrollPeriod)
                                                         :
                                                             createPayment({
@@ -376,21 +373,26 @@ export class ManagePayroll extends Flux.DashView {
                                             )}
                                             <tr>
                                                 <td colSpan={5}>
-                                                    <Button icon="plus" size="small" onClick={() => this.setState({ payments: this.state.payments.map(_pay => {
-                                                        if(_pay.employee.id !== pay.employee.id) return _pay;
-                                                        else{
-                                                            return {
-                                                                ..._pay,
-                                                                payments: _pay.payments.concat([Payment({ status: "NEW" }).defaults()])
-                                                            };
-                                                        }
-                                                    })})}>Add new clockin</Button>
+                                                    { this.state.singlePayrollPeriod.status === 'OPEN' && 
+                                                        <Button icon="plus" size="small" onClick={() => this.setState({ payments: this.state.payments.map(_pay => {
+                                                            if(_pay.employee.id !== pay.employee.id) return _pay;
+                                                            else{
+                                                                return {
+                                                                    ..._pay,
+                                                                    payments: _pay.payments.concat([Payment({ status: "NEW" }).defaults()])
+                                                                };
+                                                            }
+                                                        })})}>Add new clockin</Button>
+                                                    }
                                                 </td>
-                                                <td colSpan={3}>Total: {pay.payments.reduce((next, current) => next ? next + parseFloat(current.regular_hours) : 0, 0)}</td>
+                                                <td colSpan={3} className="text-right">
+                                                    Total: {total_hours} hr
+                                                    <small className="d-block">${Math.round(total_amount * 100) / 100}</small>
+                                                </td>
                                             </tr>
                                         </tbody>
-                                    </table>
-                                )}
+                                    </table>;
+                                })}
                                 <div className="btn-bar text-right">
                                     { this.state.singlePayrollPeriod.status === 'OPEN' ?
                                         <button type="button" className="btn btn-primary" onClick={() => {
@@ -400,7 +402,7 @@ export class ManagePayroll extends Flux.DashView {
                                                     .catch(e => Notify.error(e.message || e));
                                         }}>Finalize Period</button>
                                         :
-                                        <Button color="info" onClick={() => this.props.history.push('/payroll/report/'+this.state.singlePayrollPeriod.id)}>Take me to the Payroll Report</Button>
+                                        <Button className="btn btn-success" onClick={() => this.props.history.push('/payroll/report/'+this.state.singlePayrollPeriod.id)}>Take me to the Payroll Report</Button>
                                     }
                                 </div>
                             </div>
@@ -418,19 +420,20 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly }) => {
     const [ clockin, setClockin ] = useState(Clockin(payment.clockin).defaults().unserialize());
     
     const [ shift, setShift ] = useState(Shift(payment.shift).defaults().unserialize());
+    const _now = NOW();
     // const shiftRef = useRef(shift);
     // shiftRef.current = shift;
 
     const [ possibleShifts, setPossibleShifts ] = useState(null);
 
-    const init_breaktime = moment().startOf('day').add(payment.breaktime_minutes, 'minutes');
+    const init_breaktime = NOW().startOf('day').add(payment.breaktime_minutes, 'minutes');
     const [ breaktime, setBreaktime ] = useState(init_breaktime);
 
-    const startTime = clockin.started_at.format('LT');
-    const endTime = clockin.ended_at.format('LT');
+    const startTime = clockin.shift ? clockin.started_at.format('LT') : "-";
+    const endTime = clockin.shift ? clockin.ended_at.format('LT') : "_";
 
     const clockInDuration = moment.duration(clockin.ended_at.diff(clockin.started_at));
-    const clockinHours = Math.round(clockInDuration.asHours() * 100) / 100;
+    const clockinHours = clockin.shift || !readOnly ? Math.round(clockInDuration.asHours() * 100) / 100 : "-";
 
     const shiftStartTime = shift.starting_at.format('LT');
     const shiftEndTime = shift.ending_at.format('LT');
@@ -438,7 +441,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly }) => {
     const shiftDuration = moment.duration(shift.ending_at.diff(shift.starting_at));
     const plannedHours = Math.round(shiftDuration.asHours() * 100) / 100;
 
-    const clockInDurationAfterBreak = moment.duration(clockin.ended_at.diff(clockin.started_at)).subtract(breaktime.diff(moment().startOf('day')));
+    const clockInDurationAfterBreak = moment.duration(clockin.ended_at.diff(clockin.started_at)).subtract(breaktime.diff(NOW().startOf('day')));
     const clockInTotalHoursAfterBreak = Math.round(clockInDurationAfterBreak.asHours() * 100) / 100;
 
     const diff =  Math.round((clockInTotalHoursAfterBreak - plannedHours) * 100) / 100;
@@ -502,6 +505,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly }) => {
                     defaultValue={clockin.ended_at}
                     format={TIME_FORMAT}
                     onChange={(value) => value && setClockin(Object.assign({},clockin,{ ended_at: value}))}
+                    value={clockin.ended_at}
                     use12Hours
                   />
             }
@@ -512,9 +516,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly }) => {
             <small className="d-block my-0">(Plan: {plannedHours})</small>
         </td>
         { readOnly ?
-            <td>{
-                moment.duration(breaktime.diff(moment().startOf('day'))).minutes()
-            }</td>
+            <td>{payment.breaktime_minutes} min</td>
             :
             <td style={{ minWidth: "75px", maxWidth: "75px" }} className="text-center">
                 {
@@ -525,8 +527,8 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly }) => {
                 <small>hh:mm</small>
             </td>
         }
-        <td>{clockInTotalHoursAfterBreak}</td>
-        <td>{diff}</td>
+        <td>{!readOnly ? clockInTotalHoursAfterBreak : parseFloat(payment.regular_hours) + parseFloat(payment.over_time)}</td>
+        <td>{clockin.shift || !readOnly ? diff : "-"}</td>
         {readOnly ?
             <td className="text-center">
                 { payment.status === "APPROVED" ? <i className="fas fa-check-circle"></i>
@@ -545,12 +547,12 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly }) => {
                                 shift: shift,
                                 employee: employee,
                                 clockin: null,
-                                breaktime_minutes: moment.duration(breaktime.diff(moment().startOf('day'))).minutes(),
+                                breaktime_minutes: moment.duration(breaktime.diff(NOW().startOf('day'))).minutes(),
                                 regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
                                 over_time: diff < 0 ? 0 : diff
                             });
                         else onApprove({
-                            breaktime_minutes: moment.duration(breaktime.diff(moment().startOf('day'))).minutes(),
+                            breaktime_minutes: moment.duration(breaktime.diff(NOW().startOf('day'))).minutes(),
                             regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
                             over_time: diff < 0 ? 0 : diff
                         });
@@ -576,7 +578,7 @@ PaymentRow.propTypes = {
     shifts: PropTypes.array
 };
 PaymentRow.defaultProps = {
-  shifts: [],
+  shifts: []
 };
 
 /**
@@ -611,13 +613,13 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
     if(formData.periods.length > 0){
         const end = moment(formData.periods[0].ending_at);
         end.add(7,'days');
-        if(end.isBefore(NOW())) note = "Payroll was generated until "+end.format('MM dd');
+        if(end.isBefore(NOW())) note = "Payroll was generated until "+end.format('M d');
     }
     return (<div>
         <div className="top-bar">
             <Button
                     icon="sync" color="primary" size="small" rounded={true}
-                    onClick={() => hook('generate_periods').then(() => searchMe('payroll-periods'))}
+                    onClick={() => hook('generate_periods').then(() => searchMe('payroll-periods').then(periods => onChange({ periods })))}
                     note={note}
                     notePosition="left"
                 />
@@ -625,64 +627,30 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
         </div>
         <div className="row">
             <div className="col-12">
-                <div>
-                    <h2 className="mt-1">Select a payment period:</h2>
-                    <Select className="select-shifts" isMulti={false}
-                        value={{
-                            value: null,
-                            label: `Select a payment period`
-                        }}
-                        defaultValue={{
-                            value: null,
-                            label: `Select a payment period`
-                        }}
-                        components={{ Option: ShiftOption, SingleValue: ShiftOption }}
-                        onChange={(selectedOption)=> searchMe("payment", `?period=${selectedOption.id}`).then((payments) => {
-                            onChange({ selectedPayments: payments, selectedPeriod: selectedOption });
-                            history.push(`/payroll/period/${selectedOption.id}`);
-                        })}
-                        options={[{
-                            value: null,
-                            label: `Select a payment period`
-                        }].concat(formData.periods)}
-                    />
-                </div>
+                <h2 className="mt-1">Select a timesheet:</h2>
+                <ul className="scroll" style={{ maxHeight: "600px", overflowY: "auto", padding: "10px", margin: "-10px" }}>
+                    { formData.periods.length > 0 ?
+                
+                        formData.periods.map(p =>
+                            <GenericCard key={p.id}
+                                hover={true} className="pr-2"
+                                onClick={()=> history.push(`/payroll/period/${p.id}`)}
+                            >
+                                <div className="avatar text-center pt-1 bg-transparent">
+                                    { p.status === "FINALIZED" ? <i className="fas fa-check-circle"></i>
+                                        : p.status === "OPEN" ? <i className="far fa-circle"></i>
+                                        : ''
+                                    }
+                                </div>
+                                From {moment(p.starting_at).format('MMM DD, YYYY')} to {moment(p.ending_at).format('MMM DD, YYYY')}
+                                <p className="my-0"><small className="badge badge-secondary">{p.payments.length} Payments</small></p>
+                            </GenericCard>
+                        )
+                        :
+                        <div className="col-12 mt-3 text-center">No talents found for this period or shift</div>
+                    }
+                </ul>
             </div>
-            {(formData && typeof formData.selectedPayments != 'undefined' && formData.selectedPayments.length > 0) ?
-                <div className="col-12 mt-3">
-                    <ul>
-                        {formData.selectedPayments.map((payment,i) => {
-                            return (<EmployeeExtendedCard
-                                    key={i}
-                                    employee={payment.employee}
-                                    showFavlist={false}
-                                    showButtonsOnHover={false}
-                                    onClick={() => {
-                                        bar.show({
-                                            to: `/payroll/period/${formData.selectedPeriod.id}?`+queryString.stringify({
-                                                talent_id: payment.employee.id
-                                            })
-                                        });
-                                    }}
-                                >
-                                {
-                                    (payment.status === "PENDING") ?
-                                        <span> pending <i className="fas fa-exclamation-triangle mr-2"></i></span>
-                                        :
-                                        (payment.status === "PAID") ?
-                                            <span> unpaid <i className="fas fa-dollar-sign mr-2"></i></span>
-                                            :
-                                            <i className="fas fa-check-circle mr-2"></i>
-                                }
-                            </EmployeeExtendedCard>);
-                        })}
-                    </ul>
-                </div>
-                : (typeof formData.loading !== 'undefined' && formData.loading) ?
-                    <div className="col-12 mt-3 text-center">Loading...</div>
-                    :
-                    <div className="col-12 mt-3 text-center">No talents found for this period or shift</div>
-            }
         </div>
     </div>);
 };
@@ -905,19 +873,20 @@ export class PayrollReport extends Flux.DashView {
                                         { this.state.payments.map(pay => {
                                             const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
                                                 return {
+                                                    over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
                                                     regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
                                                     total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount)
                                                 };
-                                            }, { regular_hours: 0, total_amount: 0 });
+                                            }, { regular_hours: 0, total_amount: 0, over_time: 0 });
                                             return <tr key={pay.employee.id}>
                                                 <td>{pay.employee.user.first_name} {pay.employee.user.last_name}</td>
                                                 <td>{total.regular_hours}</td>
                                                 <td>-</td>
                                                 <td>-</td>
                                                 <td>-</td>
+                                                <td>{total.over_time}</td>
                                                 <td>-</td>
-                                                <td>-</td>
-                                                <td>{total.regular_hours}</td>
+                                                <td>{total.regular_hours + total.over_time}</td>
                                                 <td>${total.total_amount}</td>
                                             </tr>;
                                         })}
