@@ -31,11 +31,13 @@ class ButtonBar extends React.Component {
                     { slug: "invite_talent_to_jobcore", title: 'Invite New Talent', to: 'favorites'}
                 ],
                 "payroll-settings": [
+                    { slug: "payroll_by_timesheet", title: 'Search by Timesheet', to: 'payroll'},
                     { slug: "profile", title: 'Back to company profile', to: 'profile'}
                 ],
                 "payroll/*": [
                     { slug: "payroll_by_timesheet", title: 'Search by Timesheet', to: 'payroll'},
-                    { slug: "payroll_by_shift", title: 'Search by Shift', to: 'payroll'},
+                    { slug: "payroll_settings", title: 'Payroll Settings', to: 'payroll-settings'},
+                    //{ slug: "payroll_by_shift", title: 'Search by Shift', to: 'payroll'},
                 ],
                 "profile": [
                     { slug: "manage_locations", title: 'Company Locations', to: 'locations'},

@@ -12,7 +12,7 @@ import Select from 'react-select';
 import {Notify} from 'bc-react-notifier';
 
 import {Shift} from './shifts.js';
-import { EmployeeExtendedCard, ShiftOption, ShiftCard, Theme, Button, ShiftOptionSelected, GenericCard } from '../components/index';
+import { EmployeeExtendedCard, ShiftOption, ShiftCard, Theme, Button, ShiftOptionSelected, GenericCard, SearchCatalogSelect } from '../components/index';
 import queryString from 'query-string';
 
 import TimePicker from 'rc-time-picker';
@@ -301,21 +301,59 @@ export class ManagePayroll extends Flux.DashView {
                             :
                             <p>Pick a timeframe and employe to review</p>
                     }
-                    {(!this.state.singlePayrollPeriod) ? '' :
-                        (this.state.singlePayrollPeriod.payments.length > 0) ?
-                            <div>
-                                { this.state.singlePayrollPeriod.status != "OPEN" && 
-                                    <p className="text-right">
-                                        <Button className="btn btn-info" onClick={() => this.props.history.push('/payroll/report/'+this.state.singlePayrollPeriod.id)}>Take me to the Payroll Report</Button>
-                                    </p>
-                                }
-                                {this.state.payments.sort((a,b) => a.employee.user.first_name.toLowerCase() > b.employee.user.first_name.toLowerCase() ? 1 : -1).map(pay => {
-                                    const total_hours = pay.payments.reduce((total, current) => !isNaN(current.regular_hours) ? total + (parseFloat(current.regular_hours) + parseFloat(current.over_time)) : total, 0);
-                                    const total_amount = pay.payments.reduce((total, current) => !isNaN(current.total_amount) ? total + parseFloat(current.total_amount) : total, 0);
-                                    return <table key={pay.employee.id} className="table table-striped payroll-summary">
-                                        <thead>
-                                            <tr>
-                                                <th>
+                    { this.state.singlePayrollPeriod && <div>
+                        <p className="text-right">
+                            { this.state.singlePayrollPeriod.status != "OPEN" ? 
+                                <Button className="btn btn-info" onClick={() => this.props.history.push('/payroll/report/'+this.state.singlePayrollPeriod.id)}>Take me to the Payroll Report</Button>
+                                :
+                                <Button icon="plus" size="small" onClick={() => {
+                                    const period = { 
+                                        ...this.state.singlePayrollPeriod, 
+                                        payments: this.state.singlePayrollPeriod.payments.concat([Payment({ status: "NEW", employee: { id: 'new' } }).defaults()])
+                                    };
+                                    this.setState({ singlePayrollPeriod: period, payments: this.groupPayments(period) });
+                                }}>Add employee to timesheet</Button>
+                            }
+                        </p>
+                        { this.state.singlePayrollPeriod.payments.length == 0 ?
+                            <p>No clockins to review for this period</p>
+                            :
+                            this.state.payments.sort((a,b) => 
+                                a.employee.id === "new" ? 1 :
+                                    b.employee.id === "new" ? 1 :
+                                        a.employee.user.first_name.toLowerCase() > b.employee.user.first_name.toLowerCase() ? 1 : -1
+                                ).map(pay => {
+                                const total_hours = pay.payments.reduce((total, current) => !isNaN(current.regular_hours) ? total + (parseFloat(current.regular_hours) + parseFloat(current.over_time)) : total, 0);
+                                const total_amount = pay.payments.reduce((total, current) => !isNaN(current.total_amount) ? total + parseFloat(current.total_amount) : total, 0);
+                                return <table key={pay.employee.id} className="table table-striped payroll-summary">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                { !pay.employee || pay.employee.id === "new" ?
+                                                    <SearchCatalogSelect
+                                                        onChange={(selection)=> {
+                                                            GET('employees/'+selection.value)
+                                                                .then(emp => {
+                                                                    const period = { 
+                                                                        ...this.state.singlePayrollPeriod, 
+                                                                        payments: this.state.singlePayrollPeriod.payments.map(p => {
+                                                                            if(p.employee.id != "new") return p;
+                                                                            else return Payment({ status: "NEW", employee: emp }).defaults();
+                                                                        })
+                                                                    };
+                                                                    this.setState({ singlePayrollPeriod: period, payments: this.groupPayments(period) });
+                                                                })
+                                                                .catch(e => Notify.error(e.message || e));
+                                                        }}
+                                                        searchFunction={(search) => new Promise((resolve, reject) =>
+                                                            GET('catalog/employees?full_name='+search)
+                                                                .then(talents => resolve([
+                                                                    { label: `${(talents.length==0) ? 'No one found: ':''}Invite "${search}" to jobcore`, value: 'invite_talent_to_jobcore' }
+                                                                ].concat(talents)))
+                                                                .catch(error => reject(error))
+                                                        )}
+                                                    />
+                                                    :
                                                     <EmployeeExtendedCard
                                                         className="pr-2"
                                                         employee={pay.employee}
@@ -324,90 +362,90 @@ export class ManagePayroll extends Flux.DashView {
                                                         showButtonsOnHover={false}
                                                         onClick={() => null}
                                                     />
-                                                </th>
-                                                <th>In</th>
-                                                <th>Out</th>
-                                                <th>Total</th>
-                                                <th>Break</th>
-                                                <th>With <br /> Break</th>
-                                                <th>Diff</th>
-                                                <th style={{ minWidth: "80px" }}></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            { pay.payments.map(p =>
-                                                <PaymentRow key={p.id}
-                                                    payment={p}
-                                                    employee={pay.employee}
-                                                    readOnly={p.status !== 'PENDING' && p.status !== 'NEW'}
-                                                    onApprove={(payment) => {
-                                                        p.status !== 'NEW' ?
-                                                            updatePayments({
-                                                                //serialization for updating the payment
-                                                                ...payment,
-                                                                status: "APPROVED",
-                                                                id: p.id
-                                                            }, this.state.singlePayrollPeriod)
-                                                        :
-                                                            createPayment({
-                                                                ...payment,
-                                                                status: "APPROVED",
-                                                                payroll_period: this.state.singlePayrollPeriod.id
-                                                            }, this.state.singlePayrollPeriod);
-                                                    }}
-                                                    onReject={(payment) => {
-                                                        if(p.id === undefined) this.setState({ 
-                                                            payments: this.state.payments.map(_pay => {
-                                                                if(_pay.employee.id !== pay.employee.id) return _pay;
-                                                                else{
-                                                                    return {
-                                                                        ..._pay,
-                                                                        payments: _pay.payments.filter(p => p.id != undefined)
-                                                                    };
-                                                                }
-                                                            }) 
-                                                        });
-                                                        else updatePayments({ id: p.id, status: "REJECTED" }, this.state.singlePayrollPeriod);
-                                                    }}
-                                                />
-                                            )}
-                                            <tr>
-                                                <td colSpan={5}>
-                                                    { this.state.singlePayrollPeriod.status === 'OPEN' && 
-                                                        <Button icon="plus" size="small" onClick={() => this.setState({ payments: this.state.payments.map(_pay => {
+                                                }
+                                            </th>
+                                            <th>In</th>
+                                            <th>Out</th>
+                                            <th>Total</th>
+                                            <th>Break</th>
+                                            <th>With <br /> Break</th>
+                                            <th>Diff</th>
+                                            <th style={{ minWidth: "80px" }}></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        { pay.payments.map(p =>
+                                            <PaymentRow key={p.id}
+                                                payment={p}
+                                                period={this.state.singlePayrollPeriod}
+                                                employee={pay.employee}
+                                                readOnly={p.status !== 'PENDING' && p.status !== 'NEW'}
+                                                onApprove={(payment) => {
+                                                    p.status !== 'NEW' ?
+                                                        updatePayments({
+                                                            //serialization for updating the payment
+                                                            ...payment,
+                                                            status: "APPROVED",
+                                                            id: p.id
+                                                        }, this.state.singlePayrollPeriod)
+                                                    :
+                                                        createPayment({
+                                                            ...payment,
+                                                            status: "APPROVED",
+                                                            payroll_period: this.state.singlePayrollPeriod.id
+                                                        }, this.state.singlePayrollPeriod);
+                                                }}
+                                                onReject={(payment) => {
+                                                    if(p.id === undefined) this.setState({ 
+                                                        payments: this.state.payments.map(_pay => {
                                                             if(_pay.employee.id !== pay.employee.id) return _pay;
                                                             else{
                                                                 return {
                                                                     ..._pay,
-                                                                    payments: _pay.payments.concat([Payment({ status: "NEW" }).defaults()])
+                                                                    payments: _pay.payments.filter(p => p.id != undefined)
                                                                 };
                                                             }
-                                                        })})}>Add new clockin</Button>
-                                                    }
-                                                </td>
-                                                <td colSpan={3} className="text-right">
-                                                    Total: {total_hours} hr
-                                                    <small className="d-block">${Math.round(total_amount * 100) / 100}</small>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>;
-                                })}
-                                <div className="btn-bar text-right">
-                                    { this.state.singlePayrollPeriod.status === 'OPEN' ?
-                                        <button type="button" className="btn btn-primary" onClick={() => {
-                                            const unapproved = [].concat.apply([], this.state.payments.map(p => p.payments)).find(p => p.status === "PENDING");
-                                            if(unapproved) Notify.error("There are still some payments that need to be approved or rejected");
-                                            else update('payroll-periods',Object.assign(this.state.singlePayrollPeriod, { status: 'FINALIZED'}))
-                                                    .catch(e => Notify.error(e.message || e));
-                                        }}>Finalize Period</button>
-                                        :
-                                        <Button className="btn btn-success" onClick={() => this.props.history.push('/payroll/report/'+this.state.singlePayrollPeriod.id)}>Take me to the Payroll Report</Button>
-                                    }
-                                </div>
-                            </div>
-                            :
-                            <p>No clockins to review for this period</p>
+                                                        }) 
+                                                    });
+                                                    else updatePayments({ id: p.id, status: "REJECTED" }, this.state.singlePayrollPeriod);
+                                                }}
+                                            />
+                                        )}
+                                        <tr>
+                                            <td colSpan={5}>
+                                                { this.state.singlePayrollPeriod.status === 'OPEN' && pay.employee.id !== "new" &&
+                                                    <Button icon="plus" size="small" onClick={() => this.setState({ payments: this.state.payments.map(_pay => {
+                                                        if(_pay.employee.id !== pay.employee.id) return _pay;
+                                                        else{
+                                                            return {
+                                                                ..._pay,
+                                                                payments: _pay.payments.concat([Payment({ status: "NEW" }).defaults()])
+                                                            };
+                                                        }
+                                                    })})}>Add new clockin</Button>
+                                                }
+                                            </td>
+                                            <td colSpan={3} className="text-right">
+                                                Total: {total_hours} hr
+                                                <small className="d-block">${Math.round(total_amount * 100) / 100}</small>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>;
+                            })}
+                        <div className="btn-bar text-right">
+                            { this.state.singlePayrollPeriod.status === 'OPEN' ?
+                                <button type="button" className="btn btn-primary" onClick={() => {
+                                    const unapproved = [].concat.apply([], this.state.payments.map(p => p.payments)).find(p => p.status === "PENDING");
+                                    if(unapproved) Notify.error("There are still some payments that need to be approved or rejected");
+                                    else update('payroll-periods',Object.assign(this.state.singlePayrollPeriod, { status: 'FINALIZED'}))
+                                            .catch(e => Notify.error(e.message || e));
+                                }}>Finalize Period</button>
+                                :
+                                <Button className="btn btn-success" onClick={() => this.props.history.push('/payroll/report/'+this.state.singlePayrollPeriod.id)}>Take me to the Payroll Report</Button>
+                            }
+                        </div>
+                    </div>                            
                     }
                 </span>)}
             </Theme.Consumer>
@@ -415,7 +453,9 @@ export class ManagePayroll extends Flux.DashView {
     }
 }
 
-const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly }) => {
+const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly, period }) => {
+
+    if(!employee || employee.id === "new") return <p className="px-3 py-1">⬆ Search an employee from the list above...</p>;
 
     const [ clockin, setClockin ] = useState(Clockin(payment.clockin).defaults().unserialize());
     
@@ -447,7 +487,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly }) => {
     const diff =  Math.round((clockInTotalHoursAfterBreak - plannedHours) * 100) / 100;
     useEffect(() => {
         if(payment.status === "NEW") 
-            GET('employers/me/shifts?status=EXPIRED&employee='+employee.id)
+            GET(`employers/me/shifts?status=EXPIRED&start=${moment(period.starting_at).format('YYYY-MM-DD')}&end=${moment(period.ending_at).format('YYYY-MM-DD')}&employee=${employee.id}`)
                 .then(_shifts => {
                     const _posibleShifts = _shifts.map(s => ({ label: '', value: Shift(s).defaults().unserialize() }));
                     console.log(_posibleShifts);
@@ -571,6 +611,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly }) => {
 };
 PaymentRow.propTypes = {
     payment: PropTypes.object,
+    period: PropTypes.object,
     employee: PropTypes.object,
     readOnly: PropTypes.bool,
     onApprove: PropTypes.func,
@@ -578,7 +619,8 @@ PaymentRow.propTypes = {
     shifts: PropTypes.array
 };
 PaymentRow.defaultProps = {
-  shifts: []
+  shifts: [],
+  period: null
 };
 
 /**

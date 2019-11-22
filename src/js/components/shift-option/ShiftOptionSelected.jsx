@@ -11,7 +11,7 @@ const ShiftOptionSelected = ({ multi=false }) => (props) => {
             <ShiftOption {...rest} />
         </components.SingleValue>
         : 
-        "Pick a shift from the list";
+        "Select a shift...";
     else return (<div>
         <components.MultiValueRemove {...removeProps}>
             <span className="delete-btn float-right" onClick={() => removeProps.onClick()}><i className="fas fa-trash-alt"></i></span>
