@@ -6,7 +6,7 @@ import moment from "moment";
 import _ from "lodash";
 import PropTypes from 'prop-types';
 import { Shift } from "./shifts.js";
-import { store, searchMe, update } from '../actions.js';
+import { store, searchMe, update, fetchAllMe } from '../actions.js';
 import Select from 'react-select';
 import WEngine from "../utils/write_engine.js";
 
@@ -58,7 +58,7 @@ export const ShiftCalendar = ({ catalog }) => {
         const _filters = Object.assign({},r);
         if(moment.isMoment(_filters.start)) _filters.start = _filters.start.format('YYYY-MM-DD');
         if(moment.isMoment(_filters.end)) _filters.end = _filters.end.format('YYYY-MM-DD');
-        searchMe('shifts', '?'+queryString.stringify(_filters));
+        searchMe('shifts', '?serializer=big&'+queryString.stringify(_filters));
     };
 
     const groupShifts = (sh, l) => {
@@ -67,7 +67,7 @@ export const ShiftCalendar = ({ catalog }) => {
         if(l.value === "employees"){
             const employees = getEmployees(sh);
             employees.forEach(emp => {
-                _shifts[`${emp.user.first_name} ${emp.user.last_name}`] = sh.filter(s => s.employees.find(e => emp.id === e.id)).map(s => ({
+                _shifts[`${typeof emp.user === "object" ? emp.user.first_name + " " + emp.user.last_name : "Loading..."}`] = sh.filter(s => s.employees.find(e => emp.id === e.id)).map(s => ({
                     start: moment(s.starting_at),
                     end: moment(s.ending_at),
                     label: gf[l.value].label(s),
@@ -102,7 +102,11 @@ export const ShiftCalendar = ({ catalog }) => {
         store.subscribe('venues', (venues) => setVenues(venues));
         store.subscribe('positions', (positions) => setPositions(positions));
 
-        setCalendarFilters();
+        let venues = store.getState('venues');
+        if(!venues){
+            fetchAllMe(['venues']).then(() => setCalendarFilters());
+        }
+        else setCalendarFilters();
 
     }, []);
 
