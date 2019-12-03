@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "API_HOST=https://8080-dcdfde83-46b3-46fb-826e-0ae656820bf6.ws-us02.gitpod.io bash -c 'webpack-dev-server  --config webpack.dev.js --open --port 3000'",
+    "start": "API_HOST=https://8080-b600067d-1862-49fa-bdcf-b9ebe1ba6007.ws-us02.gitpod.io bash -c 'webpack-dev-server  --config webpack.dev.js --open --port 3000'",
+    "start:dev": "API_HOST=https://jobcore-test.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open --port 3000'",
     "build": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack --config webpack.prod.js'",
     "build:dev": "API_HOST=https://jobcore-test.herokuapp.com bash -c 'webpack --config webpack.dev.js'",
     "deploy:test": "now --target staging -b [API_HOST=https://jobcore-test.herokuapp.com]"

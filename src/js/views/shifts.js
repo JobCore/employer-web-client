@@ -999,11 +999,11 @@ export const ShiftTalentClockins = ({ formData, onChange, onSave }) => {
     return (<div className="">
         <div className="row">
             <div className="col-12">
-                <div className="top-bar">
+                {/*<div className="top-bar">
                     <Button size="small" color="primary" rounded={true} className="mr-2"
                         onClick={() => onChange({ new_clocking: { started_at: null, ended_at: null, shift: shift.id } })}
                     >add</Button>
-                </div>
+                </div>*/}
                 <h3>Clockins</h3>
                 { clockins.length == 0 && <p>{employee.user.first_name} {employee.user.last_name} has not clocked in to this shift yet</p> }
                 { (clockins.length > 0 || formData.new_clocking) &&
