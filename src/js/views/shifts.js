@@ -12,7 +12,7 @@ import TimePicker from 'rc-time-picker';
 
 import {Notify} from 'bc-react-notifier';
 import queryString from 'query-string';
-import {ShiftCard, Wizard, Theme, SearchCatalogSelect, Button, ApplicantCard, GenericCard, EmployeeExtendedCard} from '../components/index';
+import {ShiftCard, Wizard, Theme, SearchCatalogSelect, Button, ApplicantCard, GenericCard, EmployeeExtendedCard, Avatar} from '../components/index';
 import {DATETIME_FORMAT, TIME_FORMAT, NOW, YESTERDAY} from '../components/utils.js';
 import {validator, ValidationError} from '../utils/validation';
 import {callback, hasTutorial} from '../utils/tutorial';
@@ -522,19 +522,29 @@ ShiftEmployees.propTypes = {
  */
 export const ShiftInvites = ({ onCancel, onSave, formData }) => {
     const { bar } = useContext(Theme.Context);
+    console.log("Already invited to this shift", formData);
+    const status = {
+        "PENDING": "waiting for reponse",
+        "APPLIED": "the talent applied",
+        "REJECTED": "the talent reject it"
+    };
+    //formData.shift.maximum_allowed_employees
+    //formData.shift.status != "OPEN"
     const htmlInvites = formData.invites.map((invite,i) => (
-        <EmployeeExtendedCard
+        <GenericCard
             key={i}
-            employee={invite.employee}
-            hover={false}
-            showFavlist={false}
+            className="pr-2"
             onClick={() => bar.show({ slug: "show_single_talent", data: invite.employee, allowLevels: true })}
         >
-            <span className="mr-2">{moment(invite.created_at).fromNow()}</span>
-        </EmployeeExtendedCard>)
+            <Avatar url={invite.employee.user.profile.picture} />
+            <p><b>{invite.employee.user.first_name + ' ' + invite.employee.user.last_name}</b></p>
+            <p className="mr-2 my-0">Sent {moment(invite.created_at).fromNow()} and <span className="badge">{status[invite.status]}</span></p>
+        </GenericCard>)
     );
     return (<div className="sidebar-applicants">
         <h3>Already invited to this shift:</h3>
+        {formData.shift.status != "OPEN" && <div className="alert alert-warning">This shift is not accepting any more candidates, this invites will be erased soon.</div>}
+        {formData.shift.maximum_allowed_employees <= formData.shift.employees.length && <div className="alert alert-warning">This shift is full (filled), this invites will be erased soon.</div>}
         {
             htmlInvites.length > 0 ?
                 htmlInvites
