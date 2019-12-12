@@ -9,7 +9,8 @@
     "start:prod": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open --port 3000'",
     "build": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack --config webpack.prod.js'",
     "build:dev": "API_HOST=https://jobcore-test.herokuapp.com bash -c 'webpack --config webpack.dev.js'",
-    "deploy:test": "now --target staging -b [API_HOST=https://jobcore-test.herokuapp.com]"
+    "deploy:test": "now --target staging -b [API_HOST=https://jobcore-test.herokuapp.com]",
+    "deploy": "now --prod -b [API_HOST=https://jobcore.herokuapp.com]"
   },
   "author": "",
   "license": "ISC",

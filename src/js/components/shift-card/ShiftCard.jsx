@@ -35,7 +35,7 @@ export default class ShiftCard extends React.Component{
                         }
                     }}
                     onMouseOut={() => this.setState({ hasMousedOut: true })}
-                    onClick={() => bar.show({ slug: "shift_details", data: this.props.shift, title: "Shift Details" })}
+                    onClick={() => this.props.onClick ? this.props.onClick() : bar.show({ slug: "shift_details", data: this.props.shift, title: "Shift Details" })}
                 >
                     <div className="shift-details">
                         { this.props.showStatus && <ShiftBadge {...this.props.shift} />}
@@ -59,15 +59,15 @@ export default class ShiftCard extends React.Component{
 ShiftCard.propTypes = {
     shift: PropTypes.object.isRequired,
     hoverEffect: PropTypes.bool.isRequired,
-    clickForDetails: PropTypes.bool,
+    onClick: PropTypes.func,
     showStatus: PropTypes.bool,
     children: PropTypes.node,
     className: PropTypes.string
 };
 ShiftCard.defaultProps = {
   hoverEffect: false,
-  clickForDetails: true,
   showStatus: false,
   children: null,
+  onClick: null,
   className: ''
 };

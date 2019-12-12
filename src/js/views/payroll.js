@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useContext} from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import { store, search, update, fetchSingle, searchMe, hook, updatePayments, createPayment } from '../actions.js';
+import { store, search, update, fetchSingle, searchMe, processPendingPayrollPeriods, updatePayments, createPayment } from '../actions.js';
 import {GET} from '../utils/api_wrapper';
 
 import DateTime from 'react-datetime';
@@ -17,6 +17,12 @@ import queryString from 'query-string';
 
 import TimePicker from 'rc-time-picker';
 import 'rc-time-picker/assets/index.css';
+
+import Tooltip from 'rc-tooltip';
+import 'rc-tooltip/assets/bootstrap_white.css';
+
+import GoogleMapReact from 'google-map-react';
+import markerURL from '../../img/marker.png';
 
 const ENTITIY_NAME = 'payroll';
 
@@ -319,7 +325,7 @@ export class ManagePayroll extends Flux.DashView {
                             <p>No clockins to review for this period</p>
                             :
                             this.state.payments.sort((a,b) => 
-                                a.employee.id === "new" ? 1 :
+                                a.employee.id === "new" ? -1 :
                                     b.employee.id === "new" ? 1 :
                                         a.employee.user.first_name.toLowerCase() > b.employee.user.first_name.toLowerCase() ? 1 : -1
                                 ).map(pay => {
@@ -332,7 +338,9 @@ export class ManagePayroll extends Flux.DashView {
                                                 { !pay.employee || pay.employee.id === "new" ?
                                                     <SearchCatalogSelect
                                                         onChange={(selection)=> {
-                                                            GET('employees/'+selection.value)
+                                                            const _alreadyExists = !Array.isArray(this.state.payments) ? false : this.state.payments.find(p => p.employee.id === selection.value);
+                                                            if(_alreadyExists) Notify.error(`${selection.label} is already listed on this timesheet`);
+                                                            else GET('employees/'+selection.value)
                                                                 .then(emp => {
                                                                     const period = { 
                                                                         ...this.state.singlePayrollPeriod, 
@@ -453,6 +461,29 @@ export class ManagePayroll extends Flux.DashView {
     }
 }
 
+function createMapOptions(maps) {
+  // next props are exposed at maps
+  // "Animation", "ControlPosition", "MapTypeControlStyle", "MapTypeId",
+  // "NavigationControlStyle", "ScaleControlStyle", "StrokePosition", "SymbolPath", "ZoomControlStyle",
+  // "DirectionsStatus", "DirectionsTravelMode", "DirectionsUnitSystem", "DistanceMatrixStatus",
+  // "DistanceMatrixElementStatus", "ElevationStatus", "GeocoderLocationType", "GeocoderStatus", "KmlLayerStatus",
+  // "MaxZoomStatus", "StreetViewStatus", "TransitMode", "TransitRoutePreference", "TravelMode", "UnitSystem"
+  return {
+    zoomControlOptions: {
+      position: maps.ControlPosition.RIGHT_CENTER,
+      style: maps.ZoomControlStyle.SMALL
+    },
+    zoomControl: true,
+    scaleControl: false,
+    fullscreenControl: false,
+    mapTypeControl: false
+  };
+}
+const Marker = ({ text }) => (<div><img style={{maxWidth: "25px"}} src={markerURL} /></div>);
+Marker.propTypes = {
+    text: PropTypes.string
+};
+
 const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly, period }) => {
 
     if(!employee || employee.id === "new") return <p className="px-3 py-1">⬆ Search an employee from the list above...</p>;
@@ -487,7 +518,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly, period }
     const diff =  Math.round((clockInTotalHoursAfterBreak - plannedHours) * 100) / 100;
     useEffect(() => {
         if(payment.status === "NEW") 
-            GET(`employers/me/shifts?status=EXPIRED&start=${moment(period.starting_at).format('YYYY-MM-DD')}&end=${moment(period.ending_at).format('YYYY-MM-DD')}&employee=${employee.id}`)
+            GET(`employers/me/shifts?start=${moment(period.starting_at).format('YYYY-MM-DD')}&end=${moment(period.ending_at).format('YYYY-MM-DD')}&employee=${employee.id}`)
                 .then(_shifts => {
                     const _posibleShifts = _shifts.map(s => ({ label: '', value: Shift(s).defaults().unserialize() }));
                     console.log(_posibleShifts);
@@ -497,25 +528,72 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly, period }
     }, []);
 
     return <tr>
-        <td>{
+        {
             payment.status === "NEW" ? 
-                <Select className="select-shifts"
-                    value={!possibleShifts ? { label: "Loading talent shifts", value: "loading" } : { value: shift }}
-                    components={{ Option: ShiftOption, SingleValue: ShiftOptionSelected({ multi: false }) }}
-                    onChange={(selectedOption)=> {
-                        const _shift = selectedOption.value;
-                        if(_shift){
-                            setShift(_shift);
-                            setClockin({ ...clockin, started_at: _shift.starting_at, ended_at: _shift.ending_at });
-                        }
-                    }}
-                    options={possibleShifts ? possibleShifts : [{ label: "Loading talent shifts", value: "loading" }]}
-                >
-                </Select>
+                <td>
+                    <Select className="select-shifts"
+                        value={!possibleShifts ? { label: "Loading talent shifts", value: "loading" } : { value: shift }}
+                        components={{ Option: ShiftOption, SingleValue: ShiftOptionSelected({ multi: false }) }}
+                        onChange={(selectedOption)=> {
+                            const _shift = selectedOption.value;
+                            if(_shift){
+                                setShift(_shift);
+                                setClockin({ ...clockin, started_at: _shift.starting_at, ended_at: _shift.ending_at });
+                            }
+                        }}
+                        options={possibleShifts ? possibleShifts : [{ label: "Loading talent shifts", value: "loading" }]}
+                    >
+                    </Select>
+                </td>
             :
-                <ShiftCard className="p-0 pl-2" shift={shift} />
-            }
-        </td>
+                <td>
+                    <div className="shift-details">
+                        <span className="shift-position text-success">{shift.position.title}</span> @
+                        <span className="shift-location text-primary"> {shift.venue.title}</span> on{' '}
+                        <span className="shift-date">{shift.starting_at.format('ll')}</span>
+                        {
+                            (typeof shift.price == 'string') ?
+                                (shift.price === '0.0') ? '': <span className="shift-price text-danger"> ${shift.price}</span>
+                            :
+                                <span className="shift-price text-danger"> {shift.price.currencySymbol}{shift.price.amount}</span>
+                        }
+                    </div>
+                    { clockin && <p className="pointer">
+                        <Tooltip placement="left" trigger={['click']} overlay={ 
+                            <span style={{ width: "100px", height: "100px", display: "inline-block"}}>
+                                <GoogleMapReact
+                                    bootstrapURLKeys={{ key: process.env.GOOGLE_MAPS_WEB_KEY }}
+                                    defaultCenter={{
+                                        lat: 25.7617,
+                                        lng: -80.1918
+                                    }}
+                                    width="100%"
+                                    height="100%"
+                                    center={{
+                                    lat: clockin.latitude_in,
+                                    lng: clockin.longitude_in
+                                    }}
+                                    options={createMapOptions}
+                                    defaultZoom={12}
+                                >
+                                    <Marker
+                                        lat={clockin.latitude_in}
+                                        lng={clockin.longitude_in}
+                                        text={'Jobcore'}
+                                    />
+                                </GoogleMapReact>
+                                <small className="d-block text-center">({clockin.latitude_in},{clockin.longitude_in})</small>
+                            </span>
+                        }>
+                            <small><i className="fas fa-map-marker-alt"></i> In</small>
+                        </Tooltip>{" "}
+                        <Tooltip placement="left" trigger={['click']} overlay={<span>tooltip</span>}>
+                            <small><i className="fas fa-map-marker-alt"></i> Out</small>
+                        </Tooltip>
+                        </p>
+                    }
+                </td>
+        }
         <td className="time">
             { readOnly ?
                 <p>{startTime}</p>
@@ -583,7 +661,9 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly, period }
                     size="small"
                     icon="check"
                     onClick={(value) => {
-                        if(payment.status === "NEW") onApprove({
+                        if(payment.status === "NEW"){
+                            if(shift.id === undefined) Notify.error("You need to specify a shift for all the new clockins");
+                            else onApprove({
                                 shift: shift,
                                 employee: employee,
                                 clockin: null,
@@ -591,6 +671,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly, period }
                                 regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
                                 over_time: diff < 0 ? 0 : diff
                             });
+                        } 
                         else onApprove({
                             breaktime_minutes: moment.duration(breaktime.diff(NOW().startOf('day'))).minutes(),
                             regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
@@ -661,7 +742,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
         <div className="top-bar">
             <Button
                     icon="sync" color="primary" size="small" rounded={true}
-                    onClick={() => hook('generate_periods').then(() => searchMe('payroll-periods').then(periods => onChange({ periods })))}
+                    onClick={() => processPendingPayrollPeriods().then(_periods => onChange({ periods: formData.periods.concat(_periods)}))}
                     note={note}
                     notePosition="left"
                 />
@@ -718,7 +799,7 @@ export const SelectShiftPeriod = ({ catalog, formData, onChange, onSave, onCance
         <div className="top-bar">
             <Button
                     icon="sync" color="primary" size="small" rounded={true}
-                    onClick={() => hook('generate_periods').then(() => searchMe('payroll-periods'))}
+                    onClick={() => null}
                     note={note}
                     notePosition="left"
                 />

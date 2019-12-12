@@ -18,6 +18,7 @@ export const Invite = (data) => {
         status: 'PENDING',
         created_at: NOW(),
         email: '',
+        include_sms: undefined,
         phone_number: '',
         serialize: function(){
 
@@ -162,7 +163,7 @@ export const InviteTalentToJobcore = ({ onSave, onCancel, onChange, catalog, for
             <div className="row">
                 <div className="col-12">
                     <p>
-                        <span>To invite someone into yor talent pool, please fill the following details or </span>
+                        <span>Invite someone into yor talent pool or </span>
                         <span className="anchor"
                             onClick={() => bar.show({ slug: "show_pending_jobcore_invites", allowLevels: true })}
                         >review previous invites</span>:
@@ -193,6 +194,12 @@ export const InviteTalentToJobcore = ({ onSave, onCancel, onChange, catalog, for
                     <input type="tel" className="form-control"
                         onChange={(e)=>onChange({phone_number: e.target.value})}
                     />
+                    <div className="form-group text-left">
+                        <input type="checkbox" className="mr-1"
+                            onChange={(e) => onChange({ include_sms: !formData.include_sms })} checked={formData.include_sms}
+                        />
+                        Send invite throught SMS as well.
+                    </div>
                 </div>
             </div>
             <div className="btn-bar">

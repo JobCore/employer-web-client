@@ -224,6 +224,22 @@ export const fetchSingle = (entity, id) =>  new Promise((resolve, reject) => {
         });
 });
 
+export const processPendingPayrollPeriods = () =>  new Promise((resolve, reject) => {
+    const payload = Session.getPayload();
+    const params = { employer: payload.user.profile.employer.id || payload.user.profile.employer };
+    GET(`hook/generate_periods?${qs.stringify(params)}`)
+        .then(function(_newPeriods){
+            let periods = store.getState('payroll-periods');
+            Flux.dispatchEvent('payroll-periods', periods.concat(_newPeriods));
+            resolve(_newPeriods);
+        })
+        .catch(function(error) {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject();
+        });
+});
+
 export const hook = (hookName) =>  new Promise((resolve, reject) => {
     const payload = Session.getPayload();
     const params = { employer: payload.user.profile.employer.id || payload.user.profile.employer };

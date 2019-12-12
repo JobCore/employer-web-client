@@ -127,7 +127,7 @@ class PrivateLayout extends Flux.DashView{
                             this.showRightBar(SearchTalentToInviteToShift, option, {formData: ShiftInvite(option.data).getFormData()});
                         break;
                         case 'invite_talent_to_jobcore':
-                            this.showRightBar(InviteTalentToJobcore, option);
+                            this.showRightBar(InviteTalentToJobcore, option, {formData: { include_sms: false } });
                         break;
                         case 'show_pending_jobcore_invites':
                             this.showRightBar(PendingJobcoreInvites, option);
@@ -178,12 +178,14 @@ class PrivateLayout extends Flux.DashView{
                             option.title = "Review Talent";
                             this.showRightBar(ReviewTalent, option, { formData: option.data });
                         break;
-                        case 'payroll_by_timesheet':
-                            searchMe('payroll-periods').then((periods) =>
-                                this.showRightBar(SelectTimesheet, option, { formData: {
-                                    periods: periods//.map(p => p.label)
-                                }})
+                        case 'payroll_by_timesheet':{
+
+                            const payrollPeriods = store.getState('payroll-periods');
+                            if(!payrollPeriods) searchMe('payroll-periods').then((periods) =>
+                            this.showRightBar(SelectTimesheet, option, { formData: { periods }})
                             );
+                            else this.showRightBar(SelectTimesheet, option, { formData: { periods: payrollPeriods }});
+                        }
                         break;
                         case 'filter_timesheet':
                             this.showRightBar(SelectTimesheet, option, { formData: option.data });

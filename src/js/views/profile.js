@@ -21,6 +21,7 @@ export const Employer = (data={}) => {
         editingImage: false,
         response_time: undefined,
         rating: undefined,
+        retroactive: undefined,
         serialize: function(){
 
             const newShift = {
@@ -267,7 +268,7 @@ export class PayrollSettings extends Flux.DashView {
                         { !autoClockout ? '':
                         <span>
                             , wait
-                            <input type="number" style={{width: "60px"}} className="form-control d-inline-block ml-2 mr-2"
+                            <input type="number" style={{width: "100px"}} className="form-control d-inline-block ml-2 mr-2"
                                 value={this.state.employer.maximum_clockout_delay_minutes}
                                 onChange={(e) => this.setEmployer({ maximum_clockout_delay_minutes: e.target.value, timeclock_warning: true })}
                             />
