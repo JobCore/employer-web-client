@@ -535,7 +535,8 @@ export const updatePayments = async (payments, period) => {
 
 export const createPayment = async (payment, period) => {
 
-    const _new = await create("payment", { ...payment, employer: payment.employer.id || payment.employer, employee: payment.employee.id || payment.employee, shift: payment.shift.id || payment.shift });
+    console.log("Payment", payment);
+    const _new = await create("payment", { ...payment, employee: payment.employee.id || payment.employee, shift: payment.shift.id || payment.shift });
     const _period = { 
         ...period, 
         payments: period.payments.concat([ { ..._new, employee: payment.employee, shift: payment.shift }])

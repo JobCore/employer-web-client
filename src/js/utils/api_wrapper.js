@@ -37,7 +37,7 @@ const getToken = () => {
 const appendCompany = (data) => {
   if (Session && data) {
     const payload = Session.getPayload();
-    data.employer = payload.user.profile.employer;
+    data.employer = payload.user.profile.employer.id || payload.user.profile.employer;
     return data;
   }
 };
