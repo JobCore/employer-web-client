@@ -434,7 +434,7 @@ export class ManagePayroll extends Flux.DashView {
                                                 }
                                             </td>
                                             <td colSpan={3} className="text-right">
-                                                Total: {total_hours} hr
+                                                Total: {Math.round(total_hours * 100) / 100} hr
                                                 <small className="d-block">${Math.round(total_amount * 100) / 100}</small>
                                             </td>
                                         </tr>
@@ -587,7 +587,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly, period }
                         }>
                             <small><i className="fas fa-map-marker-alt"></i> In</small>
                         </Tooltip>{" "}
-                        <Tooltip placement="left" trigger={['click']} overlay={<span>tooltip</span>}>
+                        <Tooltip placement="left" trigger={['click']} overlay={<small>({clockin.latitude_in},{clockin.longitude_in})</small>}>
                             <small><i className="fas fa-map-marker-alt"></i> Out</small>
                         </Tooltip>
                         </p>
