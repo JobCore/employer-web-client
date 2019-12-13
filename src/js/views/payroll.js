@@ -67,8 +67,8 @@ export const Clockin = (data) => {
             const newObject = {
                 shift: (typeof this.shift != 'object') ? store.get('shift', this.shift) : Shift(this.shift).defaults().unserialize(),
                 employee: (typeof this.employee != 'object') ? store.get('employees', this.employee) : this.employee,
-                started_at: (!moment.isMoment(this.started_at)) ? moment(this.started_at) : this.started_at,
-                ended_at: (!moment.isMoment(this.ended_at)) ? moment(this.ended_at) : this.ended_at
+                started_at: this.started_at && !moment.isMoment(this.started_at) ? moment(this.started_at) : this.started_at,
+                ended_at: this.ended_at && !moment.isMoment(this.ended_at) ? moment(this.ended_at) : this.ended_at
             };
 
             return Object.assign(this, newObject);
@@ -500,11 +500,11 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly, period }
     const init_breaktime = NOW().startOf('day').add(payment.breaktime_minutes, 'minutes');
     const [ breaktime, setBreaktime ] = useState(init_breaktime);
 
-    const startTime = clockin.shift ? clockin.started_at.format('LT') : "-";
-    const endTime = clockin.shift ? clockin.ended_at.format('LT') : "_";
+    const startTime = clockin.shift && clockin.started_at ? clockin.started_at.format('LT') : "-";
+    const endTime = clockin.shift && clockin.ended_at ? clockin.ended_at.format('LT') : "_";
 
-    const clockInDuration = moment.duration(clockin.ended_at.diff(clockin.started_at));
-    const clockinHours = clockin.shift || !readOnly ? Math.round(clockInDuration.asHours() * 100) / 100 : "-";
+    const clockInDuration = !clockin.ended_at ? null : moment.duration(clockin.ended_at.diff(clockin.started_at));
+    const clockinHours = !clockInDuration ? 0 : clockin.shift || !readOnly ? Math.round(clockInDuration.asHours() * 100) / 100 : "-";
 
     const shiftStartTime = shift.starting_at.format('LT');
     const shiftEndTime = shift.ending_at.format('LT');
@@ -512,8 +512,8 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly, period }
     const shiftDuration = moment.duration(shift.ending_at.diff(shift.starting_at));
     const plannedHours = Math.round(shiftDuration.asHours() * 100) / 100;
 
-    const clockInDurationAfterBreak = moment.duration(clockin.ended_at.diff(clockin.started_at)).subtract(breaktime.diff(NOW().startOf('day')));
-    const clockInTotalHoursAfterBreak = Math.round(clockInDurationAfterBreak.asHours() * 100) / 100;
+    const clockInDurationAfterBreak = !clockin.ended_at ? null : moment.duration(clockin.ended_at.diff(clockin.started_at)).subtract(breaktime.diff(NOW().startOf('day')));
+    const clockInTotalHoursAfterBreak = !clockInDurationAfterBreak ? 0 : Math.round(clockInDurationAfterBreak.asHours() * 100) / 100;
 
     const diff =  Math.round((clockInTotalHoursAfterBreak - plannedHours) * 100) / 100;
     useEffect(() => {
@@ -622,7 +622,14 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly, period }
                     showSecond={false}
                     defaultValue={clockin.ended_at}
                     format={TIME_FORMAT}
-                    onChange={(value) => value && setClockin(Object.assign({},clockin,{ ended_at: value}))}
+                    onChange={(d1) => {
+                        if(d1){
+                            const starting = clockin.started_at;
+                            let ended_at = moment(clockin.started_at).set({ hour: d1.get('hour'), minute: d1.get('minute'), second : d1.get('second')});
+                            if(starting.isAfter(ended_at)) ended_at = moment(ended_at).add(1, 'days');
+                            setClockin(Object.assign({},clockin,{ ended_at }));
+                        }
+                    }}
                     value={clockin.ended_at}
                     use12Hours
                   />
