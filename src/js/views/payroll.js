@@ -12,7 +12,7 @@ import Select from 'react-select';
 import {Notify} from 'bc-react-notifier';
 
 import {Shift} from './shifts.js';
-import { EmployeeExtendedCard, ShiftOption, ShiftCard, Theme, Button, ShiftOptionSelected, GenericCard, SearchCatalogSelect } from '../components/index';
+import { EmployeeExtendedCard, ShiftOption, ShiftCard, Theme, Button, ShiftOptionSelected, GenericCard, SearchCatalogSelect, Toggle } from '../components/index';
 import queryString from 'query-string';
 
 import TimePicker from 'rc-time-picker';
@@ -656,8 +656,8 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly, period }
         <td>{clockin.shift || !readOnly ? diff : "-"}</td>
         {readOnly ?
             <td className="text-center">
-                { payment.status === "APPROVED" ? <i className="fas fa-check-circle"></i>
-                    : payment.status === "REJECTED" ? <i className="fas fa-times-circle"></i>
+                { payment.status === "APPROVED" ? <span><i className="fas fa-check-circle"></i><i className="fas fa-undoml-2"></i></span>
+                    : payment.status === "REJECTED" ? <span><i className="fas fa-times-circle"></i><i className ="fas fa-undo ml-2"></i></span>
                         : ''
                 }
             </td>
@@ -997,15 +997,16 @@ export class PayrollReport extends Flux.DashView {
                                             <th scope="col">DBL</th>
                                             <th scope="col">Total</th>
                                             <th scope="col">Labor</th>
+                                            <th scope="col"></th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         { this.state.payments.map(pay => {
                                             const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
                                                 return {
-                                                    over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
-                                                    regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
-                                                    total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount)
+                                                    over_time: Math.round(parseFloat(current.over_time) + parseFloat(incoming.over_time) * 100) / 100,
+                                                    regular_hours: Math.round(parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) * 100) / 100,
+                                                    total_amount: Math.round(parseFloat(current.total_amount) + parseFloat(incoming.total_amount) * 100) / 100,
                                                 };
                                             }, { regular_hours: 0, total_amount: 0, over_time: 0 });
                                             return <tr key={pay.employee.id}>
@@ -1016,8 +1017,15 @@ export class PayrollReport extends Flux.DashView {
                                                 <td>-</td>
                                                 <td>{total.over_time}</td>
                                                 <td>-</td>
-                                                <td>{total.regular_hours + total.over_time}</td>
+                                                <td>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</td>
                                                 <td>${total.total_amount}</td>
+                                                <td>
+                                                    <Toggle
+                                                        onClick={(value) => {
+                                                            update("shifts", { status: "PAID" });
+                                                        }}
+                                                    />
+                                                </td>
                                             </tr>;
                                         })}
                                     </tbody>
