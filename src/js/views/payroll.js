@@ -403,6 +403,11 @@ export class ManagePayroll extends Flux.DashView {
                                                             payroll_period: this.state.singlePayrollPeriod.id
                                                         }, this.state.singlePayrollPeriod);
                                                 }}
+                                                onUndo={(payment) => updatePayments({ 
+                                                    ...payment, 
+                                                    status: "PENDING", 
+                                                    id: p.id 
+                                                }, this.state.singlePayrollPeriod)}
                                                 onReject={(payment) => {
                                                     if(p.id === undefined) this.setState({ 
                                                         payments: this.state.payments.map(_pay => {
@@ -484,7 +489,7 @@ Marker.propTypes = {
     text: PropTypes.string
 };
 
-const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly, period }) => {
+const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, period }) => {
 
     if(!employee || employee.id === "new") return <p className="px-3 py-1">⬆ Search an employee from the list above...</p>;
 
@@ -656,8 +661,8 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, readOnly, period }
         <td>{clockin.shift || !readOnly ? diff : "-"}</td>
         {readOnly ?
             <td className="text-center">
-                { payment.status === "APPROVED" ? <span><i className="fas fa-check-circle"></i><i className="fas fa-undoml-2"></i></span>
-                    : payment.status === "REJECTED" ? <span><i className="fas fa-times-circle"></i><i className ="fas fa-undo ml-2"></i></span>
+                { payment.status === "APPROVED" ? <span><i className="fas fa-check-circle"></i><i onClick={() => onUndo(payment)} className="fas fa-undo ml-2 pointer"></i></span>
+                    : payment.status === "REJECTED" ? <span><i className="fas fa-times-circle"></i><i onClick={() => onUndo(payment)} className ="fas fa-undo ml-2 pointer"></i></span>
                         : ''
                 }
             </td>
@@ -704,6 +709,7 @@ PaymentRow.propTypes = {
     readOnly: PropTypes.bool,
     onApprove: PropTypes.func,
     onReject: PropTypes.func,
+    onUndo: PropTypes.func,
     shifts: PropTypes.array
 };
 PaymentRow.defaultProps = {

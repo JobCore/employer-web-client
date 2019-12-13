@@ -518,12 +518,17 @@ export const updatePayments = async (payments, period) => {
 
     if(!Array.isArray(payments)) payments = [payments];
     for(let i = 0; i < payments.length; i++){
-        const data = payments[i];
+        let data = { ...payments[i] };
+        if(data.shift) data.shift = data.shift.id || data.shift;
+        if(data.employer) data.employer = data.employer.id || data.employer;
+        if(data.employee) data.employee = data.employee.id || data.employee;
+        if(data.clockin) data.clockin = data.clockin.id || data.clockin;
+
         const _updated = await update("payment", data);
         period = { 
             ...period, 
             payments: period.payments.map(p => {
-                if(p.id === _updated.id) return { ...p, ..._updated };
+                if(p.id === _updated.id) return { ...p, ...payments[i] };
                 else return p;
             })
         };
@@ -535,7 +540,6 @@ export const updatePayments = async (payments, period) => {
 
 export const createPayment = async (payment, period) => {
 
-    console.log("Payment", payment);
     const _new = await create("payment", { ...payment, employee: payment.employee.id || payment.employee, shift: payment.shift.id || payment.shift });
     const _period = { 
         ...period, 
