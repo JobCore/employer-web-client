@@ -532,7 +532,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                 .catch(e => Notify.error(e.message || e));
     }, []);
 
-    return <tr>
+    return <tr id={"paymemt"+payment.id}>
         {
             payment.status === "NEW" ? 
                 <td>
