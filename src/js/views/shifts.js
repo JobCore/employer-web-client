@@ -406,39 +406,41 @@ export const ShiftApplicants = (props) => {
                 </div>
             }
             <h3>Shift applicants:</h3>
-            {
-                catalog.applicants.length > 0 ?
-                    catalog.applicants.map((tal,i) => (
-                        <EmployeeExtendedCard
-                            key={i}
-                            employee={tal}
-                            hover={false}
-                            showFavlist={false}
-                            onClick={() => bar.show({ slug: "show_single_talent", data: Talent(tal,i).defaults().unserialize(), allowLevels: true })}
-                        >
-                            { !catalog.shift.expired &&
-                                <Button className="mt-0" icon="check" label="Delete" onClick={() => onSave({
-                                    executed_action: 'accept_applicant',
-                                    applicant: tal,
-                                    shift: catalog.shift
-                                })}/>
-                            }
-                            { !catalog.shift.expired &&
-                                <Button className="mt-0" icon="times" label="Delete" onClick={() => onSave({
-                                    executed_action: 'reject_applicant',
-                                    applicant: tal,
-                                    shift: catalog.shift
-                                })}/>
-                            }
-                        </EmployeeExtendedCard>)
-                    )
-                :
-                    <p>No applicants were found for this shift, <span className="anchor"
-                        onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift", allowLevels: true })}
-                    >invite more talents</span> or  <span className="anchor"
-                        onClick={() => bar.show({ slug: "review_shift_invites", allowLevels: true, data: catalog.shift })}
-                    >review previous invites</span></p>
-            }
+            <ul style={{ overflowY: "auto", maxHeight: "75vh"}}>
+                {
+                    catalog.applicants.length > 0 ?
+                        catalog.applicants.map((tal,i) => (
+                            <EmployeeExtendedCard
+                                key={i}
+                                employee={tal}
+                                hover={false}
+                                showFavlist={false}
+                                onClick={() => bar.show({ slug: "show_single_talent", data: Talent(tal,i).defaults().unserialize(), allowLevels: true })}
+                            >
+                                { !catalog.shift.expired &&
+                                    <Button className="mt-0" icon="check" label="Delete" onClick={() => onSave({
+                                        executed_action: 'accept_applicant',
+                                        applicant: tal,
+                                        shift: catalog.shift
+                                    })}/>
+                                }
+                                { !catalog.shift.expired &&
+                                    <Button className="mt-0" icon="times" label="Delete" onClick={() => onSave({
+                                        executed_action: 'reject_applicant',
+                                        applicant: tal,
+                                        shift: catalog.shift
+                                    })}/>
+                                }
+                            </EmployeeExtendedCard>)
+                        )
+                    :
+                        <li>No applicants were found for this shift, <span className="anchor"
+                            onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift", allowLevels: true })}
+                        >invite more talents</span> or  <span className="anchor"
+                            onClick={() => bar.show({ slug: "review_shift_invites", allowLevels: true, data: catalog.shift })}
+                        >review previous invites</span></li>
+                }
+            </ul>
         </div>)}
     </Theme.Consumer>);
 };

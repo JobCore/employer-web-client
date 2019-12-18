@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState, useContext, useEffect } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
-import {store, fetchTemporal, update, updateProfileImage} from '../actions.js';
+import {store, fetchTemporal, update, updateProfileImage, searchMe, remove } from '../actions.js';
 import {TIME_FORMAT, DATETIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
-import {Button} from '../components/index';
+import {Button, Theme, GenericCard, Avatar} from '../components/index';
 import {Notify} from 'bc-react-notifier';
+import {Session} from 'bc-react-session';
 import {validator, ValidationError} from '../utils/validation';
 import Dropzone from 'react-dropzone';
 import DateTime from 'react-datetime';
@@ -301,6 +302,62 @@ export class PayrollSettings extends Flux.DashView {
                     >Save</button>
                 </div>
             </form>
+        </div>);
+    }
+}
+
+export class ManageUsers extends Flux.DashView{
+
+    constructor(){
+        super();
+        this.state = {
+            companyUsers: [],
+            currentUser: Session.getPayload().user.profile
+        };
+    }
+
+    componentDidMount(){
+
+        const users = store.getState('users');
+        this.subscribe(store, 'users', (_users) => {
+            this.setState({ companyUsers: _users, currentUser: Session.getPayload().user.profile });
+        });
+        if(users) this.setState({ companyUsers: users, currentUser: Session.getPayload().user.profile });
+        else searchMe('users');
+    
+        this.props.history.listen(() => {
+            this.filter();
+            this.setState({ firstSearch: false });
+        });
+    }
+
+    filter(users=null){
+        searchMe('users', window.location.search);
+    }
+
+    render(){
+        const allowLevels = (window.location.search != '');
+        return (<div className="p-1 listcontents">
+            <Theme.Consumer>
+                {({bar}) => (<span>
+                    <h1>Company Users</h1>
+                    {this.state.companyUsers.map((u,i) => (
+                        <GenericCard key={i} hover={true}>
+                            <Avatar url={u.profile.picture} />
+                            <div className="btn-group">
+                                <Button icon="trash" onClick={() => {
+                                    if(this.currentUser.id === u.id) Notify.error('You cannot delete yourself');
+                                    const noti = Notify.info("Are you sure you want to delete this user?",(answer) => {
+                                        if(answer) remove('users', u);
+                                        noti.remove();
+                                    });
+                                }}></Button>
+                            </div>
+                            <p className="mt-2">{u.first_name} {u.last_name} {u.employer_role}</p>
+                        </GenericCard>
+                    ))}
+                </span>)}
+            </Theme.Consumer>
         </div>);
     }
 }

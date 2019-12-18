@@ -16,7 +16,7 @@ import {ManageFavorites, AddFavlistsToTalent, FavlistEmployees, AddTalentToFavli
 import { ManageLocations, AddOrEditLocation, Location } from './views/locations.js';
 import { ManagePayroll, PayrollReport, SelectTimesheet } from './views/payroll.js';
 import { ManageRating, Rating, RatingDetails, ReviewTalent } from './views/ratings.js';
-import {Profile, PayrollSettings} from './views/profile.js';
+import {Profile, PayrollSettings, ManageUsers} from './views/profile.js';
 import {NOW} from './components/utils.js';
 import {Notifier, Notify} from 'bc-react-notifier';
 import log from './utils/log';
@@ -352,6 +352,7 @@ class PrivateLayout extends Flux.DashView{
                             <Route exact path='/locations' component={ManageLocations} />
                             <Route exact path='/payroll-settings' component={PayrollSettings} />
                             <Route exact path='/profile' component={Profile} />
+                            <Route exact path='/profile/users' component={ManageUsers} />
                             <Route exact path='/payroll' component={ManagePayroll} />
                             <Route exact path='/payroll/period/:period_id' component={ManagePayroll} />
                             <Route exact path='/payroll/report/:period_id' component={PayrollReport} />

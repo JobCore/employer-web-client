@@ -130,6 +130,7 @@ export const resendValidationLink = (email) => new Promise((resolve, reject) => 
 
 export const logout = () => {
     Session.destroy();
+    store = new _Store();
 };
 
 export const fetchAllIfNull = (entities) => {
@@ -557,6 +558,7 @@ class _Store extends Flux.DashStore{
         super();
         this.addEvent('positions');
         this.addEvent('venues');
+        this.addEvent('users');
         this.addEvent('invites', (invites) => {
             if(!Array.isArray(invites)) return [];
             return invites.map(inv => Invite(inv).defaults().unserialize());
@@ -678,10 +680,11 @@ class _Store extends Flux.DashStore{
         });
         else throw new Error("No items found in "+entities);
     }
+
     filter(type, callback){
         const entities = this.getState(type);
         if(entities) return entities.filter(callback);
         else throw new Error("No items found in entity type: "+type);
     }
 }
-export const store = new _Store();
+export let store = new _Store();

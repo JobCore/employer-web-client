@@ -39,16 +39,16 @@ class ButtonBar extends React.Component {
                     { slug: "payroll_settings", title: 'Payroll Settings', to: 'payroll-settings'},
                     //{ slug: "payroll_by_shift", title: 'Search by Shift', to: 'payroll'},
                 ],
-                "profile": [
+                "profile/*": [
                     { slug: "manage_locations", title: 'Company Locations', to: 'locations'},
                     { slug: "payroll_settings", title: 'Payroll Settings', to: 'payroll-settings'},
                     { slug: "my_ratings", title: 'Company Ratings', to: 'ratings'},
-                    // { slug: "company_users", title: 'Company Users', to: 'company-users'}
+                    { slug: "company_users", title: 'Company Users', to: '/profile/users'}
                 ],
                 "ratings": [
                     { slug: "manage_locations", title: 'Company Locations', to: 'locations'},
                     { slug: "payroll_settings", title: 'Payroll Settings', to: 'payroll-settings'},
-                    // { slug: "company_users", title: 'Company Users', to: 'company-users'}
+                    { slug: "company_users", title: 'Company Users', to: '/profile/users'}
                 ],
                 "calendar": [
                     { slug: "create_shift", title: 'Create shifts', to: 'shifts'},
