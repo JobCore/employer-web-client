@@ -345,15 +345,24 @@ export class ManageUsers extends Flux.DashView{
                         <GenericCard key={i} hover={true}>
                             <Avatar url={u.profile.picture} />
                             <div className="btn-group">
+                                { u.profile.employer_role != 'ADMIN' &&
+                                    <Button onClick={() => {
+                                        if(this.state.currentUser.id === u.profile.id) Notify.error('You cannot delete yourself');
+                                        const noti = Notify.info("Are you sure you want to make this person an admin?",(answer) => {
+                                            if(answer) update('users', { id: u.profile.id, employer_role: 'ADMIN' });
+                                            noti.remove();
+                                        });
+                                    }}>make admin</Button>
+                                }
                                 <Button icon="trash" onClick={() => {
-                                    if(this.currentUser.id === u.id) Notify.error('You cannot delete yourself');
+                                    if(this.state.currentUser.id === u.profile.id) Notify.error('You cannot delete yourself');
                                     const noti = Notify.info("Are you sure you want to delete this user?",(answer) => {
-                                        if(answer) remove('users', u);
+                                        if(answer) remove('users', u.profile);
                                         noti.remove();
                                     });
                                 }}></Button>
                             </div>
-                            <p className="mt-2">{u.first_name} {u.last_name} {u.employer_role}</p>
+                            <p className="mt-2">{u.first_name} {u.last_name} ({u.profile.employer_role})</p>
                         </GenericCard>
                     ))}
                 </span>)}

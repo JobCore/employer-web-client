@@ -349,9 +349,9 @@ class PrivateLayout extends Flux.DashView{
                             <Route exact path='/applicants' component={ManageApplicantions} />
                             <Route exact path='/talents' component={ManageTalents} />
                             <Route exact path='/favorites' component={ManageFavorites} />
-                            <Route exact path='/locations' component={ManageLocations} />
                             <Route exact path='/payroll-settings' component={PayrollSettings} />
                             <Route exact path='/profile' component={Profile} />
+                            <Route exact path='/profile/locations' component={ManageLocations} />
                             <Route exact path='/profile/users' component={ManageUsers} />
                             <Route exact path='/payroll' component={ManagePayroll} />
                             <Route exact path='/payroll/period/:period_id' component={ManagePayroll} />
