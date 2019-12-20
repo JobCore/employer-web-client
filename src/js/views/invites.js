@@ -217,56 +217,6 @@ InviteTalentToJobcore.propTypes = {
   catalog: PropTypes.object //contains the data needed for the form to load
 };
 
-/**
- * Invite a new user to the company
- */
-export const InviteUserToCompanyJobcore = ({ onSave, onCancel, onChange, catalog, formData }) => (<Theme.Consumer>
-    {({bar}) => (
-        <form>
-            <div className="row">
-                <div className="col-12">
-                    <p>
-                        <span>Invite someone into your company </span>
-                        <span className="anchor"
-                            onClick={() => bar.show({ slug: "show_pending_jobcore_invites", allowLevels: true })}
-                        >review previous invites</span>:
-                    </p>
-                </div>
-            </div>
-            <div className="row">
-                <div className="col-12">
-                    <label>First Name</label>
-                    <input type="text" className="form-control"
-                        onChange={(e)=>onChange({first_name: e.target.value})}
-                    />
-                </div>
-                <div className="col-12">
-                    <label>Last Name</label>
-                    <input type="text" className="form-control"
-                        onChange={(e)=>onChange({last_name: e.target.value})}
-                    />
-                </div>
-                <div className="col-12">
-                    <label>Email</label>
-                    <input type="email" className="form-control"
-                        onChange={(e)=>onChange({email: e.target.value})}
-                    />
-                </div>
-            </div>
-            <div className="btn-bar">
-                <Button color="success" onClick={() => onSave()}>Send Invite</Button>
-                <Button color="secondary" onClick={() => onCancel()}>Cancel</Button>
-            </div>
-        </form>
-    )}
-</Theme.Consumer>);
-InviteUserToCompanyJobcore.propTypes = {
-  onSave: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  onChange: PropTypes.func.isRequired,
-  formData: PropTypes.object,
-  catalog: PropTypes.object //contains the data needed for the form to load
-};
 
 /**
  * ShiftDetails
@@ -284,9 +234,9 @@ export const PendingJobcoreInvites = ({ catalog, formData }) => (<div>
                                 onClick={() => update('jobcore-invites', inv)}
                             >Resend</button>
                             <p className="p-0 m-0">
-                                <span>{inv.first_name} {inv.last_name} </span>
+                                <span>{inv.first_name} {inv.last_name} {inv.employer && " (company)"} </span>
                             </p>
-                            <span className="badge">{moment(inv.created_at, "YYYYMMDD").fromNow()}</span>
+                            <span className="badge">{moment(inv.updated_at).fromNow()}</span>
                             <small>{inv.email}</small>
                         </li>)
                     ):

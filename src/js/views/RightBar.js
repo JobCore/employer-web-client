@@ -12,6 +12,7 @@ import {Application} from '../views/applications.js';
 import {ValidationError} from '../utils/validation';
 import {Notify} from 'bc-react-notifier';
 import WEngine from "../utils/write_engine.js";
+import {Session} from 'bc-react-session';
 
 class RightBar extends React.Component {
 
@@ -26,6 +27,7 @@ class RightBar extends React.Component {
 
     onSave(data={}){
         this.setState({ error: null });
+        const session = Session.getPayload();
         try{
             switch (data.executed_action || this.props.option.slug) {
                 case 'create_shift':
@@ -51,6 +53,11 @@ class RightBar extends React.Component {
                 break;
                 case 'invite_talent_to_jobcore':{
                         create('jobcore-invites', Invite(this.state.formData).validate().serialize());
+                        this.props.onClose();
+                    }
+                break;
+                case 'invite_user_to_employer':{
+                        create('jobcore-invites', Invite({ ...this.state.formData, employer: session.user.profile.employer.id }).validate().serialize());
                         this.props.onClose();
                     }
                 break;

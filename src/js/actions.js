@@ -80,7 +80,7 @@ export const login = (email, password, keep, history) => new Promise((resolve, r
 export const signup = (formData, history) => new Promise((resolve, reject) => POST('user/register', {
       email: formData.email,
       account_type: formData.account_type,
-      employer: formData.company,
+      employer: formData.company || formData.employer,
       token: formData.token || '',
       username: formData.email,
       first_name: formData.first_name,

@@ -16,7 +16,7 @@ import {ManageFavorites, AddFavlistsToTalent, FavlistEmployees, AddTalentToFavli
 import { ManageLocations, AddOrEditLocation, Location } from './views/locations.js';
 import { ManagePayroll, PayrollReport, SelectTimesheet } from './views/payroll.js';
 import { ManageRating, Rating, RatingDetails, ReviewTalent } from './views/ratings.js';
-import {Profile, PayrollSettings, ManageUsers} from './views/profile.js';
+import {Profile, PayrollSettings, ManageUsers, InviteUserToCompanyJobcore} from './views/profile.js';
 import {NOW} from './components/utils.js';
 import {Notifier, Notify} from 'bc-react-notifier';
 import log from './utils/log';
@@ -128,6 +128,9 @@ class PrivateLayout extends Flux.DashView{
                         break;
                         case 'invite_talent_to_jobcore':
                             this.showRightBar(InviteTalentToJobcore, option, {formData: { include_sms: false } });
+                        break;
+                        case 'invite_user_to_employer':
+                            this.showRightBar(InviteUserToCompanyJobcore, option);
                         break;
                         case 'show_pending_jobcore_invites':
                             this.showRightBar(PendingJobcoreInvites, option);

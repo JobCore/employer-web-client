@@ -9,6 +9,7 @@ import {validator, ValidationError} from '../utils/validation';
 import Dropzone from 'react-dropzone';
 import DateTime from 'react-datetime';
 import moment from 'moment';
+import PropTypes from "prop-types";
 
 export const Employer = (data={}) => {
 
@@ -340,7 +341,10 @@ export class ManageUsers extends Flux.DashView{
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({bar}) => (<span>
-                    <h1>Company Users</h1>
+                    <p className="text-right">
+                        <h1 className="float-left">Company Users</h1>
+                        <Button onClick={() => bar.show({ slug: "invite_user_to_employer", allowLevels: true })}>Invite new user</Button>
+                    </p>
                     {this.state.companyUsers.map((u,i) => (
                         <GenericCard key={i} hover={true}>
                             <Avatar url={u.profile.picture} />
@@ -378,3 +382,54 @@ export class ManageUsers extends Flux.DashView{
         </div>);
     }
 }
+
+/**
+ * Invite a new user to the company
+ */
+export const InviteUserToCompanyJobcore = ({ onSave, onCancel, onChange, catalog, formData }) => (<Theme.Consumer>
+    {({bar}) => (
+        <form>
+            <div className="row">
+                <div className="col-12">
+                    <p>
+                        <span>Invite someone into your company </span>
+                        <span className="anchor"
+                            onClick={() => bar.show({ slug: "show_pending_jobcore_invites", allowLevels: true })}
+                        >review previous invites</span>:
+                    </p>
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-12">
+                    <label>First Name</label>
+                    <input type="text" className="form-control"
+                        onChange={(e)=>onChange({first_name: e.target.value})}
+                    />
+                </div>
+                <div className="col-12">
+                    <label>Last Name</label>
+                    <input type="text" className="form-control"
+                        onChange={(e)=>onChange({last_name: e.target.value})}
+                    />
+                </div>
+                <div className="col-12">
+                    <label>Email</label>
+                    <input type="email" className="form-control"
+                        onChange={(e)=>onChange({email: e.target.value})}
+                    />
+                </div>
+            </div>
+            <div className="btn-bar">
+                <Button color="success" onClick={() => onSave()}>Send Invite</Button>
+                <Button color="secondary" onClick={() => onCancel()}>Cancel</Button>
+            </div>
+        </form>
+    )}
+</Theme.Consumer>);
+InviteUserToCompanyJobcore.propTypes = {
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  formData: PropTypes.object,
+  catalog: PropTypes.object //contains the data needed for the form to load
+};
