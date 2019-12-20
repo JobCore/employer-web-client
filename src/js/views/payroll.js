@@ -553,50 +553,53 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
             :
                 <td>
                     <div className="shift-details">
-                        <span className="shift-date">{shift.starting_at.format('ll')}</span>
-                        <span className="shift-position text-success">{shift.position.title}</span> @
-                        <span className="shift-location text-primary"> {shift.venue.title}</span> on{' '}
+                        <p className="p-o m-0">
+                            <strong className="shift-date">{shift.starting_at.format('ddd, ll')}</strong>
+                        </p>
+                        <small className="shift-position text-success">{shift.position.title}</small> @
+                        <small className="shift-location text-primary"> {shift.venue.title}</small>
+                    </div>
+                    { <p>
                         {
                             (typeof shift.price == 'string') ?
-                                (shift.price === '0.0') ? '': <span className="shift-price text-danger"> ${shift.price}</span>
+                                (shift.price === '0.0') ? '': <small className="shift-price text-danger"> ${shift.price}</small>
                             :
-                                <span className="shift-price text-danger"> {shift.price.currencySymbol}{shift.price.amount}</span>
-                        }
-                    </div>
-                    { clockin && <p className="pointer">
-                        <Tooltip placement="left" trigger={['click']} overlay={ 
-                            <span style={{ width: "100px", height: "100px", display: "inline-block"}}>
-                                <GoogleMapReact
-                                    bootstrapURLKeys={{ key: process.env.GOOGLE_MAPS_WEB_KEY }}
-                                    defaultCenter={{
-                                        lat: 25.7617,
-                                        lng: -80.1918
-                                    }}
-                                    width="100%"
-                                    height="100%"
-                                    center={{
-                                    lat: clockin.latitude_in,
-                                    lng: clockin.longitude_in
-                                    }}
-                                    options={createMapOptions}
-                                    defaultZoom={12}
-                                >
-                                    <Marker
-                                        lat={clockin.latitude_in}
-                                        lng={clockin.longitude_in}
-                                        text={'Jobcore'}
-                                    />
-                                </GoogleMapReact>
-                                <small className="d-block text-center">({clockin.latitude_in},{clockin.longitude_in})</small>
-                            </span>
-                        }>
-                            <small><i className="fas fa-map-marker-alt"></i> In</small>
-                        </Tooltip>{" "}
-                        <Tooltip placement="left" trigger={['click']} overlay={<small>({clockin.latitude_in},{clockin.longitude_in})</small>}>
-                            <small><i className="fas fa-map-marker-alt"></i> Out</small>
-                        </Tooltip>
-                        </p>
-                    }
+                                <small className="shift-price text-danger"> {shift.price.currencySymbol}{shift.price.amount}</small>
+                        }{" "}
+                        { clockin && <div className="d-inline">
+                            <Tooltip placement="right" trigger={['click']} overlay={ 
+                                <span style={{ width: "100px", height: "100px", display: "inline-block"}}>
+                                    <GoogleMapReact
+                                        bootstrapURLKeys={{ key: process.env.GOOGLE_MAPS_WEB_KEY }}
+                                        defaultCenter={{
+                                            lat: 25.7617,
+                                            lng: -80.1918
+                                        }}
+                                        width="100%"
+                                        height="100%"
+                                        center={{
+                                        lat: clockin.latitude_in,
+                                        lng: clockin.longitude_in
+                                        }}
+                                        options={createMapOptions}
+                                        defaultZoom={12}
+                                    >
+                                        <Marker
+                                            lat={clockin.latitude_in}
+                                            lng={clockin.longitude_in}
+                                            text={'Jobcore'}
+                                        />
+                                    </GoogleMapReact>
+                                    <small className="d-block text-center">({clockin.latitude_in},{clockin.longitude_in})</small>
+                                </span>
+                            }>
+                                <small className="pointer"><i className="fas fa-map-marker-alt"></i> In</small>
+                            </Tooltip>{" "}
+                            <Tooltip placement="right" trigger={['click']} overlay={<small>({clockin.latitude_in},{clockin.longitude_in})</small>}>
+                                <small className="pointer"><i className="fas fa-map-marker-alt"></i> Out</small>
+                            </Tooltip>
+                        </div>}
+                    </p>}
                 </td>
         }
         <td className="time">
@@ -991,7 +994,8 @@ export class PayrollReport extends Flux.DashView {
                         (this.state.singlePayrollPeriod.payments.length > 0) ?
                             <div>
                                 <p className="text-right">
-                                    <Button className="btn btn-info" onClick={() => this.props.history.push('/payroll/period/'+this.state.singlePayrollPeriod.id)}>Payroll Period</Button>
+                                    <h1 className="float-left">Payments for {this.state.singlePayrollPeriod.label}</h1>
+                                    <Button className="btn btn-info" onClick={() => this.props.history.push('/payroll/period/'+this.state.singlePayrollPeriod.id)}>Review Timesheet</Button>
                                 </p>
                                 { this.state.singlePayrollPeriod.status == "OPEN" &&
                                     <div className="alert alert-warning p-2">This period is still open, <a href="#" onClick={(e) => {
@@ -1024,10 +1028,14 @@ export class PayrollReport extends Flux.DashView {
                                                     over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
                                                     regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
                                                     total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount),
+                                                    status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
                                                 };
-                                            }, { regular_hours: 0, total_amount: 0, over_time: 0 });
+                                            }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
                                             return <tr key={pay.employee.id}>
-                                                <td>{pay.employee.user.last_name}, {pay.employee.user.first_name}</td>
+                                                <td>
+                                                    {pay.employee.user.last_name}, {pay.employee.user.first_name}
+                                                    <p className="m-0 p-0"><span className="badge">{total.status.toLowerCase()}</span></p>
+                                                </td>
                                                 <td>{Math.round(total.regular_hours * 100) / 100}</td>
                                                 <td>-</td>
                                                 <td>-</td>
@@ -1037,11 +1045,7 @@ export class PayrollReport extends Flux.DashView {
                                                 <td>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</td>
                                                 <td>${Math.round(total.total_amount * 100) / 100}</td>
                                                 <td>
-                                                    <Toggle
-                                                        onClick={(value) => {
-                                                            update("shifts", { status: "PAID" });
-                                                        }}
-                                                    />
+                                                    <Button color="success" size="small" onClick={() => null}>Create payment</Button>
                                                 </td>
                                             </tr>;
                                         })}

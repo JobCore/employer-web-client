@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
-import {store, fetchTemporal, update, updateProfileImage, searchMe, remove } from '../actions.js';
+import {store, fetchTemporal, update, updateProfileImage, searchMe, remove, updateUser, removeUser } from '../actions.js';
 import {TIME_FORMAT, DATETIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
 import {Button, Theme, GenericCard, Avatar} from '../components/index';
 import {Notify} from 'bc-react-notifier';
@@ -345,19 +345,27 @@ export class ManageUsers extends Flux.DashView{
                         <GenericCard key={i} hover={true}>
                             <Avatar url={u.profile.picture} />
                             <div className="btn-group">
-                                { u.profile.employer_role != 'ADMIN' &&
+                                { u.profile.employer_role != 'ADMIN' ?
                                     <Button onClick={() => {
                                         if(this.state.currentUser.id === u.profile.id) Notify.error('You cannot delete yourself');
-                                        const noti = Notify.info("Are you sure you want to make this person an admin?",(answer) => {
-                                            if(answer) update('users', { id: u.profile.id, employer_role: 'ADMIN' });
+                                        const noti = Notify.info("Are you sure you want to make this person Admin?",(answer) => {
+                                            if(answer) updateUser({ id: u.profile.id, employer_role: 'ADMIN' });
                                             noti.remove();
                                         });
                                     }}>make admin</Button>
+                                    :
+                                    <Button onClick={() => {
+                                        if(this.state.currentUser.id === u.profile.id) Notify.error('You cannot make yourself a supervisor');
+                                        const noti = Notify.info("Are you sure you want to make this person Supervisor?",(answer) => {
+                                            if(answer) updateUser({ id: u.profile.id, employer_role: 'SUPERVISOR' });
+                                            noti.remove();
+                                        });
+                                    }}>make supervisor</Button>
                                 }
                                 <Button icon="trash" onClick={() => {
                                     if(this.state.currentUser.id === u.profile.id) Notify.error('You cannot delete yourself');
                                     const noti = Notify.info("Are you sure you want to delete this user?",(answer) => {
-                                        if(answer) remove('users', u.profile);
+                                        if(answer) removeUser(u);
                                         noti.remove();
                                     });
                                 }}></Button>
