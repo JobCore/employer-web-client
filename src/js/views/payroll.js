@@ -293,7 +293,7 @@ export class ManagePayroll extends Flux.DashView {
                 {({bar}) => (<span>
                     {(this.state.single_payroll_projection && typeof this.state.single_payroll_projection.employee !== 'undefined') ?
                         <h1>
-                            <span id="payroll_header">Payroll for {this.state.single_payroll_projection.employee.user.first_name} {this.state.single_payroll_projection.employee.user.last_name}</span> {' '}
+                            <span id="payroll_header">Payroll for {this.state.single_payroll_projection.employee.user.last_name}, {this.state.single_payroll_projection.employee.user.first_name}</span> {' '}
                             {
                                 (this.state.single_payroll_projection.paid) ?
                                     <i className="fas fa-dollar-sign"></i>
@@ -327,7 +327,7 @@ export class ManagePayroll extends Flux.DashView {
                             this.state.payments.sort((a,b) => 
                                 a.employee.id === "new" ? -1 :
                                     b.employee.id === "new" ? 1 :
-                                        a.employee.user.first_name.toLowerCase() > b.employee.user.first_name.toLowerCase() ? 1 : -1
+                                        a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
                                 ).map(pay => {
                                 const total_hours = pay.payments.reduce((total, current) => !isNaN(current.regular_hours) ? total + (parseFloat(current.regular_hours) + parseFloat(current.over_time)) : total, 0);
                                 const total_amount = pay.payments.reduce((total, current) => !isNaN(current.total_amount) ? total + parseFloat(current.total_amount) : total, 0);
@@ -553,9 +553,9 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
             :
                 <td>
                     <div className="shift-details">
+                        <span className="shift-date">{shift.starting_at.format('ll')}</span>
                         <span className="shift-position text-success">{shift.position.title}</span> @
                         <span className="shift-location text-primary"> {shift.venue.title}</span> on{' '}
-                        <span className="shift-date">{shift.starting_at.format('ll')}</span>
                         {
                             (typeof shift.price == 'string') ?
                                 (shift.price === '0.0') ? '': <span className="shift-price text-danger"> ${shift.price}</span>
@@ -624,6 +624,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                 <p>{endTime}</p>
                 :
                 <TimePicker
+                    className={`${clockin.automatically_closed ? 'border border-danger' : ''}`}
                     showSecond={false}
                     defaultValue={clockin.ended_at}
                     format={TIME_FORMAT}
@@ -637,9 +638,14 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                     }}
                     value={clockin.ended_at}
                     use12Hours
-                  />
+                />
             }
             <small>({shiftEndTime})</small>
+            { clockin.automatically_closed &&
+                <Tooltip placement="bottom" trigger={['hover']} overlay={<small>Automatically clocked out</small>}>
+                    <i className="fas fa-exclamation-triangle text-danger fa-xs"></i>
+                </Tooltip>
+            }
         </td>
         <td style={{ minWidth: "75px", maxWidth: "75px" }}>
             <p className="mt-1" style={{ marginBottom: "7px" }}>{clockinHours}</p>
@@ -984,6 +990,9 @@ export class PayrollReport extends Flux.DashView {
                     {(!this.state.singlePayrollPeriod) ? '' :
                         (this.state.singlePayrollPeriod.payments.length > 0) ?
                             <div>
+                                <p className="text-right">
+                                    <Button className="btn btn-info" onClick={() => this.props.history.push('/payroll/period/'+this.state.singlePayrollPeriod.id)}>Payroll Period</Button>
+                                </p>
                                 { this.state.singlePayrollPeriod.status == "OPEN" &&
                                     <div className="alert alert-warning p-2">This period is still open, <a href="#" onClick={(e) => {
                                         e.preventDefault();
@@ -995,36 +1004,38 @@ export class PayrollReport extends Flux.DashView {
                                     <thead>
                                         <tr>
                                             <th scope="col">Staff</th>
-                                            <th scope="col">Regular</th>
+                                            <th scope="col">Regular Hrs</th>
                                             <th scope="col">PTO</th>
                                             <th scope="col">Holiday</th>
                                             <th scope="col">Sick</th>
                                             <th scope="col">OT</th>
                                             <th scope="col">DBL</th>
-                                            <th scope="col">Total</th>
+                                            <th scope="col">Total Hrs</th>
                                             <th scope="col">Labor</th>
                                             <th scope="col"></th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        { this.state.payments.map(pay => {
+                                        { this.state.payments.sort((a,b) =>
+                                                a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
+                                            ).map(pay => {
                                             const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
                                                 return {
-                                                    over_time: Math.round(parseFloat(current.over_time) + parseFloat(incoming.over_time) * 100) / 100,
-                                                    regular_hours: Math.round(parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) * 100) / 100,
-                                                    total_amount: Math.round(parseFloat(current.total_amount) + parseFloat(incoming.total_amount) * 100) / 100,
+                                                    over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
+                                                    regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
+                                                    total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount),
                                                 };
                                             }, { regular_hours: 0, total_amount: 0, over_time: 0 });
                                             return <tr key={pay.employee.id}>
-                                                <td>{pay.employee.user.first_name} {pay.employee.user.last_name}</td>
-                                                <td>{total.regular_hours}</td>
+                                                <td>{pay.employee.user.last_name}, {pay.employee.user.first_name}</td>
+                                                <td>{Math.round(total.regular_hours * 100) / 100}</td>
                                                 <td>-</td>
                                                 <td>-</td>
                                                 <td>-</td>
-                                                <td>{total.over_time}</td>
+                                                <td>{Math.round(total.over_time * 100) / 100}</td>
                                                 <td>-</td>
                                                 <td>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</td>
-                                                <td>${total.total_amount}</td>
+                                                <td>${Math.round(total.total_amount * 100) / 100}</td>
                                                 <td>
                                                     <Toggle
                                                         onClick={(value) => {
