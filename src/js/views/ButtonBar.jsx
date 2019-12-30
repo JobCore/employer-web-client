@@ -40,6 +40,7 @@ class ButtonBar extends React.Component {
                     { slug: "manage_locations", title: 'Company Locations', to: 'locations'},
                     { slug: "payroll_settings", title: 'Payroll Settings', to: 'payroll-settings'},
                     { slug: "my_ratings", title: 'Company Ratings', to: 'ratings'},
+                    { slug: "add_bank_account", title: 'Add bank account', to: 'add-bank-account'},
                     // { slug: "company_users", title: 'Company Users', to: 'company-users'}
                 ],
                 "ratings": [
