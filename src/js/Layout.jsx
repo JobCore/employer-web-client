@@ -23,6 +23,7 @@ class Layout extends Flux.View{
                             <PrivateRoute exact path='/favorites' component={PrivateLayout} />
                             <PrivateRoute exact path='/rate' component={PrivateLayout} />
                             <PrivateRoute exact path='/profile' component={PrivateLayout} />
+                            <PrivateRoute exact path='/add-bank-account' component={PrivateLayout} />
                             <PrivateRoute exact path='/applicants' component={PrivateLayout} />
                             <PrivateRoute exact path='/calendar' component={PrivateLayout} />
                             <PrivateRoute exact path='/shifts' component={PrivateLayout} />
