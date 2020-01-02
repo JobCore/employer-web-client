@@ -1,9 +1,11 @@
 @import '../theme/style.scss';
 .aplicantcard{
+    width: max-content;
+    min-height: 45px;
     list-style: none;
     position: relative;
-    padding: 5px 70px 5px 55px;
     border-radius: 30px;
+    cursor: default;
     p{margin: 0;}
     a,span{
         &.shift-position{color: $fuchsia;}
@@ -17,7 +19,7 @@
     .avatar{
         position: absolute;
         left: 8px;
-        top: 8px;
+        top: 5px;
     }
     .accept-reject{
         position: absolute;
@@ -26,7 +28,7 @@
     }
     &:hover{
         background: $green-000;
-        cursor: pointer;
+        // cursor: pointer;
     }
     .btn-group{
         position: absolute;
@@ -63,7 +65,7 @@
         box-shadow: 1px 0px 25px 3px rgba(0,0,0,0.2);
         background: white;
         border-radius: 20px;
-        cursor: pointer;
+        cursor: default;
         margin-bottom: 10px;
     }
     .hover-show{

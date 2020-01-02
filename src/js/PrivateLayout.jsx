@@ -24,8 +24,7 @@ import logoURL from '../img/logo.png';
 import loadingURL from '../img/loading2.gif';
 import moment from 'moment';
 import {EngineComponent} from "./utils/write_engine";
-import { AddBankAccountsScreen } from './views/AddBankAccountsScreen';
-
+import { AddBankAccountScreen } from "./views/addBankAccountScreen";
 class PrivateLayout extends Flux.DashView{
 
     constructor(){
@@ -343,7 +342,7 @@ class PrivateLayout extends Flux.DashView{
                             <Route exact path='/locations' component={ManageLocations} />
                             <Route exact path='/payroll-settings' component={PayrollSettings} />
                             <Route exact path='/profile' component={Profile} />
-                            <Route exact path='/add-bank-account' component={AddBankAccountsScreen} />
+                            <Route exact path='/add-bank-account' component={AddBankAccountScreen} />
                             <Route exact path='/payroll' component={ManagePayroll} />
                             <Route exact path='/payroll/period/:period_id' component={ManagePayroll} />
                             <Route exact path='/rate' component={RateShift} />

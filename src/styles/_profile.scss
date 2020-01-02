@@ -4,6 +4,15 @@
     border: 1px solid $green-600;
 }
 
+.delete-icon{
+ width: 20px;
+ margin-left: 20px;
+ cursor: pointer;
+ right: 10px;
+ top: 9px;
+ position: absolute;
+}
+
 .company-profile{
     .company-logo{
         background-size: cover;
