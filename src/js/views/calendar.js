@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { CalendarView } from "../components/calendar/index.js";
 import {Theme, Button, ShiftBadge} from '../components/index';
 import queryString from 'query-string';
@@ -41,7 +41,7 @@ const getEmployees = (shifts) => shifts.map(s => s.employees).flat();
 
 export const ShiftCalendar = ({ catalog }) => {
 
-    const [ filters , setFilters ] = useState(getURLFilters());
+    const [ filters , setFilters ] = useState(null);
     const [ shifts , setShifts ] = useState(null);
     const [ venues , setVenues ] = useState([]);
     const [ positions , setPositions ] = useState([]);
@@ -61,16 +61,16 @@ export const ShiftCalendar = ({ catalog }) => {
         searchMe('shifts', '?serializer=big&'+queryString.stringify(_filters));
     };
 
-    const groupShifts = (sh, l) => {
+    const groupShifts = (sh, l=null) => {
         let _shifts = {};
 
-        if(l.value === "employees"){
+        if(l === null || l.value === "employees"){
             const employees = getEmployees(sh);
             employees.forEach(emp => {
                 _shifts[`${typeof emp.user === "object" ? emp.user.first_name + " " + emp.user.last_name : "Loading..."}`] = sh.filter(s => s.employees.find(e => emp.id === e.id)).map(s => ({
                     start: moment(s.starting_at),
                     end: moment(s.ending_at),
-                    label: gf[l.value].label(s),
+                    label: gf["employees"].label(s),
                     data: s
                 }));
             });
@@ -88,27 +88,35 @@ export const ShiftCalendar = ({ catalog }) => {
             });
         }
         setGroupedShifts(_shifts);
-        setGroupedLabel(l);
+        if(l) setGroupedLabel(l);
+        else if(groupedLabel === null) setGroupedLabel({ label: "Group shifts by...",  value: "employees"});
     };
 
+    const previousLabel = useRef(groupedLabel);
     useEffect(() => {
+
+        //previousLabel.current = groupedLabel;
         //getCalendarFilters()
         //if(!shifts) shifts = store.getState('shifts');
-
-        store.subscribe('shifts', (sh) => {
+        if(previousLabel.current !== groupedLabel) previousLabel.current !== groupedLabel;
+        const unsubscribeShifts = store.subscribe('shifts', (sh) => {
             setShifts(sh);
-            groupShifts(sh, {label: "Employees", value: "employees" });
+            groupShifts(sh, groupedLabel);
         });
-        store.subscribe('venues', (venues) => setVenues(venues));
-        store.subscribe('positions', (positions) => setPositions(positions));
+        const unsubscribeVenues = store.subscribe('venues', (venues) => setVenues(venues));
+        const unsubscribePositions = store.subscribe('positions', (positions) => setPositions(positions));
 
         let venues = store.getState('venues');
-        if(!venues){
-            fetchAllMe(['venues']).then(() => setCalendarFilters());
-        }
-        else setCalendarFilters();
+        if(!venues) fetchAllMe(['venues']).then(() => setCalendarFilters());
+        if(filters === null) setCalendarFilters(getURLFilters());
 
-    }, []);
+        return () => {
+            unsubscribeShifts.unsubscribe();
+            unsubscribeVenues.unsubscribe();
+            unsubscribePositions.unsubscribe();
+        };
+
+    }, [ groupedLabel ]);
 
     return <Theme.Consumer>
         {({ bar }) => <div className="row">
@@ -185,7 +193,7 @@ export const ShiftCalendar = ({ catalog }) => {
 
                             update('shifts', shift, WEngine.modes.POSPONED).then(s => {
                                 setShifts(sh);
-                                groupShifts(sh, groupedLabel);
+                                groupShifts(sh);
                             });
                         }}
                         eventBoxStyles={{
@@ -195,6 +203,9 @@ export const ShiftCalendar = ({ catalog }) => {
                             backgroundColor: "rgba(255,255,255,0.3)",
                             borderRight: "1px solid #e3e3e3",
                             borderBottom: "1px solid #e3e3e3",
+                        }}
+                        tableStyles={{
+                            maxHeight: "65vh"
                         }}
                         onClick={e => {
                             const venue = groupedLabel.value === 'venues' ? venues.find(v => v.title == e.yAxis) : undefined;

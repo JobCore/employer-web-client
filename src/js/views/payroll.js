@@ -568,7 +568,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                         }{" "}
                         { clockin && <div className="d-inline">
                             <Tooltip placement="right" trigger={['click']} overlay={ 
-                                <span style={{ width: "100px", height: "100px", display: "inline-block"}}>
+                                <div style={{ width: "200px", height: "200px"}}>
                                     <GoogleMapReact
                                         bootstrapURLKeys={{ key: process.env.GOOGLE_MAPS_WEB_KEY }}
                                         defaultCenter={{
@@ -591,7 +591,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                         />
                                     </GoogleMapReact>
                                     <small className="d-block text-center">({clockin.latitude_in},{clockin.longitude_in})</small>
-                                </span>
+                                </div>
                             }>
                                 <small className="pointer"><i className="fas fa-map-marker-alt"></i> In</small>
                             </Tooltip>{" "}
@@ -788,7 +788,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
                                     }
                                 </div>
                                 From {moment(p.starting_at).format('MMM DD, YYYY')} to {moment(p.ending_at).format('MMM DD, YYYY')}
-                                <p className="my-0"><small className="badge badge-secondary">{p.payments.length} Payments</small></p>
+                                <p className="my-0"><small className={`badge ${p.payments.length > 0 ? 'badge-secondary' : 'badge-info'}`}>{p.payments.length} Payments</small></p>
                             </GenericCard>
                         )
                         :

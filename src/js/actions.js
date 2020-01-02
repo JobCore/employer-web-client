@@ -629,6 +629,7 @@ class _Store extends Flux.DashStore{
             const applicants = this.getState('applications');
             if(!applicants && Session.get().isValid) fetchAllMe(['applications']);
 
+            const _shift = newShifts.find(s => s.id == 1095);
             return newShifts;
         });
 

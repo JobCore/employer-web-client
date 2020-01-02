@@ -11,7 +11,7 @@ export const ItemTypes = {
 
 const eventBlockStyles = (props) => {
     return ({
-    background: "blue",
+    backgroundColor: props.isHover ? "rgb(112, 148, 152)" : "rgb(195, 240, 245)",
     //border: "1px solid black",
     position: "absolute",
     top: 0,
@@ -64,13 +64,14 @@ const EventLabel = (props) => <label style={{
         top: 0,
         cursor: "pointer",
         padding: '2px 5px',
-        background: "rgb(195, 240, 245, 0.3)",
+        background: props.isHover ? "rgb(112, 148, 152)" : "rgb(195, 240, 245)",
         height: props.direction !== "horizontal" ? props.size : `${props.blockHeight}px`,
         zIndex: 10
     }}>{props.children}</label>;
 EventLabel.propTypes = {
   children: PropTypes.node,
   direction: PropTypes.string,
+  isHover: PropTypes.bool,
   blockHeight: PropTypes.number,
   size: PropTypes.string
 };
@@ -188,6 +189,7 @@ export const Event = ({ label, start, end, duration, index, isPreview, offset, d
                     }
                     <EventLabel
                         direction={timeDirection}
+                        isHover={hovered}
                         blockHeight={blockHeight}
                         size={`${Math.floor((duration / timeBlockMinutes) * blockPixelSize)}px`}
                     >{label}</EventLabel>

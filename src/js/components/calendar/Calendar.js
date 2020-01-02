@@ -164,7 +164,11 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
                                     )}
                                 </div>
                             }
-                            <table style={{ border: "1px solid #b1b1b1", width: rest.viewMode === "day" ? ((60 * 24) / rest.timeBlockMinutes * rest.blockPixelSize) + 2 : `calc(100%)` }}>
+                            <table style={{
+                                    borderLeft: "1px solid #b1b1b1", width: rest.viewMode === "day" ? ((60 * 24) / rest.timeBlockMinutes * rest.blockPixelSize) + 2 : `calc(100%)`,
+                                    display: rest.viewMode === "day" ? "block" : "inline-table",
+                                    ...rest.tableStyles
+                            }}>
                                 {/* Build the header with the times */}
                                 { rest.viewMode === "day" &&
                                     <Time yAxisWidth={rest.yAxisWidth} width={(60 * 24) / rest.timeBlockMinutes * rest.blockPixelSize}>
@@ -238,6 +242,7 @@ Calendar.propTypes = {
   ]),
 
   timeBlockStyles: PropTypes.object,
+  tableStyles: PropTypes.object,
   dayBlockStyles: PropTypes.object
 };
 
@@ -263,7 +268,8 @@ Calendar.defaultProps = {
   //only for horizontal calendar
   blockHeight: 30,
   timeBlockStyles: {},
-  dayBlockStyles: {}
+  dayBlockStyles: {},
+  tableStyles: {}
 };
 
 export default Calendar;
