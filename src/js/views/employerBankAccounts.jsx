@@ -49,7 +49,7 @@ class EmployerBankAccounts extends Flux.DashView {
             <div>
                 <div className="row mt-2">
                     <div className="col-12">
-                        <label>Bank accounts</label>
+                    <h1><span id="company_details">Bank accounts</span></h1>
                         <div className="p-1 listcontents">
                             <Theme.Consumer>
                                 {({ bar }) => (<span>
