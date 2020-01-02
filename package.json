@@ -63,6 +63,7 @@
     "@fortawesome/fontawesome": "^1.1.4",
     "@fortawesome/fontawesome-free-regular": "^5.0.8",
     "@fortawesome/fontawesome-free-solid": "^5.0.13",
+    "@react-pdf/renderer": "^1.6.8",
     "bc-react-calendar": "^1.0.39",
     "bc-react-notifier": "^1.1.6",
     "bc-react-session": "^1.5.2",
