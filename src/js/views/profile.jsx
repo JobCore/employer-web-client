@@ -6,8 +6,7 @@ import { validator, ValidationError } from '../utils/validation';
 import Dropzone from 'react-dropzone';
 import DateTime from 'react-datetime';
 import moment from 'moment';
-import { BankAccountExtendedCard, Theme, Button, Wizard } from '../components/index';
-import PlaidLink from 'react-plaid-link';
+import { Button } from '../components/index';
 export const Employer = (data = {}) => {
 
     const _defaults = {
@@ -49,28 +48,6 @@ export class Profile extends Flux.DashView {
     constructor() {
         super();
         this.state = {
-            bankAccounts: [
-                {
-                    name: "account 1",
-                    id: 1
-                },
-                {
-                    name: "account 2",
-                    id: 2
-                },
-                {
-                    name: "account 3",
-                    id: 3
-                },
-                {
-                    name: "account 4",
-                    id: 4
-                },
-                {
-                    name: "account 5",
-                    id: 5
-                },
-            ],
             employer: Employer().defaults()
         };
     }
@@ -161,49 +138,6 @@ export class Profile extends Flux.DashView {
                         <input type="text" className="form-control" value={this.state.employer.bio}
                             onChange={(e) => this.setEmployer({ bio: e.target.value })}
                         />
-                    </div>
-                </div>
-                <div className="row mt-2">
-                    <div className="col-12">
-                        <label>Bank accounts</label>
-                        <div className="p-1 listcontents">
-                            <Theme.Consumer>
-                                {({ bar }) => (<span>
-                                    {/* <Wizard continuous
-                                        steps={this.state.steps}
-                                        run={this.state.runTutorial}
-                                        callback={callback}
-                                    /> */}
-                                    {/* <h1><span id="talent_search_header">Talent Search</span></h1> */}
-                                    {this.state.bankAccounts.map((account, i) => (
-                                        <BankAccountExtendedCard
-                                            key={i}
-                                            account={account}
-                                            hover={true}
-                                            // onClick={() => bar.show({ slug: "show_single_talent", data: s, allowLevels })}
-                                        >
-                                            {/* <Button icon="favorite" onClick={() => bar.show({ slug: "add_to_favlist", data: s, allowLevels })}><label>Favorites</label></Button> */}
-                                            {/* <Button icon="favorite" onClick={() => bar.show({ slug: "invite_talent_to_shift", data: s, allowLevels })}><label>Invite</label></Button> */}
-                                        </BankAccountExtendedCard>
-                                    ))}
-                                </span>)}
-                            </Theme.Consumer>
-                        </div>
-                        <PlaidLink
-                            className="plaid-button"
-                            env={process.env.PLAID_ENVIRONMENT}
-                            product="auth"
-                            publicKey={process.env.PLAID_PUBLIC_KEY}
-                            onExit={this.handleOnExit}
-                            onSuccess={this.handleOnSuccess}
-                        >
-                            <button
-                                type="button"
-                                className="btn btn-primary"
-                            >
-                                Add bank account
-                            </button>
-                        </PlaidLink>
                     </div>
                 </div>
                 <div className="mt-4 text-right">
