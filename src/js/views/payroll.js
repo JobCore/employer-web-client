@@ -646,7 +646,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                         <small className="shift-position text-success">{shift.position.title}</small> @
                         <small className="shift-location text-primary"> {shift.venue.title}</small>
                     </div>
-                    {<p>
+                    {/* {<p>
                         {
                             (typeof shift.price == 'string') ?
                                 (shift.price === '0.0') ? '' : <small className="shift-price text-danger"> ${shift.price}</small>
@@ -686,7 +686,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                 <small className="pointer"><i className="fas fa-map-marker-alt"></i> Out</small>
                             </Tooltip>
                         </div>}
-                    </p>}
+                    </p>} */}
                 </td>
         }
         <td className="time">
