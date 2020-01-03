@@ -364,6 +364,7 @@ export class ManagePayroll extends Flux.DashView {
 
 
     render() {
+        console.log(this.state.singlePayrollPeriod);
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
