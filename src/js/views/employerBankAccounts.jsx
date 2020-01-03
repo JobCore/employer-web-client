@@ -44,6 +44,10 @@ class EmployerBankAccounts extends Flux.DashView {
         // handle the case when your user exits Link
     }
 
+    deleteBankAccount = (data) => {
+        console.log('delete bank account: ', data);
+      }
+
     render() {
         return (
             <div>
@@ -64,6 +68,7 @@ class EmployerBankAccounts extends Flux.DashView {
                                             key={i}
                                             account={account}
                                             hover={true}
+                                            onDelete={this.deleteBankAccount}
                                             // onClick={() => bar.show({ slug: "show_single_talent", data: s, allowLevels })}
                                         >
                                             {/* <Button icon="favorite" onClick={() => bar.show({ slug: "add_to_favlist", data: s, allowLevels })}><label>Favorites</label></Button> */}

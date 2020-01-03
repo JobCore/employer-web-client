@@ -14,18 +14,21 @@ const BankAccountExtendedCard = ({
     showButtonsOnHover,
     className,
     children,
-    onClick
+    onClick,
+    onDelete,
 }) => {
     // const badgesHTML = props.employee.badges.map((b, i) => (<span key={i} className="badge">{b.title}</span>));
     // const favoriteCount = !Array.isArray(props.employee.favoritelist_set) ? 0 : props.employee.favoritelist_set.length;
     return (
         <li
-            className={`aplicantcard ${hoverEffect ? "aplicantcard-hover" : ""} 
+            className={`bankAccountcard ${hoverEffect ? "bankAccountcard-hover" : ""} 
       ${showButtonsOnHover ? "show-hover" : ""} ${className}`}
             onClick={() => (onClick) ? onClick() : false}
         >
             <Avatar url={""} />
-            <b>{account.name}</b>
+            <div style={{ display: "flex", flexDirection: "column", marginLeft: "55px" }}>
+                <b style={{ marginTop: "13px"}}>{account.name}</b>
+            </div>
             {/* <Stars
         rating={Number(props.employee.rating)}
         jobCount={!Array.isArray(props.employee.positions) ? 0 : props.employee.positions.length}
@@ -38,16 +41,14 @@ const BankAccountExtendedCard = ({
                 </p>
                 : ''
             } */}
-            <img
-                src={deleteIcon}
-                className={"delete-icon"}
-            />
-            {/* {(children) ?
-                <div className="btn-group" role="group" aria-label="Basic example">
-                    {children}
-                </div>
-                : ''
-            } */}
+            <div className="btn-group" role="group" aria-label="Basic example">
+                <img
+                    onClick={() => onDelete(account)}
+                    src={deleteIcon}
+                    className={"delete-icon"}
+                />
+                {children}
+            </div>
         </li>);
 };
 BankAccountExtendedCard.propTypes = {
@@ -60,7 +61,8 @@ BankAccountExtendedCard.propTypes = {
     className: PropTypes.string,
     showButtonsOnHover: PropTypes.bool,
     hoverEffect: PropTypes.bool,
-    onClick: PropTypes.func
+    onClick: PropTypes.func,
+    onDelete: PropTypes.func
 };
 BankAccountExtendedCard.defaultProps = {
     showFavlist: true,
@@ -68,7 +70,8 @@ BankAccountExtendedCard.defaultProps = {
     hoverEffect: true,
     showButtonsOnHover: true,
     children: null,
-    onClick: null
+    onClick: null,
+    onDelete: null,
 };
 
 export default BankAccountExtendedCard;
