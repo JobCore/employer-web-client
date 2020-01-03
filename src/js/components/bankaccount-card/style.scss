@@ -1,7 +1,7 @@
 @import '../theme/style.scss';
-.aplicantcard{
-    width: max-content;
-    min-height: 45px;
+.bankAccountcard{
+    // width: max-content;
+    min-height: 52px;
     list-style: none;
     position: relative;
     border-radius: 30px;
@@ -20,7 +20,7 @@
     .avatar{
         position: absolute;
         left: 8px;
-        top: 5px;
+        top: 10px;
     }
     .accept-reject{
         position: absolute;
@@ -60,7 +60,7 @@
             left: 0;
         }
     }
-    &.aplicantcard-hover:hover{
+    &.bankAccountcard-hover:hover{
         -webkit-box-shadow: 1px 0px 25px 3px rgba(0,0,0,0.2);
         -moz-box-shadow: 1px 0px 25px 3px rgba(0,0,0,0.2);
         box-shadow: 1px 0px 25px 3px rgba(0,0,0,0.2);
@@ -74,4 +74,12 @@
             display: inline-block;
         }
     }
+    .delete-icon{
+        width: 20px;
+        margin-left: 20px;
+        cursor: pointer;
+        right: 10px;
+        top: 0;
+        position: absolute;
+       }
 }
