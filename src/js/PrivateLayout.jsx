@@ -9,6 +9,7 @@ import {Theme, SideBar, LoadBar} from './components/index';
 import { ShiftCalendar } from "./views/calendar.js";
 import { ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters, RateShift, ShiftInvites, ShiftEmployees,
     ShiftTalentClockins } from './views/shifts';
+import { CreateDeduction } from "./views/profile";
 import {ManageApplicantions, ApplicationDetails,FilterApplications, getApplicationsInitialFilters} from './views/applications';
 import {Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilters, TalentDetails} from './views/talents';
 import {PendingInvites, SearchShiftToInviteTalent, InviteTalentToJobcore, SearchTalentToInviteToShift} from './views/invites';
@@ -24,7 +25,6 @@ import logoURL from '../img/logo.png';
 import loadingURL from '../img/loading2.gif';
 import moment from 'moment';
 import {EngineComponent} from "./utils/write_engine";
-import EmployerBankAccounts from "./views/employerBankAccounts";
 class PrivateLayout extends Flux.DashView{
 
     constructor(){
@@ -68,6 +68,11 @@ class PrivateLayout extends Flux.DashView{
                         case 'create_shift':
                             //console.log('create_shift', option.data);
                             this.showRightBar(ShiftDetails, option, {formData: Shift(option.data).defaults()});
+                        break;
+                        case 'show_create_deduction':
+                            option.title = "Create deduction";
+                            console.log('show_create_deduction option: ', option);
+                            this.showRightBar(CreateDeduction, option, {formData: option.data});
                         break;
                         case 'filter_talent':
                             this.showRightBar(FilterTalents, option, {formData: getTalentInitialFilters(this.state.catalog)});
@@ -342,7 +347,6 @@ class PrivateLayout extends Flux.DashView{
                             <Route exact path='/locations' component={ManageLocations} />
                             <Route exact path='/payroll-settings' component={PayrollSettings} />
                             <Route exact path='/profile' component={Profile} />
-                            <Route exact path='/employer-bank-accounts' component={EmployerBankAccounts} />
                             <Route exact path='/payroll' component={ManagePayroll} />
                             <Route exact path='/payroll/period/:period_id' component={ManagePayroll} />
                             <Route exact path='/rate' component={RateShift} />

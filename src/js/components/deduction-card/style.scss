@@ -1,6 +1,6 @@
 @import '../theme/style.scss';
-.aplicantcard{
-    width: max-content;
+.deductioncard{
+    // width: max-content;
     min-height: 45px;
     list-style: none;
     position: relative;
@@ -20,7 +20,7 @@
     .avatar{
         position: absolute;
         left: 8px;
-        top: 5px;
+        top: 14px;
     }
     .accept-reject{
         position: absolute;
@@ -60,7 +60,7 @@
             left: 0;
         }
     }
-    &.aplicantcard-hover:hover{
+    &.deductioncard-hover:hover{
         -webkit-box-shadow: 1px 0px 25px 3px rgba(0,0,0,0.2);
         -moz-box-shadow: 1px 0px 25px 3px rgba(0,0,0,0.2);
         box-shadow: 1px 0px 25px 3px rgba(0,0,0,0.2);
