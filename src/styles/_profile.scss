@@ -5,10 +5,19 @@
 }
 
 .delete-icon{
- width: 20px;
+ width: 15px;
  margin-left: 20px;
  cursor: pointer;
  right: 10px;
+ top: 9px;
+ position: absolute;
+}
+
+.edit-icon{
+ width: 20px;
+ margin-left: 20px;
+ cursor: pointer;
+ right: 40px;
  top: 9px;
  position: absolute;
 }

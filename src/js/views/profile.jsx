@@ -7,6 +7,8 @@ import Dropzone from 'react-dropzone';
 import DateTime from 'react-datetime';
 import moment from 'moment';
 import { Button } from '../components/index';
+import { DeductionExtendedCard, Theme } from '../components/index';
+import PropTypes from 'prop-types';
 export const Employer = (data = {}) => {
 
     const _defaults = {
@@ -48,7 +50,34 @@ export class Profile extends Flux.DashView {
     constructor() {
         super();
         this.state = {
-            employer: Employer().defaults()
+            employer: Employer().defaults(),
+            deductions: [
+                {
+                    name: "deduction name",
+                    deduction: 1,
+                    active: true
+                },
+                {
+                    name: "deduction name",
+                    deduction: 2,
+                    active: false
+                },
+                {
+                    name: "deduction name",
+                    deduction: 3,
+                    active: true
+                },
+                {
+                    name: "deduction name",
+                    deduction: 4,
+                    active: false
+                },
+                {
+                    name: "deduction name",
+                    deduction: 5,
+                    active: true
+                },
+            ],
         };
     }
 
@@ -76,6 +105,12 @@ export class Profile extends Flux.DashView {
         // handle the case when your user exits Link
     }
 
+    createDeduction = (data) => {
+    console.log("createDeduction data: ", data);
+    }
+    editDeduction = (data) => {
+    console.log("editDeduction data: ", data);
+    }
     render() {
         const allowLevels = (window.location.search != '');
         return (<div className="p-1 listcontents company-profile">
@@ -138,6 +173,45 @@ export class Profile extends Flux.DashView {
                         <input type="text" className="form-control" value={this.state.employer.bio}
                             onChange={(e) => this.setEmployer({ bio: e.target.value })}
                         />
+                    </div>
+                </div>
+                <div className="row mt-2">
+                    <div className="col-12">
+                        <label>Deductions</label>
+                        <div className="p-1 listcontents">
+                            <Theme.Consumer>
+                                {({ bar }) => (<span>
+                                    {/* <Wizard continuous
+                                        steps={this.state.steps}
+                                        run={this.state.runTutorial}
+                                        callback={callback}
+                                    /> */}
+                                    {/* <h1><span id="talent_search_header">Talent Search</span></h1> */}
+                                    {this.state.deductions.map((deduction, i) => (
+                                        <DeductionExtendedCard
+                                            key={i}
+                                            deduction={deduction}
+                                            hover={true}
+                                            onEditClick={() => bar.show({ slug: "show_create_deduction", data: {action: "edit", barFunction: this.editDeduction, ...deduction} })}>
+                                            {/* <Button icon="favorite" onClick={() => bar.show({ slug: "add_to_favlist", data: s, allowLevels })}><label>Favorites</label></Button> */}
+                                            {/* <Button icon="favorite" onClick={() => bar.show({ slug: "invite_talent_to_shift", data: s, allowLevels })}><label>Invite</label></Button> */}
+                                        </DeductionExtendedCard>
+                                    ))}
+                                </span>)}
+                            </Theme.Consumer>
+                        </div>
+                        <Theme.Consumer>
+                            {({ bar }) => (
+                                <button
+                        type="button"
+                        className="btn btn-primary"
+                        style={{ marginTop: "10px" }}
+                        onClick={() => bar.show({ slug: "show_create_deduction", data: { name: "", active: false, deduction: "", action: "create", barFunction: this.createDeduction} })}
+                    >
+                        Create deduction
+                                </button>
+                            )}
+                        </Theme.Consumer>
                     </div>
                 </div>
                 <div className="mt-4 text-right">
@@ -285,3 +359,61 @@ export class PayrollSettings extends Flux.DashView {
         </div>);
     }
 }
+
+/**
+ * Create deduction
+ */
+export const CreateDeduction = ({ onSave, onCancel, onChange, catalog, formData, error, bar }) => {
+    // const creationMode = isNaN(props.formData.id);
+    // const shift = props.catalog.shifts.find(s => s.id == props.formData.id);
+    // if(!creationMode && (!shift || typeof shift === 'undefined')) return <div>Loading shift...</div>;
+    return ( <form>
+        <div className="row">
+            <div className="col-6">
+                <label>Name:</label>
+                <input className="form-control"
+                    value={formData.name}
+                    onChange={(e)=> onChange({ name: e.target.value })}
+                />
+            </div>
+            <div className="col-6">
+                <label>Deduction</label>
+                <input type="number" className="form-control"
+                    value={formData.deduction}
+                    onChange={(e)=> onChange({deduction: e.target.value})}
+                />
+            </div>
+        </div>
+        <div className="row">
+            <div className="col-1" style={{ flexDirection: "row", display: "flex", alignItems: "center" }}>
+                <input type="checkbox"
+                    placeholder="Active"
+                    style={{ marginRight: "6px" }}
+                    checked={formData.active}
+                    onChange={(e)=> onChange({ active: e.target.checked})}
+                />
+                <label>Active </label>
+            </div>
+        </div>
+        <div className="btn-bar">
+            <button 
+            type="button" 
+            className="btn btn-success" 
+            onClick={() => formData.barFunction(formData)}
+            >
+                {formData.action === "edit" ? "Save" : "Create"}
+            </button>
+        </div>
+    </form>);
+};
+
+CreateDeduction.propTypes = {
+    error: PropTypes.string,
+    action: PropTypes.string,
+    bar: PropTypes.object,
+    onSave: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    onChange: PropTypes.func.isRequired,
+    formData: PropTypes.object,
+    catalog: PropTypes.object //contains the data needed for the form to load
+};

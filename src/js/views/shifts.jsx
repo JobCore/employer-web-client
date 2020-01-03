@@ -849,6 +849,7 @@ export const ShiftDetails = (props) => {
         )}
     </Theme.Consumer>);
 };
+
 ShiftDetails.propTypes = {
     error: PropTypes.string,
     onSave: PropTypes.func.isRequired,
