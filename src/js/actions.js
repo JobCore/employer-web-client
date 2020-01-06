@@ -582,7 +582,7 @@ export const updatePayments = async (payments, period) => {
 };
 
 export const createPayment = async (payment, period) => {
-
+    console.log(payment);
     const _new = await create("payment", { ...payment, employee: payment.employee.id || payment.employee, shift: payment.shift.id || payment.shift });
     const _period = {
         ...period,
