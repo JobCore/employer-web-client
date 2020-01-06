@@ -216,7 +216,6 @@ export class ManageShifts extends Flux.DashView {
                             let values = filters.status.value.split(',');
                             if(values.length==1){
                                 if(values.includes("OPEN")){
-                                    if(shift.id === 1095) debugger;
                                     if(
                                         moment(shift.ending_at).isBefore(NOW()) || //has passed
                                         (shift.maximum_allowed_employees <= shift.employees.length) //or its filled

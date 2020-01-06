@@ -153,7 +153,11 @@ export const Clockin = (data) => {
                 shift: (typeof this.shift != 'object') ? store.get('shift', this.shift) : Shift(this.shift).defaults().unserialize(),
                 employee: (typeof this.employee != 'object') ? store.get('employees', this.employee) : this.employee,
                 started_at: this.started_at && !moment.isMoment(this.started_at) ? moment(this.started_at) : this.started_at,
-                ended_at: this.ended_at && !moment.isMoment(this.ended_at) ? moment(this.ended_at) : this.ended_at
+                ended_at: this.ended_at && !moment.isMoment(this.ended_at) ? moment(this.ended_at) : this.ended_at,
+                latitude_in: parseFloat(this.latitude_in),
+                longitude_in: parseFloat(this.longitude_in),
+                latitude_out: parseFloat(this.latitude_out),
+                longitude_out: parseFloat(this.longitude_out)
             };
 
             return Object.assign(this, newObject);
@@ -565,7 +569,7 @@ function createMapOptions(maps) {
             position: maps.ControlPosition.RIGHT_CENTER,
             style: maps.ZoomControlStyle.SMALL
         },
-        zoomControl: true,
+        zoomControl: false,
         scaleControl: false,
         fullscreenControl: false,
         mapTypeControl: false
@@ -574,6 +578,44 @@ function createMapOptions(maps) {
 const Marker = ({ text }) => (<div><img style={{ maxWidth: "25px" }} src={markerURL} /></div>);
 Marker.propTypes = {
     text: PropTypes.string
+};
+
+const LatLongClockin = ({ clockin, children, isIn }) => {
+    const lat = isIn ? clockin.latitude_in : clockin.latitude_out;
+    const lng = isIn ? clockin.longitude_in : clockin.longitude_out;
+    return <Tooltip placement="right" trigger={['click']} overlay={
+        <div style={{ width: "200px", height: "200px", display: "inline-block", padding: "0px" }}>
+            <GoogleMapReact
+                bootstrapURLKeys={{ key: process.env.GOOGLE_MAPS_WEB_KEY }}
+                defaultCenter={{ lat: 25.7617, lng: -80.1918}}
+                width="100%"
+                height="100%"
+                center={{ lat,lng }}
+                options={createMapOptions}
+                defaultZoom={14}
+            >
+                <Marker
+                    lat={lat}
+                    lng={lng}
+                    text={'Jobcore'}
+                />
+            </GoogleMapReact>
+            <small className="d-block text-center">({ lat },{ lng })</small>
+        </div>
+    }>
+        {children}
+    </Tooltip>;
+};
+
+LatLongClockin.propTypes = {
+    clockin: PropTypes.object.isRequired,
+    isIn: PropTypes.bool.isRequired,
+    children: PropTypes.node.isRequired
+};
+LatLongClockin.defaultProps = {
+    clockin: null,
+    isIn: true,
+    children: null
 };
 
 const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, period }) => {
@@ -589,8 +631,8 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
 
     const [possibleShifts, setPossibleShifts] = useState(null);
 
-    const init_breaktime = NOW().startOf('day').add(payment.breaktime_minutes, 'minutes');
-    const [breaktime, setBreaktime] = useState(init_breaktime);
+    //const init_breaktime = NOW().startOf('day').add(payment.breaktime_minutes, 'minutes');
+    const [breaktime, setBreaktime] = useState(payment.breaktime_minutes);
 
     const startTime = clockin.shift && clockin.started_at ? clockin.started_at.format('LT') : "-";
     const endTime = clockin.shift && clockin.ended_at ? clockin.ended_at.format('LT') : "_";
@@ -604,7 +646,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
     const shiftDuration = moment.duration(shift.ending_at.diff(shift.starting_at));
     const plannedHours = Math.round(shiftDuration.asHours() * 100) / 100;
 
-    const clockInDurationAfterBreak = !clockin.ended_at ? null : moment.duration(clockin.ended_at.diff(clockin.started_at)).subtract(breaktime.diff(NOW().startOf('day')));
+    const clockInDurationAfterBreak = !clockin.ended_at ? null : moment.duration(clockin.ended_at.diff(clockin.started_at)).subtract(breaktime, "minute");
     const clockInTotalHoursAfterBreak = !clockInDurationAfterBreak ? 0 : Math.round(clockInDurationAfterBreak.asHours() * 100) / 100;
 
     const diff = Math.round((clockInTotalHoursAfterBreak - plannedHours) * 100) / 100;
@@ -646,7 +688,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                         <small className="shift-position text-success">{shift.position.title}</small> @
                         <small className="shift-location text-primary"> {shift.venue.title}</small>
                     </div>
-                    {<p>
+                    {<div>
                         {
                             (typeof shift.price == 'string') ?
                                 (shift.price === '0.0') ? '' : <small className="shift-price text-danger"> ${shift.price}</small>
@@ -654,39 +696,14 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                 <small className="shift-price text-danger"> {shift.price.currencySymbol}{shift.price.amount}</small>
                         }{" "}
                         {clockin && <div className="d-inline">
-                            <Tooltip placement="right" trigger={['click']} overlay={
-                                <span style={{ width: "100px", height: "100px", display: "inline-block" }}>
-                                    <GoogleMapReact
-                                        bootstrapURLKeys={{ key: process.env.GOOGLE_MAPS_WEB_KEY }}
-                                        defaultCenter={{
-                                            lat: 25.7617,
-                                            lng: -80.1918
-                                        }}
-                                        width="100%"
-                                        height="100%"
-                                        center={{
-                                            lat: clockin.latitude_in,
-                                            lng: clockin.longitude_in
-                                        }}
-                                        options={createMapOptions}
-                                        defaultZoom={12}
-                                    >
-                                        <Marker
-                                            lat={clockin.latitude_in}
-                                            lng={clockin.longitude_in}
-                                            text={'Jobcore'}
-                                        />
-                                    </GoogleMapReact>
-                                    <small className="d-block text-center">({clockin.latitude_in},{clockin.longitude_in})</small>
-                                </div>
-                            }>
+                            <LatLongClockin isIn={true} clockin={clockin}>
                                 <small className="pointer"><i className="fas fa-map-marker-alt"></i> In</small>
-                            </Tooltip>{" "}
-                            <Tooltip placement="right" trigger={['click']} overlay={<small>({clockin.latitude_in},{clockin.longitude_in})</small>}>
+                            </LatLongClockin>{" "}
+                            <LatLongClockin isIn={false} clockin={clockin}>
                                 <small className="pointer"><i className="fas fa-map-marker-alt"></i> Out</small>
-                            </Tooltip>
+                            </LatLongClockin>
                         </div>}
-                    </p>}
+                    </div>}
                 </td>
         }
         <td className="time">
@@ -746,11 +763,11 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
             :
             <td style={{ minWidth: "75px", maxWidth: "75px" }} className="text-center">
                 {
-                    <TimePicker showSecond={false} minuteStep={1}
-                        onChange={(value) => value && setBreaktime(value)} value={breaktime}
+                    <input type="number" className="w-100 rounded"
+                        onChange={e => e.target.value != '' ? setBreaktime(parseInt(e.target.value)) : setBreaktime(0)} value={breaktime}
                     />
                 }
-                <small>hh:mm</small>
+                <small>minutes</small>
             </td>
         }
         <td>{!readOnly ? clockInTotalHoursAfterBreak : parseFloat(payment.regular_hours) + parseFloat(payment.over_time)}</td>
@@ -775,13 +792,13 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                 shift: shift,
                                 employee: employee,
                                 clockin: null,
-                                breaktime_minutes: moment.duration(breaktime.diff(NOW().startOf('day'))).minutes(),
+                                breaktime_minutes: breaktime,
                                 regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
                                 over_time: diff < 0 ? 0 : diff
                             });
                         }
                         else onApprove({
-                            breaktime_minutes: moment.duration(breaktime.diff(NOW().startOf('day'))).minutes(),
+                            breaktime_minutes: breaktime,
                             regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
                             over_time: diff < 0 ? 0 : diff
                         });
