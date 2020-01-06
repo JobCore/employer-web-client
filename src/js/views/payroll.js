@@ -365,6 +365,7 @@ export class ManagePayroll extends Flux.DashView {
 
     render() {
         console.log(this.state.singlePayrollPeriod);
+
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
@@ -581,6 +582,10 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
 
     if (!employee || employee.id === "new") return <p className="px-3 py-1">⬆ Search an employee from the list above...</p>;
 
+    if (payment.approved_clockin_time) payment.clockin.started_at = payment.approved_clockin_time;
+
+    if (payment.approved_clockout_time) payment.clockin.ended_at = payment.approved_clockout_time;
+
     const [clockin, setClockin] = useState(Clockin(payment.clockin).defaults().unserialize());
 
     const [shift, setShift] = useState(Shift(payment.shift).defaults().unserialize());
@@ -592,6 +597,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
 
     const init_breaktime = NOW().startOf('day').add(payment.breaktime_minutes, 'minutes');
     const [breaktime, setBreaktime] = useState(init_breaktime);
+
 
     const startTime = clockin.shift && clockin.started_at ? clockin.started_at.format('LT') : "-";
     const endTime = clockin.shift && clockin.ended_at ? clockin.ended_at.format('LT') : "_";
@@ -778,13 +784,19 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                 clockin: null,
                                 breaktime_minutes: moment.duration(breaktime.diff(NOW().startOf('day'))).minutes(),
                                 regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
-                                over_time: diff < 0 ? 0 : diff
+                                over_time: diff < 0 ? 0 : diff,
+                                //
+                                approved_clockin_time: clockin.started_at,
+                                approved_clockout_time: clockin.ended_at
                             });
                         }
                         else onApprove({
                             breaktime_minutes: moment.duration(breaktime.diff(NOW().startOf('day'))).minutes(),
                             regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
-                            over_time: diff < 0 ? 0 : diff
+                            over_time: diff < 0 ? 0 : diff,
+                            //
+                            approved_clockin_time: clockin.started_at,
+                            approved_clockout_time: clockin.ended_at
                         });
                     }}
                 />
@@ -1066,7 +1078,6 @@ export class PayrollReport extends Flux.DashView {
 
 
     render() {
-        console.log(this.state);
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
