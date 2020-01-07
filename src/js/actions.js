@@ -557,8 +557,7 @@ export const updateTalentList = (action, employee, listId) => {
 };
 
 export const updatePayments = async (payments, period) => {
-    console.log(payments);
-    console.log(period);
+
     if (!Array.isArray(payments)) payments = [payments];
     for (let i = 0; i < payments.length; i++) {
         let data = { ...payments[i] };
@@ -632,7 +631,7 @@ class _Store extends Flux.DashStore {
             const applicants = this.getState('applications');
             if (!applicants && Session.get().isValid) fetchAllMe(['applications']);
 
-            const _shift = newShifts.find(s => s.id == 1095);
+            // const _shift = newShifts.find(s => s.id == 1095);
             return newShifts;
         });
 

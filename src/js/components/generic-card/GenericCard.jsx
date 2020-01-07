@@ -18,7 +18,7 @@ GenericCard.propTypes = {
   children: PropTypes.node.isRequired,
   onClick: PropTypes.func,
   className: PropTypes.string,
-  hover: PropTypes.boolean,
+  hover: PropTypes.bool,
   onAccept: PropTypes.func,
   onReject: PropTypes.func
 };
