@@ -54,6 +54,7 @@ export const Deduction = (data = {}) => {
         value: null,
         description: '',
         type: 'PERCENTAGE',
+        lock: false,
         serialize: function () {
 
             const newDeduction = {
@@ -519,13 +520,14 @@ export const UpdateDeduction = ({
             </div>
             <div className="row">
                 <div className="col-1" style={{ flexDirection: "row", display: "flex", alignItems: "center" }}>
-                    <input type="checkbox"
+                    <input 
+                        type="checkbox"
                         placeholder="Active"
                         style={{ marginRight: "6px" }}
                         checked={formData.lock}
                         onChange={(e)=> onChange({ lock: e.target.checked})}
                     />
-                    <label>Active </label>
+                    <label>Lock </label>
                 </div>
             </div>
             <div className="btn-bar">

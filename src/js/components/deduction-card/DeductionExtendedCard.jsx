@@ -23,7 +23,7 @@ const DeductionExtendedCard = ({
                 <b>{`${deduction.value}%`}</b>
             </td>
             <td>
-                <b>{`${deduction.lock ? "Active" : "Inactive"}`}</b>
+                <b>{`${!deduction.lock ? "Active" : "Inactive"}`}</b>
             </td>
             <td>
                 <div className="deduction-description">
