@@ -17,7 +17,8 @@ const DeductionExtendedCard = ({
     className,
     children,
     onClick,
-    onEditClick
+    onEditClick,
+    onDelete
 }) => {
     // const badgesHTML = props.employee.badges.map((b, i) => (<span key={i} className="badge">{b.title}</span>));
     // const favoriteCount = !Array.isArray(props.employee.favoritelist_set) ? 0 : props.employee.favoritelist_set.length;
@@ -30,8 +31,9 @@ const DeductionExtendedCard = ({
             <Avatar url={""} />
             <div style={{ display: 'flex', flexDirection: 'column', marginLeft: "55px" }}>
                 <b>{deduction.name}</b>
-                <b>{` ${deduction.deduction}%`}</b>
-                <b>{` status: ${deduction.active ? "Active" : "Inactive"}`}</b>
+                <b>{` ${deduction.value}%`}</b>
+                <b>{` status: ${deduction.lock ? "Active" : "Inactive"}`}</b>
+                <b>{deduction.description ? ` description: ${deduction.description}` : ""}</b>
             </div>
             {/* <Stars
         rating={Number(props.employee.rating)}
@@ -47,6 +49,7 @@ const DeductionExtendedCard = ({
             } */}
             <div className="btn-group" role="group" aria-label="Basic example">
                 <img
+                    onClick={onDelete}
                     src={deleteIcon}
                     className={"delete-icon"}
                 />
@@ -72,6 +75,7 @@ DeductionExtendedCard.propTypes = {
     showButtonsOnHover: PropTypes.bool,
     hoverEffect: PropTypes.bool,
     onClick: PropTypes.func,
+    onDelete: PropTypes.func,
     onEditClick: PropTypes.func
 };
 DeductionExtendedCard.defaultProps = {
@@ -81,6 +85,7 @@ DeductionExtendedCard.defaultProps = {
     showButtonsOnHover: true,
     children: null,
     onClick: null,
+    onDelete: null,
     onEditClick: null,
 };
 
