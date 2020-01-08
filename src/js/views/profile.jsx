@@ -329,27 +329,37 @@ export class PayrollSettings extends Flux.DashView {
                                         callback={callback}
                                     /> */}
                                     {/* <h1><span id="talent_search_header">Talent Search</span></h1> */}
-                                    {this.state.deductions.length > 0
-                                    ? this.state.deductions.map((deduction, i) => (
-                                        <DeductionExtendedCard
-                                            key={i}
-                                            deduction={deduction}
-                                            hover={true}
-                                            onEditClick={() => bar.show({ 
-                                                slug: "update_deduction", 
-                                                data: deduction
-                                                })}
-                                            onDelete={() => {
-                                                const noti = Notify.info("Are you sure you want to delete this deduction?",(answer) => {
-                                                    if(answer) remove('deduction', deduction);
-                                                    noti.remove();
-                                                });
-                                            }}    
-                                                >
-                                            {/* <Button icon="favorite" onClick={() => bar.show({ slug: "add_to_favlist", data: s, allowLevels })}><label>Favorites</label></Button> */}
-                                            {/* <Button icon="favorite" onClick={() => bar.show({ slug: "invite_talent_to_shift", data: s, allowLevels })}><label>Invite</label></Button> */}
-                                        </DeductionExtendedCard>
-                                    ))
+                                    { this.state.deductions.length > 0
+                                    ? <table className="table table-striped payroll-summary">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Deduction</th>
+                                                <th>Status</th>
+                                                <th>Description</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {this.state.deductions.map((deduction, i) => (
+                                                <DeductionExtendedCard
+                                        key={i}
+                                        deduction={deduction}
+                                        onEditClick={() => bar.show({ 
+                                            slug: "update_deduction", 
+                                            data: deduction
+                                            })}
+                                        onDelete={() => {
+                                            const noti = Notify.info("Are you sure you want to delete this deduction?",(answer) => {
+                                                if(answer) remove('deduction', deduction);
+                                                noti.remove();
+                                            });
+                                        }}    
+                                            >
+                                                </DeductionExtendedCard>
+                                ))}
+                                        </tbody>
+                                    </table>
                                 : <p>No deductions yet</p>}
                                 </span>)}
                             </Theme.Consumer>
