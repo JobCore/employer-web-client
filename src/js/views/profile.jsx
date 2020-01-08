@@ -100,16 +100,6 @@ export class Profile extends Flux.DashView {
 
     }
 
-    handleOnSuccess(token, metadata) {
-        console.log('token: ', token);
-        console.log('metadata: ', metadata);
-        // send token to client server
-    }
-
-    handleOnExit() {
-        // handle the case when your user exits Link
-    }
-
     render() {
         const allowLevels = (window.location.search != '');
         return (<div className="p-1 listcontents company-profile">
