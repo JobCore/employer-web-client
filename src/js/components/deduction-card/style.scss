@@ -2,3 +2,11 @@
     .btn-group{
         align-items: center;
     }
+    b{
+        word-wrap: break-word;
+    }
+    .deduction-description{
+        width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
