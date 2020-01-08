@@ -26,7 +26,9 @@ const DeductionExtendedCard = ({
                 <b>{`${deduction.lock ? "Active" : "Inactive"}`}</b>
             </td>
             <td>
-                <b>{deduction.description ? `${deduction.description}` : ""}</b>
+                <div className="deduction-description">
+                    <b>{deduction.description ? `${deduction.description}` : ""}</b>
+                </div>
             </td>
             <td>
                 <div className="btn-group" role="group" aria-label="Basic example">
