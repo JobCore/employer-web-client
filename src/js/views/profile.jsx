@@ -440,17 +440,16 @@ export const CreateDeduction = ({
                     />
                 </div>
             </div>
-            <div className="row">
+            {/* <div className="row">
                 <div className="col-1" style={{ flexDirection: "row", display: "flex", alignItems: "center" }}>
                     <input type="checkbox"
-                        placeholder="Active"
                         style={{ marginRight: "6px" }}
                         checked={formData.lock}
-                        onChange={(e)=> onChange({ active: e.target.checked})}
+                        onChange={(e)=> onChange({ lock: e.target.checked})}
                     />
-                    <label>Active </label>
+                    <label>Lock </label>
                 </div>
-            </div>
+            </div> */}
             <div className="btn-bar">
                 <button 
                 type="button"
@@ -522,7 +521,6 @@ export const UpdateDeduction = ({
                 <div className="col-1" style={{ flexDirection: "row", display: "flex", alignItems: "center" }}>
                     <input 
                         type="checkbox"
-                        placeholder="Active"
                         style={{ marginRight: "6px" }}
                         checked={formData.lock}
                         onChange={(e)=> onChange({ lock: e.target.checked})}
