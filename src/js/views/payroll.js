@@ -302,23 +302,30 @@ export const Payment = (data) => {
  * EditOrAddExpiredShift
  */
 export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar, oldShift }) => {
-
+    console.log(formData);
     useEffect(() => {
         const venues = store.getState('venues');
         const favlists = store.getState('favlists');
         if (!venues || !favlists) fetchAllMe(['venues', 'favlists']);
     }, []);
     const expired = moment(formData.starting_at).isBefore(NOW()) || moment(formData.ending_at).isBefore(NOW());
-    console.log("period_sarting", formData.period_starting.format('hh:mm'));
-    console.log("period_ending", formData.period_ending.format('hh:mm'));
-    const minimum_hours = moment(formData.starting_at).startOf('day').isSame(moment(formData.period_starting).startOf('day')) ? formData.period_starting.hour() : 0;
-    const minimum_minutes = moment(formData.starting_at).startOf('day').isSame(moment(formData.period_starting).startOf('day')) ? formData.period_starting.minute() : 0;
-    console.log("minimum_hours", minimum_hours);
-    console.log("minimum_minutes", minimum_minutes);
-    const maximum_hours = moment(formData.ending_at).startOf('day').isSame(moment(formData.period_ending).startOf('day')) ? formData.period_ending.hour() : 0;
-    const maximum_minutes = moment(formData.ending_at).startOf('day').isSame(moment(formData.period_ending).startOf('day')) ? formData.period_ending.minute() : 0;
-    console.log("maximum_hours", maximum_hours);
-    console.log("maximum_minutes", maximum_minutes);
+
+    const validating_minimum = moment(formData.starting_at).isBefore(formData.period_starting);
+    // moment(formData.starting_at).isBefore(formData.period_starting);
+    const validating_maximum = moment(formData.ending_at).isAfter(formData.period_ending);
+    // console.log("MINIMUM", validating_minimum);
+    // console.log("MAXIMUM", validating_maximum);
+    // const minimum_hours = moment(formData.starting_at).startOf('day').isSame(moment(formData.period_starting).startOf('day')) ? formData.period_starting.hour() : null;
+    // const minimum_minutes = moment(formData.starting_at).startOf('day').isSame(moment(formData.period_starting).startOf('day')) ? formData.period_starting.minute() : null;
+    // console.log("minimum_hours", minimum_hours);
+    // console.log("minimum_minutes", minimum_minutes);
+    // const maximum_hours = moment(formData.ending_at).startOf('day').isSame(moment(formData.period_ending).startOf('day')) ? formData.period_ending.hour() : 0;
+    // const maximum_minutes = moment(formData.ending_at).startOf('day').isSame(moment(formData.period_ending).startOf('day')) ? formData.period_ending.minute() : 0;
+    // console.log("maximum_hours", maximum_hours);
+    // console.log("maximum_minutes", maximum_minutes);
+
+
+
     return (
         <form>
             <div className="row">
@@ -402,8 +409,8 @@ export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, for
                                     if (typeof start == 'string') value = moment(start);
 
                                     const starting = moment(start.format("MM-DD-YYYY") + " " + start.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-                                    console.log('STARTING', starting);
                                     var ending = moment(start.format("MM-DD-YYYY") + " " + end.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+
                                     if (typeof starting !== 'undefined' && starting.isValid()) {
                                         if (ending.isBefore(starting)) {
                                             ending = ending.add(1, 'days');
@@ -415,7 +422,6 @@ export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, for
                                 };
 
                                 const mainDate = getRealDate(value, formData.ending_at);
-                                console.log(mainDate);
                                 const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
                                 onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
 
@@ -454,9 +460,6 @@ export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, for
                             const { value, ...rest } = properties;
                             return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
                         }}
-                        // Add some constraints to the timepicker. It accepts an object with the format { hours: { min: 9, max: 15, step: 2 }}, this example means the hours can't be lower than 9 and higher than 15, 
-                        // and it will change adding or subtracting 2 hours everytime the buttons are clicked. The constraints can be added to the hours, minutes, seconds and milliseconds.
-                        // current.isSameOrAfter(formData.period_starting.startOf('day'))
                         onChange={(value) => {
                             if (typeof value == 'string') value = moment(value);
 
@@ -542,20 +545,14 @@ export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, for
                     {/* <label>Search people in JobCore:</label> */}
                     <SearchCatalogSelect
                         isMulti={true}
-                        value={formData.pending_invites}
+                        value={formData.employeesToAdd}
                         onChange={(selections) => {
-                            const invite = selections.find(opt => opt.value == 'invite_talent_to_jobcore');
-                            if (invite) bar.show({
-                                allowLevels: true,
-                                slug: "invite_talent_to_jobcore",
-                                onSave: (emp) => onChange({ pending_jobcore_invites: formData.pending_jobcore_invites.concat(emp) })
-                            });
-                            else onChange({ pending_invites: selections });
+                            onChange({ employeesToAdd: selections });
                         }}
                         searchFunction={(search) => new Promise((resolve, reject) =>
                             GET('catalog/employees?full_name=' + search)
                                 .then(talents => resolve([
-                                    { label: `${(talents.length == 0) ? 'No one found: ' : ''}Invite "${search}" to jobcore`, value: 'invite_talent_to_jobcore' }
+                                    { label: `${(talents.length == 0) ? 'No one found: ' : ''}` }
                                 ].concat(talents)))
                                 .catch(error => reject(error))
                         )}
@@ -563,7 +560,7 @@ export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, for
                 </div>
             </div>
 
-            {(formData.pending_jobcore_invites.length > 0) ?
+            {/* {(formData.pending_jobcore_invites.length > 0) ?
                 <div className="row">
                     <div className="col-12">
                         <p className="m-0 p-0">The following people will be invited to this shift after they accept your invitation to jobcore:</p>
@@ -572,10 +569,10 @@ export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, for
                         ))}
                     </div>
                 </div> : ''
-            }
+            } */}
             <div className="btn-bar">
                 {(formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ? // create shift
-                    <button type="button" className="btn btn-primary" onClick={() => onSave({
+                    <button type="button" className="btn btn-primary" onClick={() => validating_maximum || validating_minimum ? Notify.error("Cannot create shift before payroll time or after ") : onSave({
                         executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
                         status: 'DRAFT'
                     })}>Save as draft</button> : ''
@@ -601,10 +598,36 @@ export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, for
                             }, 9999999999999);
                         }}>Unpublish shift</button>
                         :
-                        <button type="button" className="btn btn-success" onClick={() => onSave({
-                            executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
-                            status: 'OPEN'
-                        })}>Save and publish</button>
+                        <button type="button" className="btn btn-success"
+                            onChange={(value) => {
+
+
+                                const getRealDate = (start, end) => {
+                                    if (typeof start == 'string') value = moment(start);
+
+                                    const starting = moment(start.format("MM-DD-YYYY") + " " + start.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                                    var ending = moment(start.format("MM-DD-YYYY") + " " + end.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+
+                                    if (typeof starting !== 'undefined' && starting.isValid()) {
+                                        if (ending.isBefore(starting)) {
+                                            ending = ending.add(1, 'days');
+                                        }
+
+                                        return { starting_at: starting, ending_at: ending };
+                                    }
+                                    return null;
+                                };
+
+                                const mainDate = getRealDate(value, formData.ending_at);
+                                const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
+                                onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
+
+
+                            }}
+                            onClick={() => validating_maximum || validating_minimum ? Notify.error("Cannot create shift before payroll time or after") : onSave({
+                                executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
+                                status: 'OPEN'
+                            })}>Save and publish</button>
                 }
                 {(formData.status != 'UNDEFINED') ?
                     <button type="button" className="btn btn-danger" onClick={() => {
@@ -953,6 +976,7 @@ LatLongClockin.defaultProps = {
 };
 
 const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, period, onChange, selection }) => {
+    console.log("THIS ROW PAYMENT INFORMATION: ", payment);
     const { bar } = useContext(Theme.Context);
 
     if (!employee || employee.id === "new") return <p className="px-3 py-1">⬆ Search an employee from the list above...</p>;
@@ -962,7 +986,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
     if (payment.approved_clockout_time) payment.clockin.ended_at = payment.approved_clockout_time;
 
     const [clockin, setClockin] = useState(Clockin(payment.clockin).defaults().unserialize());
-
+    console.log(clockin);
     const [shift, setShift] = useState(Shift(payment.shift).defaults().unserialize());
 
     // const shiftRef = useRef(shift);
@@ -994,7 +1018,6 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
             GET(`employers/me/shifts?start=${moment(period.starting_at).format('YYYY-MM-DD')}&end=${moment(period.ending_at).format('YYYY-MM-DD')}&employee=${employee.id}`)
                 .then(_shifts => {
                     const _posibleShifts = _shifts.map(s => ({ label: '', value: Shift(s).defaults().unserialize() }));
-                    console.log(_posibleShifts);
                     setPossibleShifts(_posibleShifts);
                 })
                 .catch(e => Notify.error(e.message || e));
@@ -1012,17 +1035,23 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                             if (_shift) {
                                 if (_shift == 'new_shift') bar.show({
                                     slug: "create_expired_shift", data: {
-                                        pending_invites: [{ label: employee.user.first_name + " " + employee.user.last_name, value: employee.id }],
+                                        employeesToAdd: [{ label: employee.user.first_name + " " + employee.user.last_name, value: employee.id }],
                                         // Dates are in utc so I decided to change it to local time 
                                         starting_at: moment(period.starting_at),
                                         ending_at: moment(period.starting_at).add(2, "hours"),
                                         period_starting: moment(period.starting_at),
                                         period_ending: moment(period.ending_at),
+                                        application_restriction: 'SPECIFIC_PEOPLE',
+
                                     }
                                 });
-                                else onChange({ shift: _shift.toString() });
-                                // setShift(_shift);
-                                // setClockin({ ...clockin, started_at: _shift.starting_at, ended_at: _shift.ending_at });
+                                else {
+                                    console.log(_shift);
+                                    setShift(_shift);
+                                    setClockin({ ...clockin, started_at: _shift.starting_at, ended_at: _shift.ending_at });
+
+                                }
+                                // onChange({ shift: selectedOption });
                             }
                         }}
                         options={possibleShifts ? [{ label: "Add a shift", value: 'new_shift', component: EditOrAddExpiredShift }].concat(possibleShifts) : [{ label: "Add a shift", value: 'new_shift', component: EditOrAddExpiredShift }]}
@@ -1441,7 +1470,6 @@ export class PayrollReport extends Flux.DashView {
 
 
     render() {
-        console.log(this.state);
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">

@@ -55,7 +55,7 @@ export const Shift = (data) => {
         },
         serialize: function () {
 
-            const newShift = {
+            let newShift = {
                 status: (this.status == 'UNDEFINED') ? 'DRAFT' : this.status,
                 // starting_at: (moment.isMoment(this.starting_at)) ? this.starting_at.format(DATETIME_FORMAT) : this.starting_at,
                 // ending_at: (moment.isMoment(this.ending_at)) ? this.ending_at.format(DATETIME_FORMAT) : this.ending_at,
@@ -64,6 +64,9 @@ export const Shift = (data) => {
                 allowed_from_list: this.allowedFavlists.map(f => f.value),
                 multiple_dates: Array.isArray(this.multiple_dates) && this.multiple_dates.length > 0 ? this.multiple_dates : undefined
             };
+
+            //this is a special property used on the form for creating an expried (past) shift and adding the employess right away
+            if (Array.isArray(this.employeesToAdd)) newShift.employees = this.employeesToAdd.map(e => e.value || e.id);
 
             return Object.assign(this, newShift);
         },
@@ -570,6 +573,7 @@ ShiftInvites.propTypes = {
  * EditOrAddShift
  */
 const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar, oldShift }) => {
+    console.log(formData);
     useEffect(() => {
         const venues = store.getState('venues');
         const favlists = store.getState('favlists');

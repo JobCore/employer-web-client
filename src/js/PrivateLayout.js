@@ -72,9 +72,9 @@ class PrivateLayout extends Flux.DashView {
                             //console.log('create_shift', option.data);
                             this.showRightBar(ShiftDetails, option, { formData: Shift(option.data).defaults() });
                             break;
-                        case 'create_expired_shift':
-                            this.showRightBar(EditOrAddExpiredShift, option, { formData: Shift(option.data).defaults() });
-                            break;
+                        case 'create_expired_shift': {
+                            this.showRightBar(EditOrAddExpiredShift, option, { formData: Shift({ ...option.data }).defaults() });
+                        } break;
                         case 'filter_talent':
                             this.showRightBar(FilterTalents, option, { formData: getTalentInitialFilters(this.state.catalog) });
                             break;
@@ -342,7 +342,7 @@ class PrivateLayout extends Flux.DashView {
                     <div className="right_pane bc-scrollbar">
                         {this.state.userStatus === 'PENDING_EMAIL_VALIDATION' && <div className="alert alert-warning p-2 text-center" style={{ marginLeft: "-15px" }}>You need to validate your email to receive notifications
                             <button className="btn btn-success btn-sm ml-2" onClick={() => resendValidationLink(this.state.user.email)}>
-                                    Resend validation link
+                                Resend validation link
                             </button>
                         </div>
                         }

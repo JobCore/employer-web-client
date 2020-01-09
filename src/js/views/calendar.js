@@ -49,13 +49,13 @@ export const ShiftCalendar = ({ catalog }) => {
     const [groupedShifts, setGroupedShifts] = useState(null);
     const [groupedLabel, setGroupedLabel] = useState(null);
     const [viewMode, setViewMode] = useState('day');
-
     const setCalendarFilters = (incoming = {}) => {
         const urlFilters = getURLFilters();
         const r = Object.assign(urlFilters, filters, incoming);
         setFilters(r);
 
         const _filters = Object.assign({}, r);
+        console.log(_filters);
         if (moment.isMoment(_filters.start)) _filters.start = _filters.start.format('YYYY-MM-DD');
         if (moment.isMoment(_filters.end)) _filters.end = _filters.end.format('YYYY-MM-DD');
         searchMe('shifts', '?serializer=big&' + queryString.stringify(_filters));
@@ -166,7 +166,20 @@ export const ShiftCalendar = ({ catalog }) => {
                                 </div>
                             </div>*/}
                             <div className="col text-right pt-4">
-                                <Button size="small" color="light" icon="backward" onClick={() => setCurrentDate(moment(currentDate).add(-1, viewMode))} />
+                                <Button size="small" color="light" icon="backward"
+                                    // onClick={() => setCurrentDate(moment(currentDate).add(-1, viewMode))}
+                                    onClick={() => {
+                                        const newEndDate = moment(currentDate).add(-1, viewMode);
+                                        const oldEndDate = moment(filters.start);
+                                        if (newEndDate.isBefore(oldEndDate)) {
+                                            // alert("generado");
+                                            const updatedFilters = { start: moment(newEndDate).add(-2, 'months').format('YYYY-MM-DD'), end: moment(newEndDate).add(2, 'months').format('YYYY-MM-DD') };
+                                            window.location.hash = queryString.stringify(updatedFilters);
+                                            setCalendarFilters(updatedFilters);
+                                        }
+                                        setCurrentDate(moment(currentDate).add(-1, viewMode));
+                                    }}
+                                />
                                 <Button size="small" onClick={() => setViewMode('day')}>Day</Button>
                                 <Button size="small" onClick={() => setViewMode('week')}>Week</Button>
                                 <Button size="small" onClick={() => setViewMode('month')}>Month</Button>
