@@ -52,8 +52,9 @@ export const login = (email, password, keep, history) => new Promise((resolve, r
 export const addBankAccount = (token, metadata) => new Promise((resolve, reject) => POST('bank-accounts/', 
     normalizeToSnakeCase({ publicToken: token,  institutionName: metadata.institution.name }))
     .then(function(data){
+        console.log('addBankAccount data: ', data);
         resolve();
-       console.log("addBankAccount data: ", data);
+        searchBankAccounts();
     })
     .catch(function(error) {
         reject(error.message || error);
@@ -257,6 +258,7 @@ export const searchMe = (entity, queryString) => new Promise((accept, reject) =>
 export const searchBankAccounts = () => new Promise((accept, reject) =>
     GET('bank-accounts/')
         .then(function(list){
+            console.log("bank-accounts list: ", list);
             Flux.dispatchEvent('bank-accounts', list);
             accept(list);
         })
@@ -358,6 +360,7 @@ export const removeBankAccount = (route, data) => {
             Notify.success("The "+data.name+" was deleted successfully");
         })
         .catch((error) => {
+            console.log("bank-accounts error: ", error);
             Notify.error(error.message || error);
             log.error(error);
         });

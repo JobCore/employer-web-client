@@ -20,36 +20,21 @@ const BankAccountExtendedCard = ({
     // const badgesHTML = props.employee.badges.map((b, i) => (<span key={i} className="badge">{b.title}</span>));
     // const favoriteCount = !Array.isArray(props.employee.favoritelist_set) ? 0 : props.employee.favoritelist_set.length;
     return (
-        <li
-            className={`bankAccountcard ${hoverEffect ? "bankAccountcard-hover" : ""} 
-      ${showButtonsOnHover ? "show-hover" : ""} ${className}`}
-            onClick={() => (onClick) ? onClick() : false}
-        >
-            <Avatar url={""} />
-            <div style={{ display: "flex", flexDirection: "column", marginLeft: "55px" }}>
-                <b style={{ marginTop: "13px"}}>{account.name}</b>
-            </div>
-            {/* <Stars
-        rating={Number(props.employee.rating)}
-        jobCount={!Array.isArray(props.employee.positions) ? 0 : props.employee.positions.length}
-      /> */}
-            {/* {(props.showFavlist) ?
-                <p href="#">{(favoriteCount > 0)
-                    ? <span className="badge badge-warning">
-                        <i className="fas fa-star"></i> {favoriteCount} Lists
-                    </span> : ''} {badgesHTML}
-                </p>
-                : ''
-            } */}
-            <div className="btn-group" role="group" aria-label="Basic example">
+        <tr>
+            <td>
+                <b>{account.institution_name}</b>
+            </td>
+            <td>
+                <b>{account.name}</b>
+            </td>
+            <td>
                 <img
                     onClick={() => onDelete(account)}
                     src={deleteIcon}
                     className={"delete-icon"}
                 />
-                {children}
-            </div>
-        </li>);
+            </td>
+        </tr>);
 };
 BankAccountExtendedCard.propTypes = {
     account: PropTypes.object.isRequired,
