@@ -2,37 +2,29 @@ import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PlaidLink from 'react-plaid-link';
 import { BankAccountExtendedCard, Theme } from '../components/index';
-import { addBankAccount } from "../actions";
+import { addBankAccount, searchBankAccounts, store } from "../actions";
 
 class EmployerBankAccounts extends Flux.DashView {
 
     constructor() {
         super();
         this.state = {
-            bankAccounts: [
-                {
-                    name: "account 1",
-                    id: 1
-                },
-                {
-                    name: "account 2",
-                    id: 2
-                },
-                {
-                    name: "account 3",
-                    id: 3
-                },
-                {
-                    name: "account 4",
-                    id: 4
-                },
-                {
-                    name: "account 5",
-                    id: 5
-                },
-            ],
+            bankAccounts: [],
             // employer: Employer().defaults()
         };
+    }
+
+    componentDidMount(){
+        const stateBankAccounts = store.getState('bank-accounts');
+        this.subscribe(store, 'bank-accounts', (fetchedBankAccounts) => {
+            this.setState({ bankAccounts: fetchedBankAccounts });
+        });
+        if(!stateBankAccounts){
+            searchBankAccounts();
+        }
+        else{
+            this.setState({ bankAccounts: stateBankAccounts });
+        }
     }
 
     handleOnSuccess(token, metadata) {
@@ -51,6 +43,7 @@ class EmployerBankAccounts extends Flux.DashView {
       }
 
     render() {
+        const { bankAccounts } = this.state;
         return (
             <div>
                 <div className="row mt-2">
@@ -65,7 +58,8 @@ class EmployerBankAccounts extends Flux.DashView {
                                         callback={callback}
                                     /> */}
                                     {/* <h1><span id="talent_search_header">Talent Search</span></h1> */}
-                                    {this.state.bankAccounts.map((account, i) => (
+                                    {bankAccounts.length > 0
+                                    ? bankAccounts.map((account, i) => (
                                         <BankAccountExtendedCard
                                             key={i}
                                             account={account}
@@ -76,7 +70,8 @@ class EmployerBankAccounts extends Flux.DashView {
                                             {/* <Button icon="favorite" onClick={() => bar.show({ slug: "add_to_favlist", data: s, allowLevels })}><label>Favorites</label></Button> */}
                                             {/* <Button icon="favorite" onClick={() => bar.show({ slug: "invite_talent_to_shift", data: s, allowLevels })}><label>Invite</label></Button> */}
                                         </BankAccountExtendedCard>
-                                    ))}
+                                    ))
+                                : <p>No bank accounts yet</p>}
                                 </span>)}
                             </Theme.Consumer>
                         </div>

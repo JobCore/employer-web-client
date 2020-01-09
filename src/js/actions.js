@@ -254,6 +254,19 @@ export const searchMe = (entity, queryString) => new Promise((accept, reject) =>
         })
 );
 
+export const searchBankAccounts = () => new Promise((accept, reject) =>
+    GET('bank-accounts/')
+        .then(function(list){
+            Flux.dispatchEvent('bank-accounts', list);
+            accept(list);
+        })
+        .catch(function(error) {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject(error);
+        })
+);
+
 export const create = (entity, data, status='live') => POST('employers/me/'+(entity.url || entity), data)
     .then(function(incoming){
         let entities = store.getState(entity.slug || entity);
@@ -473,6 +486,7 @@ class _Store extends Flux.DashStore{
         this.addEvent('clockins', clockins => !Array.isArray(clockins) ? [] : clockins.map(c => ({...c, started_at: moment(c.starting_at), ended_at: moment(c.ended_at) })));
         this.addEvent('jobcore-invites');
         this.addEvent('ratings');
+        this.addEvent('bank-accounts');
         this.addEvent('employees', (employees) => {
             if(!Array.isArray(employees)) return [];
             return employees.filter(em => em.user.profile).map(em => Talent(em).defaults().unserialize());
