@@ -10,3 +10,8 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+    .right_pane .bcnotifier.withconfirm{
+        &:before{
+            height: 200vh;
+        }
+    }
