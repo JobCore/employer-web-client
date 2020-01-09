@@ -2,6 +2,7 @@ import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PlaidLink from 'react-plaid-link';
 import { BankAccountExtendedCard, Theme } from '../components/index';
+import { addBankAccount } from "../actions";
 
 class EmployerBankAccounts extends Flux.DashView {
 
@@ -37,6 +38,7 @@ class EmployerBankAccounts extends Flux.DashView {
     handleOnSuccess(token, metadata) {
         console.log('token: ', token);
         console.log('metadata: ', metadata);
+        addBankAccount(token, metadata);
         // send token to client server
     }
 
