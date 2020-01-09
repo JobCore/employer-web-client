@@ -41,6 +41,7 @@ class EmployerBankAccounts extends Flux.DashView {
 
     render() {
         const { bankAccounts } = this.state;
+        console.log('bankAccounts: ', bankAccounts);
         return (
             <div>
                 <div className="row mt-2">
@@ -56,23 +57,31 @@ class EmployerBankAccounts extends Flux.DashView {
                                     /> */}
                                     {/* <h1><span id="talent_search_header">Talent Search</span></h1> */}
                                     {bankAccounts.length > 0
-                                    ? bankAccounts.map((account, i) => (
-                                        <BankAccountExtendedCard
-                                            key={i}
-                                            account={account}
-                                            hover={true}
-                                            onDelete={() => {
-                                                const noti = Notify.info("Are you sure you want to delete this bank account?",(answer) => {
-                                                    if(answer) removeBankAccount("bank-accounts",account);
-                                                    noti.remove();
-                                                });
-                                            }}
-                                            // onClick={() => bar.show({ slug: "show_single_talent", data: s, allowLevels })}
-                                        >
-                                            {/* <Button icon="favorite" onClick={() => bar.show({ slug: "add_to_favlist", data: s, allowLevels })}><label>Favorites</label></Button> */}
-                                            {/* <Button icon="favorite" onClick={() => bar.show({ slug: "invite_talent_to_shift", data: s, allowLevels })}><label>Invite</label></Button> */}
-                                        </BankAccountExtendedCard>
-                                    ))
+                                    ? <table className="table table-striped payroll-summary">
+                                        <thead>
+                                            <tr>
+                                                <th>Bank</th>
+                                                <th>Name</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            { bankAccounts.map((account, i) =>
+                                                <BankAccountExtendedCard
+                                                key={i}
+                                                account={account}
+                                                hover={true}
+                                                onDelete={() => {
+                                                    const noti = Notify.info("Are you sure you want to delete this bank account?",(answer) => {
+                                                        if(answer) removeBankAccount("bank-accounts",account);
+                                                        noti.remove();
+                                                    });
+                                                }}
+                                            >
+                                                </BankAccountExtendedCard>
+                                            )}
+                                        </tbody>
+                                    </table>
                                 : <p>No bank accounts yet</p>}
                                 </span>)}
                             </Theme.Consumer>
