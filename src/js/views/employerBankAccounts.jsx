@@ -2,7 +2,8 @@ import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PlaidLink from 'react-plaid-link';
 import { BankAccountExtendedCard, Theme } from '../components/index';
-import { addBankAccount, searchBankAccounts, store } from "../actions";
+import { addBankAccount, searchBankAccounts, store, removeBankAccount } from "../actions";
+import {Notify} from 'bc-react-notifier';
 
 class EmployerBankAccounts extends Flux.DashView {
 
@@ -38,10 +39,6 @@ class EmployerBankAccounts extends Flux.DashView {
         // handle the case when your user exits Link
     }
 
-    deleteBankAccount = (data) => {
-        console.log('delete bank account: ', data);
-      }
-
     render() {
         const { bankAccounts } = this.state;
         return (
@@ -64,7 +61,12 @@ class EmployerBankAccounts extends Flux.DashView {
                                             key={i}
                                             account={account}
                                             hover={true}
-                                            onDelete={this.deleteBankAccount}
+                                            onDelete={() => {
+                                                const noti = Notify.info("Are you sure you want to delete this bank account?",(answer) => {
+                                                    if(answer) removeBankAccount("bank-accounts",account);
+                                                    noti.remove();
+                                                });
+                                            }}
                                             // onClick={() => bar.show({ slug: "show_single_talent", data: s, allowLevels })}
                                         >
                                             {/* <Button icon="favorite" onClick={() => bar.show({ slug: "add_to_favlist", data: s, allowLevels })}><label>Favorites</label></Button> */}

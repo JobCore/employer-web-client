@@ -351,6 +351,18 @@ export const remove = (entity, data) => {
         });
 };
 
+export const removeBankAccount = (route, data) => {
+    const path = `${route}/${data.id}`;
+    DELETE(path)
+        .then(() => {
+            Notify.success("The "+data.name+" was deleted successfully");
+        })
+        .catch((error) => {
+            Notify.error(error.message || error);
+            log.error(error);
+        });
+};
+
 export const rejectCandidate = (shiftId, applicant) => {
     const shift = store.get('shifts', shiftId);
     if(shift){
