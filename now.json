@@ -1,8 +1,5 @@
 {
     "version": 2,
-    "engines": {
-        "node": "10.x"
-    },
     "scope": "jobcore",
     "name": "employer-web-client",
     "builds": [
