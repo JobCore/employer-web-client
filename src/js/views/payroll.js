@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useContext } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import { store, search, update, fetchSingle, searchMe, processPendingPayrollPeriods, updatePayments, createPayment } from '../actions.js';
+import { store, search, update, fetchSingle, searchMe, processPendingPayrollPeriods, updatePayments, createPayment, fetchAllMe } from '../actions.js';
 import { GET } from '../utils/api_wrapper';
 
 import DateTime from 'react-datetime';
 import moment from 'moment';
-import { DATETIME_FORMAT, NOW, TIME_FORMAT } from '../components/utils.js';
+import { DATETIME_FORMAT, TIME_FORMAT, NOW, TODAY, YESTERDAY } from '../components/utils.js';
 import Select from 'react-select';
 
 import { Notify } from 'bc-react-notifier';
 
-import { Shift } from './shifts.js';
+import { Shift, EditOrAddShift } from './shifts.js';
+import { ManageLocations, AddOrEditLocation, Location } from './locations.js';
 import { EmployeeExtendedCard, ShiftOption, ShiftCard, Theme, Button, ShiftOptionSelected, GenericCard, SearchCatalogSelect, Toggle } from '../components/index';
 import queryString from 'query-string';
 
@@ -115,8 +116,8 @@ const styles = StyleSheet.create({
 export const getPayrollInitialFilters = (catalog) => {
     let query = queryString.parse(window.location.search);
     if (typeof query == 'undefined') return {
-        starting_at: NOW(),
-        ending_at: new Date().setDate(NOW().getDate() - 7)
+        starting_at: TODAY(),
+        ending_at: new Date().setDate(TODAY().getDate() - 7)
     };
     return {
         starting_at: query.starting_at,
@@ -130,8 +131,8 @@ export const Clockin = (data) => {
         author: null,
         employee: null,
         shift: null,
-        started_at: NOW(),
-        ended_at: NOW(),
+        started_at: TODAY(),
+        ended_at: TODAY(),
         latitude: [],
         longitude: [],
         status: 'PENDING',
@@ -297,7 +298,348 @@ export const Payment = (data) => {
         }
     };
 };
+/**
+ * EditOrAddExpiredShift
+ */
+export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar, oldShift }) => {
+    useEffect(() => {
+        const venues = store.getState('venues');
+        const favlists = store.getState('favlists');
+        if (!venues || !favlists) fetchAllMe(['venues', 'favlists']);
+    }, []);
+    const expired = moment(formData.starting_at).isBefore(NOW()) || moment(formData.ending_at).isBefore(NOW());
 
+    const validating_minimum = moment(formData.starting_at).isBefore(formData.period_starting);
+    const validating_maximum = moment(formData.ending_at).isAfter(formData.period_ending);
+
+    return (
+        <form>
+            <div className="row">
+                <div className="col-12">
+                    {formData.hide_warnings === true ? null : (formData.status == 'DRAFT' && !error) ?
+                        <div className="alert alert-warning d-inline"><i className="fas fa-exclamation-triangle"></i> This shift is a draft</div>
+                        : (formData.status != 'UNDEFINED' && !error) ?
+                            <div className="alert alert-success">This shift is published, therefore <strong>it needs to be unpublished</strong> before it can be updated</div>
+                            : ''
+                    }
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-12">
+                    <label>Looking for</label>
+                    <Select
+                        value={catalog.positions.find((pos) => pos.value == formData.position)}
+                        onChange={(selection) => onChange({ position: selection.value.toString(), has_sensitive_updates: true })}
+                        options={[{ label: 'Select a position', value: '' }].concat(catalog.positions)}
+                    />
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-6">
+                    <label>How many?</label>
+                    <input type="number" className="form-control"
+                        value={formData.maximum_allowed_employees}
+                        onChange={(e) => {
+                            if (parseInt(e.target.value, 10) > 0) {
+                                if (oldShift && oldShift.employees.length > parseInt(e.target.value, 10)) Notify.error(`${oldShift.employees.length} talents are scheduled to work on this shift already, delete scheduled employees first.`);
+                                else onChange({ maximum_allowed_employees: e.target.value });
+                            }
+                        }}
+                    />
+                </div>
+                <div className="col-6">
+                    <label>Price / hour</label>
+                    <input type="number" className="form-control"
+                        value={formData.minimum_hourly_rate}
+                        onChange={(e) => onChange({
+                            minimum_hourly_rate: e.target.value,
+                            has_sensitive_updates: true
+                        })}
+                    />
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-12">
+                    <label className="mb-1">Dates</label>
+                    {/* {formData.multiple_dates && <p className="mb-1 mt-0">
+                        {formData.multiple_dates.map((d, i) => (
+                            <span key={i} className="badge">{d.starting_at.format('MM-DD-YYYY')}
+                                <i
+                                    className="fas fa-trash-alt ml-1 pointer"
+                                    onClick={() => onChange({
+                                        multiple_dates: !formData.multiple_dates ? [] : formData.multiple_dates.filter(dt => !dt.starting_at.isSame(d.starting_at)),
+                                        has_sensitive_updates: true
+                                    })}
+                                />
+                            </span>
+                        ))}
+                    </p>} */}
+                    <div className="input-group">
+                        <DateTime
+                            timeFormat={false}
+                            className="shiftdate-picker"
+                            closeOnSelect={true}
+                            viewDate={formData.starting_at}
+                            value={formData.starting_at}
+                            isValidDate={(current) => {
+                                return current.isSameOrAfter(moment(formData.period_starting).startOf('day')) && current.isSameOrBefore(moment(formData.period_ending).startOf('day'));
+                            }}
+                            renderInput={(properties) => {
+                                const { value, ...rest } = properties;
+                                return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
+                            }}
+                            onChange={(value) => {
+
+
+                                const getRealDate = (start, end) => {
+                                    if (typeof start == 'string') value = moment(start);
+
+                                    const starting = moment(start.format("MM-DD-YYYY") + " " + start.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                                    var ending = moment(start.format("MM-DD-YYYY") + " " + end.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+
+                                    if (typeof starting !== 'undefined' && starting.isValid()) {
+                                        if (ending.isBefore(starting)) {
+                                            ending = ending.add(1, 'days');
+                                        }
+
+                                        return { starting_at: starting, ending_at: ending };
+                                    }
+                                    return null;
+                                };
+
+                                const mainDate = getRealDate(value, formData.ending_at);
+                                const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
+                                onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
+
+
+                            }}
+
+
+                        />
+                        <div className="input-group-append" onClick={() => {
+                            if (expired) Notify.error("Shifts with and expired starting or ending times cannot have multiple dates or be recurrent");
+                            else onChange({
+                                multiple_dates: !formData.multiple_dates ?
+                                    [{ starting_at: formData.starting_at, ending_at: formData.ending_at }]
+                                    :
+                                    formData.multiple_dates.filter(dt => !dt.starting_at.isSame(formData.starting_at)).concat(
+                                        { starting_at: formData.starting_at, ending_at: formData.ending_at }
+                                    ),
+                                has_sensitive_updates: true
+                            });
+                        }}>
+                            <span className="input-group-text pointer">More <i className="fas fa-plus ml-1"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-6">
+                    <label>From</label>
+                    <DateTime
+                        dateFormat={false}
+                        timeFormat={DATETIME_FORMAT}
+                        closeOnTab={true}
+                        timeConstraints={{ minutes: { step: 15 } }}
+                        value={formData.starting_at}
+                        renderInput={(properties) => {
+                            const { value, ...rest } = properties;
+                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                        }}
+                        onChange={(value) => {
+                            if (typeof value == 'string') value = moment(value);
+
+                            const getRealDate = (start, end) => {
+                                const starting = moment(start.format("MM-DD-YYYY") + " " + value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                                var ending = moment(end);
+                                if (typeof starting !== 'undefined' && starting.isValid()) {
+                                    if (ending.isBefore(starting)) {
+                                        ending = ending.add(1, 'days');
+                                    }
+
+                                    return { starting_at: starting, ending_at: ending };
+                                }
+                                return null;
+                            };
+
+                            const mainDate = getRealDate(formData.starting_at, formData.ending_at);
+                            const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
+                            onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
+
+
+                        }}
+                    />
+                </div>
+                <div className="col-6">
+                    <label>To {(formData.ending_at.isBefore(formData.starting_at)) && "(next day)"}</label>
+                    <DateTime
+                        className="picker-left"
+                        dateFormat={false}
+                        timeFormat={DATETIME_FORMAT}
+                        timeConstraints={{ minutes: { step: 15 } }}
+                        value={formData.ending_at}
+                        renderInput={(properties) => {
+                            const { value, ...rest } = properties;
+                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                        }}
+                        onChange={(value) => {
+                            if (typeof value == 'string') value = moment(value);
+
+                            const getRealDate = (start, end) => {
+
+                                const starting = start;
+                                var ending = moment(start.format("MM-DD-YYYY") + " " + value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+
+                                if (typeof starting !== 'undefined' && starting.isValid()) {
+                                    if (ending.isBefore(starting)) {
+                                        ending = ending.add(1, 'days');
+                                    }
+
+                                    return { starting_at: starting, ending_at: ending };
+                                }
+                                return null;
+                            };
+
+                            const mainDate = getRealDate(formData.starting_at, formData.ending_at);
+                            const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
+                            onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
+
+                        }}
+                    />
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-12">
+                    <label>Location</label>
+                    <Select
+                        value={catalog.venues.find((ven) => ven.value == formData.venue)}
+                        options={[{ label: "Add a location", value: 'new_venue', component: AddOrEditLocation }].concat(catalog.venues)}
+                        onChange={(selection) => {
+                            if (selection.value == 'new_venue') bar.show({ slug: "create_location", allowLevels: true });
+                            else onChange({ venue: selection.value.toString(), has_sensitive_updates: true });
+                        }}
+                    />
+                </div>
+            </div>
+            <div className="row mt-3">
+                <div className="col-12">
+                    <h4>Who was supposed to work on this shift?</h4>
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-12">
+                    {/* <label>Search people in JobCore:</label> */}
+                    <SearchCatalogSelect
+                        isMulti={true}
+                        value={formData.employeesToAdd}
+                        onChange={(selections) => {
+                            onChange({ employeesToAdd: selections });
+                        }}
+                        searchFunction={(search) => new Promise((resolve, reject) =>
+                            GET('catalog/employees?full_name=' + search)
+                                .then(talents => resolve([
+                                    { label: `${(talents.length == 0) ? 'No one found: ' : ''}` }
+                                ].concat(talents)))
+                                .catch(error => reject(error))
+                        )}
+                    />
+                </div>
+            </div>
+
+            {/* {(formData.pending_jobcore_invites.length > 0) ?
+                <div className="row">
+                    <div className="col-12">
+                        <p className="m-0 p-0">The following people will be invited to this shift after they accept your invitation to jobcore:</p>
+                        {formData.pending_jobcore_invites.map((emp, i) => (
+                            <span key={i} className="badge">{emp.first_name} {emp.last_name} <i className="fas fa-trash-alt"></i></span>
+                        ))}
+                    </div>
+                </div> : ''
+            } */}
+            <div className="btn-bar">
+                {(formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ? // create shift
+                    <button type="button" className="btn btn-primary" onClick={() => validating_maximum || validating_minimum ? Notify.error("Cannot create shift before payroll time or after ") : onSave({
+                        executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
+                        status: 'DRAFT'
+                    })}>Save as draft</button> : ''
+                }
+                {(formData.status == 'DRAFT') ?
+                    <button type="button" className="btn btn-success" onClick={() => {
+                        if (!formData.has_sensitive_updates && !isNaN(formData.id)) onSave({ executed_action: 'update_shift', status: 'OPEN' });
+                        else {
+                            const noti = Notify.info("Are you sure? All talents will have to apply again the shift because the information was updated.", (answer) => {
+                                if (answer) onSave({
+                                    executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
+                                    status: 'OPEN'
+                                });
+                                noti.remove();
+                            });
+                        }
+                    }}>Publish</button>
+                    : (formData.status != 'UNDEFINED') ?
+                        <button type="button" className="btn btn-primary" onClick={() => {
+                            const noti = Notify.info("Are you sure you want to unpublish this shift?", (answer) => {
+                                if (answer) onSave({ executed_action: 'update_shift', status: 'DRAFT' });
+                                noti.remove();
+                            }, 9999999999999);
+                        }}>Unpublish shift</button>
+                        :
+                        <button type="button" className="btn btn-success"
+                            onChange={(value) => {
+
+
+                                const getRealDate = (start, end) => {
+                                    if (typeof start == 'string') value = moment(start);
+
+                                    const starting = moment(start.format("MM-DD-YYYY") + " " + start.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                                    var ending = moment(start.format("MM-DD-YYYY") + " " + end.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+
+                                    if (typeof starting !== 'undefined' && starting.isValid()) {
+                                        if (ending.isBefore(starting)) {
+                                            ending = ending.add(1, 'days');
+                                        }
+
+                                        return { starting_at: starting, ending_at: ending };
+                                    }
+                                    return null;
+                                };
+
+                                const mainDate = getRealDate(value, formData.ending_at);
+                                const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
+                                onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
+
+
+                            }}
+                            onClick={() => validating_maximum || validating_minimum ? Notify.error("Cannot create shift before payroll time or after") : onSave({
+                                executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
+                                status: 'OPEN'
+                            })}>Save and publish</button>
+                }
+                {(formData.status != 'UNDEFINED') ?
+                    <button type="button" className="btn btn-danger" onClick={() => {
+                        const noti = Notify.info("Are you sure you want to cancel this shift?", (answer) => {
+                            if (answer) onSave({ executed_action: 'update_shift', status: 'CANCELLED' });
+                            noti.remove();
+                        });
+                    }}>Delete</button> : ''
+                }
+            </div>
+        </form>
+    );
+};
+EditOrAddExpiredShift.propTypes = {
+    error: PropTypes.string,
+    oldShift: PropTypes.object,
+    bar: PropTypes.object,
+    onSave: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    onChange: PropTypes.func.isRequired,
+    formData: PropTypes.object,
+    catalog: PropTypes.object //contains the data needed for the form to load
+};
+EditOrAddExpiredShift.defaultProps = {
+    oldShift: null
+};
 export class ManagePayroll extends Flux.DashView {
 
     constructor() {
@@ -368,6 +710,7 @@ export class ManagePayroll extends Flux.DashView {
 
 
     render() {
+
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
@@ -587,10 +930,10 @@ const LatLongClockin = ({ clockin, children, isIn }) => {
         <div style={{ width: "200px", height: "200px", display: "inline-block", padding: "0px" }}>
             <GoogleMapReact
                 bootstrapURLKeys={{ key: process.env.GOOGLE_MAPS_WEB_KEY }}
-                defaultCenter={{ lat: 25.7617, lng: -80.1918}}
+                defaultCenter={{ lat: 25.7617, lng: -80.1918 }}
                 width="100%"
                 height="100%"
-                center={{ lat,lng }}
+                center={{ lat, lng }}
                 options={createMapOptions}
                 defaultZoom={14}
             >
@@ -600,7 +943,7 @@ const LatLongClockin = ({ clockin, children, isIn }) => {
                     text={'Jobcore'}
                 />
             </GoogleMapReact>
-            <small className="d-block text-center">({ lat },{ lng })</small>
+            <small className="d-block text-center">({lat},{lng})</small>
         </div>
     }>
         {children}
@@ -618,27 +961,24 @@ LatLongClockin.defaultProps = {
     children: null
 };
 
-const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, period }) => {
+const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, period, onChange, selection }) => {
+    const { bar } = useContext(Theme.Context);
 
     if (!employee || employee.id === "new") return <p className="px-3 py-1">⬆ Search an employee from the list above...</p>;
 
     const [clockin, setClockin] = useState(Clockin(payment.clockin).defaults().unserialize());
-
     const [shift, setShift] = useState(Shift(payment.shift).defaults().unserialize());
-    const _now = NOW();
-    // const shiftRef = useRef(shift);
-    // shiftRef.current = shift;
 
     const [possibleShifts, setPossibleShifts] = useState(null);
-
-    //const init_breaktime = NOW().startOf('day').add(payment.breaktime_minutes, 'minutes');
     const [breaktime, setBreaktime] = useState(payment.breaktime_minutes);
 
-    const startTime = clockin.shift && clockin.started_at ? clockin.started_at.format('LT') : "-";
-    const endTime = clockin.shift && clockin.ended_at ? clockin.ended_at.format('LT') : "_";
+    //only used on readonly shifts!!
+    const approvedClockin = payment.approved_clockin_time ? moment(payment.approved_clockin_time) : clockin.started_at ? clockin.started_at : shift.starting_at;
+    const approvedClockout = payment.approved_clockout_time ? moment(payment.approved_clockout_time) : clockin.ended_at ? clockin.ended_at : shift.ending_at;
 
-    const clockInDuration = !clockin.ended_at ? null : moment.duration(clockin.ended_at.diff(clockin.started_at));
-    const clockinHours = !clockInDuration ? 0 : clockin.shift || !readOnly ? Math.round(clockInDuration.asHours() * 100) / 100 : "-";
+    const clockInDuration = moment.duration(approvedClockout.diff(approvedClockin));
+    // const clockinHours = !clockInDuration ? 0 : clockin.shift || !readOnly ? Math.round(clockInDuration.asHours() * 100) / 100 : "-";
+    const clockinHours = Math.round(clockInDuration.asHours() * 100) / 100;
 
     const shiftStartTime = shift.starting_at.format('LT');
     const shiftEndTime = shift.ending_at.format('LT');
@@ -646,16 +986,16 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
     const shiftDuration = moment.duration(shift.ending_at.diff(shift.starting_at));
     const plannedHours = Math.round(shiftDuration.asHours() * 100) / 100;
 
-    const clockInDurationAfterBreak = !clockin.ended_at ? null : moment.duration(clockin.ended_at.diff(clockin.started_at)).subtract(breaktime, "minute");
+    const clockInDurationAfterBreak = clockInDuration.subtract(breaktime, "minute");
     const clockInTotalHoursAfterBreak = !clockInDurationAfterBreak ? 0 : Math.round(clockInDurationAfterBreak.asHours() * 100) / 100;
 
     const diff = Math.round((clockInTotalHoursAfterBreak - plannedHours) * 100) / 100;
+
     useEffect(() => {
         if (payment.status === "NEW")
             GET(`employers/me/shifts?start=${moment(period.starting_at).format('YYYY-MM-DD')}&end=${moment(period.ending_at).format('YYYY-MM-DD')}&employee=${employee.id}`)
                 .then(_shifts => {
                     const _posibleShifts = _shifts.map(s => ({ label: '', value: Shift(s).defaults().unserialize() }));
-                    console.log(_posibleShifts);
                     setPossibleShifts(_posibleShifts);
                 })
                 .catch(e => Notify.error(e.message || e));
@@ -671,11 +1011,27 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                         onChange={(selectedOption) => {
                             const _shift = selectedOption.value;
                             if (_shift) {
-                                setShift(_shift);
-                                setClockin({ ...clockin, started_at: _shift.starting_at, ended_at: _shift.ending_at });
+                                if (_shift == 'new_shift') bar.show({
+                                    slug: "create_expired_shift", data: {
+                                        employeesToAdd: [{ label: employee.user.first_name + " " + employee.user.last_name, value: employee.id }],
+                                        // Dates are in utc so I decided to change it to local time 
+                                        starting_at: moment(period.starting_at),
+                                        ending_at: moment(period.starting_at).add(2, "hours"),
+                                        period_starting: moment(period.starting_at),
+                                        period_ending: moment(period.ending_at),
+                                        application_restriction: 'SPECIFIC_PEOPLE',
+
+                                    }
+                                });
+                                else {
+                                    setShift(_shift);
+                                    setClockin({ ...clockin, started_at: _shift.starting_at, ended_at: _shift.ending_at });
+                                    setBreaktime(0);
+                                }
                             }
                         }}
-                        options={possibleShifts ? possibleShifts : [{ label: "Loading talent shifts", value: "loading" }]}
+                        options={possibleShifts ? [{ label: "Add a shift", value: 'new_shift', component: EditOrAddExpiredShift }].concat(possibleShifts) : [{ label: "Add a shift", value: 'new_shift', component: EditOrAddExpiredShift }]}
+
                     >
                     </Select>
                 </td>
@@ -708,7 +1064,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
         }
         <td className="time">
             {readOnly ?
-                <p>{startTime}</p>
+                <p>{approvedClockin.format('LT')}</p>
                 :
                 <TimePicker
                     showSecond={false}
@@ -728,7 +1084,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
         </td>
         <td className="time">
             {readOnly ?
-                <p>{endTime}</p>
+                <p>{approvedClockout.format('LT')}</p>
                 :
                 <TimePicker
                     className={`${clockin.automatically_closed ? 'border border-danger' : ''}`}
@@ -764,7 +1120,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
             <td style={{ minWidth: "75px", maxWidth: "75px" }} className="text-center">
                 {
                     <input type="number" className="w-100 rounded"
-                        onChange={e => e.target.value != '' ? setBreaktime(parseInt(e.target.value)) : setBreaktime(0)} value={breaktime}
+                        onChange={e => e.target.value != '' ? setBreaktime(Math.abs(parseInt(e.target.value))) : setBreaktime(0)} value={breaktime}
                     />
                 }
                 <small>minutes</small>
@@ -794,13 +1150,19 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                 clockin: null,
                                 breaktime_minutes: breaktime,
                                 regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
-                                over_time: diff < 0 ? 0 : diff
+                                over_time: diff < 0 ? 0 : diff,
+                                //
+                                approved_clockin_time: clockin ? clockin.started_at : shift.starting_at,
+                                approved_clockout_time: clockin ? clockin.ended_at : shift.ending_at
                             });
                         }
                         else onApprove({
                             breaktime_minutes: breaktime,
                             regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
-                            over_time: diff < 0 ? 0 : diff
+                            over_time: diff < 0 ? 0 : diff,
+                            //
+                            approved_clockin_time: clockin ? clockin.started_at : shift.starting_at,
+                            approved_clockout_time: clockin ? clockin.ended_at : shift.ending_at
                         });
                     }}
                 />
@@ -823,7 +1185,9 @@ PaymentRow.propTypes = {
     onApprove: PropTypes.func,
     onReject: PropTypes.func,
     onUndo: PropTypes.func,
-    shifts: PropTypes.array
+    shifts: PropTypes.array,
+    onChange: PropTypes.func,
+    selection: PropTypes.object
 };
 PaymentRow.defaultProps = {
     shifts: [],
@@ -862,7 +1226,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
     if (formData.periods.length > 0) {
         const end = moment(formData.periods[0].ending_at);
         end.add(7, 'days');
-        if (end.isBefore(NOW())) note = "Payroll was generated until " + end.format('M d');
+        if (end.isBefore(TODAY())) note = "Payroll was generated until " + end.format('M d');
     }
     return (<div>
         <div className="top-bar">
@@ -919,7 +1283,7 @@ export const SelectShiftPeriod = ({ catalog, formData, onChange, onSave, onCance
     if (formData.periods.length > 0) {
         const end = moment(formData.periods[0].ending_at);
         end.add(7, 'days');
-        if (end.isBefore(NOW())) note = "Payroll was generated until " + end.format('MM dd');
+        if (end.isBefore(TODAY())) note = "Payroll was generated until " + end.format('MM dd');
     }
     return (<div>
         <div className="top-bar">
@@ -1082,7 +1446,6 @@ export class PayrollReport extends Flux.DashView {
 
 
     render() {
-        console.log(this.state);
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
@@ -1108,11 +1471,14 @@ export class PayrollReport extends Flux.DashView {
                                             {/* <Page style={styles.page}> */}
                                             <Page style={styles.body}>
                                                 <View style={styles.section}>
-                                                    <Image src={JobCoreLogo} style={styles.image} />
+                                                    <Image source={JobCoreLogo} style={styles.image} />
                                                 </View>
-                                                <View style={styles.section}>
-                                                    <Image src={this.state.employer.picture} style={styles.image_company} />
-                                                </View>
+                                                {this.state.employer.picture ? (
+                                                    <View style={styles.section}>
+                                                        <Image src={this.state.employer.picture} style={styles.image_company} />
+                                                    </View>
+                                                ) : null}
+
 
                                                 <View style={{ color: 'black', marginTop: 15, marginBottom: 15, fontSize: 15 }}>
                                                     <Text>{moment(this.state.singlePayrollPeriod.starting_at).format('MMMM D') + " - " + moment(this.state.singlePayrollPeriod.ending_at).format('LL')}</Text>
