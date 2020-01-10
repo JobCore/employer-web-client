@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import { store, search, update, fetchSingle, searchMe, processPendingPayrollPeriods, updatePayments, createPayment, fetchAllMe } from '../actions.js';
+import { store, search, update, fetchSingle, searchMe, processPendingPayrollPeriods, updatePayments, createPayment, fetchAllMe, fetchTemporal } from '../actions.js';
 import { GET } from '../utils/api_wrapper';
 
 import DateTime from 'react-datetime';
@@ -257,6 +257,7 @@ export const Payment = (data) => {
                 over_time: this.over_time,
                 hourly_rate: this.hourly_rate,
                 total_amount: this.total_amount,
+                breaktime_minutes: 0,
                 status: this.status,
                 splited_payment: this.splited_payment,
                 payroll_period: (!this.employer || typeof this.employer.id === 'undefined') ? this.employer : this.employer.id,
@@ -301,7 +302,10 @@ export const Payment = (data) => {
 /**
  * EditOrAddExpiredShift
  */
-export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar, oldShift }) => {
+export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, formData, error, oldShift }) => {
+
+    const { bar } = useContext(Theme.Context);
+
     useEffect(() => {
         const venues = store.getState('venues');
         const favlists = store.getState('favlists');
@@ -330,7 +334,7 @@ export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, for
                     <Select
                         value={catalog.positions.find((pos) => pos.value == formData.position)}
                         onChange={(selection) => onChange({ position: selection.value.toString(), has_sensitive_updates: true })}
-                        options={[{ label: 'Select a position', value: '' }].concat(catalog.positions)}
+                        options={catalog.positions}
                     />
                 </div>
             </div>
@@ -361,19 +365,6 @@ export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, for
             <div className="row">
                 <div className="col-12">
                     <label className="mb-1">Dates</label>
-                    {/* {formData.multiple_dates && <p className="mb-1 mt-0">
-                        {formData.multiple_dates.map((d, i) => (
-                            <span key={i} className="badge">{d.starting_at.format('MM-DD-YYYY')}
-                                <i
-                                    className="fas fa-trash-alt ml-1 pointer"
-                                    onClick={() => onChange({
-                                        multiple_dates: !formData.multiple_dates ? [] : formData.multiple_dates.filter(dt => !dt.starting_at.isSame(d.starting_at)),
-                                        has_sensitive_updates: true
-                                    })}
-                                />
-                            </span>
-                        ))}
-                    </p>} */}
                     <div className="input-group">
                         <DateTime
                             timeFormat={false}
@@ -546,75 +537,32 @@ export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, for
                 </div>
             </div>
 
-            {/* {(formData.pending_jobcore_invites.length > 0) ?
-                <div className="row">
-                    <div className="col-12">
-                        <p className="m-0 p-0">The following people will be invited to this shift after they accept your invitation to jobcore:</p>
-                        {formData.pending_jobcore_invites.map((emp, i) => (
-                            <span key={i} className="badge">{emp.first_name} {emp.last_name} <i className="fas fa-trash-alt"></i></span>
-                        ))}
-                    </div>
-                </div> : ''
-            } */}
             <div className="btn-bar">
-                {(formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ? // create shift
-                    <button type="button" className="btn btn-primary" onClick={() => validating_maximum || validating_minimum ? Notify.error("Cannot create shift before payroll time or after ") : onSave({
-                        executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
-                        status: 'DRAFT'
-                    })}>Save as draft</button> : ''
-                }
-                {(formData.status == 'DRAFT') ?
-                    <button type="button" className="btn btn-success" onClick={() => {
-                        if (!formData.has_sensitive_updates && !isNaN(formData.id)) onSave({ executed_action: 'update_shift', status: 'OPEN' });
-                        else {
-                            const noti = Notify.info("Are you sure? All talents will have to apply again the shift because the information was updated.", (answer) => {
-                                if (answer) onSave({
-                                    executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
-                                    status: 'OPEN'
-                                });
-                                noti.remove();
-                            });
-                        }
-                    }}>Publish</button>
-                    : (formData.status != 'UNDEFINED') ?
-                        <button type="button" className="btn btn-primary" onClick={() => {
-                            const noti = Notify.info("Are you sure you want to unpublish this shift?", (answer) => {
-                                if (answer) onSave({ executed_action: 'update_shift', status: 'DRAFT' });
-                                noti.remove();
-                            }, 9999999999999);
-                        }}>Unpublish shift</button>
-                        :
-                        <button type="button" className="btn btn-success"
-                            onChange={(value) => {
+                <button type="button" className="btn btn-success"
+                    onChange={(value) => {
+                        const getRealDate = (start, end) => {
+                            if (typeof start == 'string') value = moment(start);
 
+                            const starting = moment(start.format("MM-DD-YYYY") + " " + start.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                            var ending = moment(start.format("MM-DD-YYYY") + " " + end.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
 
-                                const getRealDate = (start, end) => {
-                                    if (typeof start == 'string') value = moment(start);
+                            if (typeof starting !== 'undefined' && starting.isValid()) {
+                                if (ending.isBefore(starting)) {
+                                    ending = ending.add(1, 'days');
+                                }
 
-                                    const starting = moment(start.format("MM-DD-YYYY") + " " + start.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-                                    var ending = moment(start.format("MM-DD-YYYY") + " " + end.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                                return { starting_at: starting, ending_at: ending };
+                            }
+                            return null;
+                        };
 
-                                    if (typeof starting !== 'undefined' && starting.isValid()) {
-                                        if (ending.isBefore(starting)) {
-                                            ending = ending.add(1, 'days');
-                                        }
-
-                                        return { starting_at: starting, ending_at: ending };
-                                    }
-                                    return null;
-                                };
-
-                                const mainDate = getRealDate(value, formData.ending_at);
-                                const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
-                                onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
-
-
-                            }}
-                            onClick={() => validating_maximum || validating_minimum ? Notify.error("Cannot create shift before payroll time or after") : onSave({
-                                executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
-                                status: 'OPEN'
-                            })}>Save and publish</button>
-                }
+                        const mainDate = getRealDate(value, formData.ending_at);
+                        onChange({ ...mainDate,  has_sensitive_updates: true });
+                    }}
+                    onClick={() => validating_maximum || validating_minimum ? Notify.error("Cannot create shift before payroll time or after") : onSave({
+                        executed_action: 'create_expired_shift',
+                        status: 'OPEN'
+                    })}>Save and publish</button>
                 {(formData.status != 'UNDEFINED') ?
                     <button type="button" className="btn btn-danger" onClick={() => {
                         const noti = Notify.info("Are you sure you want to cancel this shift?", (answer) => {
@@ -745,11 +693,15 @@ export class ManagePayroll extends Flux.DashView {
                                 <Button className="btn btn-info" onClick={() => this.props.history.push('/payroll/report/' + this.state.singlePayrollPeriod.id)}>Take me to the Payroll Report</Button>
                                 :
                                 <Button icon="plus" size="small" onClick={() => {
+                                    const isOpen = this.state.singlePayrollPeriod.payments.find(p => p.status === "NEW");
+                                    if(isOpen) return;
+                                     
                                     const period = {
                                         ...this.state.singlePayrollPeriod,
                                         payments: this.state.singlePayrollPeriod.payments.concat([Payment({ status: "NEW", employee: { id: 'new' } }).defaults()])
                                     };
                                     this.setState({ singlePayrollPeriod: period, payments: this.groupPayments(period) });
+                                    bar.close();
                                 }}>Add employee to timesheet</Button>
                             }
                         </p>
@@ -992,13 +944,22 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
     const diff = Math.round((clockInTotalHoursAfterBreak - plannedHours) * 100) / 100;
 
     useEffect(() => {
-        if (payment.status === "NEW")
-            GET(`employers/me/shifts?start=${moment(period.starting_at).format('YYYY-MM-DD')}&end=${moment(period.ending_at).format('YYYY-MM-DD')}&employee=${employee.id}`)
-                .then(_shifts => {
+        let unsubscribe = null;
+        if (payment.status === "NEW"){
+            fetchTemporal(`employers/me/shifts?start=${moment(period.starting_at).format('YYYY-MM-DD')}&end=${moment(period.ending_at).format('YYYY-MM-DD')}&employee=${employee.id}`, "employee-expired-shifts")
+                .then((_shifts) => {
                     const _posibleShifts = _shifts.map(s => ({ label: '', value: Shift(s).defaults().unserialize() }));
                     setPossibleShifts(_posibleShifts);
-                })
-                .catch(e => Notify.error(e.message || e));
+                });
+            unsubscribe = store.subscribe('employee-expired-shifts', (_shifts) => {
+                const _posibleShifts = _shifts.map(s => ({ label: '', value: Shift(s).defaults().unserialize() }));
+                setPossibleShifts(_posibleShifts);
+            });
+        }
+        return () => {
+            if(unsubscribe) unsubscribe();
+        };
+
     }, []);
 
     return <tr id={"paymemt" + payment.id}>
