@@ -508,6 +508,7 @@ class _Store extends Flux.DashStore{
             return employees.filter(em => em.user.profile).map(em => Talent(em).defaults().unserialize());
         });
         this.addEvent('favlists');
+        this.addEvent('deduction');
         this.addEvent('badges');
 
         this.addEvent('applications', (applicants) => {
