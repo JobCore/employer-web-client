@@ -11,7 +11,7 @@ import {POST, GET, PUT, DELETE, PUTFiles} from './utils/api_wrapper';
 import log from './utils/log';
 import WEngine from "./utils/write_engine.js";
 import qs from "query-string";
-
+import { normalizeToSnakeCase } from "./utils/snakeCase";
 const Models = {
     "shifts": Shift,
     "ratings": Rating,
@@ -41,6 +41,20 @@ export const login = (email, password, keep, history) => new Promise((resolve, r
             history.push('/');
             resolve();
         }
+    })
+    .catch(function(error) {
+        reject(error.message || error);
+        Notify.error(error.message || error);
+        log.error(error);
+    })
+);
+
+export const addBankAccount = (token, metadata) => new Promise((resolve, reject) => POST('bank-accounts/', 
+    normalizeToSnakeCase({ publicToken: token,  institutionName: metadata.institution.name }))
+    .then(function(data){
+        console.log('addBankAccount data: ', data);
+        resolve();
+        searchBankAccounts();
     })
     .catch(function(error) {
         reject(error.message || error);
@@ -241,6 +255,20 @@ export const searchMe = (entity, queryString) => new Promise((accept, reject) =>
         })
 );
 
+export const searchBankAccounts = () => new Promise((accept, reject) =>
+    GET('bank-accounts/')
+        .then(function(list){
+            console.log("bank-accounts list: ", list);
+            Flux.dispatchEvent('bank-accounts', list);
+            accept(list);
+        })
+        .catch(function(error) {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject(error);
+        })
+);
+
 export const create = (entity, data, status='live') => POST('employers/me/'+(entity.url || entity), data)
     .then(function(incoming){
         let entities = store.getState(entity.slug || entity);
@@ -320,6 +348,20 @@ export const remove = (entity, data) => {
             Notify.success("The "+name[0].substring(0, name[0].length - 1)+" was deleted successfully");
         })
         .catch(function(error) {
+            Notify.error(error.message || error);
+            log.error(error);
+        });
+};
+
+export const removeBankAccount = (route, data) => {
+    const path = `${route}/${data.id}`;
+    DELETE(path)
+        .then(() => {
+            Notify.success("The "+data.name+" was deleted successfully");
+            searchBankAccounts();
+        })
+        .catch((error) => {
+            console.log("bank-accounts error: ", error);
             Notify.error(error.message || error);
             log.error(error);
         });
@@ -460,6 +502,7 @@ class _Store extends Flux.DashStore{
         this.addEvent('clockins', clockins => !Array.isArray(clockins) ? [] : clockins.map(c => ({...c, started_at: moment(c.starting_at), ended_at: moment(c.ended_at) })));
         this.addEvent('jobcore-invites');
         this.addEvent('ratings');
+        this.addEvent('bank-accounts');
         this.addEvent('employees', (employees) => {
             if(!Array.isArray(employees)) return [];
             return employees.filter(em => em.user.profile).map(em => Talent(em).defaults().unserialize());
