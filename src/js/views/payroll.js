@@ -13,7 +13,7 @@ import { Notify } from 'bc-react-notifier';
 
 import { Shift, EditOrAddShift } from './shifts.js';
 import { ManageLocations, AddOrEditLocation, Location } from './locations.js';
-import { EmployeeExtendedCard, ShiftOption, ShiftCard, Theme, Button, ShiftOptionSelected, GenericCard, SearchCatalogSelect, Toggle } from '../components/index';
+import { EmployeeExtendedCard, ShiftOption, ShiftCard, Theme, Button, ShiftOptionSelected, GenericCard, SearchCatalogSelect, Avatar, Toggle, Wizard, StarRating, ListCard } from '../components/index';
 import queryString from 'query-string';
 
 import TimePicker from 'rc-time-picker';
@@ -27,6 +27,8 @@ import markerURL from '../../img/marker.png';
 
 import JobCoreLogo from '../../img/logo.png';
 import { Page, Image, Text, View, Document, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
+
+import TextareaAutosize from 'react-textarea-autosize';
 
 const ENTITIY_NAME = 'payroll';
 
@@ -1068,7 +1070,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                 :
                 <TimePicker
                     showSecond={false}
-                    defaultValue={clockin.started_at}
+                    defaultValue={approvedClockin}
                     format={TIME_FORMAT}
                     onChange={(value) => {
                         if (value) {
@@ -1076,7 +1078,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                             setClockin(_c);
                         }
                     }}
-                    value={clockin.started_at}
+                    value={approvedClockin}
                     use12Hours
                 />
             }
@@ -1367,6 +1369,156 @@ SelectShiftPeriod.propTypes = {
     catalog: PropTypes.object //contains the data needed for the form to load
 };
 
+export class PayrollRating extends Flux.DashView {
+
+    constructor() {
+        super();
+        this.state = {
+            employer: store.getState('current_employer'),
+            payrollPeriods: [],
+            payments: [],
+            singlePayrollPeriod: null
+        };
+    }
+
+    componentDidMount() {
+
+        this.subscribe(store, 'current_employer', (employer) => {
+            this.setState({ employer });
+        });
+
+        const payrollPeriods = store.getState('payroll-periods');
+        this.subscribe(store, 'payroll-periods', (_payrollPeriods) => {
+            this.updatePayrollPeriod(_payrollPeriods);
+            //if(!this.state.singlePayrollPeriod) this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
+        });
+        if (!payrollPeriods) {
+            searchMe('payroll-periods');
+        }
+        else {
+            this.updatePayrollPeriod(payrollPeriods);
+            this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
+
+        }
+
+        this.removeHistoryListener = this.props.history.listen((data) => {
+            const period = /\/payroll\/period\/(\d+)/gm;
+            const periodMatches = period.exec(data.pathname);
+            // const search = /\?talent_id=(\d+)/gm;
+            // const searchMatches = search.exec(data.search);
+            if (periodMatches) this.getSinglePeriod(periodMatches[1]);
+        });
+    }
+
+    groupPayments(singlePeriod) {
+        if (!singlePeriod) return null;
+
+        let groupedPayments = {};
+        singlePeriod.payments.forEach(pay => {
+            if (typeof groupedPayments[pay.employee.id] === 'undefined') {
+                groupedPayments[pay.employee.id] = { employee: pay.employee, payments: [] };
+            }
+            groupedPayments[pay.employee.id].payments.push(pay);
+        });
+
+        return Object.values(groupedPayments);
+    }
+
+    getSinglePeriod(periodId, payrollPeriods) {
+        if (typeof periodId !== 'undefined') {
+            if (!payrollPeriods) fetchSingle("payroll-periods", periodId);
+            else {
+                const singlePayrollPeriod = payrollPeriods.find(pp => pp.id == periodId);
+                this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod) });
+            }
+        }
+    }
+
+    updatePayrollPeriod(payrollPeriods) {
+
+        if (payrollPeriods == null) return;
+
+        let singlePayrollPeriod = null;
+        if (typeof this.props.match.params.period_id !== 'undefined') {
+            singlePayrollPeriod = payrollPeriods.find(pp => pp.id == this.props.match.params.period_id);
+        }
+
+        this.setState({ payrollPeriods, singlePayrollPeriod: singlePayrollPeriod || null, payments: this.groupPayments(singlePayrollPeriod) });
+    }
+
+
+    render() {
+        console.log(this.state.payments);
+        if (!this.state.employer) return "Loading...";
+        else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
+            return <div className="p-1 listcontents text-center">
+                <h3>Please setup your payroll settings first.</h3>
+                <Button color="success" onClick={() => this.props.history.push("/payroll-settings")}>Setup Payroll Settings</Button>
+            </div>;
+        }
+
+        //const allowLevels = (window.location.search != '');
+        return (<div className="p-1 listcontents">
+            <Theme.Consumer>
+                {({ bar }) => (<span>
+                    {(!this.state.singlePayrollPeriod) ? '' :
+                        (this.state.singlePayrollPeriod.payments.length > 0) ?
+                            <div>
+                                <p className="text-right">
+                                    <h2>Rating {this.state.singlePayrollPeriod.label}</h2>
+                                </p>
+                            </div>
+                            :
+                            <p>No payments to review for this period</p>
+                    }
+
+                    {
+                        [1, 2].map((list, i) => (
+
+                            <div className="row list-card" key={i}>
+
+                                <div className="col-1 my-auto">
+
+                                    <Avatar url={"http://placekitten.com/g/200/300"} />
+                                </div>
+                                <div className="col-2 my-auto">
+
+                                    <span>Don Pepin</span>
+                                </div>
+                                <div className="col my-auto">
+                                    <StarRating
+                                        onClick={() => console.log("ppee")}
+                                        onHover={() => console.log("over")}
+                                        direction="right"
+                                        fractions={2}
+                                        quiet={false}
+                                        readonly={false}
+                                        totalSymbols={5}
+                                        value={3}
+                                        placeholderValue={3}
+                                        placeholderRating={Number(0)}
+                                        emptySymbol="far fa-star md"
+                                        fullSymbol="fas fa-star"
+                                        placeholderSymbol={"fas fa-star"}
+                                    />
+                                </div>
+                                <div className="col-7 my-auto">
+                                    <TextareaAutosize style={{ width: '100%' }} placeholder="Comment..." />
+                                </div>
+                            </div>
+
+
+                        ))
+
+                    }
+
+
+
+                </span>)}
+            </Theme.Consumer>
+        </div >);
+    }
+}
 export class PayrollReport extends Flux.DashView {
 
     constructor() {
@@ -1462,10 +1614,14 @@ export class PayrollReport extends Flux.DashView {
                         (this.state.singlePayrollPeriod.payments.length > 0) ?
                             <div>
                                 <p className="text-right">
-                                    <h1 className="float-left">Payments for {this.state.singlePayrollPeriod.label}</h1>
-                                    <Button className="btn btn-info" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button>
+                                    <h2>Payments for {this.state.singlePayrollPeriod.label}</h2>
                                 </p>
-                                <div className="mb-2">
+
+                                <div className="row mb-4 text-right">
+                                    <div className="col">
+
+                                        <Button size="small" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button>
+                                    </div>
                                     <PDFDownloadLink document={
                                         <Document>
                                             {/* <Page style={styles.page}> */}
@@ -1559,10 +1715,19 @@ export class PayrollReport extends Flux.DashView {
                                             </Page>
                                         </Document>
                                     } fileName={"JobCore " + this.state.singlePayrollPeriod.label + ".pdf"}>
-                                        {({ blob, url, loading, error }) => (loading ? 'Loading...' : <Button color="success" size="small">Export to PDF</Button>
+                                        {({ blob, url, loading, error }) => (loading ? 'Loading...' : (
+                                            <div className="col">
+                                                <Button color="success" size="small" >Export to PDF</Button>
+                                            </div>
+                                        )
                                         )}
                                     </PDFDownloadLink>
+
+
                                 </div>
+
+                                {/* <Button className="btn btn-info" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button> */}
+
                                 {this.state.singlePayrollPeriod.status == "OPEN" &&
                                     <div className="alert alert-warning p-2">This period is still open, <a href="#" onClick={(e) => {
                                         e.preventDefault();
@@ -1623,6 +1788,6 @@ export class PayrollReport extends Flux.DashView {
                     }
                 </span>)}
             </Theme.Consumer>
-        </div>);
+        </div >);
     }
 }

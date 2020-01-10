@@ -557,7 +557,7 @@ export const updateTalentList = (action, employee, listId) => {
 };
 
 export const updatePayments = async (payments, period) => {
-
+    console.log(payments);
     if (!Array.isArray(payments)) payments = [payments];
     for (let i = 0; i < payments.length; i++) {
         let data = { ...payments[i] };
@@ -638,7 +638,7 @@ class _Store extends Flux.DashStore {
         // Payroll related data
         this.addEvent('payroll-periods', (period) => {
             return (!period || (Object.keys(period).length === 0 && period.constructor === Object)) ? [{ label: "Loading payment periods...", value: null }] : period.map(p => {
-                p.label = `From ${moment(p.starting_at).format('MMMM Do YYYY, h:mm')} to ${moment(p.ending_at).format('MMMM Do YYYY, h:mm')}`;
+                p.label = `From ${moment(p.starting_at).format('MM-D-YY h:mm A')} to ${moment(p.ending_at).format('MM-D-YY h:mm A')}`;
                 return p;
             });
         });

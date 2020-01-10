@@ -1,13 +1,13 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import {store, update, remove, updateTalentList, fetchAllMe} from '../actions.js';
-import {callback, hasTutorial} from '../utils/tutorial';
-import { ListCard, EmployeeExtendedCard, Button, Theme, Wizard, SearchCatalogSelect} from '../components/index';
+import { store, update, remove, updateTalentList, fetchAllMe } from '../actions.js';
+import { callback, hasTutorial } from '../utils/tutorial';
+import { ListCard, EmployeeExtendedCard, Button, Theme, Wizard, SearchCatalogSelect } from '../components/index';
 import Select from 'react-select';
-import {Session} from 'bc-react-session';
-import {Notify} from 'bc-react-notifier';
-import {GET} from '../utils/api_wrapper';
+import { Session } from 'bc-react-session';
+import { Notify } from 'bc-react-notifier';
+import { GET } from '../utils/api_wrapper';
 
 export const Favlist = (data) => {
 
@@ -16,7 +16,7 @@ export const Favlist = (data) => {
         auto_accept_employees_on_this_list: true,
         employees: [],
         employer: Session.getPayload().user.profile.employer,
-        serialize: function(filters=[]){
+        serialize: function (filters = []) {
 
             const newEntity = {
                 id: data.id,
@@ -60,7 +60,7 @@ export const Favlist = (data) => {
 
 export class ManageFavorites extends Flux.DashView {
 
-    constructor(){
+    constructor() {
         super();
         this.state = {
             lists: [],
@@ -80,13 +80,13 @@ export class ManageFavorites extends Flux.DashView {
         };
     }
 
-    componentDidMount(){
+    componentDidMount() {
 
         const lists = store.getState('favlists');
         this.subscribe(store, 'favlists', (lists) => {
             this.setState({ lists });
         });
-        this.setState({ lists: (lists) ? lists:[], runTutorial: true });
+        this.setState({ lists: (lists) ? lists : [], runTutorial: true });
 
         fetchAllMe(['favlists']);
     }
@@ -94,41 +94,41 @@ export class ManageFavorites extends Flux.DashView {
     render() {
         return (<div className="p-1 listcontents">
             <Wizard continuous
-              steps={this.state.steps}
-              run={this.state.runTutorial}
-              callback={callback}
+                steps={this.state.steps}
+                run={this.state.runTutorial}
+                callback={callback}
             />
             <h1><span id="your-favorites-heading">Your favorite lists</span></h1>
             <Theme.Consumer>
-                {({bar}) =>
+                {({ bar }) =>
                     (this.state.lists.length == 0) ?
                         <p>You have no favorite lists yet, <a href="#" className="text-primary" onClick={() => bar.show({ slug: "create_favlist" })}>click here</a> to create your first</p>
-                    :
-                    this.state.lists.map((list,i) => (
-                        <ListCard key={i} list={list} onClick={() =>
-                            bar.show({ slug: "favlist_employees", data: list, title: "List Details" })}
-                        >
-                            <button type="button" className="btn btn-secondary"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    bar.show({ slug: "update_favlist", data: list, title: "List Details" });
-                            }}>
-                                <i className="fas fa-pencil-alt"></i>
-                            </button>
-                            <button type="button" className="btn btn-secondary"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    const noti = Notify.info("Are you sure?",(answer) => {
-                                        if(answer) remove('favlists', list);
-                                        noti.remove();
-                                    });
+                        :
+                        this.state.lists.map((list, i) => (
+                            <ListCard key={i} list={list} onClick={() =>
+                                bar.show({ slug: "favlist_employees", data: list, title: "List Details" })}
+                            >
+                                <button type="button" className="btn btn-secondary"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        bar.show({ slug: "update_favlist", data: list, title: "List Details" });
+                                    }}>
+                                    <i className="fas fa-pencil-alt"></i>
+                                </button>
+                                <button type="button" className="btn btn-secondary"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        const noti = Notify.info("Are you sure?", (answer) => {
+                                            if (answer) remove('favlists', list);
+                                            noti.remove();
+                                        });
 
-                                }
-                            }>
-                                <i className="fas fa-trash-alt"></i>
-                            </button>
-                        </ListCard>
-                    ))
+                                    }
+                                    }>
+                                    <i className="fas fa-trash-alt"></i>
+                                </button>
+                            </ListCard>
+                        ))
                 }
             </Theme.Consumer>
         </div>);
@@ -138,17 +138,17 @@ export class ManageFavorites extends Flux.DashView {
 /**
  * Add To Favorite List
  */
-export const AddFavlistsToTalent = ({onChange, formData, onSave, onCancel, catalog}) => (<Theme.Consumer>
-    {({bar}) => (<form>
+export const AddFavlistsToTalent = ({ onChange, formData, onSave, onCancel, catalog }) => (<Theme.Consumer>
+    {({ bar }) => (<form>
         <div className="row">
             <div className="col-12">
                 <label>Pick your favorite lists:</label>
                 <Select isMulti className="select-favlists"
                     value={formData.favoriteLists}
                     options={[{ label: "Add new favorite list", value: 'new_favlist', component: AddorUpdateFavlist }].concat(catalog.favlists)}
-                    onChange={(selection)=> {
+                    onChange={(selection) => {
                         const create = selection.find(opt => (opt.value == 'new_favlist'));
-                        if(create) bar.show({ slug: "create_favlist", allowLevels: true });
+                        if (create) bar.show({ slug: "create_favlist", allowLevels: true });
                         else onChange({ favoriteLists: selection });
                     }}
                 />
@@ -163,11 +163,11 @@ export const AddFavlistsToTalent = ({onChange, formData, onSave, onCancel, catal
 </Theme.Consumer>);
 
 AddFavlistsToTalent.propTypes = {
-  onSave: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  onChange: PropTypes.func.isRequired,
-  formData: PropTypes.object,
-  catalog: PropTypes.object //contains the data needed for the form to load
+    onSave: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    onChange: PropTypes.func.isRequired,
+    formData: PropTypes.object,
+    catalog: PropTypes.object //contains the data needed for the form to load
 };
 
 export const AddorUpdateFavlist = ({ formData, onChange, onSave, onCancel }) => (<form>
@@ -177,7 +177,7 @@ export const AddorUpdateFavlist = ({ formData, onChange, onSave, onCancel }) => 
             <input type="text" className="form-control"
                 placeholder="List name"
                 value={formData.title}
-                onChange={(e)=> onChange({title: e.target.value})}
+                onChange={(e) => onChange({ title: e.target.value })}
             />
         </div>
     </div>
@@ -186,7 +186,7 @@ export const AddorUpdateFavlist = ({ formData, onChange, onSave, onCancel }) => 
             <input type="checkbox"
                 placeholder="List name"
                 checked={formData.auto_accept_employees_on_this_list}
-                onChange={(e)=> onChange({ auto_accept_employees_on_this_list: e.target.checked})}
+                onChange={(e) => onChange({ auto_accept_employees_on_this_list: e.target.checked })}
             />
         </div>
         <div className="col-11">
@@ -212,11 +212,11 @@ export const FavlistEmployees = ({ formData, onChange, onSave, catalog }) => {
     const favlist = store.get('favlists', formData.id);
     return (<form>
         <Theme.Consumer>
-            {({bar}) => (<span>
+            {({ bar }) => (<span>
                 <div className="top-bar">
                     <button type="button" className="btn btn-primary btn-sm rounded" onClick={() =>
-                            bar.show({ slug: "update_favlist", data: formData, allowLevels: true })
-                        }><i className="fas fa-pencil-alt"></i></button>
+                        bar.show({ slug: "update_favlist", data: formData, allowLevels: true })
+                    }><i className="fas fa-pencil-alt"></i></button>
                     <button type="button" className="btn btn-secondary btn-sm rounded" onClick={() => onChange({ _mode: 'add_talent' })}>
                         <i className="fas fa-plus"></i>
                     </button>
@@ -227,45 +227,45 @@ export const FavlistEmployees = ({ formData, onChange, onSave, catalog }) => {
                         <span>{favlist.title}</span>
                     </div>
                 </div>
-                { (typeof formData._mode == 'undefined' || formData._mode == 'default') ?
+                {(typeof formData._mode == 'undefined' || formData._mode == 'default') ?
                     <div className="row">
                         <div className="col-12">
                             <label>Talents: </label>
-                            {(!favlist || favlist.employees.length == 0) ? <span>There are no talents in this list yet, <span className="anchor" onClick={() => onChange({ _mode: 'add_talent' })}>click here to add a new one</span></span>:'' }
+                            {(!favlist || favlist.employees.length == 0) ? <span>There are no talents in this list yet, <span className="anchor" onClick={() => onChange({ _mode: 'add_talent' })}>click here to add a new one</span></span> : ''}
                         </div>
-                    </div>:''
+                    </div> : ''
                 }
-                { (typeof formData._mode != 'undefined' && formData._mode=='add_talent') ?
+                {(typeof formData._mode != 'undefined' && formData._mode == 'add_talent') ?
                     <div className="row mb-2">
                         <div className="col-12">
                             <label>Search for the talents you want to add</label>
                             <SearchCatalogSelect
                                 isMulti={false}
-                                onChange={(selection)=> {
-                                    if(selection.value == 'invite_talent_to_jobcore') bar.show({
+                                onChange={(selection) => {
+                                    if (selection.value == 'invite_talent_to_jobcore') bar.show({
                                         allowLevels: true,
                                         slug: "invite_talent_to_jobcore"
                                     });
                                     else updateTalentList('add', selection.value, formData.id)
-                                            .then(() => onChange({ _mode: 'default'  }))
-                                            .catch((error) => alert(error));
+                                        .then(() => onChange({ _mode: 'default' }))
+                                        .catch((error) => alert(error));
                                 }}
                                 searchFunction={(search) => new Promise((resolve, reject) =>
-                                    GET('catalog/employees?full_name='+search)
+                                    GET('catalog/employees?full_name=' + search)
                                         .then(talents => resolve([
-                                            { label: `${(talents.length==0) ? 'No one found: ':''}Invite "${search}" to JobCore?`, value: 'invite_talent_to_jobcore' }
+                                            { label: `${(talents.length == 0) ? 'No one found: ' : ''}Invite "${search}" to JobCore?`, value: 'invite_talent_to_jobcore' }
                                         ].concat(talents)))
                                         .catch(error => reject(error))
                                 )}
                             />
                         </div>
-                    </div>:''
+                    </div> : ''
                 }
                 {(favlist && favlist.employees.length > 0) ?
                     <div className="row">
                         <div className="col-12">
                             <ul>
-                                {favlist.employees.map((em,i) => (
+                                {favlist.employees.map((em, i) => (
                                     <EmployeeExtendedCard
                                         key={i}
                                         employee={em}
@@ -274,14 +274,14 @@ export const FavlistEmployees = ({ formData, onChange, onSave, catalog }) => {
                                         onClick={() => bar.show({ slug: "show_single_talent", data: em, allowLevels: true })}
                                     >
                                         <Button className="mt-0" icon="trash" label="Delete" onClick={() => {
-                                            updateTalentList('delete', em.id,formData.id);
+                                            updateTalentList('delete', em.id, formData.id);
                                             //.then(() => onChange);
-                                        }}/>
+                                        }} />
                                     </EmployeeExtendedCard>)
                                 )}
                             </ul>
                         </div>
-                    </div>:''
+                    </div> : ''
                 }
             </span>)}
         </Theme.Consumer>

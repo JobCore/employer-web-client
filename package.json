@@ -97,6 +97,7 @@
     "react-router-dom": "^4.2.2",
     "react-select": "^2.0.0",
     "react-svg-inline": "^2.1.1",
+    "react-textarea-autosize": "^7.1.2",
     "react-transition-group": "^2.4.0",
     "underscore": "^1.9.1",
     "validator": "^10.4.0"
