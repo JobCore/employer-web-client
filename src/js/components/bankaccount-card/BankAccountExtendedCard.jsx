@@ -10,11 +10,6 @@ import deleteIcon from "../../../img/icons/delete.png";
  */
 const BankAccountExtendedCard = ({
     account,
-    hoverEffect,
-    showButtonsOnHover,
-    className,
-    children,
-    onClick,
     onDelete,
 }) => {
     // const badgesHTML = props.employee.badges.map((b, i) => (<span key={i} className="badge">{b.title}</span>));
@@ -38,24 +33,10 @@ const BankAccountExtendedCard = ({
 };
 BankAccountExtendedCard.propTypes = {
     account: PropTypes.object.isRequired,
-    children: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.node),
-        PropTypes.node
-    ]),
-    showFavlist: PropTypes.bool,
-    className: PropTypes.string,
-    showButtonsOnHover: PropTypes.bool,
-    hoverEffect: PropTypes.bool,
-    onClick: PropTypes.func,
     onDelete: PropTypes.func
 };
 BankAccountExtendedCard.defaultProps = {
-    showFavlist: true,
-    className: '',
-    hoverEffect: true,
-    showButtonsOnHover: true,
-    children: null,
-    onClick: null,
+    account: {},
     onDelete: null,
 };
 
