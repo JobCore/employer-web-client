@@ -1,4 +1,5 @@
 const webpack = require('webpack');
+const Dotenv = require('dotenv-webpack');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
@@ -13,71 +14,62 @@ module.exports = {
   },
   module: {
     rules: [
-      {
-        test: /\.(js|jsx)$/,
-        exclude: /node_modules/,
-        use: ['babel-loader']
-      },
-      {
-        test: /\.(js|jsx)$/,
-        exclude: /node_modules/,
-        use: ['babel-loader', 'eslint-loader']
-      },
-      {
-        test: /\.md$/, use: [
-          {
-            loader: "html-loader"
-          },
-          {
-            loader: "markdown-loader",
-            options: {
-              /* your options here */
-            }
+        {
+          test: /\.(js|jsx)$/,
+          exclude: /node_modules/,
+          use: ['babel-loader']
+        },
+        {
+          test: /\.(js|jsx)$/,
+          exclude: /node_modules/,
+          use: ['babel-loader', 'eslint-loader']
+        },
+        { test: /\.md$/, use: [
+              {
+                  loader: "html-loader"
+              },
+              {
+                  loader: "markdown-loader",
+                  options: {
+                      /* your options here */
+                  }
+              }
+          ]
+        },
+        {
+          test: /\.scss|css$/, use: [{
+              loader: "style-loader" // creates style nodes from JS strings
+          }, {
+              loader: "css-loader" // translates CSS into CommonJS
+          }, {
+              loader: "sass-loader" // compiles Sass to CSS
+          }]
+        }, //css only files
+        {
+          test: /\.(png|jpg|gif)$/, use: {
+            loader: 'file-loader',
+            options: { name: '[name].[ext]' }
           }
-        ]
-      },
-      {
-        test: /\.scss|css$/, use: [{
-          loader: "style-loader" // creates style nodes from JS strings
-        }, {
-          loader: "css-loader" // translates CSS into CommonJS
-        }, {
-          loader: "sass-loader" // compiles Sass to CSS
-        }]
-      }, //css only files
-      {
-        test: /\.(png|jpg|gif)$/, use: {
-          loader: 'file-loader',
-          options: {name: '[name].[ext]'}
-        }
-      }, //for images
-      {
-        test: /\.svg$/,
-        loader: 'svg-inline-loader'
-      },
-      {test: /\.woff($|\?)|\.woff2($|\?)|\.ttf($|\?)|\.eot($|\?)/, use: ['file-loader']} //for fonts
+        }, //for images
+        {
+            test: /\.svg$/,
+            loader: 'svg-inline-loader'
+        },
+        { test: /\.woff($|\?)|\.woff2($|\?)|\.ttf($|\?)|\.eot($|\?)/, use: ['file-loader'] } //for fonts
     ]
   },
   resolve: {
     extensions: ['*', '.js', '.jsx'],
   },
-  optimization: {
-    splitChunks: {
-      cacheGroups: {
-        vendor: {
-          test: /node_modules/, // you may add "vendor.js" here if you want to
-          name: "vendor",
-          chunks: "initial",
-          enforce: true
-        }
-      }
-    }
-  },
   plugins: [
+    new Dotenv({
+        path: './.env',
+        systemvars: true
+    }),
     new webpack.HotModuleReplacementPlugin(),
     new HtmlWebpackPlugin({
       favicon: 'jobcore.ico',
       template: 'template.html'
     })
-  ]
+  ],
 };

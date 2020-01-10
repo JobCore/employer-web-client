@@ -1,11 +1,12 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import {store, update, remove, updateTalentList} from '../actions.js';
+import {store, update, remove, updateTalentList, fetchAllMe} from '../actions.js';
 import {callback, hasTutorial} from '../utils/tutorial';
 import { ListCard, EmployeeExtendedCard, Button, Theme, Wizard, SearchCatalogSelect} from '../components/index';
 import Select from 'react-select';
 import {Session} from 'bc-react-session';
+import {Notify} from 'bc-react-notifier';
 import {GET} from '../utils/api_wrapper';
 
 export const Favlist = (data) => {
@@ -86,6 +87,8 @@ export class ManageFavorites extends Flux.DashView {
             this.setState({ lists });
         });
         this.setState({ lists: (lists) ? lists:[], runTutorial: true });
+
+        fetchAllMe(['favlists']);
     }
 
     render() {
@@ -115,8 +118,13 @@ export class ManageFavorites extends Flux.DashView {
                             <button type="button" className="btn btn-secondary"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    remove('favlists', list);
-                            }}>
+                                    const noti = Notify.info("Are you sure?",(answer) => {
+                                        if(answer) remove('favlists', list);
+                                        noti.remove();
+                                    });
+
+                                }
+                            }>
                                 <i className="fas fa-trash-alt"></i>
                             </button>
                         </ListCard>

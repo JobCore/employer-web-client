@@ -15,6 +15,7 @@ export const SearchCatalogSelect = require('./search-catalog-select/SearchCatalo
 export const Wizard = require('./wizard/Wizard').default;
 export const ShiftOption = require('./shift-option/ShiftOption').default;
 export const ShiftOptionSelected = require('./shift-option/ShiftOptionSelected').default;
+export const Toggle = require('./toggle/Toggle').default;
 export const Button = require('./button/Button').default;
 export const LoadBar = require('./load-bar/LoadBar').default;
 
