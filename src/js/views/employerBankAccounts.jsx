@@ -70,7 +70,6 @@ class EmployerBankAccounts extends Flux.DashView {
                                                 <BankAccountExtendedCard
                                                 key={i}
                                                 account={account}
-                                                hover={true}
                                                 onDelete={() => {
                                                     const noti = Notify.info("Are you sure you want to delete this bank account?",(answer) => {
                                                         if(answer) removeBankAccount("bank-accounts",account);
