@@ -9,6 +9,7 @@ import {Theme, SideBar, LoadBar} from './components/index';
 import { ShiftCalendar } from "./views/calendar.js";
 import { ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters, RateShift, ShiftInvites, ShiftEmployees,
     ShiftTalentClockins } from './views/shifts';
+import { CreateDeduction, Deduction, UpdateDeduction } from "./views/profile";
 import {ManageApplicantions, ApplicationDetails,FilterApplications, getApplicationsInitialFilters} from './views/applications';
 import {Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilters, TalentDetails} from './views/talents';
 import {PendingInvites, SearchShiftToInviteTalent, InviteTalentToJobcore, SearchTalentToInviteToShift} from './views/invites';
@@ -24,7 +25,6 @@ import logoURL from '../img/logo.png';
 import loadingURL from '../img/loading2.gif';
 import moment from 'moment';
 import {EngineComponent} from "./utils/write_engine";
-
 class PrivateLayout extends Flux.DashView{
 
     constructor(){
@@ -68,6 +68,14 @@ class PrivateLayout extends Flux.DashView{
                         case 'create_shift':
                             //console.log('create_shift', option.data);
                             this.showRightBar(ShiftDetails, option, {formData: Shift(option.data).defaults()});
+                        break;
+                        case 'create_deduction':
+                            option.title = "Create deduction";
+                            this.showRightBar(CreateDeduction, option, {formData: Deduction(option.data).defaults()});
+                        break;
+                        case 'update_deduction':
+                            option.title = "Update deduction";
+                            this.showRightBar(UpdateDeduction, option, {formData: Deduction(option.data).defaults()});
                         break;
                         case 'filter_talent':
                             this.showRightBar(FilterTalents, option, {formData: getTalentInitialFilters(this.state.catalog)});
