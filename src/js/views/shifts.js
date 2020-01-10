@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from "react";
 import { Link } from 'react-router-dom';
 import Flux from "@4geeksacademy/react-flux-dash";
-import {store, create, searchMe, fetchAllMe} from '../actions.js';
+import { store, create, searchMe, fetchAllMe } from '../actions.js';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
@@ -10,18 +10,18 @@ import Select from 'react-select';
 import DateTime from 'react-datetime';
 import TimePicker from 'rc-time-picker';
 
-import {Notify} from 'bc-react-notifier';
+import { Notify } from 'bc-react-notifier';
 import queryString from 'query-string';
-import {ShiftCard, Wizard, Theme, SearchCatalogSelect, Button, ApplicantCard, GenericCard, EmployeeExtendedCard, Avatar} from '../components/index';
-import {DATETIME_FORMAT, TIME_FORMAT, NOW, YESTERDAY} from '../components/utils.js';
-import {validator, ValidationError} from '../utils/validation';
-import {callback, hasTutorial} from '../utils/tutorial';
+import { ShiftCard, Wizard, Theme, SearchCatalogSelect, Button, ApplicantCard, GenericCard, EmployeeExtendedCard, Avatar } from '../components/index';
+import { DATETIME_FORMAT, TIME_FORMAT, NOW, TODAY, YESTERDAY } from '../components/utils.js';
+import { validator, ValidationError } from '../utils/validation';
+import { callback, hasTutorial } from '../utils/tutorial';
 import { AddOrEditLocation } from '../views/locations.js';
 import { ShiftInvite, Talent } from '../views/talents.js';
 
 import moment from 'moment';
-import {GET} from '../utils/api_wrapper';
-const SHIFT_POSSIBLE_STATUS = ['UNDEFINED','DRAFT','OPEN','CANCELLED'];
+import { GET } from '../utils/api_wrapper';
+const SHIFT_POSSIBLE_STATUS = ['UNDEFINED', 'DRAFT', 'OPEN', 'CANCELLED'];
 
 //gets the querystring and creats a formData object to be used when opening the rightbar
 export const getShiftInitialFilters = () => {
@@ -35,40 +35,45 @@ export const Shift = (data) => {
         maximum_allowed_employees: '1',
         application_restriction: 'ANYONE',
         minimum_hourly_rate: '8',
-        starting_at: NOW(),
-        ending_at: NOW(),
+        starting_at: moment().add(15 - (moment().minute() % 15), "minutes"),
+        ending_at: moment().add(15 - (moment().minute() % 15) + 120, "minutes"),
         employees: [],
         pending_invites: [],
         pending_jobcore_invites: [],
-        candidates:[],
+        candidates: [],
         allowed_from_list: [],
         allowedFavlists: [],
         allowedTalents: [],
         minimum_allowed_rating: '1',
         venue: '',
         status: 'UNDEFINED',
-        withStatus: function(newStatus){
-            if(typeof newStatus === 'string') this.status = newStatus;
-            else throw new Error('Invalid status '+newStatus);
+        withStatus: function (newStatus) {
+            if (typeof newStatus === 'string') this.status = newStatus;
+            else throw new Error('Invalid status ' + newStatus);
 
             return this;
         },
-        serialize: function(){
+        serialize: function () {
 
-            const newShift = {
+            let newShift = {
                 status: (this.status == 'UNDEFINED') ? 'DRAFT' : this.status,
                 // starting_at: (moment.isMoment(this.starting_at)) ? this.starting_at.format(DATETIME_FORMAT) : this.starting_at,
                 // ending_at: (moment.isMoment(this.ending_at)) ? this.ending_at.format(DATETIME_FORMAT) : this.ending_at,
+                starting_at: moment(this.starting_at).utc(),
+                ending_at: moment(this.ending_at).utc(),
                 allowed_from_list: this.allowedFavlists.map(f => f.value),
                 multiple_dates: Array.isArray(this.multiple_dates) && this.multiple_dates.length > 0 ? this.multiple_dates : undefined
             };
 
+            //this is a special property used on the form for creating an expried (past) shift and adding the employess right away
+            if (Array.isArray(this.employeesToAdd)) newShift.employees = this.employeesToAdd.map(e => e.value || e.id);
+
             return Object.assign(this, newShift);
         },
-        unserialize: function(){
+        unserialize: function () {
             const dataType = typeof this.starting_at;
             //if its already serialized
-            if((typeof this.position == 'object') && ['number','string'].indexOf(dataType) == -1) return this;
+            if ((typeof this.position == 'object') && ['number', 'string'].indexOf(dataType) == -1) return this;
             const newShift = {
                 position: (typeof this.position != 'object') ? store.get('positions', this.position) : this.position,
                 venue: (typeof this.venue != 'object') ? store.get('venues', this.venue) : this.venue,
@@ -76,7 +81,7 @@ export const Shift = (data) => {
                 ending_at: (!moment.isMoment(this.ending_at)) ? moment(this.ending_at) : this.ending_at,
                 allowedFavlists: this.allowed_from_list.map(fav => {
                     const list = store.get('favlists', fav.id || fav);
-                    return (list) ? {value: list.id, label: list.title} : null;
+                    return (list) ? { value: list.id, label: list.title } : null;
                 }),
                 expired: moment(this.ending_at).isBefore(NOW()),
                 price: {
@@ -101,15 +106,15 @@ export const Shift = (data) => {
             const start = _shift.starting_at;
             const finish = _shift.ending_at;
 
-            if(_shift.status == 'CANCELLED') return _shift;
+            if (_shift.status == 'CANCELLED') return _shift;
 
-            if(!validator.isInt(_shift.position.toString(), { min: 1 })) throw new ValidationError('The shift is missing a position');
-            if(!validator.isInt(_shift.maximum_allowed_employees.toString(), { min: 1, max: 25 })) throw new ValidationError('The shift needs to employ at least 1 talent and no more than 25');
-            if(!validator.isFloat(_shift.minimum_hourly_rate.toString(), { min: 7 })) throw new ValidationError('The minimum allowed hourly rate is $7');
-            if(!start.isValid() || start.isBefore(NOW())) throw new ValidationError('The shift date has to be greater than today');
-            if(!finish.isValid() || finish.isBefore(start)) throw new ValidationError('The shift ending time has to be grater than the starting time');
-            if(!validator.isInt(_shift.venue.toString(), { min: 1 })) throw new ValidationError('The shift is missing a venue');
-            if(SHIFT_POSSIBLE_STATUS.indexOf(_shift.status) == -1) throw new Error('Invalid status "'+_shift.status+'" for shift');
+            if (!validator.isInt(_shift.position.toString(), { min: 1 })) throw new ValidationError('The shift is missing a position');
+            if (!validator.isInt(_shift.maximum_allowed_employees.toString(), { min: 1, max: 25 })) throw new ValidationError('The shift needs to employ at least 1 talent and no more than 25');
+            if (!validator.isFloat(_shift.minimum_hourly_rate.toString(), { min: 7 })) throw new ValidationError('The minimum allowed hourly rate is $7');
+            // if (!start.isValid() || start.isBefore(NOW())) throw new ValidationError('The shift date has to be greater than today');
+            if (!finish.isValid() || finish.isBefore(start)) throw new ValidationError('The shift ending time has to be grater than the starting time');
+            if (!validator.isInt(_shift.venue.toString(), { min: 1 })) throw new ValidationError('The shift is missing a venue');
+            if (SHIFT_POSSIBLE_STATUS.indexOf(_shift.status) == -1) throw new Error('Invalid status "' + _shift.status + '" for shift');
 
             return _shift;
         },
@@ -121,7 +126,7 @@ export const Shift = (data) => {
                 id: _shift.id.toString(),
                 pending_jobcore_invites: _shift.pending_jobcore_invites,
                 application_restriction: _shift.application_restriction,
-                pending_invites: (typeof _shift.pending_invites == 'undefined') ? []:_shift.pending_invites,
+                pending_invites: (typeof _shift.pending_invites == 'undefined') ? [] : _shift.pending_invites,
                 position: _shift.position.id.toString() || _shift.position.toString(),
                 maximum_allowed_employees: _shift.maximum_allowed_employees.toString(),
                 minimum_hourly_rate: _shift.minimum_hourly_rate.toString(),
@@ -129,8 +134,8 @@ export const Shift = (data) => {
                 ending_at: _shift.ending_at,
                 status: _shift.status,
                 allowedFavlists: _shift.allowedFavlists,
-                start_time: (moment.isMoment(_shift.starting_at) ) ? _shift.starting_at : moment(_shift.starting_at.format("MM/DD/YYYY") + ' ' + _shift.starting_at),
-                finish_time: (moment.isMoment(_shift.starting_at) ) ? _shift.ending_at : moment(_shift.ending_at.format("MM/DD/YYYY") + ' ' + _shift.ending_at),
+                start_time: (moment.isMoment(_shift.starting_at)) ? _shift.starting_at : moment(_shift.starting_at.format("MM/DD/YYYY") + ' ' + _shift.starting_at),
+                finish_time: (moment.isMoment(_shift.starting_at)) ? _shift.ending_at : moment(_shift.ending_at.format("MM/DD/YYYY") + ' ' + _shift.ending_at),
                 minimum_allowed_rating: _shift.minimum_allowed_rating.toString(),
                 venue: _shift.venue.id.toString() || _shift.venue.toString()
             };
@@ -141,7 +146,7 @@ export const Shift = (data) => {
 
 export class ManageShifts extends Flux.DashView {
 
-    constructor(){
+    constructor() {
         super();
         this.state = {
             shifts: [],
@@ -166,11 +171,11 @@ export class ManageShifts extends Flux.DashView {
         };
     }
 
-    componentDidMount(){
+    componentDidMount() {
 
         // fetch if not loaded already
         let shifts = store.getState('shifts');
-        if(!shifts) fetchAllMe(['shifts']);
+        if (!shifts) fetchAllMe(['shifts']);
         else this.filterShifts(shifts);
 
         this.subscribe(store, 'shifts', (shifts) => {
@@ -185,64 +190,64 @@ export class ManageShifts extends Flux.DashView {
 
     }
 
-    filterShifts(shifts=null){
+    filterShifts(shifts = null) {
         let filters = this.getFilters();
-        if(!shifts) shifts = store.getState('shifts');
-        if(shifts){
+        if (!shifts) shifts = store.getState('shifts');
+        if (shifts) {
             this.setState({
                 shifts: shifts.filter((shift) => {
-                    if(shift.status == 'CANCELLED') return false;
+                    if (shift.status == 'CANCELLED') return false;
 
-                    for(let f in filters){
+                    for (let f in filters) {
                         const matches = filters[f].matches(shift);
-                        if(!matches) return false;
+                        if (!matches) return false;
                     }
 
                     return true;
                 }).sort((shift) => moment().diff(shift.start_time, 'minutes'))
             });
         }
-        else this.setState({shifts: []});
+        else this.setState({ shifts: [] });
     }
 
-    getFilters(){
-        let filters = queryString.parse(window.location.search, {arrayFormat: 'index'});
-        for(let f in filters){
-            switch(f){
+    getFilters() {
+        let filters = queryString.parse(window.location.search, { arrayFormat: 'index' });
+        for (let f in filters) {
+            switch (f) {
                 case "status":
                     filters[f] = {
                         value: filters[f],
                         matches: (shift) => {
                             let values = filters.status.value.split(',');
-                            if(values.length==1){
-                                if(values.includes("OPEN")){
-                                    if(
+                            if (values.length == 1) {
+                                if (values.includes("OPEN")) {
+                                    if (
                                         moment(shift.ending_at).isBefore(NOW()) || //has passed
                                         (shift.maximum_allowed_employees <= shift.employees.length) //or its filled
-                                    ){
+                                    ) {
                                         return false;
-                                    } 
-                                }else if(values.includes("FILLED")){
-                                    if(shift.maximum_allowed_employees > shift.employees.length) return false;
-                                }else if(values.includes("EXPIRED")){
-                                    if(moment(shift.ending_at).isAfter(NOW())) return false;
+                                    }
+                                } else if (values.includes("FILLED")) {
+                                    if (shift.maximum_allowed_employees > shift.employees.length) return false;
+                                } else if (values.includes("EXPIRED")) {
+                                    if (moment(shift.ending_at).isAfter(NOW())) return false;
                                     else values.push('OPEN');
                                 }
                             }
                             return values.includes(shift.status);
                         }
                     };
-                break;
+                    break;
                 case "position":
                     filters[f] = {
                         value: filters[f],
                         matches: (shift) => {
-                            if(!filters.position.value) return true;
-                            if(isNaN(filters.position.value)) return true;
+                            if (!filters.position.value) return true;
+                            if (isNaN(filters.position.value)) return true;
                             return shift.position.id == filters.position.value;
                         }
                     };
-                break;
+                    break;
                 case "talent":
                     filters[f] = {
                         value: filters[f],
@@ -251,27 +256,27 @@ export class ManageShifts extends Flux.DashView {
                             return emp;
                         }
                     };
-                break;
+                    break;
                 case "venue":
                     filters[f] = {
                         value: filters[f],
                         matches: (shift) => {
-                            if(!filters.venue.value) return true;
-                            if(isNaN(filters.venue.value)) return true;
+                            if (!filters.venue.value) return true;
+                            if (isNaN(filters.venue.value)) return true;
                             return shift.venue.id == filters.venue.value;
                         }
                     };
-                break;
+                    break;
                 case "minimum_hourly_rate":
                     filters[f] = {
                         value: filters[f],
                         matches: (shift) => {
-                            if(!filters.minimum_hourly_rate.value) return true;
-                            if(isNaN(filters.minimum_hourly_rate.value)) return true;
+                            if (!filters.minimum_hourly_rate.value) return true;
+                            if (isNaN(filters.minimum_hourly_rate.value)) return true;
                             return parseInt(shift.minimum_hourly_rate, 10) >= filters.minimum_hourly_rate.value;
                         }
                     };
-                break;
+                    break;
                 case "date":
                     filters[f] = {
                         value: filters[f],
@@ -280,7 +285,7 @@ export class ManageShifts extends Flux.DashView {
                             return shift.starting_at.diff(fdate, 'days') == 0;
                         }
                     };
-                break;
+                    break;
                 default: throw new Error('Invalid filter');
             }
         }
@@ -290,20 +295,20 @@ export class ManageShifts extends Flux.DashView {
     render() {
         const groupedShifts = _.groupBy(this.state.shifts, (s) => s.starting_at.format('MMMM YYYY'));
         const shiftsHTML = [];
-        for(let date in groupedShifts){
+        for (let date in groupedShifts) {
             shiftsHTML.push(<div key={date} className="date-group">
                 <p className="date-group-label">{date}</p>
                 <div>
-                    {groupedShifts[date].map((s,i) => (<ShiftCard key={i} shift={s} showStatus={true} />))}
+                    {groupedShifts[date].map((s, i) => (<ShiftCard key={i} shift={s} showStatus={true} />))}
                 </div>
             </div>);
 
         }
         return (<div className="p-1 listcontents">
             <Wizard continuous
-              steps={this.state.steps}
-              run={this.state.runTutorial}
-              callback={callback}
+                steps={this.state.steps}
+                run={this.state.runTutorial}
+                callback={callback}
             />
             <h1 className="float-left"><span id="shift-details-header">Shift Details</span></h1>
             {shiftsHTML.length == 0 && <div className="mt-5">No shifts have been found</div>}
@@ -316,12 +321,12 @@ export class ManageShifts extends Flux.DashView {
 /**
  * FilterShifts
  */
-export const FilterShifts = ({onSave, onCancel, onChange, catalog}) => (<form>
+export const FilterShifts = ({ onSave, onCancel, onChange, catalog }) => (<form>
     <div className="row">
         <div className="col">
             <label>Looking for</label>
             <Select
-                onChange={(selection)=>onChange({position: selection.value.toString()})}
+                onChange={(selection) => onChange({ position: selection.value.toString() })}
                 options={catalog.positions}
             />
         </div>
@@ -337,21 +342,21 @@ export const FilterShifts = ({onSave, onCancel, onChange, catalog}) => (<form>
                     const { value, ...rest } = properties;
                     return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
                 }}
-                onChange={(value)=> onChange({
+                onChange={(value) => onChange({
                     date: value.format("MM-DD-YYYY")
                 })}
             />
         </div>
         <div className="col-4">
             <label>Price / hour</label>
-            <input type="number" className="form-control" onChange={(e)=>onChange({minimum_hourly_rate: e.target.value})} />
+            <input type="number" className="form-control" onChange={(e) => onChange({ minimum_hourly_rate: e.target.value })} />
         </div>
     </div>
     <div className="row">
         <div className="col">
             <label>Location</label>
             <Select
-                onChange={(selection)=>onChange({venue: selection.value.toString()})}
+                onChange={(selection) => onChange({ venue: selection.value.toString() })}
                 options={catalog.venues}
             />
         </div>
@@ -360,8 +365,8 @@ export const FilterShifts = ({onSave, onCancel, onChange, catalog}) => (<form>
         <div className="col">
             <label>Worked by a talent:</label>
             <Select
-                onChange={(selection)=>onChange({ talent: selection.value.toString() })}
-                options={[].concat.apply([], catalog.shifts.map(s => s.employees ))}
+                onChange={(selection) => onChange({ talent: selection.value.toString() })}
+                options={[].concat.apply([], catalog.shifts.map(s => s.employees))}
             />
         </div>
     </div>
@@ -369,7 +374,7 @@ export const FilterShifts = ({onSave, onCancel, onChange, catalog}) => (<form>
         <div className="col">
             <label>Status</label>
             <Select
-                onChange={(selection)=>onChange({status: selection.value.toString()})}
+                onChange={(selection) => onChange({ status: selection.value.toString() })}
                 options={catalog.shiftStatus}
             />
         </div>
@@ -380,10 +385,10 @@ export const FilterShifts = ({onSave, onCancel, onChange, catalog}) => (<form>
     </div>
 </form>);
 FilterShifts.propTypes = {
-  onSave: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  onChange: PropTypes.func.isRequired,
-  catalog: PropTypes.object //contains the data needed for the form to load
+    onSave: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    onChange: PropTypes.func.isRequired,
+    catalog: PropTypes.object //contains the data needed for the form to load
 };
 
 /**
@@ -393,49 +398,49 @@ export const ShiftApplicants = (props) => {
     const { onCancel, onSave, catalog } = props;
     return (<Theme.Consumer>
         {({ bar }) => (<div className="sidebar-applicants">
-            { catalog.shift.expired ?
+            {catalog.shift.expired ?
                 <div className="alert alert-warning">This shift has already expired</div>
                 :
                 <div className="top-bar">
-                    <button type="button" className="btn btn-primary btn-sm"  onClick={() => bar.show({
-                            slug: "search_talent_and_invite_to_shift",
-                            data: { shifts: [catalog.shift], employees: [] },
-                            allowLevels: true
-                        })}
+                    <button type="button" className="btn btn-primary btn-sm" onClick={() => bar.show({
+                        slug: "search_talent_and_invite_to_shift",
+                        data: { shifts: [catalog.shift], employees: [] },
+                        allowLevels: true
+                    })}
                     >
                         invite
                     </button>
                 </div>
             }
             <h3>Shift applicants:</h3>
-            <ul style={{ overflowY: "auto", maxHeight: "75vh"}}>
+            <ul style={{ overflowY: "auto", maxHeight: "75vh" }}>
                 {
                     catalog.applicants.length > 0 ?
-                        catalog.applicants.map((tal,i) => (
+                        catalog.applicants.map((tal, i) => (
                             <EmployeeExtendedCard
                                 key={i}
                                 employee={tal}
                                 hover={false}
                                 showFavlist={false}
-                                onClick={() => bar.show({ slug: "show_single_talent", data: Talent(tal,i).defaults().unserialize(), allowLevels: true })}
+                                onClick={() => bar.show({ slug: "show_single_talent", data: Talent(tal, i).defaults().unserialize(), allowLevels: true })}
                             >
-                                { !catalog.shift.expired &&
+                                {!catalog.shift.expired &&
                                     <Button className="mt-0" icon="check" label="Delete" onClick={() => onSave({
                                         executed_action: 'accept_applicant',
                                         applicant: tal,
                                         shift: catalog.shift
-                                    })}/>
+                                    })} />
                                 }
-                                { !catalog.shift.expired &&
+                                {!catalog.shift.expired &&
                                     <Button className="mt-0" icon="times" label="Delete" onClick={() => onSave({
                                         executed_action: 'reject_applicant',
                                         applicant: tal,
                                         shift: catalog.shift
-                                    })}/>
+                                    })} />
                                 }
                             </EmployeeExtendedCard>)
                         )
-                    :
+                        :
                         <li>No applicants were found for this shift, <span className="anchor"
                             onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift", allowLevels: true })}
                         >invite more talents</span> or  <span className="anchor"
@@ -447,10 +452,10 @@ export const ShiftApplicants = (props) => {
     </Theme.Consumer>);
 };
 ShiftApplicants.propTypes = {
-  onSave: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  catalog: PropTypes.object, //contains the data needed for the form to load
-  context: PropTypes.object //contact any additional data for context purposes
+    onSave: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    catalog: PropTypes.object, //contains the data needed for the form to load
+    context: PropTypes.object //contact any additional data for context purposes
 };
 
 /**
@@ -460,14 +465,14 @@ export const ShiftEmployees = (props) => {
     const { onCancel, onSave, catalog } = props;
     return (<Theme.Consumer>
         {({ bar }) => (<div className="sidebar-applicants">
-            { catalog.shift.expired ?
+            {catalog.shift.expired ?
                 <div className="alert alert-warning">This shift has already expired</div>
                 :
                 <div className="top-bar">
-                    <button type="button" className="btn btn-primary btn-sm"  onClick={() => bar.show({ 
-                        slug: "search_talent_and_invite_to_shift", 
+                    <button type="button" className="btn btn-primary btn-sm" onClick={() => bar.show({
+                        slug: "search_talent_and_invite_to_shift",
                         data: { shifts: [catalog.shift] },
-                        allowLevels: true 
+                        allowLevels: true
                     })}>
                         invite
                     </button>
@@ -476,7 +481,7 @@ export const ShiftEmployees = (props) => {
             <h3>Shift Scheduled Employees:</h3>
             {
                 catalog.shift.employees.length > 0 ?
-                    catalog.shift.employees.map((emp,i) => (
+                    catalog.shift.employees.map((emp, i) => (
                         <EmployeeExtendedCard
                             key={i}
                             employee={emp}
@@ -489,36 +494,36 @@ export const ShiftEmployees = (props) => {
                                 onClick={() => bar.show({ slug: "talent_shift_clockins", data: { employee: emp, shift: catalog.shift }, allowLevels: true })}
                             />
 
-                            { !catalog.shift.expired && <Button className="mt-0 text-danger" icon="trash" label="Delete" onClick={() => {
-                                    const noti = Notify.info("Are you sure? The Talent will be kicked out of this shift",(answer) => {
-                                        if(answer) onSave({
-                                            executed_action: 'delete_shift_employee',
-                                            employee: emp,
-                                            shift: catalog.shift
-                                        });
-                                        noti.remove();
+                            {!catalog.shift.expired && <Button className="mt-0 text-danger" icon="trash" label="Delete" onClick={() => {
+                                const noti = Notify.info("Are you sure? The Talent will be kicked out of this shift", (answer) => {
+                                    if (answer) onSave({
+                                        executed_action: 'delete_shift_employee',
+                                        employee: emp,
+                                        shift: catalog.shift
                                     });
-                                }}/>
+                                    noti.remove();
+                                });
+                            }} />
                             }
                         </EmployeeExtendedCard>)
                     )
-                : catalog.shift.expired ?
-                    <p>No talents every worked on this shift</p>
-                    :
-                    <p>No talents have been accepted for this shift yet, <span className="anchor"
-                        onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift", allowLevels: true })}
-                    >invite more talents</span> or  <span className="anchor"
-                        onClick={() => bar.show({ slug: "review_shift_invites", allowLevels: true, data: catalog.shift })}
-                    >review previous invites</span></p>
+                    : catalog.shift.expired ?
+                        <p>No talents every worked on this shift</p>
+                        :
+                        <p>No talents have been accepted for this shift yet, <span className="anchor"
+                            onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift", allowLevels: true })}
+                        >invite more talents</span> or  <span className="anchor"
+                            onClick={() => bar.show({ slug: "review_shift_invites", allowLevels: true, data: catalog.shift })}
+                        >review previous invites</span></p>
             }
         </div>)}
     </Theme.Consumer>);
 };
 ShiftEmployees.propTypes = {
-  onSave: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  catalog: PropTypes.object, //contains the data needed for the form to load
-  context: PropTypes.object //contact any additional data for context purposes
+    onSave: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    catalog: PropTypes.object, //contains the data needed for the form to load
+    context: PropTypes.object //contact any additional data for context purposes
 };
 
 /**
@@ -534,7 +539,7 @@ export const ShiftInvites = ({ onCancel, onSave, formData }) => {
     };
     //formData.shift.maximum_allowed_employees
     //formData.shift.status != "OPEN"
-    const htmlInvites = formData.invites.map((invite,i) => (
+    const htmlInvites = formData.invites.map((invite, i) => (
         <GenericCard
             key={i}
             className="pr-2"
@@ -552,36 +557,38 @@ export const ShiftInvites = ({ onCancel, onSave, formData }) => {
         {
             htmlInvites.length > 0 ?
                 htmlInvites
-            :
+                :
                 <p>No invites have been sent</p>
         }
     </div>);
 };
 ShiftInvites.propTypes = {
-  onSave: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  formData: PropTypes.object, //contains the data needed for the form to load
-  context: PropTypes.object //contact any additional data for context purposes
+    onSave: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    formData: PropTypes.object, //contains the data needed for the form to load
+    context: PropTypes.object //contact any additional data for context purposes
 };
 
 /**
  * EditOrAddShift
  */
 const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar, oldShift }) => {
+    console.log(formData);
     useEffect(() => {
         const venues = store.getState('venues');
         const favlists = store.getState('favlists');
-        if(!venues || !favlists) fetchAllMe(['venues', 'favlists']);
+        if (!venues || !favlists) fetchAllMe(['venues', 'favlists']);
     }, []);
+    const expired = moment(formData.starting_at).isBefore(NOW()) || moment(formData.ending_at).isBefore(NOW());
     return (
         <form>
             <div className="row">
                 <div className="col-12">
-                    { formData.hide_warnings === true ? null : (formData.status == 'DRAFT' && !error ) ?
+                    {formData.hide_warnings === true ? null : (formData.status == 'DRAFT' && !error) ?
                         <div className="alert alert-warning d-inline"><i className="fas fa-exclamation-triangle"></i> This shift is a draft</div>
                         : (formData.status != 'UNDEFINED' && !error) ?
                             <div className="alert alert-success">This shift is published, therefore <strong>it needs to be unpublished</strong> before it can be updated</div>
-                            :''
+                            : ''
                     }
                 </div>
             </div>
@@ -589,9 +596,9 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                 <div className="col-12">
                     <label>Looking for</label>
                     <Select
-                        value={ catalog.positions.find((pos) => pos.value == formData.position)}
-                        onChange={(selection)=>onChange({position: selection.value.toString(), has_sensitive_updates: true })}
-                        options={[{label: 'Select a position', value: ''}].concat(catalog.positions)}
+                        value={catalog.positions.find((pos) => pos.value == formData.position)}
+                        onChange={(selection) => onChange({ position: selection.value.toString(), has_sensitive_updates: true })}
+                        options={[{ label: 'Select a position', value: '' }].concat(catalog.positions)}
                     />
                 </div>
             </div>
@@ -600,9 +607,9 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                     <label>How many?</label>
                     <input type="number" className="form-control"
                         value={formData.maximum_allowed_employees}
-                        onChange={(e)=> {
-                            if(parseInt(e.target.value, 10) > 0){
-                                if(oldShift && oldShift.employees.length > parseInt(e.target.value, 10)) Notify.error(`${oldShift.employees.length} talents are scheduled to work on this shift already, delete scheduled employees first.`);
+                        onChange={(e) => {
+                            if (parseInt(e.target.value, 10) > 0) {
+                                if (oldShift && oldShift.employees.length > parseInt(e.target.value, 10)) Notify.error(`${oldShift.employees.length} talents are scheduled to work on this shift already, delete scheduled employees first.`);
                                 else onChange({ maximum_allowed_employees: e.target.value });
                             }
                         }}
@@ -612,7 +619,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                     <label>Price / hour</label>
                     <input type="number" className="form-control"
                         value={formData.minimum_hourly_rate}
-                        onChange={(e)=>onChange({
+                        onChange={(e) => onChange({
                             minimum_hourly_rate: e.target.value,
                             has_sensitive_updates: true
                         })}
@@ -622,7 +629,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
             <div className="row">
                 <div className="col-12">
                     <label className="mb-1">Dates</label>
-                    { formData.multiple_dates && <p className="mb-1 mt-0">
+                    {formData.multiple_dates && <p className="mb-1 mt-0">
                         {formData.multiple_dates.map((d, i) => (
                             <span key={i} className="badge">{d.starting_at.format('MM-DD-YYYY')}
                                 <i
@@ -641,20 +648,45 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                             className="shiftdate-picker"
                             closeOnSelect={true}
                             value={formData.starting_at}
-                            isValidDate={( current ) => {
-                                return current.isAfter( YESTERDAY );
+                            isValidDate={(current) => {
+                                return formData.multiple_dates !== undefined && formData.multiple_dates.length > 0 ? current.isAfter(YESTERDAY) : true;
                             }}
                             renderInput={(properties) => {
                                 const { value, ...rest } = properties;
                                 return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
                             }}
-                            onChange={(value)=> onChange({
-                                starting_at: moment( value.format("MM-DD-YYYY")+" "+formData.starting_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a"),
-                                has_sensitive_updates: true
-                            })}
+                            onChange={(value) => {
+
+
+                                const getRealDate = (start, end) => {
+                                    if (typeof start == 'string') value = moment(start);
+
+                                    const starting = moment(start.format("MM-DD-YYYY") + " " + start.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                                    console.log('STARTING', starting);
+                                    var ending = moment(start.format("MM-DD-YYYY") + " " + end.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                                    if (typeof starting !== 'undefined' && starting.isValid()) {
+                                        if (ending.isBefore(starting)) {
+                                            ending = ending.add(1, 'days');
+                                        }
+
+                                        return { starting_at: starting, ending_at: ending };
+                                    }
+                                    return null;
+                                };
+
+                                const mainDate = getRealDate(value, formData.ending_at);
+                                console.log(mainDate);
+                                const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
+                                onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
+
+
+                            }}
+
+
                         />
-                        <div className="input-group-append" onClick={() =>
-                            onChange({
+                        <div className="input-group-append" onClick={() => {
+                            if (expired) Notify.error("Shifts with and expired starting or ending times cannot have multiple dates or be recurrent");
+                            else onChange({
                                 multiple_dates: !formData.multiple_dates ?
                                     [{ starting_at: formData.starting_at, ending_at: formData.ending_at }]
                                     :
@@ -662,7 +694,8 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                                         { starting_at: formData.starting_at, ending_at: formData.ending_at }
                                     ),
                                 has_sensitive_updates: true
-                            })}>
+                            });
+                        }}>
                             <span className="input-group-text pointer">More <i className="fas fa-plus ml-1"></i></span>
                         </div>
                     </div>
@@ -675,21 +708,21 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                         dateFormat={false}
                         timeFormat={DATETIME_FORMAT}
                         closeOnTab={true}
-                        timeConstraints={{ minutes: { step: 15 }}}
+                        timeConstraints={{ minutes: { step: 15 } }}
                         value={formData.starting_at}
                         renderInput={(properties) => {
                             const { value, ...rest } = properties;
                             return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
                         }}
-                        onChange={(value)=> {
-                            if(typeof value == 'string') value = moment(value);
+                        onChange={(value) => {
+                            if (typeof value == 'string') value = moment(value);
 
                             const getRealDate = (start, end) => {
-                                const starting = moment( start.format("MM-DD-YYYY")+" "+value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                                const starting = moment(start.format("MM-DD-YYYY") + " " + value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
                                 var ending = moment(end);
-                                if(typeof starting !== 'undefined' && starting.isValid()){
-                                    if(ending.isBefore(starting)){
-                                        ending = ending.add( 1, 'days' );
+                                if (typeof starting !== 'undefined' && starting.isValid()) {
+                                    if (ending.isBefore(starting)) {
+                                        ending = ending.add(1, 'days');
                                     }
 
                                     return { starting_at: starting, ending_at: ending };
@@ -699,7 +732,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
 
                             const mainDate = getRealDate(formData.starting_at, formData.ending_at);
                             const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
-                            onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true  });
+                            onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
 
 
                         }}
@@ -711,23 +744,23 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                         className="picker-left"
                         dateFormat={false}
                         timeFormat={DATETIME_FORMAT}
-                        timeConstraints={{ minutes: { step: 15 }}}
+                        timeConstraints={{ minutes: { step: 15 } }}
                         value={formData.ending_at}
                         renderInput={(properties) => {
                             const { value, ...rest } = properties;
                             return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
                         }}
-                        onChange={(value)=> {
-                            if(typeof value == 'string') value = moment(value);
+                        onChange={(value) => {
+                            if (typeof value == 'string') value = moment(value);
 
                             const getRealDate = (start, end) => {
 
                                 const starting = start;
-                                var ending = moment( start.format("MM-DD-YYYY")+" "+value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                                var ending = moment(start.format("MM-DD-YYYY") + " " + value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
 
-                                if(typeof starting !== 'undefined' && starting.isValid()){
-                                    if(ending.isBefore(starting)){
-                                        ending = ending.add( 1, 'days' );
+                                if (typeof starting !== 'undefined' && starting.isValid()) {
+                                    if (ending.isBefore(starting)) {
+                                        ending = ending.add(1, 'days');
                                     }
 
                                     return { starting_at: starting, ending_at: ending };
@@ -737,7 +770,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
 
                             const mainDate = getRealDate(formData.starting_at, formData.ending_at);
                             const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
-                            onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true  });
+                            onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
 
                         }}
                     />
@@ -747,11 +780,11 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                 <div className="col-12">
                     <label>Location</label>
                     <Select
-                        value={ catalog.venues.find((ven) => ven.value == formData.venue)}
+                        value={catalog.venues.find((ven) => ven.value == formData.venue)}
                         options={[{ label: "Add a location", value: 'new_venue', component: AddOrEditLocation }].concat(catalog.venues)}
-                        onChange={(selection)=> {
-                            if(selection.value == 'new_venue') bar.show({ slug: "create_location", allowLevels: true });
-                            else onChange({ venue: selection.value.toString(), has_sensitive_updates: true  });
+                        onChange={(selection) => {
+                            if (selection.value == 'new_venue') bar.show({ slug: "create_location", allowLevels: true });
+                            else onChange({ venue: selection.value.toString(), has_sensitive_updates: true });
                         }}
                     />
                 </div>
@@ -763,67 +796,71 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
             </div>
             <div className="row">
                 <div className="col-12">
-                    <Select
-                        value={ catalog.applicationRestrictions.find((a) => a.value == formData.application_restriction)}
-                        onChange={(selection)=>onChange({application_restriction: selection.value.toString()})}
-                        options={catalog.applicationRestrictions}
-                    />
+                    {expired ?
+                        <div className="alert alert-warning">This shift has an expired date, therefore you cannot invite anyone but you can still use it for payroll purposes.</div>
+                        :
+                        <Select
+                            value={catalog.applicationRestrictions.find((a) => a.value == formData.application_restriction)}
+                            onChange={(selection) => onChange({ application_restriction: selection.value.toString() })}
+                            options={catalog.applicationRestrictions}
+                        />
+                    }
                 </div>
             </div>
             {
-                (formData.application_restriction == "FAVORITES") ?
+                (!expired && formData.application_restriction == "FAVORITES") ?
                     <div className="row">
                         <div className="col-12">
                             <label>From these favorite lists</label>
                             <Select isMulti
                                 value={formData.allowedFavlists}
-                                onChange={(opt)=> onChange({allowedFavlists: opt})}
+                                onChange={(opt) => onChange({ allowedFavlists: opt })}
                                 options={catalog.favlists}
                             >
                             </Select>
                         </div>
                     </div>
-                : (formData.application_restriction == "ANYONE") ?
-                    <div className="row mt-3">
-                        <div className="col-5">
-                            <label className="mt-2">Minimum rating</label>
+                    : (!expired && formData.application_restriction == "ANYONE") ?
+                        <div className="row mt-3">
+                            <div className="col-5">
+                                <label className="mt-2">Minimum rating</label>
+                            </div>
+                            <div className="col-7">
+                                <Select
+                                    value={catalog.stars.find((s) => s.value == formData.minimum_allowed_rating)}
+                                    onChange={(selection) => onChange({ minimum_allowed_rating: selection.value })}
+                                    options={catalog.stars}
+                                />
+                            </div>
                         </div>
-                        <div className="col-7">
-                            <Select
-                                value={ catalog.stars.find((s) => s.value == formData.minimum_allowed_rating)}
-                                onChange={(selection)=>onChange({minimum_allowed_rating: selection.value})}
-                                options={catalog.stars}
-                            />
+                        : !expired &&
+                        <div className="row">
+                            <div className="col-12">
+                                <label>Search people in JobCore:</label>
+                                <SearchCatalogSelect
+                                    isMulti={true}
+                                    value={formData.pending_invites}
+                                    onChange={(selections) => {
+                                        const invite = selections.find(opt => opt.value == 'invite_talent_to_jobcore');
+                                        if (invite) bar.show({
+                                            allowLevels: true,
+                                            slug: "invite_talent_to_jobcore",
+                                            onSave: (emp) => onChange({ pending_jobcore_invites: formData.pending_jobcore_invites.concat(emp) })
+                                        });
+                                        else onChange({ pending_invites: selections });
+                                    }}
+                                    searchFunction={(search) => new Promise((resolve, reject) =>
+                                        GET('catalog/employees?full_name=' + search)
+                                            .then(talents => resolve([
+                                                { label: `${(talents.length == 0) ? 'No one found: ' : ''}Invite "${search}" to jobcore`, value: 'invite_talent_to_jobcore' }
+                                            ].concat(talents)))
+                                            .catch(error => reject(error))
+                                    )}
+                                />
+                            </div>
                         </div>
-                    </div>
-                :
-                    <div className="row">
-                        <div className="col-12">
-                            <label>Search people in JobCore:</label>
-                            <SearchCatalogSelect
-                                isMulti={true}
-                                value={formData.pending_invites}
-                                onChange={(selections)=> {
-                                    const invite = selections.find(opt => opt.value == 'invite_talent_to_jobcore');
-                                    if(invite) bar.show({
-                                        allowLevels: true,
-                                        slug: "invite_talent_to_jobcore",
-                                        onSave: (emp) => onChange({ pending_jobcore_invites: formData.pending_jobcore_invites.concat(emp) })
-                                    });
-                                    else onChange({ pending_invites: selections });
-                                }}
-                                searchFunction={(search) => new Promise((resolve, reject) =>
-                                    GET('catalog/employees?full_name='+search)
-                                        .then(talents => resolve([
-                                            { label: `${(talents.length==0) ? 'No one found: ':''}Invite "${search}" to jobcore`, value: 'invite_talent_to_jobcore' }
-                                        ].concat(talents)))
-                                        .catch(error => reject(error))
-                                )}
-                            />
-                        </div>
-                    </div>
             }
-            {(formData.pending_jobcore_invites.length>0) ?
+            {(formData.pending_jobcore_invites.length > 0) ?
                 <div className="row">
                     <div className="col-12">
                         <p className="m-0 p-0">The following people will be invited to this shift after they accept your invitation to jobcore:</p>
@@ -834,18 +871,18 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                 </div> : ''
             }
             <div className="btn-bar">
-                { (formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ? // create shift
+                {(formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ? // create shift
                     <button type="button" className="btn btn-primary" onClick={() => onSave({
                         executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
                         status: 'DRAFT'
-                    })}>Save as draft</button>:''
+                    })}>Save as draft</button> : ''
                 }
-                { (formData.status == 'DRAFT') ?
+                {(formData.status == 'DRAFT') ?
                     <button type="button" className="btn btn-success" onClick={() => {
-                        if(!formData.has_sensitive_updates && !isNaN(formData.id)) onSave({ executed_action: 'update_shift', status: 'OPEN' });
-                        else{
-                            const noti = Notify.info("Are you sure? All talents will have to apply again the shift because the information was updated.",(answer) => {
-                                if(answer) onSave({
+                        if (!formData.has_sensitive_updates && !isNaN(formData.id)) onSave({ executed_action: 'update_shift', status: 'OPEN' });
+                        else {
+                            const noti = Notify.info("Are you sure? All talents will have to apply again the shift because the information was updated.", (answer) => {
+                                if (answer) onSave({
                                     executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
                                     status: 'OPEN'
                                 });
@@ -855,8 +892,8 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                     }}>Publish</button>
                     : (formData.status != 'UNDEFINED') ?
                         <button type="button" className="btn btn-primary" onClick={() => {
-                            const noti = Notify.info("Are you sure you want to unpublish this shift?",(answer) => {
-                                if(answer) onSave({executed_action: 'update_shift', status: 'DRAFT'});
+                            const noti = Notify.info("Are you sure you want to unpublish this shift?", (answer) => {
+                                if (answer) onSave({ executed_action: 'update_shift', status: 'DRAFT' });
                                 noti.remove();
                             }, 9999999999999);
                         }}>Unpublish shift</button>
@@ -866,13 +903,13 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                             status: 'OPEN'
                         })}>Save and publish</button>
                 }
-                { (formData.status != 'UNDEFINED') ?
+                {(formData.status != 'UNDEFINED') ?
                     <button type="button" className="btn btn-danger" onClick={() => {
-                        const noti = Notify.info("Are you sure you want to cancel this shift?",(answer) => {
-                            if(answer) onSave({ executed_action: 'update_shift', status: 'CANCELLED' });
+                        const noti = Notify.info("Are you sure you want to cancel this shift?", (answer) => {
+                            if (answer) onSave({ executed_action: 'update_shift', status: 'CANCELLED' });
                             noti.remove();
                         });
-                    }}>Delete</button>:''
+                    }}>Delete</button> : ''
                 }
             </div>
         </form>
@@ -889,30 +926,31 @@ EditOrAddShift.propTypes = {
     catalog: PropTypes.object //contains the data needed for the form to load
 };
 EditOrAddShift.defaultProps = {
-  oldShift: null
+    oldShift: null
 };
 
 /**
  * ShiftDetails
  */
 export const ShiftDetails = (props) => {
+
     const creationMode = isNaN(props.formData.id);
 
-    const shift = props.catalog.shifts.find(s => s.id == props.formData.id);
-    if(!creationMode && (!shift || typeof shift === 'undefined')) return <div>Loading shift...</div>;
+    const shift = !props.catalog.shifts ? null : props.catalog.shifts.find(s => s.id == props.formData.id);
+    if (!creationMode && (!shift || typeof shift === 'undefined')) return <div>Loading shift...</div>;
     return (<Theme.Consumer>
         {({ bar }) => (
             <div>
-                { (creationMode) ?
+                {(creationMode) ?
                     <EditOrAddShift bar={bar} {...props} /> :
                     <div>
-                        { !shift.expired ?
+                        {!shift.expired ?
                             <div className="top-bar">
                                 <Button icon="pencil" color="primary" size="small" rounded={true}
                                     note="Edit shift" notePosition="left"
                                     onClick={() => props.onChange({ status: 'DRAFT', hide_warnings: true })}
                                 />
-                                { ['OPEN','FILLED'].includes(shift.status) &&
+                                {['OPEN', 'FILLED'].includes(shift.status) &&
                                     <Button
                                         icon="candidates" color="primary" size="small" rounded={true}
                                         onClick={() => bar.show({ slug: "show_shift_applications", data: shift, title: "Shift Applicants", allowLevels: true })}
@@ -930,12 +968,12 @@ export const ShiftDetails = (props) => {
                                 <Button icon="user_check" color="primary" notePosition="left" size="small" rounded={true} note="Shift accepted employees"
                                     onClick={() => bar.show({ slug: "show_shift_employees", data: shift, title: "Shift Employees", allowLevels: true })} />
                                 <Button icon="dollar" color="primary" notePosition="left" size="small" rounded={true}
-                                    note={shift.status !== 'OPEN' ? 'Shift Payroll': <span>This shift is expired and the payroll has not been processed</span>}
+                                    note={shift.status !== 'OPEN' ? 'Shift Payroll' : <span>This shift is expired and the payroll has not been processed</span>}
                                     withAlert={shift.status !== 'OPEN'}
                                     onClick={() => bar.show({ slug: "select_timesheet", data: shift, allowLevels: true })} />
                             </div>
                         }
-                        { props.formData.status === 'DRAFT' ? <EditOrAddShift bar={bar} {...props} oldShift={shift} /> : <ShowShift bar={bar} shift={shift} /> }
+                        {props.formData.status === 'DRAFT' ? <EditOrAddShift bar={bar} {...props} oldShift={shift} /> : <ShowShift bar={bar} shift={shift} />}
                     </div>
                 }
             </div>
@@ -952,7 +990,7 @@ ShiftDetails.propTypes = {
     catalog: PropTypes.object //contains the data needed for the form to load
 };
 
-const ShowShift = ({ shift, bar}) => {
+const ShowShift = ({ shift, bar }) => {
     const totalCandidates = (Array.isArray(shift.candidates)) ? shift.candidates.length : 0;
     const totalEmployees = (Array.isArray(shift.employees)) ? shift.employees.length : 0;
     const openVacancys = shift.maximum_allowed_employees - totalEmployees;
@@ -964,9 +1002,9 @@ const ShowShift = ({ shift, bar}) => {
         {
             (shift.status == 'DRAFT') ?
                 <span href="#" className="badge badge-secondary">draft</span> :
-                    (openVacancys == 0) ?
-                        <span href="#" className="badge">filled</span> :
-                        <span href="#" className="badge badge-danger">{totalCandidates}/{openVacancys}</span>
+                (openVacancys == 0) ?
+                    <span href="#" className="badge">filled</span> :
+                    <span href="#" className="badge badge-danger">{totalCandidates}/{openVacancys}</span>
         }
         <a href="#" className="shift-position">{shift.position.title}</a> @
         <a href="#" className="shift-location"> {shift.venue.title}</a>
@@ -974,7 +1012,7 @@ const ShowShift = ({ shift, bar}) => {
         {
             (typeof shift.price == 'string') ?
                 <span className="shift-price"> ${shift.price}</span>
-            :
+                :
                 <span className="shift-price"> {shift.price.currencySymbol}{shift.price.amount}</span>
         }
     </div>);
@@ -984,8 +1022,8 @@ ShowShift.propTypes = {
     bar: PropTypes.object.isRequired
 };
 ShowShift.defaultProps = {
-  shift: null,
-  bar: null
+    shift: null,
+    bar: null
 };
 
 
@@ -1008,7 +1046,7 @@ RateShift.propTypes = {
 export const ShiftTalentClockins = ({ formData, onChange, onSave }) => {
     const { employee, clockins, shift } = formData;
     const { bar } = useContext(Theme.Context);
-    const lastClockin = clockins.length === 0 ? null : moment.isMoment(clockins[clockins.length-1].ended_at) ? clockins[clockins.length-1].ended_at : moment(clockins[clockins.length-1].ended_at);
+    const lastClockin = clockins.length === 0 ? null : moment.isMoment(clockins[clockins.length - 1].ended_at) ? clockins[clockins.length - 1].ended_at : moment(clockins[clockins.length - 1].ended_at);
 
     return (<div className="">
         <div className="row">
@@ -1019,23 +1057,23 @@ export const ShiftTalentClockins = ({ formData, onChange, onSave }) => {
                     >add</Button>
                 </div>*/}
                 <h3>Clockins</h3>
-                { clockins.length == 0 && <p>{employee.user.first_name} {employee.user.last_name} has not clocked in to this shift yet</p> }
-                { (clockins.length > 0 || formData.new_clocking) &&
+                {clockins.length == 0 && <p>{employee.user.first_name} {employee.user.last_name} has not clocked in to this shift yet</p>}
+                {(clockins.length > 0 || formData.new_clocking) &&
                     <div className="row px-3 text-center">
                         <div className="col">In</div>
                         <div className="col">Out</div>
                     </div>
                 }
-                { clockins.map(c => {
-                        let started_at = moment.isMoment(c.started_at) ? c.started_at : moment(c.started_at);
-                        let ended_at = moment.isMoment(c.ended_at) ? c.ended_at : moment(c.ended_at);
-                        return <div key={c.id} className="row px-3 text-center">
-                            <div className="col">{started_at.format('LT')}</div>
-                            <div className="col">{ended_at.isValid(c.ended_at) ? ended_at.format('LT') : <span className="badge badge-secondary">Still Working</span>}</div>
-                        </div>;
-                    })
+                {clockins.map(c => {
+                    let started_at = moment.isMoment(c.started_at) ? c.started_at : moment(c.started_at);
+                    let ended_at = moment.isMoment(c.ended_at) ? c.ended_at : moment(c.ended_at);
+                    return <div key={c.id} className="row px-3 text-center">
+                        <div className="col">{started_at.format('LT')}</div>
+                        <div className="col">{ended_at.isValid(c.ended_at) ? ended_at.format('LT') : <span className="badge badge-secondary">Still Working</span>}</div>
+                    </div>;
+                })
                 }
-                { formData.new_clocking &&
+                {formData.new_clocking &&
                     <div className="row px-3 text-center">
                         <div className="col-6">
                             <TimePicker
@@ -1063,7 +1101,7 @@ export const ShiftTalentClockins = ({ formData, onChange, onSave }) => {
                             <Button color="primary" className="w-100" onClick={() => onSave({ executed_action: 'add_clockin', clockin: formData.new_clocking })}>Save</Button>
                         </div>
                         <div className="col-6 mt-2">
-                            <Button color="secondary" className="w-100" onClick={() => onChange({ formData: { ...formData, new_clockin: null }})}>Cancel</Button>
+                            <Button color="secondary" className="w-100" onClick={() => onChange({ formData: { ...formData, new_clockin: null } })}>Cancel</Button>
                         </div>
                     </div>
                 }
