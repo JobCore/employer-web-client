@@ -302,7 +302,6 @@ export const Payment = (data) => {
  * EditOrAddExpiredShift
  */
 export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar, oldShift }) => {
-    console.log(formData);
     useEffect(() => {
         const venues = store.getState('venues');
         const favlists = store.getState('favlists');
@@ -311,20 +310,7 @@ export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, for
     const expired = moment(formData.starting_at).isBefore(NOW()) || moment(formData.ending_at).isBefore(NOW());
 
     const validating_minimum = moment(formData.starting_at).isBefore(formData.period_starting);
-    // moment(formData.starting_at).isBefore(formData.period_starting);
     const validating_maximum = moment(formData.ending_at).isAfter(formData.period_ending);
-    // console.log("MINIMUM", validating_minimum);
-    // console.log("MAXIMUM", validating_maximum);
-    // const minimum_hours = moment(formData.starting_at).startOf('day').isSame(moment(formData.period_starting).startOf('day')) ? formData.period_starting.hour() : null;
-    // const minimum_minutes = moment(formData.starting_at).startOf('day').isSame(moment(formData.period_starting).startOf('day')) ? formData.period_starting.minute() : null;
-    // console.log("minimum_hours", minimum_hours);
-    // console.log("minimum_minutes", minimum_minutes);
-    // const maximum_hours = moment(formData.ending_at).startOf('day').isSame(moment(formData.period_ending).startOf('day')) ? formData.period_ending.hour() : 0;
-    // const maximum_minutes = moment(formData.ending_at).startOf('day').isSame(moment(formData.period_ending).startOf('day')) ? formData.period_ending.minute() : 0;
-    // console.log("maximum_hours", maximum_hours);
-    // console.log("maximum_minutes", maximum_minutes);
-
-
 
     return (
         <form>
@@ -976,32 +962,23 @@ LatLongClockin.defaultProps = {
 };
 
 const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, period, onChange, selection }) => {
-    console.log("THIS ROW PAYMENT INFORMATION: ", payment);
     const { bar } = useContext(Theme.Context);
 
     if (!employee || employee.id === "new") return <p className="px-3 py-1">⬆ Search an employee from the list above...</p>;
 
-    if (payment.approved_clockin_time) payment.clockin.started_at = payment.approved_clockin_time;
-
-    if (payment.approved_clockout_time) payment.clockin.ended_at = payment.approved_clockout_time;
-
     const [clockin, setClockin] = useState(Clockin(payment.clockin).defaults().unserialize());
-    console.log(clockin);
     const [shift, setShift] = useState(Shift(payment.shift).defaults().unserialize());
 
-    // const shiftRef = useRef(shift);
-    // shiftRef.current = shift;
-
     const [possibleShifts, setPossibleShifts] = useState(null);
-
     const [breaktime, setBreaktime] = useState(payment.breaktime_minutes);
 
+    //only used on readonly shifts!!
+    const approvedClockin = payment.approved_clockin_time ? moment(payment.approved_clockin_time) : clockin.started_at ? clockin.started_at : shift.starting_at;
+    const approvedClockout = payment.approved_clockout_time ? moment(payment.approved_clockout_time) : clockin.ended_at ? clockin.ended_at : shift.ending_at;
 
-    const startTime = clockin.shift && clockin.started_at ? clockin.started_at.format('LT') : "-";
-    const endTime = clockin.shift && clockin.ended_at ? clockin.ended_at.format('LT') : "_";
-
-    const clockInDuration = !clockin.ended_at ? null : moment.duration(clockin.ended_at.diff(clockin.started_at));
-    const clockinHours = !clockInDuration ? 0 : clockin.shift || !readOnly ? Math.round(clockInDuration.asHours() * 100) / 100 : "-";
+    const clockInDuration = moment.duration(approvedClockout.diff(approvedClockin));
+    // const clockinHours = !clockInDuration ? 0 : clockin.shift || !readOnly ? Math.round(clockInDuration.asHours() * 100) / 100 : "-";
+    const clockinHours = Math.round(clockInDuration.asHours() * 100) / 100;
 
     const shiftStartTime = shift.starting_at.format('LT');
     const shiftEndTime = shift.ending_at.format('LT');
@@ -1009,10 +986,11 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
     const shiftDuration = moment.duration(shift.ending_at.diff(shift.starting_at));
     const plannedHours = Math.round(shiftDuration.asHours() * 100) / 100;
 
-    const clockInDurationAfterBreak = !clockin.ended_at ? null : moment.duration(clockin.ended_at.diff(clockin.started_at)).subtract(breaktime, "minute");
+    const clockInDurationAfterBreak = clockInDuration.subtract(breaktime, "minute");
     const clockInTotalHoursAfterBreak = !clockInDurationAfterBreak ? 0 : Math.round(clockInDurationAfterBreak.asHours() * 100) / 100;
 
     const diff = Math.round((clockInTotalHoursAfterBreak - plannedHours) * 100) / 100;
+
     useEffect(() => {
         if (payment.status === "NEW")
             GET(`employers/me/shifts?start=${moment(period.starting_at).format('YYYY-MM-DD')}&end=${moment(period.ending_at).format('YYYY-MM-DD')}&employee=${employee.id}`)
@@ -1046,12 +1024,10 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                     }
                                 });
                                 else {
-                                    console.log(_shift);
                                     setShift(_shift);
                                     setClockin({ ...clockin, started_at: _shift.starting_at, ended_at: _shift.ending_at });
-
+                                    setBreaktime(0);
                                 }
-                                // onChange({ shift: selectedOption });
                             }
                         }}
                         options={possibleShifts ? [{ label: "Add a shift", value: 'new_shift', component: EditOrAddExpiredShift }].concat(possibleShifts) : [{ label: "Add a shift", value: 'new_shift', component: EditOrAddExpiredShift }]}
@@ -1088,7 +1064,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
         }
         <td className="time">
             {readOnly ?
-                <p>{startTime}</p>
+                <p>{approvedClockin.format('LT')}</p>
                 :
                 <TimePicker
                     showSecond={false}
@@ -1108,7 +1084,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
         </td>
         <td className="time">
             {readOnly ?
-                <p>{endTime}</p>
+                <p>{approvedClockout.format('LT')}</p>
                 :
                 <TimePicker
                     className={`${clockin.automatically_closed ? 'border border-danger' : ''}`}
@@ -1144,7 +1120,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
             <td style={{ minWidth: "75px", maxWidth: "75px" }} className="text-center">
                 {
                     <input type="number" className="w-100 rounded"
-                        onChange={e => e.target.value != '' ? setBreaktime(parseInt(e.target.value)) : setBreaktime(0)} value={breaktime}
+                        onChange={e => e.target.value != '' ? setBreaktime(Math.abs(parseInt(e.target.value))) : setBreaktime(0)} value={breaktime}
                     />
                 }
                 <small>minutes</small>
@@ -1176,8 +1152,8 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                 regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
                                 over_time: diff < 0 ? 0 : diff,
                                 //
-                                approved_clockin_time: clockin.started_at,
-                                approved_clockout_time: clockin.ended_at
+                                approved_clockin_time: clockin ? clockin.started_at : shift.starting_at,
+                                approved_clockout_time: clockin ? clockin.ended_at : shift.ending_at
                             });
                         }
                         else onApprove({
@@ -1185,8 +1161,8 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                             regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
                             over_time: diff < 0 ? 0 : diff,
                             //
-                            approved_clockin_time: clockin.started_at,
-                            approved_clockout_time: clockin.ended_at
+                            approved_clockin_time: clockin ? clockin.started_at : shift.starting_at,
+                            approved_clockout_time: clockin ? clockin.ended_at : shift.ending_at
                         });
                     }}
                 />
