@@ -358,6 +358,7 @@ export const removeBankAccount = (route, data) => {
     DELETE(path)
         .then(() => {
             Notify.success("The "+data.name+" was deleted successfully");
+            searchBankAccounts();
         })
         .catch((error) => {
             console.log("bank-accounts error: ", error);
