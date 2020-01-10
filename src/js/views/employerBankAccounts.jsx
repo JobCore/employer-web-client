@@ -87,6 +87,7 @@ class EmployerBankAccounts extends Flux.DashView {
                             </Theme.Consumer>
                         </div>
                         <PlaidLink
+                            clientName="JobCore"
                             className="plaid-button"
                             env={process.env.PLAID_ENVIRONMENT}
                             product="auth"
