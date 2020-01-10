@@ -407,20 +407,6 @@ export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, for
 
 
                         />
-                        <div className="input-group-append" onClick={() => {
-                            if (expired) Notify.error("Shifts with and expired starting or ending times cannot have multiple dates or be recurrent");
-                            else onChange({
-                                multiple_dates: !formData.multiple_dates ?
-                                    [{ starting_at: formData.starting_at, ending_at: formData.ending_at }]
-                                    :
-                                    formData.multiple_dates.filter(dt => !dt.starting_at.isSame(formData.starting_at)).concat(
-                                        { starting_at: formData.starting_at, ending_at: formData.ending_at }
-                                    ),
-                                has_sensitive_updates: true
-                            });
-                        }}>
-                            <span className="input-group-text pointer">More <i className="fas fa-plus ml-1"></i></span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -663,7 +649,7 @@ export class ManagePayroll extends Flux.DashView {
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
                 <h3>Please setup your payroll settings first.</h3>
-                <Button color="success" onClick={() => this.props.history.push("/payroll-settings")}>Setup Payroll Settings</Button>
+                <Button color="success" onClick={() => this.props.history.push("/payroll/settings")}>Setup Payroll Settings</Button>
             </div>;
         }
 
@@ -944,20 +930,20 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
     const diff = Math.round((clockInTotalHoursAfterBreak - plannedHours) * 100) / 100;
 
     useEffect(() => {
-        let unsubscribe = null;
+        let subs = null;
         if (payment.status === "NEW"){
             fetchTemporal(`employers/me/shifts?start=${moment(period.starting_at).format('YYYY-MM-DD')}&end=${moment(period.ending_at).format('YYYY-MM-DD')}&employee=${employee.id}`, "employee-expired-shifts")
                 .then((_shifts) => {
                     const _posibleShifts = _shifts.map(s => ({ label: '', value: Shift(s).defaults().unserialize() }));
                     setPossibleShifts(_posibleShifts);
                 });
-            unsubscribe = store.subscribe('employee-expired-shifts', (_shifts) => {
+            subs = store.subscribe('employee-expired-shifts', (_shifts) => {
                 const _posibleShifts = _shifts.map(s => ({ label: '', value: Shift(s).defaults().unserialize() }));
                 setPossibleShifts(_posibleShifts);
             });
         }
         return () => {
-            if(unsubscribe) unsubscribe();
+            if(subs) subs.unsubscribe();
         };
 
     }, []);
@@ -1029,7 +1015,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                 :
                 <TimePicker
                     showSecond={false}
-                    defaultValue={clockin.started_at}
+                    defaultValue={approvedClockin}
                     format={TIME_FORMAT}
                     onChange={(value) => {
                         if (value) {
@@ -1037,7 +1023,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                             setClockin(_c);
                         }
                     }}
-                    value={clockin.started_at}
+                    value={approvedClockin}
                     use12Hours
                 />
             }
@@ -1050,7 +1036,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                 <TimePicker
                     className={`${clockin.automatically_closed ? 'border border-danger' : ''}`}
                     showSecond={false}
-                    defaultValue={clockin.ended_at}
+                    defaultValue={approvedClockout}
                     format={TIME_FORMAT}
                     onChange={(d1) => {
                         if (d1) {
@@ -1060,7 +1046,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                             setClockin(Object.assign({}, clockin, { ended_at }));
                         }
                     }}
-                    value={clockin.ended_at}
+                    value={approvedClockout}
                     use12Hours
                 />
             }
@@ -1091,9 +1077,12 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
         <td>{clockin.shift || !readOnly ? diff : "-"}</td>
         {readOnly ?
             <td className="text-center">
-                {payment.status === "APPROVED" ? <span><i className="fas fa-check-circle"></i><i onClick={() => onUndo(payment)} className="fas fa-undo ml-2 pointer"></i></span>
-                    : payment.status === "REJECTED" ? <span><i className="fas fa-times-circle"></i><i onClick={() => onUndo(payment)} className="fas fa-undo ml-2 pointer"></i></span>
+                {payment.status === "APPROVED" ? <span><i className="fas fa-check-circle"></i></span>
+                    : payment.status === "REJECTED" ? <span><i className="fas fa-times-circle"></i></span>
                         : ''
+                }
+                {period.status === "OPEN" && (payment.status === "APPROVED" || payment.status === "REJECTED") &&
+                    <i onClick={() => onUndo(payment)} className="fas fa-undo ml-2 pointer"></i>
                 }
             </td>
             :
@@ -1179,7 +1168,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
     if (!employer || !employer.payroll_configured || !moment.isMoment(employer.payroll_period_starting_time)) {
         return <div className="text-center">
             <p>Please setup your payroll settings first.</p>
-            <Button color="success" onClick={() => history.push("/payroll-settings")}>Setup Payroll Settings</Button>
+            <Button color="success" onClick={() => history.push("/payroll/settings")}>Setup Payroll Settings</Button>
         </div>;
     }
 
@@ -1411,7 +1400,7 @@ export class PayrollReport extends Flux.DashView {
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
                 <h3>Please setup your payroll settings first.</h3>
-                <Button color="success" onClick={() => this.props.history.push("/payroll-settings")}>Setup Payroll Settings</Button>
+                <Button color="success" onClick={() => this.props.history.push("/payroll/settings")}>Setup Payroll Settings</Button>
             </div>;
         }
 
