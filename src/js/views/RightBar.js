@@ -34,6 +34,10 @@ class RightBar extends React.Component {
                     create('shifts', Shift(this.state.formData).validate().withStatus(data.status).serialize());
                     this.props.onClose();
                 break;
+                case 'create_expired_shift':
+                    create({ url: 'shifts', slug: 'employee-expired-shifts' }, Shift(this.state.formData).validate().withStatus(data.status).serialize());
+                    this.props.onClose();
+                break;
                 case 'update_shift':
                     if(typeof data.status != 'undefined' && data.status === 'CANCELLED') update('shifts', Shift(this.state.formData).get().serialize().withStatus(data.status));
                     else update('shifts', Shift(this.state.formData).validate().withStatus(data.status).serialize(), WEngine.modes.POSPONED);
