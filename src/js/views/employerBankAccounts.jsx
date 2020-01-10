@@ -11,7 +11,6 @@ class EmployerBankAccounts extends Flux.DashView {
         super();
         this.state = {
             bankAccounts: [],
-            // employer: Employer().defaults()
         };
     }
 
@@ -32,7 +31,6 @@ class EmployerBankAccounts extends Flux.DashView {
         console.log('token: ', token);
         console.log('metadata: ', metadata);
         addBankAccount(token, metadata);
-        // send token to client server
     }
 
     handleOnExit() {
@@ -50,12 +48,6 @@ class EmployerBankAccounts extends Flux.DashView {
                         <div className="p-1 listcontents" style={{ margin: '20px' }}>
                             <Theme.Consumer>
                                 {({ bar }) => (<span>
-                                    {/* <Wizard continuous
-                                        steps={this.state.steps}
-                                        run={this.state.runTutorial}
-                                        callback={callback}
-                                    /> */}
-                                    {/* <h1><span id="talent_search_header">Talent Search</span></h1> */}
                                     {bankAccounts.length > 0
                                     ? <table className="table table-striped payroll-summary">
                                         <thead>
