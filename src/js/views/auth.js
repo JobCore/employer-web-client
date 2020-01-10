@@ -17,7 +17,7 @@ export class Login extends React.Component{
     constructor(props){
         super(props);
         const urlVariables = qs.parse(props.location.search);
-        this.state = { email: 'aalejo@gmail.com', password: '1234', type: urlVariables.type || 'company', loading: false, keep: true };
+        this.state = { email: '', password: '', type: urlVariables.type || 'company', loading: false, keep: true };
     }
     render(){
         return (
@@ -33,10 +33,10 @@ export class Login extends React.Component{
                             :
                             <div>
                                 <h4>Please download our mobile application to log in</h4>
-                                <a href={process.env.ANDROID}>
+                                <a href={process.env.ANDROID_APP_URL}>
                                     <SVG className="store-icon" svg={googleIcon} />
                                 </a>
-                                <a href={process.env.APPSTORE}>
+                                <a href={process.env.APPSTORE_APP_URL}>
                                     <SVG className="store-icon" svg={appleIcon} />
                                 </a>
                             </div>
@@ -47,10 +47,10 @@ export class Login extends React.Component{
                         this.state.type == 'employee' ?
                             <div>
                                 <h4>Please download our mobile application to log in</h4>
-                                <a href={process.env.ANDROID}>
+                                <a href={process.env.ANDROID_APP_URL}>
                                     <SVG className="store-icon" svg={googleIcon} />
                                 </a>
-                                <a href={process.env.APPSTORE}>
+                                <a href={process.env.APPSTORE_APP_URL}>
                                     <SVG className="store-icon" svg={appleIcon} />
                                 </a>
                             </div>
@@ -105,7 +105,7 @@ export class Signup extends React.Component{
     constructor(props){
         super(props);
         const urlVariables = qs.parse(props.location.search);
-        this.state = { email: '', password: '', first_name: '', last_name:'', company: urlVariables.company || 1, loading: false, errors: [], token: urlVariables.token || null };
+        this.state = { email: '', password: '', first_name: '', last_name:'', company: urlVariables.company || urlVariables.employer || 1, loading: false, errors: [], token: urlVariables.token || null };
     }
     validate(formData){
         let errors = [];
@@ -249,6 +249,7 @@ export class Invite extends React.Component{
             repPassword: '',
             first_name: '',
             last_name: '',
+            employer: urlVariables.employer || urlVariables.company || undefined,
             token: urlVariables.token || '',
             error: null,
             loading: false
@@ -273,7 +274,8 @@ export class Invite extends React.Component{
                                     first_name: this.state.first_name,
                                     last_name: this.state.last_name,
                                     token: this.state.token,
-                                    account_type: 'employee'
+                                    employer: this.state.employer || undefined,
+                                    account_type: this.state.employer ? 'employer' : 'employee'
                                 }, this.props.history)
                                     .then(() => this.setState({loading: false, error: null }))
                                     .catch((error) => this.setState({loading: false, error }));

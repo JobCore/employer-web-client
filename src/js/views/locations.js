@@ -115,7 +115,7 @@ export class ManageLocations extends Flux.DashView {
                 {({bar}) => (<span>
                     <h1><span id="talent_search_header">Location Search</span></h1>
                     {this.state.locations.map((l,i) => (
-                        <GenericCard key={i} onClick={() => bar.show({ slug: "update_location", data: l, allowLevels })}>
+                        <GenericCard key={i} hover={true} onClick={() => bar.show({ slug: "update_location", data: l, allowLevels })}>
                             <div className="btn-group">
                                 <Button icon="pencil" onClick={() => bar.show({ slug: "update_location", data: l, allowLevels })}></Button>
                                 <Button icon="trash" onClick={() => {
@@ -125,7 +125,7 @@ export class ManageLocations extends Flux.DashView {
                                     });
                                 }}></Button>
                             </div>
-                            <p>{l.title}</p>
+                            <p className="mt-2">{l.title}</p>
                         </GenericCard>
                     ))}
                 </span>)}
@@ -279,7 +279,7 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
                 <label>Location</label>
                 <div className="location-map">
                     <GoogleMapReact
-                        bootstrapURLKeys={{ key: process.env.GOOGLE_MAPS_KEY }}
+                        bootstrapURLKeys={{ key: process.env.GOOGLE_MAPS_WEB_KEY }}
                         defaultCenter={{
                           lat: 25.7617,
                           lng: -80.1918

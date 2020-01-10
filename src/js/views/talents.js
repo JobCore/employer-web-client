@@ -258,7 +258,12 @@ export const TalentDetails = (props) => {
     return (<Theme.Consumer>
         {({bar}) =>
             (<li className="aplication-details">
-
+                <div className="top-bar">
+                    <Button icon="envelope" color="primary" size="small" rounded={true}
+                        note="Pending Invites" notePosition="left"
+                        onClick={() => bar.show({ slug: "show_talent_shift_invites", data: employee, allowLevels: true })}
+                    />
+                </div>
                 <Avatar url={employee.user.profile.picture} />
                 <p>{typeof employee.fullName == 'function' ? employee.fullName() : employee.first_name + ' ' + employee.last_name}</p>
                 <p>

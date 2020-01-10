@@ -3,13 +3,17 @@
   "version": "0.0.4",
   "description": "",
   "main": "index.js",
+  "engines": {
+    "node": "10.x"
+  },
   "scripts": {
-    "start": "webpack-dev-server  --config webpack.dev.js --open --port 3000",
-    "start:prod": "webpack-dev-server --config webpack.prod.js --open --port 3000",
-    "build:prod": "webpack --config webpack.prod.js",
-    "build:test": "webpack --config webpack.test.js",
-    "deploy:prod": "npm run build:prod && firebase deploy --project employer",
-    "deploy:test": "npm run build:test && firebase deploy --project employer-test"
+    "start": "API_HOST=http://localhost:8080 bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
+    "start:dev": "API_HOST=https://jobcore-test.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open --port 3000'",
+    "start:prod": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open --port 3000'",
+    "build": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack --config webpack.prod.js'",
+    "build:dev": "API_HOST=https://jobcore-test.herokuapp.com bash -c 'webpack --config webpack.dev.js'",
+    "deploy:test": "now --target staging -b [API_HOST=https://jobcore-test.herokuapp.com]",
+    "deploy": "now --prod -b [API_HOST=https://jobcore.herokuapp.com]"
   },
   "author": "",
   "license": "ISC",
@@ -62,10 +66,11 @@
     "@fortawesome/fontawesome": "^1.1.4",
     "@fortawesome/fontawesome-free-regular": "^5.0.8",
     "@fortawesome/fontawesome-free-solid": "^5.0.13",
+    "@react-pdf/renderer": "^1.6.8",
     "bc-react-calendar": "^1.0.39",
     "bc-react-notifier": "^1.1.6",
     "bc-react-session": "^1.5.2",
-    "bootstrap": "^4.0.0-beta.2",
+    "bootstrap": "^4.4.1",
     "deepmerge": "^2.1.1",
     "events": "^1.1.1",
     "flux": "^3.1.3",
