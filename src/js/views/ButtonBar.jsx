@@ -96,10 +96,10 @@ class ButtonBar extends React.Component {
     const buttons = this.state.currentButtons.map((btn, i) => (<li key={i}>
         <button id={btn.slug} className="btn btn-primary mb-3"
                 onClick={() => this.props.onClick(btn)}>{btn.title}</button>
-      </li>
+    </li>
     ));
     return (<div className="buttonbar">
-      <ul>{buttons}</ul>
+        <ul>{buttons}</ul>
     </div>);
   }
 }
