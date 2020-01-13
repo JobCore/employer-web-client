@@ -1450,7 +1450,12 @@ export class PayrollRating extends Flux.DashView {
                                 <div className="col my-auto">
                                     <StarRating
                                         onClick={(e) => {
-                                            console.log(e);
+                                            this.setState(prevState => ({
+                                                payments: {
+                                                    ...prevState.payments,
+                                                    [prevState.payments[i].rating]: e
+                                                },
+                                            }));
                                         }
                                         }
                                         onHover={() => null}
