@@ -30,6 +30,9 @@ import { Page, Image, Text, View, Document, StyleSheet, PDFDownloadLink } from '
 
 import TextareaAutosize from 'react-textarea-autosize';
 
+import { Redirect } from 'react-router-dom';
+
+
 const ENTITIY_NAME = 'payroll';
 
 const BORDER_COLOR = '#000000';
@@ -712,7 +715,7 @@ export class ManagePayroll extends Flux.DashView {
 
 
     render() {
-
+        console.log(this.state);
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
@@ -887,8 +890,13 @@ export class ManagePayroll extends Flux.DashView {
                                 <button type="button" className="btn btn-primary" onClick={() => {
                                     const unapproved = [].concat.apply([], this.state.payments.map(p => p.payments)).find(p => p.status === "PENDING");
                                     if (unapproved) Notify.error("There are still some payments that need to be approved or rejected");
-                                    else update('payroll-periods', Object.assign(this.state.singlePayrollPeriod, { status: 'FINALIZED' }))
-                                        .catch(e => Notify.error(e.message || e));
+                                    // ALEJANDRO
+                                    // else update('payroll-periods', Object.assign(this.state.singlePayrollPeriod, { status: 'FINALIZED' }))
+                                    //     .catch(e => Notify.error(e.message || e));
+
+                                    // IXAX
+                                    else this.props.history.push('/payroll/rating/' + this.state.singlePayrollPeriod.id);
+
                                 }}>Finalize Period</button>
                                 :
                                 <Button className="btn btn-success" onClick={() => this.props.history.push('/payroll/report/' + this.state.singlePayrollPeriod.id)}>Take me to the Payroll Report</Button>
@@ -1408,6 +1416,7 @@ export class PayrollRating extends Flux.DashView {
             // const searchMatches = search.exec(data.search);
             if (periodMatches) this.getSinglePeriod(periodMatches[1]);
         });
+
     }
 
     groupPayments(singlePeriod) {
@@ -1448,7 +1457,7 @@ export class PayrollRating extends Flux.DashView {
 
 
     render() {
-        console.log(this.state.payments);
+        console.log(this.state);
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
@@ -1473,17 +1482,17 @@ export class PayrollRating extends Flux.DashView {
                     }
 
                     {
-                        [1, 2].map((list, i) => (
+                        this.state.payments.map((list, i) => (
 
                             <div className="row list-card" key={i}>
 
                                 <div className="col-1 my-auto">
 
-                                    <Avatar url={"http://placekitten.com/g/200/300"} />
+                                    <Avatar url={list.employee.user.profile.picture} />
                                 </div>
-                                <div className="col-2 my-auto">
+                                <div className="col-3 my-auto">
 
-                                    <span>Don Pepin</span>
+                                    <span>{list.employee.user.first_name + " " + list.employee.user.last_name}</span>
                                 </div>
                                 <div className="col my-auto">
                                     <StarRating
@@ -1494,15 +1503,15 @@ export class PayrollRating extends Flux.DashView {
                                         quiet={false}
                                         readonly={false}
                                         totalSymbols={5}
-                                        value={3}
-                                        placeholderValue={3}
+                                        value={0}
+                                        placeholderValue={0}
                                         placeholderRating={Number(0)}
                                         emptySymbol="far fa-star md"
                                         fullSymbol="fas fa-star"
                                         placeholderSymbol={"fas fa-star"}
                                     />
                                 </div>
-                                <div className="col-7 my-auto">
+                                <div className="col-6 my-auto">
                                     <TextareaAutosize style={{ width: '100%' }} placeholder="Comment..." />
                                 </div>
                             </div>
@@ -1512,7 +1521,17 @@ export class PayrollRating extends Flux.DashView {
 
                     }
 
+                    <div className="btn-bar text-right mt-3">
 
+                        <button type="button" className="btn btn-primary" onClick={() => {
+                            const unrated = [].concat.apply([], this.state.payments.map(p => p.payments)).find(p => p.status === "PENDING");
+                            if (unrated) Notify.error("There are still some employees that need to be rated");
+                            else update('payroll-periods', Object.assign(this.state.singlePayrollPeriod, { status: 'FINALIZED' }))
+                                .catch(e => Notify.error(e.message || e));
+
+                        }}>Finalize Rating</button>
+
+                    </div>
 
                 </span>)}
             </Theme.Consumer>
@@ -1729,11 +1748,15 @@ export class PayrollReport extends Flux.DashView {
                                 {/* <Button className="btn btn-info" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button> */}
 
                                 {this.state.singlePayrollPeriod.status == "OPEN" &&
-                                    <div className="alert alert-warning p-2">This period is still open, <a href="#" onClick={(e) => {
-                                        e.preventDefault();
-                                        this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id);
-                                    }}>click here to review it.</a>
-                                    </div>
+                                    //ALEJANDRO
+                                    // <div className="alert alert-warning p-2">This period is still open, <a href="#" onClick={(e) => {
+                                    //     e.preventDefault();
+                                    //     this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id);
+                                    // }}>click here to review it.</a>
+                                    // </div>
+
+                                    //IXAX
+                                    <Redirect from={'/payroll/report/' + this.state.singlePayrollPeriod.id} to={'/payroll/rating/' + this.state.singlePayrollPeriod.id} />
                                 }
                                 <table className="table table-striped payroll-summary">
                                     <thead>
