@@ -16,7 +16,7 @@ import { Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilt
 import { PendingInvites, PendingJobcoreInvites, SearchShiftToInviteTalent, InviteTalentToJobcore, SearchTalentToInviteToShift } from './views/invites.js';
 import { ManageFavorites, AddFavlistsToTalent, FavlistEmployees, AddTalentToFavlist, Favlist, AddorUpdateFavlist } from './views/favorites.js';
 import { ManageLocations, AddOrEditLocation, Location } from './views/locations.js';
-import { ManagePayroll, PayrollReport, SelectTimesheet, EditOrAddExpiredShift } from './views/payroll.js';
+import { ManagePayroll, PayrollReport, PayrollRating, SelectTimesheet, EditOrAddExpiredShift } from './views/payroll.js';
 import { ManageRating, Rating, RatingDetails, ReviewTalent, ReviewTalentAndShift } from './views/ratings.js';
 import { Profile, PayrollSettings, ManageUsers, InviteUserToCompanyJobcore } from './views/profile.js';
 import { NOW } from './components/utils.js';

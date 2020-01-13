@@ -548,7 +548,7 @@ export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, for
                         };
 
                         const mainDate = getRealDate(value, formData.ending_at);
-                        onChange({ ...mainDate,  has_sensitive_updates: true });
+                        onChange({ ...mainDate, has_sensitive_updates: true });
                     }}
                     onClick={() => validating_maximum || validating_minimum ? Notify.error("Cannot create shift before payroll time or after") : onSave({
                         executed_action: 'create_expired_shift',
@@ -685,8 +685,8 @@ export class ManagePayroll extends Flux.DashView {
                                 :
                                 <Button icon="plus" size="small" onClick={() => {
                                     const isOpen = this.state.singlePayrollPeriod.payments.find(p => p.status === "NEW");
-                                    if(isOpen) return;
-                                     
+                                    if (isOpen) return;
+
                                     const period = {
                                         ...this.state.singlePayrollPeriod,
                                         payments: this.state.singlePayrollPeriod.payments.concat([Payment({ status: "NEW", employee: { id: 'new' } }).defaults()])
@@ -941,7 +941,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
 
     useEffect(() => {
         let subs = null;
-        if (payment.status === "NEW"){
+        if (payment.status === "NEW") {
             fetchTemporal(`employers/me/shifts?start=${moment(period.starting_at).format('YYYY-MM-DD')}&end=${moment(period.ending_at).format('YYYY-MM-DD')}&employee=${employee.id}`, "employee-expired-shifts")
                 .then((_shifts) => {
                     const _posibleShifts = _shifts.map(s => ({ label: '', value: Shift(s).defaults().unserialize() }));
@@ -953,7 +953,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
             });
         }
         return () => {
-            if(subs) subs.unsubscribe();
+            if (subs) subs.unsubscribe();
         };
 
     }, []);
@@ -1335,7 +1335,10 @@ export class PayrollRating extends Flux.DashView {
             employer: store.getState('current_employer'),
             payrollPeriods: [],
             payments: [],
-            singlePayrollPeriod: null
+            singlePayrollPeriod: null,
+            reviews: [{
+                employee: 2
+            }]
         };
     }
 
@@ -1369,18 +1372,18 @@ export class PayrollRating extends Flux.DashView {
 
     }
 
-    groupPayments(singlePeriod) {
+    defaultRatings(singlePeriod) {
         if (!singlePeriod) return null;
 
-        let groupedPayments = {};
+        let ratings = {};
         singlePeriod.payments.forEach(pay => {
-            if (typeof groupedPayments[pay.employee.id] === 'undefined') {
-                groupedPayments[pay.employee.id] = { employee: pay.employee, payments: [] };
+            if (typeof ratings[pay.employee.id] === 'undefined') {
+                ratings[pay.employee.id] = { employee: pay.employee, shifts: [], rating: null, comments: '' };
             }
-            groupedPayments[pay.employee.id].payments.push(pay);
+            ratings[pay.employee.id].shifts.push(pay.shift.id);
         });
 
-        return Object.values(groupedPayments);
+        return Object.values(ratings);
     }
 
     getSinglePeriod(periodId, payrollPeriods) {
@@ -1388,7 +1391,7 @@ export class PayrollRating extends Flux.DashView {
             if (!payrollPeriods) fetchSingle("payroll-periods", periodId);
             else {
                 const singlePayrollPeriod = payrollPeriods.find(pp => pp.id == periodId);
-                this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod) });
+                this.setState({ singlePayrollPeriod, ratings: this.defaultRatings(singlePayrollPeriod) });
             }
         }
     }
@@ -1402,7 +1405,7 @@ export class PayrollRating extends Flux.DashView {
             singlePayrollPeriod = payrollPeriods.find(pp => pp.id == this.props.match.params.period_id);
         }
 
-        this.setState({ payrollPeriods, singlePayrollPeriod: singlePayrollPeriod || null, payments: this.groupPayments(singlePayrollPeriod) });
+        this.setState({ payrollPeriods, singlePayrollPeriod: singlePayrollPeriod || null, payments: this.defaultRatings(singlePayrollPeriod) });
     }
 
 
@@ -1446,8 +1449,11 @@ export class PayrollRating extends Flux.DashView {
                                 </div>
                                 <div className="col my-auto">
                                     <StarRating
-                                        onClick={() => console.log("ppee")}
-                                        onHover={() => console.log("over")}
+                                        onClick={(e) => {
+                                            console.log(e);
+                                        }
+                                        }
+                                        onHover={() => null}
                                         direction="right"
                                         fractions={2}
                                         quiet={false}
