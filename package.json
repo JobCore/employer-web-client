@@ -3,8 +3,12 @@
   "version": "0.0.4",
   "description": "",
   "main": "index.js",
+  "engines": {
+    "node": "10.x"
+  },
   "scripts": {
     "start": "API_HOST=http://localhost:8080 bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
+    "start:gitpod": "API_HOST=https://8080-b600067d-1862-49fa-bdcf-b9ebe1ba6007.ws-us02.gitpod.io bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
     "start:dev": "API_HOST=https://jobcore-test.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open --port 3000'",
     "start:prod": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open --port 3000'",
     "build": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack --config webpack.prod.js'",

@@ -596,9 +596,10 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                 <div className="col-12">
                     <label>Looking for</label>
                     <Select
+                        placeholder="Select a position"
                         value={catalog.positions.find((pos) => pos.value == formData.position)}
                         onChange={(selection) => onChange({ position: selection.value.toString(), has_sensitive_updates: true })}
-                        options={[{ label: 'Select a position', value: '' }].concat(catalog.positions)}
+                        options={catalog.positions}
                     />
                 </div>
             </div>

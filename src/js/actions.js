@@ -607,10 +607,10 @@ class _Store extends Flux.DashStore {
         this.addEvent('payment');
         this.addEvent('clockins', clockins => !Array.isArray(clockins) ? [] : clockins.map(c => ({ ...c, started_at: moment(c.starting_at), ended_at: moment(c.ended_at) })));
         this.addEvent('jobcore-invites');
-        this.addEvent('ratings');
+        this.addEvent('ratings', (_ratings) => (!Array.isArray(_ratings)) ? [] : _ratings.map(ra => Rating(ra).defaults().unserialize()));
         this.addEvent('employees', (employees) => {
             if (!Array.isArray(employees)) return [];
-            return employees.filter(em => em.user.profile).map(em => Talent(em).defaults().unserialize());
+            return employees.filter(em => em.user.profile).map(tal => Talent(tal).defaults().unserialize());
         });
         this.addEvent('favlists');
         this.addEvent('badges');
@@ -642,6 +642,7 @@ class _Store extends Flux.DashStore {
                 return p;
             });
         });
+        this.addEvent("employee-expired-shifts"); //temporal, just used on the payroll report
 
         //temporal storage (for temporal views, information that is read only)
         this.addEvent('current_employer', employer => {
