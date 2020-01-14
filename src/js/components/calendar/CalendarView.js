@@ -95,6 +95,7 @@ const CalendarView = ({
   eventBoxStyles,
   timeBlockStyles,
   dayBlockStyles,
+  tableStyles,
   onClick,
   blockHeight,
   blockHoverIcon,
@@ -152,7 +153,7 @@ const CalendarView = ({
                 blockLabel={blockLabel}
                 showFrom={5}
                 showUntil={24}
-                eventOffset={5}
+                eventOffset={15}
 
                 //events related props
                 onClick={(e) => onClick && onClick(e)}
@@ -161,6 +162,7 @@ const CalendarView = ({
                 eventBoxStyles={eventBoxStyles}
                 timeBlockStyles={timeBlockStyles || _timeBlockStyles || ({})}
                 dayBlockStyles={dayBlockStyles}
+                tableStyles={tableStyles}
             />
         </div>
     );
@@ -202,6 +204,7 @@ CalendarView.propTypes = {
 
     //styling properties
     eventBoxStyles: PropTypes.object,
+    tableStyles: PropTypes.object,
     timeBlockStyles: PropTypes.object,
     dayBlockStyles: PropTypes.object,
     blockPixelSize: PropTypes.number,
@@ -229,7 +232,8 @@ CalendarView.defaultProps = {
   blockPixelSize: null,
 
   dayBlockStyles: {},
-  timeBlockStyles: null
+  timeBlockStyles: null,
+  tableStyles: {}
 };
 
 export default CalendarView;

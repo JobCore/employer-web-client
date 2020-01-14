@@ -135,7 +135,7 @@ export class ManageRating extends Flux.DashView {
                                     <Avatar url={rate.sender.picture} />
                                     <Stars className="float-left" rating={Number(rate.rating)}  />
                                     <span>{`  on ${rate.created_at.substring(0,10)}`}</span>
-                                    <p className="mt-0">{`"${rate.comments}"`}</p>
+                                    <p className="mt-0">{rate.comments !== '' ? `"${rate.comments}"` : `The talent didn't provide any comments for this rating.` }</p>
                                 </GenericCard>
                             ))}
                         </div>
@@ -161,7 +161,9 @@ export const RatingDetails = (props) => {
                 <div>
                     <Stars rating={Number(formData.rating)}  />
                 </div>
-                <h5 className="mt-3">{'"'}{formData.comments}{'"'}</h5>
+                <h5 className="mt-3">
+                    {formData.comments !== '' ? `"${formData.comments}"` : `${formData.sender.user.first_name} didn't provide any comments for this rating.` }
+                </h5>
             </li>)}
     </Theme.Consumer>);
 };

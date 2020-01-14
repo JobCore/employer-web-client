@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {validator, ValidationError} from '../utils/validation';
-import {update} from '../actions';
+import {update, searchMe} from '../actions';
 import {Session} from 'bc-react-session';
 import PropTypes from 'prop-types';
 import {GET} from '../utils/api_wrapper';
 import Select from 'react-select';
 import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
-import {Button, Theme, ShiftOption, ShiftOptionSelected, SearchCatalogSelect} from '../components/index';
+import {Button, Theme, ShiftOption, ShiftOptionSelected, SearchCatalogSelect, ShiftCard} from '../components/index';
+import {Shift} from "./shifts.js";
 import moment from 'moment';
 
 export const Invite = (data) => {
@@ -17,6 +18,7 @@ export const Invite = (data) => {
         status: 'PENDING',
         created_at: NOW(),
         email: '',
+        include_sms: undefined,
         phone_number: '',
         serialize: function(){
 
@@ -25,6 +27,17 @@ export const Invite = (data) => {
             };
 
             return Object.assign(this, newShift);
+        },
+        unserialize: function(){
+            const dataType = typeof this.created_at;
+            //if its already serialized
+            if((typeof this.position == 'object') && ['number','string'].indexOf(dataType) == -1) return this;
+            const newInvite = {
+                shift: Shift(this.shift).defaults().unserialize(),
+                created_at: (!moment.isMoment(this.created_at)) ? moment(this.created_at) : this.created_at,
+            };
+
+            return Object.assign(this, newInvite);
         }
     };
 
@@ -62,14 +75,19 @@ export const Invite = (data) => {
  */
 export const SearchShiftToInviteTalent = (props) => {
 
-    const shifts = props.catalog.shifts.filter(s => s.status == 'OPEN' && (s.maximum_allowed_employees - s.employees.length) > 0).map(item => ({ value: item, label: '' }));
+    const [ shifts, setShifts ] = useState([]);
+    useEffect(() => {
+        searchMe('shifts', `?upcoming=true&employee_not=${props.formData.employees.join(',')}&employee_not=${props.formData.employees.join(',')}`)
+            .then(data => setShifts(data.map(item => ({ value: Shift(item).defaults().unserialize(), label: '' }))));
+    }, []);
+
     return (<form>
         <div className="row">
             <div className="col-12">
                 <label>Pick your shifts:</label>
                 <Select isMulti className="select-shifts"
                     value={props.formData.shifts}
-                    components={{ Option: ShiftOption, MultiValue: ShiftOptionSelected }}
+                    components={{ Option: ShiftOption, MultiValue: ShiftOptionSelected({ multi: true }) }}
                     onChange={(selectedOption)=>props.onChange({ shifts: selectedOption })}
                     options={shifts}
                 >
@@ -145,7 +163,7 @@ export const InviteTalentToJobcore = ({ onSave, onCancel, onChange, catalog, for
             <div className="row">
                 <div className="col-12">
                     <p>
-                        <span>To invite someone into yor talent pool, please fill the following details or </span>
+                        <span>Invite someone into yor talent pool or </span>
                         <span className="anchor"
                             onClick={() => bar.show({ slug: "show_pending_jobcore_invites", allowLevels: true })}
                         >review previous invites</span>:
@@ -176,6 +194,12 @@ export const InviteTalentToJobcore = ({ onSave, onCancel, onChange, catalog, for
                     <input type="tel" className="form-control"
                         onChange={(e)=>onChange({phone_number: e.target.value})}
                     />
+                    <div className="form-group text-left">
+                        <input type="checkbox" className="mr-1"
+                            onChange={(e) => onChange({ include_sms: !formData.include_sms })} checked={formData.include_sms}
+                        />
+                        Send invite throught SMS as well.
+                    </div>
                 </div>
             </div>
             <div className="btn-bar">
@@ -193,10 +217,11 @@ InviteTalentToJobcore.propTypes = {
   catalog: PropTypes.object //contains the data needed for the form to load
 };
 
+
 /**
  * ShiftDetails
  */
-export const PendingInvites = ({ catalog, formData }) => (<div>
+export const PendingJobcoreInvites = ({ catalog, formData }) => (<div>
     <div className="row">
         <div className="col">
             <h2>These are your pending invites</h2>
@@ -209,9 +234,9 @@ export const PendingInvites = ({ catalog, formData }) => (<div>
                                 onClick={() => update('jobcore-invites', inv)}
                             >Resend</button>
                             <p className="p-0 m-0">
-                                <span>{inv.first_name} {inv.last_name} </span>
+                                <span>{inv.first_name} {inv.last_name} {inv.employer && " (company)"} </span>
                             </p>
-                            <span className="badge">{moment(inv.created_at, "YYYYMMDD").fromNow()}</span>
+                            <span className="badge">{moment(inv.updated_at).fromNow()}</span>
                             <small>{inv.email}</small>
                         </li>)
                     ):
@@ -221,6 +246,31 @@ export const PendingInvites = ({ catalog, formData }) => (<div>
         </div>
     </div>
 </div>);
+PendingJobcoreInvites.propTypes = {
+  formData: PropTypes.object,
+  catalog: PropTypes.object //contains the data needed for the form to load
+};
+
+/**
+ * ShiftDetails
+ */
+export const PendingInvites = ({ catalog, formData }) => {
+    return (<div>
+        <div className="row">
+            <div className="col">
+                <h2>Pending invites for {formData.talent.user.first_name}</h2>
+                <ul className="li-white mx-1">
+                    { (catalog.invites.length > 0) ?
+                        catalog.invites.map((inv, i) =>
+                            (<ShiftCard key={i} shift={inv.shift} showStatus={false} hoverEffect={false} />)
+                        ):
+                        <p className="text-center">No pending invites</p>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>);
+};
 PendingInvites.propTypes = {
   formData: PropTypes.object,
   catalog: PropTypes.object //contains the data needed for the form to load
