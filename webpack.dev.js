@@ -17,5 +17,8 @@ module.exports = merge(common, {
     filename: 'bundle.js',
     path: __dirname + './dist',
     publicPath: '/'
-  }
+  },
+  plugins: [
+    new Dotenv({path: '.' + path.sep + '.env.dev'})
+  ]
 });

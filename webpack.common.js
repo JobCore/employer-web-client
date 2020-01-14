@@ -62,14 +62,10 @@ module.exports = {
     extensions: ['*', '.js', '.jsx'],
   },
   plugins: [
-    new Dotenv({
-        path: './.env',
-        systemvars: true
-    }),
     new webpack.HotModuleReplacementPlugin(),
     new HtmlWebpackPlugin({
       favicon: 'jobcore.ico',
       template: 'template.html'
     })
-  ],
+  ]
 };
