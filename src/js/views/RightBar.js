@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {create, update, remove, acceptCandidate, rejectCandidate, deleteShiftEmployee} from '../actions';
 import {withRouter} from 'react-router-dom';
 import queryString from 'query-string';
-import {Deduction} from '../views/profile';
+import {Deduction} from '../views/deductions';
 import {Shift} from '../views/shifts.js';
 import {Invite} from '../views/invites.js';
 import {Location} from '../views/locations.js';

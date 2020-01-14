@@ -18,7 +18,8 @@ import { ManageFavorites, AddFavlistsToTalent, FavlistEmployees, AddTalentToFavl
 import { ManageLocations, AddOrEditLocation, Location } from './views/locations.js';
 import { ManagePayroll, PayrollReport, SelectTimesheet, EditOrAddExpiredShift } from './views/payroll.js';
 import { ManageRating, Rating, RatingDetails, ReviewTalent } from './views/ratings.js';
-import { Profile, PayrollSettings, ManageUsers, InviteUserToCompanyJobcore } from './views/profile.js';
+import { Profile, ManageUsers, InviteUserToCompanyJobcore } from './views/profile.js';
+import { PayrollSettings } from './views/payrollSettings';
 import { NOW } from './components/utils.js';
 import { Notifier, Notify } from 'bc-react-notifier';
 import log from './utils/log';
@@ -27,7 +28,7 @@ import loadingURL from '../img/loading2.gif';
 import moment from 'moment';
 import { EngineComponent } from "./utils/write_engine";
 import EmployerBankAccounts from "../js/views/employerBankAccounts";
-import { CreateDeduction, Deduction, UpdateDeduction } from "./views/profile";
+import { CreateDeduction, Deduction, UpdateDeduction } from "./views/deductions";
 
 class PrivateLayout extends Flux.DashView {
 
