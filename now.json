@@ -1,0 +1,34 @@
+{
+    "version": 2,
+    "scope": "jobcore",
+    "name": "employer-web-client",
+    "builds": [
+        {
+            "src": "package.json",
+            "use": "@now/static-build",
+            "config": { "distDir": "public" }
+        }
+    ],
+    "routes": [
+        {
+            "src":"/(.*).png",
+            "headers": { "cache-control": "s-maxage=31536000,immutable" },
+            "dest":"/$1.png"
+        },
+        {
+            "src":"/(.*).gif",
+            "headers": { "cache-control": "s-maxage=31536000,immutable" },
+            "dest":"/$1.gif"
+        },
+        {
+            "src":"/(.*).bundle.js",
+            "headers": { "cache-control": "s-maxage=31536000,immutable" },
+            "dest":"/$1.bundle.js"
+        },
+        {
+            "src": "/(.*)",
+            "headers": { "cache-control": "s-maxage=0" },
+            "dest": "/index.html"
+        }
+  ]
+}

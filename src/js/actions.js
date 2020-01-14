@@ -1,13 +1,14 @@
 import React from 'react';
 import Flux from '@4geeksacademy/react-flux-dash';
-import {Session} from 'bc-react-session';
-import {Notify} from 'bc-react-notifier';
-import {Shift} from './views/shifts';
-import {Talent} from './views/talents';
-import {Rating} from './views/ratings';
-import {Clockin, PayrollPeriod} from './views/payroll';
+import { Session } from 'bc-react-session';
+import { Notify } from 'bc-react-notifier';
+import { Shift } from './views/shifts.js';
+import { Talent } from './views/talents.js';
+import { Rating } from './views/ratings.js';
+import { Invite } from './views/invites.js';
+import { Clockin, PayrollPeriod } from './views/payroll.js';
 import moment from 'moment';
-import {POST, GET, PUT, DELETE, PUTFiles} from './utils/api_wrapper';
+import { POST, GET, PUT, DELETE, PUTFiles } from './utils/api_wrapper';
 import log from './utils/log';
 import WEngine from "./utils/write_engine.js";
 import qs from "query-string";
@@ -20,6 +21,33 @@ const Models = {
     "employees": Talent
 };
 
+export const autoLogin = (token = '') => {
+    Session.destroy();
+
+    return new Promise((resolve, reject) => GET('profiles/me', null, { 'Authorization': 'JWT ' + token })
+        .then(function (profile) {
+            if (!profile.employer) {
+                Notify.error("Only employers are allowed to login into this application");
+                reject("Only employers are allowed to login into this application");
+            }
+            else if (!profile.status === 'SUSPENDED') {
+                Notify.error("Your account seems to be innactive, contact support for any further details");
+                reject("Your account seems to be innactive, contact support for any further details");
+            }
+            else {
+                const payload = { user: { ...profile.user, profile }, access_token: token };
+                Session.start({ payload });
+                resolve(payload);
+            }
+        })
+        .catch(function (error) {
+            reject(error.message || error);
+            Notify.error(error.message || error);
+            log.error(error);
+        })
+    );
+};
+
 export const login = (email, password, keep, history) => new Promise((resolve, reject) => POST('login', {
       username_or_email: email,
       password: password,
@@ -30,43 +58,45 @@ export const login = (email, password, keep, history) => new Promise((resolve, r
             Notify.error("Only employers are allowed to login into this application");
             reject("Only employers are allowed to login into this application");
         }
-        else if(!data.user.is_active){
+        else if (!data.user.profile.status === 'SUSPENDED') {
             Notify.error("Your account seems to be innactive, contact support for any further details");
             reject("Your account seems to be innactive, contact support for any further details");
         }
-        else{
-            Session.start({ payload: {
-                user: data.user, access_token: data.token
-            }});
+        else {
+            Session.start({
+                payload: {
+                    user: data.user, access_token: data.token
+                }
+            });
             history.push('/');
             resolve();
         }
     })
-    .catch(function(error) {
-        reject(error.message || error);
-        Notify.error(error.message || error);
-        log.error(error);
-    })
+  .catch(function(error) {
+    reject(error.message || error);
+    Notify.error(error.message || error);
+    log.error(error);
+  })
 );
 
-export const addBankAccount = (token, metadata) => new Promise((resolve, reject) => POST('bank-accounts/', 
-    normalizeToSnakeCase({ publicToken: token,  institutionName: metadata.institution.name }))
-    .then(function(data){
-        console.log('addBankAccount data: ', data);
-        resolve();
-        searchBankAccounts();
-    })
-    .catch(function(error) {
-        reject(error.message || error);
-        Notify.error(error.message || error);
-        log.error(error);
-    })
+export const addBankAccount = (token, metadata) => new Promise((resolve, reject) => POST('bank-accounts/',
+  normalizeToSnakeCase({ publicToken: token,  institutionName: metadata.institution.name }))
+  .then(function(data){
+    console.log('addBankAccount data: ', data);
+    resolve();
+    searchBankAccounts();
+  })
+  .catch(function(error) {
+    reject(error.message || error);
+    Notify.error(error.message || error);
+    log.error(error);
+  })
 );
 
 export const signup = (formData, history) => new Promise((resolve, reject) => POST('user/register', {
       email: formData.email,
       account_type: formData.account_type,
-      employer: formData.company,
+      employer: formData.company || formData.employer,
       token: formData.token || '',
       username: formData.email,
       first_name: formData.first_name,
@@ -78,7 +108,7 @@ export const signup = (formData, history) => new Promise((resolve, reject) => PO
         history.push(`/login?type=${formData.account_type}`);
         resolve();
     })
-    .catch(function(error) {
+    .catch(function (error) {
         reject(error.message || error);
         Notify.error(error.message || error);
         log.error(error);
@@ -92,7 +122,7 @@ export const remind = (email) => new Promise((resolve, reject) => POST('user/pas
         resolve();
         Notify.success("Check your email!");
     })
-    .catch(function(error) {
+    .catch(function (error) {
         Notify.error(error.message || error);
         reject(error.message || error);
         log.error(error);
@@ -100,14 +130,14 @@ export const remind = (email) => new Promise((resolve, reject) => POST('user/pas
 );
 
 
-export const resendValidationLink = (email) => new Promise((resolve, reject) => POST('user/email/validate/send/'+email, {
-      email: email
-    })
-    .then(function(data){
+export const resendValidationLink = (email) => new Promise((resolve, reject) => POST('user/email/validate/send/' + email, {
+    email: email
+})
+    .then(function (data) {
         resolve();
         Notify.success("We have sent you a validation link, check your email!");
     })
-    .catch(function(error) {
+    .catch(function (error) {
         Notify.error(error.message || error);
         reject(error.message || error);
         log.error(error);
@@ -116,82 +146,91 @@ export const resendValidationLink = (email) => new Promise((resolve, reject) => 
 
 export const logout = () => {
     Session.destroy();
+    store = new _Store();
 };
 
+export const fetchAllIfNull = (entities) => {
+    const _entities = entities.filter(e => !store.getState("entity"));
+    return fetchAll(_entities);
+};
 export const fetchAll = (entities) => new Promise((resolve, reject) => {
     let requests = [];
     const checkPromiseResolution = () => {
-            const hasPending = requests.find(r => r.pending == true);
-            if(!hasPending){
-                const hasError = requests.find(r => r.error == true);
-                if(hasError) reject();
-                else resolve();
-            }
-        };
+        const hasPending = requests.find(r => r.pending == true);
+        if (!hasPending) {
+            const hasError = requests.find(r => r.error == true);
+            if (hasError) reject();
+            else resolve();
+        }
+    };
 
     entities.forEach((entity) => {
-        const currentRequest = { entity: entity.slug || entity, pending: true, error: false};
+        const currentRequest = { entity: entity.slug || entity, pending: true, error: false };
         requests.push(currentRequest);
 
         GET(entity.slug || entity)
-        .then(function(list){
-            if(typeof entity.callback == 'function') entity.callback();
-            Flux.dispatchEvent(entity.slug || entity, list);
+            .then(function (list) {
+                if (typeof entity.callback == 'function') entity.callback();
+                Flux.dispatchEvent(entity.slug || entity, list);
 
-            currentRequest.pending = false;
-            checkPromiseResolution();
-        })
-        .catch(function(error) {
-            Notify.error(error.message || error);
-            log.error(error);
+                currentRequest.pending = false;
+                checkPromiseResolution();
+            })
+            .catch(function (error) {
+                Notify.error(error.message || error);
+                log.error(error);
 
-            currentRequest.pending = false;
-            currentRequest.error = true;
-            checkPromiseResolution();
-        });
+                currentRequest.pending = false;
+                currentRequest.error = true;
+                checkPromiseResolution();
+            });
     });
 });
 
+export const fetchAllMeIfNull = (entities) => {
+    const _entities = entities.filter(e => !store.getState("entity"));
+    return fetchAllMe(_entities);
+};
 export const fetchAllMe = (entities) => new Promise((resolve, reject) => {
     let requests = [];
     const checkPromiseResolution = () => {
-            const hasPending = requests.find(r => r.pending == true);
-            if(!hasPending){
-                const hasError = requests.find(r => r.error == true);
-                if(hasError) reject();
-                else resolve();
-            }
-        };
+        const hasPending = requests.find(r => r.pending == true);
+        if (!hasPending) {
+            const hasError = requests.find(r => r.error == true);
+            if (hasError) reject();
+            else resolve();
+        }
+    };
 
     entities.forEach((entity) => {
-        const currentRequest = { entity: entity.slug || entity, pending: true, error: false};
+        const currentRequest = { entity: entity.slug || entity, pending: true, error: false };
         requests.push(currentRequest);
 
-        GET('employers/me/'+(entity.slug || entity))
-        .then(function(list){
-            if(typeof entity.callback == 'function') entity.callback();
-            Flux.dispatchEvent(entity.slug || entity, list);
+        GET('employers/me/' + (entity.slug || entity))
+            .then(function (list) {
+                if (typeof entity.callback == 'function') entity.callback();
+                Flux.dispatchEvent(entity.slug || entity, list);
 
-            currentRequest.pending = false;
-            checkPromiseResolution();
-        })
-        .catch(function(error) {
-            Notify.error(error.message || error);
-            log.error(error);
+                currentRequest.pending = false;
+                checkPromiseResolution();
+            })
+            .catch(function (error) {
+                Notify.error(error.message || error);
+                log.error(error);
 
-            currentRequest.pending = false;
-            currentRequest.error = true;
-            checkPromiseResolution();
-        });
+                currentRequest.pending = false;
+                currentRequest.error = true;
+                checkPromiseResolution();
+            });
     });
 });
 
-export const fetchSingle = (entity, id) =>  new Promise((resolve, reject) => {
+export const fetchSingle = (entity, id) => new Promise((resolve, reject) => {
     const _entity = entity.slug || entity;
-    GET(entity.url || 'employers/me/'+_entity+'/'+id)
-        .then(function(data){
+    GET(entity.url || 'employers/me/' + _entity + '/' + id)
+        .then(function (data) {
             const cachedEntity = WEngine.get(_entity, id);
-            if(cachedEntity) data = Object.assign(data, cachedEntity);
+            if (cachedEntity) data = Object.assign(data, cachedEntity);
             Flux.dispatchEvent(_entity, store.replaceMerged(_entity, data.id, Models[_entity](data).defaults().unserialize()));
             resolve(data);
         })
@@ -202,53 +241,70 @@ export const fetchSingle = (entity, id) =>  new Promise((resolve, reject) => {
         });
 });
 
-export const hook = (hookName) =>  new Promise((resolve, reject) => {
+export const processPendingPayrollPeriods = () => new Promise((resolve, reject) => {
+  const payload = Session.getPayload();
+  const params = { employer: payload.user.profile.employer.id || payload.user.profile.employer };
+  GET(`hook/generate_periods?${qs.stringify(params)}`)
+    .then(function (_newPeriods) {
+      let periods = store.getState('payroll-periods');
+      Flux.dispatchEvent('payroll-periods', periods.concat(_newPeriods));
+      resolve(_newPeriods);
+    })
+    .catch(function (error) {
+      Notify.error(error.message || error);
+      log.error(error);
+      reject();
+    });
+});
+
+export const hook = (hookName) => new Promise((resolve, reject) => {
     const payload = Session.getPayload();
-    const params = { employer: payload.user.profile.employer };
+    const params = { employer: payload.user.profile.employer.id || payload.user.profile.employer };
     GET(`hook/${hookName}?${qs.stringify(params)}`)
-        .then(function(data){
+        .then(function (data) {
             resolve(data);
         })
-        .catch(function(error) {
+        .catch(function (error) {
             Notify.error(error.message || error);
             log.error(error);
             reject();
         });
 });
 
-export const fetchTemporal = (url, event_name, callback=null) => {
-    GET(url)
-        .then(function(data){
-            if(typeof callback == 'function') callback();
-            Flux.dispatchEvent(event_name, data);
-        })
-        .catch(function(error) {
-            Notify.error(error.message || error);
-            log.error(error);
-        });
+export const fetchTemporal = async (url, event_name, callback = null) => {
+    try {
+        const data = await GET(url);
+        if (typeof callback == 'function') callback();
+        Flux.dispatchEvent(event_name, data);
+        return data;
+    } catch (error) {
+        Notify.error(error.message || error);
+        log.error(error);
+        throw error;
+    }
 };
 
-export const search = (entity, queryString=null) => new Promise((accept, reject) =>
+export const search = (entity, queryString = null) => new Promise((accept, reject) =>
     GET(entity, queryString)
-        .then(function(list){
-            if(typeof entity.callback == 'function') entity.callback();
+        .then(function (list) {
+            if (typeof entity.callback == 'function') entity.callback();
             Flux.dispatchEvent(entity.slug || entity, list);
             accept(list);
         })
-        .catch(function(error) {
+        .catch(function (error) {
             Notify.error(error.message || error);
             log.error(error);
             reject(error);
         })
 );
 export const searchMe = (entity, queryString) => new Promise((accept, reject) =>
-    GET('employers/me/'+entity, queryString)
-        .then(function(list){
-            if(typeof entity.callback == 'function') entity.callback();
+    GET('employers/me/' + entity, queryString)
+        .then(function (list) {
+            if (typeof entity.callback == 'function') entity.callback();
             Flux.dispatchEvent(entity.slug || entity, list);
             accept(list);
         })
-        .catch(function(error) {
+        .catch(function (error) {
             Notify.error(error.message || error);
             log.error(error);
             reject(error);
@@ -256,56 +312,60 @@ export const searchMe = (entity, queryString) => new Promise((accept, reject) =>
 );
 
 export const searchBankAccounts = () => new Promise((accept, reject) =>
-    GET('bank-accounts/')
-        .then(function(list){
-            console.log("bank-accounts list: ", list);
-            Flux.dispatchEvent('bank-accounts', list);
-            accept(list);
+  GET('bank-accounts/')
+    .then(function(list){
+      console.log("bank-accounts list: ", list);
+      Flux.dispatchEvent('bank-accounts', list);
+      accept(list);
+    })
+    .catch(function(error) {
+      Notify.error(error.message || error);
+      log.error(error);
+      reject(error);
+    })
+);
+
+export const create = (entity, data, status = 'live') => new Promise((resolve, reject) => {
+    POST('employers/me/' + (entity.url || entity), data)
+        .then(function (incoming) {
+            let entities = store.getState(entity.slug || entity);
+            if (!entities || !Array.isArray(entities)) entities = [];
+
+            if (!Array.isArray(incoming)) {
+                Flux.dispatchEvent(entity.slug || entity, entities.concat([{ ...data, id: incoming.id }]));
+            }
+            else {
+                const newShifts = incoming.map(inc => Object.assign({ ...data, id: inc.id }));
+                Flux.dispatchEvent(entity.slug || entity, entities.concat(newShifts));
+            }
+            Notify.success("The " + (entity.slug || entity).substring(0, (entity.slug || entity).length - 1) + " was created successfully");
+            resolve(incoming);
         })
-        .catch(function(error) {
+        .catch(function (error) {
             Notify.error(error.message || error);
             log.error(error);
             reject(error);
-        })
-);
+        });
+});
 
-export const create = (entity, data, status='live') => POST('employers/me/'+(entity.url || entity), data)
-    .then(function(incoming){
-        let entities = store.getState(entity.slug || entity);
-        if(!entities || !Array.isArray(entities)) entities = [];
-
-        if(!Array.isArray(incoming)){
-            Flux.dispatchEvent(entity.slug || entity, entities.concat([{ ...data, id: incoming.id }]));
-        }
-        else{
-            const newShifts = incoming.map(inc => Object.assign({ ...data, id: inc.id }));
-            Flux.dispatchEvent(entity.slug || entity, entities.concat(newShifts));
-        }
-        Notify.success("The "+(entity.slug || entity).substring(0, (entity.slug || entity).length - 1)+" was created successfully");
-    })
-    .catch(function(error) {
-        Notify.error(error.message || error);
-        log.error(error);
-    });
-
-export const update = (entity, data, mode=WEngine.modes.LIVE) => new Promise((resolve, reject) => {
-    let path = (typeof entity == 'string') ? `employers/me/${entity}/${data.id}` : entity.path + (typeof data.id !== 'undefined' ? `/${data.id }`:'');
+export const update = (entity, data, mode = WEngine.modes.LIVE) => new Promise((resolve, reject) => {
+    let path = (typeof entity == 'string') ? `employers/me/${entity}/${data.id}` : entity.path + (typeof data.id !== 'undefined' ? `/${data.id}` : '');
     const event_name = (typeof entity == 'string') ? entity : entity.event_name;
 
-    if(mode === WEngine.modes.POSPONED) path += "?posponed=true";
+    if (mode === WEngine.modes.POSPONED) path += "?posponed=true";
     PUT(path, data)
-        .then(function(incomingObject){
+        .then(function (incomingObject) {
 
-            if(mode === WEngine.modes.POSPONED)
+            if (mode === WEngine.modes.POSPONED)
                 WEngine.add({ entity: event_name, method: 'PUT', data, id: data.id });
             else
-                Notify.success("The "+event_name+" was updated successfully");
+                Notify.success("The " + event_name + " was updated successfully");
 
             let entities = store.replaceMerged(event_name, data.id, data);
             Flux.dispatchEvent(event_name, entities);
             resolve(data);
         })
-        .catch(function(error) {
+        .catch(function (error) {
             Notify.error(error.message || error);
             log.error(error);
             reject(error);
@@ -313,24 +373,24 @@ export const update = (entity, data, mode=WEngine.modes.LIVE) => new Promise((re
 });
 
 export const updateProfileImage = (file) => PUTFiles('employers/me/image', [file])
-        .then(function(incomingObject){
-            const payload = Session.getPayload();
-            const user = Object.assign(payload.user, { profile: incomingObject });
-            Session.setPayload({ user });
-        })
-        .catch(function(error) {
-            Notify.error(error.message || error);
-            log.error(error);
-        });
+    .then(function (incomingObject) {
+        const payload = Session.getPayload();
+        const user = Object.assign(payload.user, { profile: incomingObject });
+        Session.setPayload({ user });
+    })
+    .catch(function (error) {
+        Notify.error(error.message || error);
+        log.error(error);
+    });
 
 export const updateProfile = (data) => {
     PUT(`profiles/${data.id}`, data)
-        .then(function(incomingObject){
+        .then(function (incomingObject) {
             const payload = Session.getPayload();
             const user = Object.assign(payload.user, { profile: incomingObject });
             Session.setPayload({ user });
         })
-        .catch(function(error) {
+        .catch(function (error) {
             Notify.error(error.message || error);
             log.error(error);
         });
@@ -340,75 +400,134 @@ export const remove = (entity, data) => {
     const path = (typeof entity == 'string') ? `employers/me/${entity}/${data.id}` : `${entity.path}/${data.id}`;
     const event_name = (typeof entity == 'string') ? entity : entity.event_name;
     DELETE(path)
-        .then(function(incomingObject){
+        .then(function (incomingObject) {
             let entities = store.remove(event_name, data.id);
             Flux.dispatchEvent(event_name, entities);
 
             const name = path.split('/');
-            Notify.success("The "+name[0].substring(0, name[0].length - 1)+" was deleted successfully");
+            Notify.success("The " + name[0].substring(0, name[0].length - 1) + " was deleted successfully");
         })
-        .catch(function(error) {
+        .catch(function (error) {
             Notify.error(error.message || error);
             log.error(error);
         });
 };
 
 export const removeBankAccount = (route, data) => {
-    const path = `${route}/${data.id}`;
-    DELETE(path)
-        .then(() => {
-            Notify.success("The "+data.name+" was deleted successfully");
-            searchBankAccounts();
-        })
-        .catch((error) => {
-            console.log("bank-accounts error: ", error);
-            Notify.error(error.message || error);
-            log.error(error);
-        });
+  const path = `${route}/${data.id}`;
+  DELETE(path)
+    .then(() => {
+      Notify.success("The "+data.name+" was deleted successfully");
+      searchBankAccounts();
+    })
+    .catch((error) => {
+      console.log("bank-accounts error: ", error);
+      Notify.error(error.message || error);
+      log.error(error);
+    });
 };
 
-export const rejectCandidate = (shiftId, applicant) => {
-    const shift = store.get('shifts', shiftId);
-    if(shift){
+export const rejectCandidate = async (shiftId, applicant) => {
+    let shift = store.get('shifts', shiftId);
+    if (!shift) shift = await fetchSingle('shifts', shiftId);
+    if (shift) {
         const newCandidates = shift.candidates.filter(candidate => candidate.id != applicant.id);
         const updatedShift = {
-          candidates: newCandidates.map(cand => cand.id)
+            candidates: newCandidates.map(cand => cand.id)
         };
-        PUT(`employers/me/shifts/${shiftId}/candidates`, updatedShift).then(() => {
+
+        try {
+            await PUT(`employers/me/shifts/${shiftId}/candidates`, updatedShift);
 
             Flux.dispatchEvent('shifts', store.replaceMerged("shifts", shiftId, {
-              candidates: newCandidates
+                candidates: newCandidates
             }));
-            Flux.dispatchEvent('applicants', store.remove("applicants", applicant.id));
+
+            const applications = store.getState("applications");
+            if (applications) Flux.dispatchEvent('applications', store.filter("applications", (item) => (item.shift.id != shiftId || item.employee.id != applicant.id)));
 
             Notify.success("The candidate was successfully rejected");
-        });
+            return { ...shift, candidates: newCandidates };
+
+        } catch (error) {
+            Notify.error(error.message || error);
+            log.error(error);
+            throw error;
+        }
     }
-    else Notify.error("Shift not found");
+    else {
+        Notify.error("Shift not found");
+        throw new Error("Shift not found");
+    }
 };
+
+
+export const updateUser = (user) => new Promise((resolve, reject) => {
+
+    PUT(`employers/me/users/${user.id}`, user)
+        .then(resp => {
+            const users = store.getState('users').map(u => {
+                if (u.email == resp.email) return resp;
+                else return u;
+            });
+
+            Flux.dispatchEvent('users', users);
+
+            Notify.success("The user was successfully updated");
+            resolve(resp);
+        })
+        .catch(error => {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject(error);
+        });
+});
+
+
+export const removeUser = (user) => new Promise((resolve, reject) => {
+
+    DELETE(`employers/me/users/${user.profile.id}`)
+        .then(resp => {
+            Flux.dispatchEvent('users', store.getState('users').filter(u => (u.email != user.email)));
+
+            Notify.success("The user was successfully updated");
+            resolve(resp);
+        })
+        .catch(error => {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject(error);
+        });
+});
+
 
 export const deleteShiftEmployee = (shiftId, employee) => {
     const shift = store.get('shifts', shiftId);
-    if(shift){
+    if (shift) {
         const newEmployees = shift.employees.filter(emp => emp.id != employee.id);
         const updatedShift = {
-          employees: newEmployees.map(emp => emp.id)
+            employees: newEmployees.map(emp => emp.id)
         };
         PUT(`employers/me/shifts/${shiftId}/employees`, updatedShift).then(() => {
 
             Flux.dispatchEvent('shifts', store.replaceMerged("shifts", shiftId, {
-              employees: newEmployees
+                employees: newEmployees
             }));
 
             Notify.success("The employee was successfully deleted");
-        });
+        })
+            .catch(error => {
+                Notify.error(error.message || error);
+                log.error(error);
+            });
     }
     else Notify.error("Shift not found");
 };
 
-export const acceptCandidate = (shiftId, applicant) => new Promise((accept, reject) => {
-    const shift = store.get('shifts', shiftId);
-    if(shift){
+export const acceptCandidate = async (shiftId, applicant) => {
+    let shift = store.get('shifts', shiftId);
+    if (!shift) shift = await fetchSingle('shifts', shiftId);
+    if (shift) {
         if (shift.status === 'OPEN' || shift.employees.length < shift.maximum_allowed_employees) {
 
             const newEmployees = shift.employees.concat([applicant]);
@@ -417,94 +536,123 @@ export const acceptCandidate = (shiftId, applicant) => new Promise((accept, reje
                 employees: newEmployees.map(emp => Number.isInteger(emp) ? emp : emp.id),
                 candidates: newCandidates.map(can => Number.isInteger(can) ? can : can.id)
             };
-            PUT(`employers/me/shifts/${shiftId}/candidates`, shiftData).then((data) => {
+
+            try {
+
+                const data = await PUT(`employers/me/shifts/${shiftId}/candidates`, shiftData);
 
                 const applications = store.getState("applications");
-                if(applications) Flux.dispatchEvent('applications', store.filter("applications", (item) => (item.shift.id != shiftId || item.employee.id != applicant.id)));
+                if (applications) Flux.dispatchEvent('applications', store.filter("applications", (item) => (item.shift.id != shiftId || item.employee.id != applicant.id)));
                 Flux.dispatchEvent('shifts', store.replaceMerged("shifts", shiftId, {
                     employees: newEmployees,
                     candidates: newCandidates
                 }));
                 Notify.success("The candidate was successfully accepted");
-                accept();
-            });
+                return null;
+
+            } catch (error) {
+                Notify.error(error.message || error);
+                log.error(error);
+                throw error;
+            }
+
         } else {
-          Notify.error('This shift is already filled.');
-          reject();
+            Notify.error('This shift is already filled.');
+            throw new Error('This shift is already filled.');
         }
     }
-    else{
+    else {
         Notify.error("Shift not found");
-        reject();
+        throw new Error("Shift not found");
     }
-});
+};
 
 export const updateTalentList = (action, employee, listId) => {
     const favoriteList = store.get("favlists", listId);
     return new Promise((resolve, reject) => {
-        if(favoriteList){
+        if (favoriteList) {
             let employeeIdsArr = favoriteList.employees.map(employee => employee.id || employee);
             if (action === 'add') {
-              employeeIdsArr.push(employee.id || employee);
+                employeeIdsArr.push(employee.id || employee);
             }
             else if (action === 'delete') {
-              employeeIdsArr = employeeIdsArr.filter((id) => id != (employee.id || employee));
+                employeeIdsArr = employeeIdsArr.filter((id) => id != (employee.id || employee));
             }
-            PUT('employers/me/favlists/'+listId, { employees: employeeIdsArr }).then((updatedFavlist) => {
+            PUT('employers/me/favlists/' + listId, { employees: employeeIdsArr }).then((updatedFavlist) => {
                 Flux.dispatchEvent('favlists', store.replaceMerged("favlists", listId, {
                     employees: updatedFavlist.employees
                 }));
                 Notify.success(`The talent was successfully ${(action == 'add') ? 'added' : 'removed'}`);
                 resolve(updatedFavlist);
             })
-            .catch(error => {
-                Notify.error(error.message || error);
-                log.error(error);
-                reject(error);
-            });
+                .catch(error => {
+                    Notify.error(error.message || error);
+                    log.error(error);
+                    reject(error);
+                });
         }
-        else{
+        else {
             Notify.error("Favorite list not found");
             reject();
         }
     });
 };
 
-// export const updatePayments = (payments) => new Promise((resolve, reject) => {
+export const updatePayments = async (payments, period) => {
 
-//     const newPayments = payments.map(c => {
-//         c.status = payroll.status;
-//         return Clockin(c).defaults().serialize();
-//     });
+    if (!Array.isArray(payments)) payments = [payments];
+    for (let i = 0; i < payments.length; i++) {
+        let data = { ...payments[i] };
+        if (data.shift) data.shift = data.shift.id || data.shift;
+        if (data.employer) data.employer = data.employer.id || data.employer;
+        if (data.employee) data.employee = data.employee.id || data.employee;
+        if (data.clockin) data.clockin = data.clockin.id || data.clockin;
 
-//     return PUT(`employees/${payroll.talent.id}/payroll`, newPayroll.filter(c => c.selected === true))
-//     .then(function(data){
-//         resolve();
-//         Notify.success("The Payroll has been updated successfully");
-//         Flux.dispatchEvent('single_payroll_detail', newPayroll);
-//     })
-//     .catch(function(error) {
-//         reject(error.message || error);
-//         Notify.error(error.message || error);
-//         log.error(error);
-//     });
-// });
+        const _updated = await update("payment", data);
+        period = {
+            ...period,
+            payments: period.payments.map(p => {
+                if (p.id === _updated.id) return { ...p, ...payments[i] };
+                else return p;
+            })
+        };
+    }
+
+    Flux.dispatchEvent('payroll-periods', store.replace("payroll-periods", period.id, period));
+    return period;
+};
+
+export const createPayment = async (payment, period) => {
+    console.log(payment);
+    const _new = await create("payment", { ...payment, employee: payment.employee.id || payment.employee, shift: payment.shift.id || payment.shift });
+    const _period = {
+        ...period,
+        payments: period.payments.concat([{ ..._new, employee: payment.employee, shift: payment.shift }])
+    };
+
+    Flux.dispatchEvent('payroll-periods', store.replace("payroll-periods", period.id, _period));
+    return period;
+};
 
 export const http = { GET };
 
-class _Store extends Flux.DashStore{
-    constructor(){
+class _Store extends Flux.DashStore {
+    constructor() {
         super();
         this.addEvent('positions');
         this.addEvent('venues');
-        this.addEvent('invites');
+        this.addEvent('users');
+        this.addEvent('invites', (invites) => {
+            if (!Array.isArray(invites)) return [];
+            return invites.map(inv => Invite(inv).defaults().unserialize());
+        });
         this.addEvent('payment');
-        this.addEvent('clockins', clockins => !Array.isArray(clockins) ? [] : clockins.map(c => ({...c, started_at: moment(c.starting_at), ended_at: moment(c.ended_at) })));
+        this.addEvent('clockins', clockins => !Array.isArray(clockins) ? [] : clockins.map(c => ({ ...c, started_at: moment(c.starting_at), ended_at: moment(c.ended_at) })));
         this.addEvent('jobcore-invites');
         this.addEvent('ratings');
         this.addEvent('bank-accounts');
         this.addEvent('employees', (employees) => {
-            if(!Array.isArray(employees)) return [];
+            if (!Array.isArray(employees)) return [];
             return employees.filter(em => em.user.profile).map(em => Talent(em).defaults().unserialize());
         });
         this.addEvent('favlists');
@@ -525,22 +673,29 @@ class _Store extends Flux.DashStore{
             });
 
             const applicants = this.getState('applications');
-            if(!applicants && Session.get().isValid) fetchAllMe(['applications']);
+            if (!applicants && Session.get().isValid) fetchAllMe(['applications']);
 
+            // const _shift = newShifts.find(s => s.id == 1095);
             return newShifts;
         });
 
         // Payroll related data
         this.addEvent('payroll-periods', (period) => {
-            return (!period || (Object.keys(period).length === 0 && period.constructor === Object)) ? [{ label: "Loading payment periods...", value: null}] : period.map(p => {
-                p.label = `From ${p.starting_at.substring(5,10)} to ${p.ending_at.substring(5,10)} (${p.payments.length} Payments)`;
+            return (!period || (Object.keys(period).length === 0 && period.constructor === Object)) ? [{ label: "Loading payment periods...", value: null }] : period.map(p => {
+                p.label = `From ${moment(p.starting_at).format('MMMM Do YYYY, h:mm')} to ${moment(p.ending_at).format('MMMM Do YYYY, h:mm')}`;
                 return p;
             });
         });
+        this.addEvent("employee-expired-shifts"); //temporal, just used on the payroll report
 
         //temporal storage (for temporal views, information that is read only)
         this.addEvent('current_employer', employer => {
-            employer.payroll_period_starting_time = moment.isMoment(employer.payroll_period_starting_time) ? employer.payroll_period_starting_time : moment(employer.payroll_period_starting_time);
+            employer.payroll_configured = employer.payroll_period_starting_time != null;
+            employer.payroll_period_starting_time =
+                moment.isMoment(employer.payroll_period_starting_time) ?
+                    employer.payroll_period_starting_time :
+                    employer.payroll_period_starting_time ? moment(employer.payroll_period_starting_time) :
+                        moment(employer.created_at).startOf('isoWeek');
             return employer;
         });
         this.addEvent('single_payroll_detail', (payroll) => {
@@ -550,7 +705,7 @@ class _Store extends Flux.DashStore{
             let paid = true;
             payroll.clockins = (!clockins || (Object.keys(clockins).length === 0 && clockins.constructor === Object)) ? [] : clockins.map((clockin) => {
                 //already transformed
-                if (clockin.status == 'PENDING'){
+                if (clockin.status == 'PENDING') {
                     approved = false;
                     paid = false;
                 }
@@ -559,62 +714,64 @@ class _Store extends Flux.DashStore{
                 return Clockin(clockin).defaults().unserialize();
             });
 
-            if(typeof payroll.talent != 'undefined') payroll.talent.paymentsApproved = approved;
-            if(typeof payroll.talent != 'undefined') payroll.talent.paymentsPaid = paid;
+            if (typeof payroll.talent != 'undefined') payroll.talent.paymentsApproved = approved;
+            if (typeof payroll.talent != 'undefined') payroll.talent.paymentsPaid = paid;
             payroll.approved = approved;
             payroll.paid = paid;
             return payroll;
         });
     }
 
-    get(type, id){
+    get(type, id) {
         const entities = this.getState(type);
-        if(entities) return entities.find(ent => ent.id == parseInt(id, 10));
+        if (entities) return entities.find(ent => ent.id == parseInt(id, 10));
         else return null;
     }
-    add(type, item){
+    add(type, item) {
         const entities = this.getState(type);
-        if(item) return entities.concat([item]);
+        if (item) return entities.concat([item]);
         //else return entities;
-        else throw new Error('Trying to add a null item into '+type);
+        else throw new Error('Trying to add a null item into ' + type);
     }
-    replace(type, id, item){
+    replace(type, id, item) {
         const entities = this.getState(type);
-        if(!entities) throw new Error("No item found in "+type);
+        if (!entities) throw new Error("No item found in " + type);
 
-        if(Array.isArray(entities)){
+        if (Array.isArray(entities)) {
             return entities.concat([]).map(ent => {
-                if(ent.id != parseInt(id, 10)) return ent;
+                if (ent.id != parseInt(id, 10)) return ent;
                 return item;
             });
         }
         else return item;
     }
-    replaceMerged(type, id, item){
-        const entities = this.getState(type);
-        if(!entities) throw new Error("No item found in "+type);
-        if(Array.isArray(entities)){
+    replaceMerged(type, id, item) {
+        let entities = this.getState(type);
+        if (!entities) entities = [];
+
+        if (Array.isArray(entities)) {
             const result = entities.concat([]).map(ent => {
-                if(ent.id != parseInt(id, 10)) return ent;
+                if (ent.id != parseInt(id, 10)) return ent;
                 return Object.assign(ent, item);
             });
             return result;
         }
-        else{
+        else {
             return Object.assign(entities, item);
         }
     }
-    remove(type, id){
+    remove(type, id) {
         const entities = this.getState(type);
-        if(entities) return entities.filter(ent => {
+        if (entities) return entities.filter(ent => {
             return (ent.id != parseInt(id, 10));
         });
-        else throw new Error("No items found in "+entities);
+        else throw new Error("No items found in " + entities);
     }
-    filter(type, callback){
+
+    filter(type, callback) {
         const entities = this.getState(type);
-        if(entities) return entities.filter(callback);
-        else throw new Error("No items found in entity type: "+type);
+        if (entities) return entities.filter(callback);
+        else throw new Error("No items found in entity type: " + type);
     }
 }
-export const store = new _Store();
+export let store = new _Store();

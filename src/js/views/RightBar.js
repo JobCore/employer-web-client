@@ -3,16 +3,17 @@ import PropTypes from 'prop-types';
 import {create, update, remove, acceptCandidate, rejectCandidate, deleteShiftEmployee} from '../actions';
 import {withRouter} from 'react-router-dom';
 import queryString from 'query-string';
-import {Shift} from '../views/shifts';
-import {Deduction} from '../views/profile';
-import {Invite} from '../views/invites';
-import {Location} from '../views/locations';
-import {Favlist} from '../views/favorites';
-import {Talent, ShiftInvite} from '../views/talents';
-import {Application} from '../views/applications';
+import {Deduction} from '../views/deductions';
+import {Shift} from '../views/shifts.js';
+import {Invite} from '../views/invites.js';
+import {Location} from '../views/locations.js';
+import {Favlist} from '../views/favorites.js';
+import {Talent, ShiftInvite} from '../views/talents.js';
+import {Application} from '../views/applications.js';
 import {ValidationError} from '../utils/validation';
 import {Notify} from 'bc-react-notifier';
 import WEngine from "../utils/write_engine.js";
+import {Session} from 'bc-react-session';
 
 class RightBar extends React.Component {
 
@@ -27,10 +28,15 @@ class RightBar extends React.Component {
 
     onSave(data={}){
         this.setState({ error: null });
+        const session = Session.getPayload();
         try{
             switch (data.executed_action || this.props.option.slug) {
                 case 'create_shift':
                     create('shifts', Shift(this.state.formData).validate().withStatus(data.status).serialize());
+                    this.props.onClose();
+                break;
+                case 'create_expired_shift':
+                    create({ url: 'shifts', slug: 'employee-expired-shifts' }, Shift(this.state.formData).validate().withStatus(data.status).serialize());
                     this.props.onClose();
                 break;
                 case 'update_shift':
@@ -52,6 +58,11 @@ class RightBar extends React.Component {
                 break;
                 case 'invite_talent_to_jobcore':{
                         create('jobcore-invites', Invite(this.state.formData).validate().serialize());
+                        this.props.onClose();
+                    }
+                break;
+                case 'invite_user_to_employer':{
+                        create('jobcore-invites', Invite({ ...this.state.formData, employer: session.user.profile.employer.id }).validate().serialize());
                         this.props.onClose();
                     }
                 break;
@@ -103,7 +114,7 @@ class RightBar extends React.Component {
                     }
                 break;
                 case 'update_favlist':{
-                        update('favlists',Favlist(this.state.formData).validate().serialize(['employees']));
+                        update('favlists',Favlist(this.state.formData).validate().serialize(['employees','employer']));
                         this.props.onClose();
                     }
                 break;

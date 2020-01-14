@@ -9,28 +9,26 @@ const Stars = ({ rating , jobCount, className, onClick}) => {
     for(let i = 0; i < whole; i++) lis.push(<i key={i} className="fas fa-star"></i>);
     return (<div className={`starrating ${className} ${onClick ? "clickable":""}`}>
         {
-            (lis.length > 0) ? lis : <small>No rating available</small>
+            (lis.length > 0) ? lis : <small>No rating available </small>
         }
         {
             (decimalPart > 0) ? <i className="fas fa-star-half"></i> : ''
         }
-        {
-            (jobCount && jobCount.length>0) ?
-                <span className="jobs">in {jobCount} jobs completed</span>
-            :
-                ''
+        { jobCount !== null &&
+            <small className="jobs" onClick={() => onClick()}>in {jobCount} jobs</small>
         }
     </div>);
 };
 Stars.propTypes = {
   rating: PropTypes.number.isRequired,
-  className: '',
+  className: PropTypes.string,
   jobCount: PropTypes.number,
   onClick: PropTypes.func
 };
 Stars.defaultProps = {
   className: '',
-  onClick: null
+  onClick: null,
+  jobCount: null
 };
 
 export default Stars;

@@ -30,21 +30,27 @@ const getCollidingEvents = (originalEv, events) => events.filter(
             e =>
             e.start.isBetween(originalEv.start, originalEv.end) ||
             (e.start.isBefore(originalEv.start) && e.end.isAfter(originalEv.end)) ||
-            e.end.isBetween(originalEv.start, originalEv.end)
+            e.end.isBetween(originalEv.start, originalEv.end) ||
+            (e.start.isSame(originalEv.start) && e.end.isSame(originalEv.end))
         );
 export const DayTimeline = ({ events, date, isActive, width, timesToShow, yAxisLabel }) => {
     const { timeDirection, dayLabel, blockHeight, eventOffset, dayBlockStyles } = useContext(CalendarContext);
-    let maxDayOccupancy = 1;
     events.forEach(e => {
         if(!e.blockLevel){
             e.blockLevel = 0;
             const colliding = getCollidingEvents(e, events);
             colliding.forEach((collider, i) => {
-                if(!collider.blockLevel) collider.blockLevel = i + 1;
+                let proposedLevel = 0;
+                let collidingOnNewLevel = null;
+                while(collidingOnNewLevel === null || collidingOnNewLevel.length > 0){
+                    collidingOnNewLevel = colliding.filter(c => c.blockLevel === proposedLevel);
+                    e.blockLevel = proposedLevel;
+                    proposedLevel++;
+                }
             });
         }
     });
-
+    const maxDayOccupancy = events.reduce((total,e) => total < e.blockLevel ? e.blockLevel : total, 1) + 1;
     //calculate the real day begginign and end based on the blocks
     const dayStart = moment(date).set({ h: timesToShow[0].startTime.hours(), m: timesToShow[0].startTime.minutes() });
     const dayEnd = moment(date).add(1,'days').set({ h: timesToShow[timesToShow.length-1].endTime.hours(), m: timesToShow[timesToShow.length-1].endTime.minutes()-1 });
@@ -56,10 +62,10 @@ export const DayTimeline = ({ events, date, isActive, width, timesToShow, yAxisL
                 e =>
                 e.start.isBetween(start, end) ||
                 (e.start.isBefore(start) && e.end.isAfter(end)) ||
-                e.end.isBetween(start, end)
+                e.end.isBetween(start, end) ||
+                (e.start.isSame(start) && e.end.isSame(end))
             );
         //console.log("Occupancy for "+start.format('MM Do, h:mm')+" and "+end.format('MM Do, h:mm'), events.map(e => e.start.format('MMMM Do, h:mm')));
-        if(occupancy.length > maxDayOccupancy) maxDayOccupancy = occupancy.length;
         return {
             start,
             yAxis: yAxisLabel,

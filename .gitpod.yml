@@ -4,4 +4,4 @@ tasks:
     - init: >
         npm install;
       command: >
-        npm install -g firebase-tools;
+        npm install -g now;
