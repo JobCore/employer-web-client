@@ -20,17 +20,15 @@ class Layout extends Flux.View{
                             <Route extact path="/invite" component={Invite} />
                             <Route extact path="/shift/:shift_id/invite" component={Invite} />
                             <PrivateRoute exact path='/' component={PrivateLayout} />
+                            <PrivateRoute exact path='/home' component={PrivateLayout} />
                             <PrivateRoute exact path='/favorites' component={PrivateLayout} />
                             <PrivateRoute exact path='/rate' component={PrivateLayout} />
-                            <PrivateRoute exact path='/employer-bank-accounts' component={PrivateLayout} />
                             <PrivateRoute exact path='/applicants' component={PrivateLayout} />
                             <PrivateRoute exact path='/calendar' component={PrivateLayout} />
                             <PrivateRoute exact path='/shifts' component={PrivateLayout} />
                             <PrivateRoute exact path='/talents' component={PrivateLayout} />
                             <PrivateRoute path='/profile' component={PrivateLayout} />
                             <PrivateRoute path='/payroll' component={PrivateLayout} />
-                            <PrivateRoute exact path='/home' component={PrivateLayout} />
-                            <PrivateRoute exact path='/ratings' component={PrivateLayout} />
                             <Route render={() => (<p className="text-center mt-5">Not found</p>)} />
                         </Switch>
                     </div>
