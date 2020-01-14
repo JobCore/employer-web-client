@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useContext, useState } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import {store, search, fetchTemporal} from '../actions.js';
+import {store, search, fetchTemporal, GET} from '../actions.js';
 import {callback, hasTutorial} from '../utils/tutorial';
-import {GenericCard, Avatar, Stars, Theme, Button, Wizard, StarRating} from '../components/index';
+import {GenericCard, Avatar, Stars, Theme, Button, Wizard, StarRating, SearchCatalogSelect } from '../components/index';
 import Select from 'react-select';
 import queryString from 'query-string';
 import {Session} from 'bc-react-session';
 import moment from 'moment';
+import { Notify } from 'bc-react-notifier';
+import { NOW } from "../components/utils.js";
 
 //gets the querystring and creats a formData object to be used when opening the rightbar
 export const getRatingInitialFilters = (catalog) => {
@@ -30,15 +32,27 @@ export const Rating = (data) => {
         serialize: function(){
 
             const newRating = {
-                //foo: 'bar'
+                comments: '',
+                rating: 5,
+                sender: null,
+                shift: null,
+                created_at: NOW()
             };
 
             return Object.assign(this, newRating);
         },
         unserialize: function(){
             //this.fullName = function() { return (this.user.first_name.length>0) ? this.user.first_name + ' ' + this.user.last_name : 'No name specified'; };
+            let shift = null;
+            if(this.shift){
+                shift = { 
+                    ...this.shift, 
+                    starting_at: moment(this.shift.starting_at),
+                    ending_at: moment(this.shift.ending_at) 
+                };
+            }
 
-            return this;
+            return { ...this, shift };
         }
 
     };
@@ -58,6 +72,12 @@ export const Rating = (data) => {
                 comments: _entity.comments,
                 rating: _entity.rating,
                 sender: _entity.sender,
+                shift: _entity.shift ? 
+                    {   ..._entity.shift,
+                        starting_at: moment(_entity.shift.starting_at),
+                        ending_at: moment(_entity.shift.ending_at)
+                    }
+                    : null,
                 created_at: (moment.isMoment(_entity.created_at) ) ? _entity.created_at : moment(_entity.created_at),
             };
             return _formRating;
@@ -151,8 +171,8 @@ export class ManageRating extends Flux.DashView {
  * Talent Details
  */
 export const RatingDetails = (props) => {
-    console.log("RatingDetails props: ", props);
     const { formData } = props;
+    const { shift } = formData;
     return (<Theme.Consumer>
         {({bar}) =>
             (<li className="aplication-details">
@@ -164,6 +184,15 @@ export const RatingDetails = (props) => {
                 <h5 className="mt-3">
                     {formData.comments !== '' ? `"${formData.comments}"` : `${formData.sender.user.first_name} didn't provide any comments for this rating.` }
                 </h5>
+                { !shift || typeof shift.position === 'undefined' ? 
+                    'Loading shift information...' : 
+                    <div>
+                        <a href="#" className="shift-position">{shift.position.title}</a> @
+                        <a href="#" className="shift-location"> {shift.venue.title}</a>
+                        <span className="shift-date"> {shift.starting_at.format('ll')} from {shift.starting_at.format('LT')} to {shift.ending_at.format('LT')} </span>
+                    </div>
+                }
+                <Button color="primary" onClick={() => bar.show({ slug: "review_talent", data: formData.sender, allowLevels: false })}>Rate talent back</Button>
             </li>)}
     </Theme.Consumer>);
 };
@@ -190,9 +219,9 @@ PendingRatings.propTypes = {
 
 
 /**
- * Talent Details
+ * Revire Talent for a specific shift
  */
-export const ReviewTalent = (props) => {
+export const ReviewTalentAndShift = (props) => {
     const shift = props.formData.shift;
     const employee = props.formData.employee;
     const startDate = shift.starting_at.format('ll');
@@ -229,7 +258,100 @@ export const ReviewTalent = (props) => {
             </li>)}
     </Theme.Consumer>);
 };
-ReviewTalent.propTypes = {
+ReviewTalentAndShift.propTypes = {
   catalog: PropTypes.object.isRequired,
   formData: PropTypes.object
+};
+
+
+/**
+ * Review Talent in general
+ */
+
+export const ReviewTalent = ({ onSave, onCancel, onChange, catalog, formData, error }) => {
+
+    const { bar } = useContext(Theme.Context);
+    const [ shifts, setShifts ] = useState([]);
+
+    return (
+        <form>
+            <div className="row">
+                <div className="col-12">
+                    <label>Who worked on this shift?</label>
+                    <SearchCatalogSelect
+                        isMulti={false}
+                        value={formData.employee}
+                        onChange={(emp) => {
+                            onChange({ employee: emp });
+                            GET('shift?unrated=true&employee='+emp.value)
+                                .then(shifts => setShifts([
+                                    { label: `${(shifts.length == 0) ? 'No shifts found' : ''}` }
+                                ].concat(shifts)));
+                        }}
+                        searchFunction={(search) => new Promise((resolve, reject) =>
+                            GET('catalog/employees?full_name=' + search)
+                                .then(talents => resolve([
+                                    { label: `${(talents.length == 0) ? 'No one found: ' : ''}Invite "${search}" to jobcore`, value: 'invite_talent_to_jobcore' }
+                                ].concat(talents)))
+                                .catch(error => reject(error))
+                        )}
+                    />
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-12">
+                    <label>What shift was it working?</label>
+                    <Select
+                        value={formData.shift}
+                        onChange={(selection) => onChange({ shift: selection.value.toString() })}
+                        options={shifts}
+                    />
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-12">
+                    <label>How was his performance during the shift</label>
+                    <StarRating
+                        fractions={0.5}
+                        onHover={() => null}
+                        onClick={() => null}
+                        direction="right"
+                        quiet={true}
+                        readonly={false}
+                        value={0}
+                        totalSymbols={5}
+                        placeholderValue={0}
+                        fullSymbol="far fa-star fa-xs"
+                        emptySymbol="fas fa-star fa-xs"
+                        placeholderSymbol="fas fa-star fa-xs"
+                    />
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-12">
+                    <label>Any comments?</label>
+                    <textarea className="form-control"></textarea>
+                </div>
+            </div>
+            <div className="btn-bar">
+                <Button color="success"
+                    onClick={() => onSave({
+                        executed_action: '',
+                        status: 'OPEN'
+                    })}>Send Review</Button>
+            </div>
+        </form>
+    );
+};
+ReviewTalent.propTypes = {
+    error: PropTypes.string,
+    bar: PropTypes.object,
+    onSave: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    onChange: PropTypes.func.isRequired,
+    formData: PropTypes.object,
+    catalog: PropTypes.object //contains the data needed for the form to load
+};
+ReviewTalent.defaultProps = {
+    oldShift: null
 };
