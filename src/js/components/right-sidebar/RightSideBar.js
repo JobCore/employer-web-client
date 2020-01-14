@@ -110,8 +110,16 @@ export const bar = {
                 break;
             case 'create_favlist':
                 option.title = "Create Favorite List";
-                this.showRightBar(AddorUpdateFavlist, option, { formData: Favlist(option.data).getFormData() });
-                break;
+                this.showRightBar(AddorUpdateFavlist, option, {formData: Favlist(option.data).getFormData()});
+            break;
+          case 'create_deduction':
+            option.title = "Create Deduction";
+            this.showRightBar(CreateDeduction, option, {formData: Deduction(option.data).getFormData()});
+            break;
+          case 'update_deduction':
+            option.title = "Update Deduction";
+            this.showRightBar(UpdateDeduction, option, {formData: Deduction(option.data).getFormData()});
+            break;
             case 'update_favlist':
                 option.title = "Update list";
                 this.showRightBar(AddorUpdateFavlist, option, { formData: Favlist(option.data).getFormData() });
