@@ -66,6 +66,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       favicon: 'jobcore.ico',
       template: 'template.html'
-    })
+    }),
+    new Dotenv({ path: './.env', systemvars: true })
   ]
 };
