@@ -132,6 +132,8 @@ export const Clockin = (data) => {
         author: null,
         employee: null,
         shift: null,
+        created_at: null,
+        updated_at: null,
         started_at: TODAY(),
         ended_at: TODAY(),
         latitude: [],
@@ -273,7 +275,10 @@ export const Payment = (data) => {
         unserialize: function () {
             const newObject = {
                 //shift: (typeof this.shift != 'object') ? store.get('shift', this.shift) : Shift(this.shift).defaults().unserialize(),
+                created_at: this.created_at && !moment.isMoment(this.created_at) ? moment(this.created_at) : this.created_at,
+                updated_at: this.updated_at && !moment.isMoment(this.updated_at) ? moment(this.updated_at) : this.updated_at,
             };
+
 
             return Object.assign(this, newObject);
         }
@@ -1080,8 +1085,8 @@ Marker.propTypes = {
 const LatLongClockin = ({ clockin, children, isIn }) => {
     const lat = isIn ? clockin.latitude_in : clockin.latitude_out;
     const lng = isIn ? clockin.longitude_in : clockin.longitude_out;
-    return <Tooltip placement="right" trigger={['click']} overlay={
-        <div style={{ width: "200px", height: "200px", display: "inline-block", padding: "0px" }}>
+    return <Tooltip placement="right" trigger={['hover']} overlay={
+        <div style={{ width: "200px", height: "200px" }} className="p-0 d-inline-block">
             <GoogleMapReact
                 bootstrapURLKeys={{ key: process.env.GOOGLE_MAPS_WEB_KEY }}
                 defaultCenter={{ lat: 25.7617, lng: -80.1918 }}
@@ -1214,13 +1219,28 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                 :
                                 <small className="shift-price text-danger"> {shift.price.currencySymbol}{shift.price.amount}</small>
                         }{" "}
-                        {clockin && <div className="d-inline">
-                            <LatLongClockin isIn={true} clockin={clockin}>
-                                <small className="pointer"><i className="fas fa-map-marker-alt"></i> In</small>
-                            </LatLongClockin>{" "}
-                            <LatLongClockin isIn={false} clockin={clockin}>
-                                <small className="pointer"><i className="fas fa-map-marker-alt"></i> Out</small>
-                            </LatLongClockin>
+                        {clockin && <div className="d-inline-block">
+                            { clockin.latitude_in > 0 && 
+                                <LatLongClockin isIn={true} clockin={clockin}>
+                                    <small className="pointer mr-2"><i className="fas fa-map-marker-alt"></i> In</small>
+                                </LatLongClockin>
+                            }
+                            { clockin.latitude_out > 0 && 
+                                <LatLongClockin isIn={false} clockin={clockin}>
+                                    <small className="pointer"><i className="fas fa-map-marker-alt"></i> Out</small>
+                                </LatLongClockin>
+                            }
+                            { clockin.author != employee.user.profile.id ?
+                                <Tooltip placement="bottom" trigger={['hover']} overlay={<small>Clocked in by a supervisor</small>}>
+                                    <i className="fas fa-user-cog text-danger ml-2"></i>
+                                </Tooltip>
+                                : !moment(payment.created_at).isSame(moment(payment.updated_at)) && payment.status === "PENDING" ? 
+                                    <Tooltip placement="bottom" trigger={['hover']} overlay={<small>Previously updated by supervisor</small>}>
+                                        <i className="fas fa-user-edit text-danger ml-2"></i>
+                                    </Tooltip>
+                                    :
+                                    null
+                            }
                         </div>}
                     </div>}
                 </td>
