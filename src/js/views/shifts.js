@@ -531,7 +531,7 @@ ShiftEmployees.propTypes = {
  */
 export const ShiftInvites = ({ onCancel, onSave, formData }) => {
     const { bar } = useContext(Theme.Context);
-    console.log("Already invited to this shift", formData);
+
     const status = {
         "PENDING": "waiting for reponse",
         "APPLIED": "the talent applied",
@@ -573,7 +573,7 @@ ShiftInvites.propTypes = {
  * EditOrAddShift
  */
 const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar, oldShift }) => {
-    console.log(formData);
+
     useEffect(() => {
         const venues = store.getState('venues');
         const favlists = store.getState('favlists');
@@ -663,7 +663,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                                     if (typeof start == 'string') value = moment(start);
 
                                     const starting = moment(start.format("MM-DD-YYYY") + " " + start.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-                                    console.log('STARTING', starting);
+
                                     var ending = moment(start.format("MM-DD-YYYY") + " " + end.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
                                     if (typeof starting !== 'undefined' && starting.isValid()) {
                                         if (ending.isBefore(starting)) {
@@ -676,7 +676,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                                 };
 
                                 const mainDate = getRealDate(value, formData.ending_at);
-                                console.log(mainDate);
+
                                 const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
                                 onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
 
