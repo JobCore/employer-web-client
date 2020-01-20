@@ -6,7 +6,7 @@ import { GET } from '../utils/api_wrapper';
 
 import DateTime from 'react-datetime';
 import moment from 'moment';
-import { DATETIME_FORMAT, TIME_FORMAT, NOW, TODAY, YESTERDAY } from '../components/utils.js';
+import { DATETIME_FORMAT, TIME_FORMAT, NOW, TODAY, haversineDistance } from '../components/utils.js';
 import Select from 'react-select';
 
 import { Notify } from 'bc-react-notifier';
@@ -136,6 +136,8 @@ export const Clockin = (data) => {
         updated_at: null,
         started_at: TODAY(),
         ended_at: TODAY(),
+        distance_in_miles: 0,
+        distance_out_miles: 0,
         latitude: [],
         longitude: [],
         status: 'PENDING',
@@ -161,7 +163,9 @@ export const Clockin = (data) => {
                 latitude_in: parseFloat(this.latitude_in),
                 longitude_in: parseFloat(this.longitude_in),
                 latitude_out: parseFloat(this.latitude_out),
-                longitude_out: parseFloat(this.longitude_out)
+                longitude_out: parseFloat(this.longitude_out),
+                distance_in_miles: parseFloat(this.distance_in_miles),
+                distance_out_miles: parseFloat(this.distance_out_miles)
             };
 
             return Object.assign(this, newObject);
@@ -340,7 +344,7 @@ export class PayrollSettings extends Flux.DashView {
     }
 
     render() {
-        console.log("===============deductions: ", this.state.deductions);
+
         const autoClockout = this.state.employer.maximum_clockout_delay_minutes == null ? false : true;
         const weekday = this.state.employer.payroll_period_starting_time.isoWeekday();
         let nextDate = this.state.employer.payroll_period_starting_time.clone();
@@ -405,7 +409,7 @@ export class PayrollSettings extends Flux.DashView {
                         <select
                             value={this.state.employer.maximum_clockin_delta_minutes}
                             className="form-control" style={{ width: "100px", display: "inline-block" }}
-                            onChange={(e) => this.setEmployer({ maximum_clockin_delta_minutes: e.target.value })}
+                            onChange={(e) => this.setEmployer({ maximum_clockin_delta_minutes: isNaN(e.target.value) ? null : e.target.value, timeclock_warning: true })}
                         >
                             <option value={5}>5 min</option>
                             <option value={10}>10 min</option>
@@ -421,7 +425,7 @@ export class PayrollSettings extends Flux.DashView {
                     <div className="col-12">
                         <label className="d-block">Do you want automatic checkout?</label>
                         <select value={autoClockout} className="form-control" style={{ width: "300px", display: "inline-block" }} onChange={(e) => {
-                            this.setEmployer({ maximum_clockout_delay_minutes: e.target.value == 'true' ? 10 : null });
+                            this.setEmployer({ maximum_clockout_delay_minutes: e.target.value == 'true' ? 10 : null, timeclock_warning: true });
                         }}>
                             <option value={true}>Only if the talent forgets to checkout</option>
                             <option value={false}>No, leave the shift active until the talent checkouts</option>
@@ -431,13 +435,26 @@ export class PayrollSettings extends Flux.DashView {
                                 , wait
                             <input type="number" style={{ width: "60px" }} className="form-control d-inline-block ml-2 mr-2"
                                     value={this.state.employer.maximum_clockout_delay_minutes}
-                                    onChange={(e) => this.setEmployer({ maximum_clockout_delay_minutes: e.target.value })}
+                                    onChange={(e) => this.setEmployer({ maximum_clockout_delay_minutes: e.target.value, timeclock_warning: true })}
                                 />
                                 min to auto checkout
                         </span>
                         }
                     </div>
                 </div>
+                { this.state.employer.timeclock_warning &&
+                    <div className="alert alert-warning p-2 mt-3">
+                        Apply time clock settings to:
+                        <select
+                            value={this.state.employer.retroactive}
+                            className="form-control w-100" style={{ width: "100px", display: "inline-block" }}
+                            onChange={(e) => this.setEmployer({ retroactive: e.target.value === "true" ? true : false })}
+                            >
+                            <option value={false}>Only new shifts (from now on)</option>
+                            <option value={true}>All shifts (including previously created)</option>
+                        </select>
+                    </div>
+                }
                 <div className="row mt-2">
                     <div className="col-12">
                         <label>Deductions</label>
@@ -512,7 +529,8 @@ export class PayrollSettings extends Flux.DashView {
                     <button
                         type="button"
                         className="btn btn-primary"
-                        onClick={() => update({ path: 'employers/me', event_name: 'current_employer' }, Employer(this.state.employer).validate().serialize())}
+                        onClick={() => update({ path: 'employers/me', event_name: 'current_employer' }, Employer(this.state.employer).validate().serialize())
+                                            .catch(e => Notify.error(e.message || e))}
                     >Save</button>
                 </div>
             </form>
@@ -1077,14 +1095,20 @@ function createMapOptions(maps) {
         mapTypeControl: false
     };
 }
-const Marker = ({ text }) => (<div><img style={{ maxWidth: "25px" }} src={markerURL} /></div>);
+const Marker = ({ text, className }) => (<div className={className}><i className="fas fa-map-marker-alt fa-lg"></i></div>);
 Marker.propTypes = {
-    text: PropTypes.string
+    text: PropTypes.string,
+    className: PropTypes.string
+};
+Marker.defaultProps = {
+    className: ""
 };
 
 const LatLongClockin = ({ clockin, children, isIn }) => {
     const lat = isIn ? clockin.latitude_in : clockin.latitude_out;
     const lng = isIn ? clockin.longitude_in : clockin.longitude_out;
+    const distance = isIn ? clockin.distance_in_miles : clockin.distance_out_miles;
+    
     return <Tooltip placement="right" trigger={['hover']} overlay={
         <div style={{ width: "200px", height: "200px" }} className="p-0 d-inline-block">
             <GoogleMapReact
@@ -1102,7 +1126,9 @@ const LatLongClockin = ({ clockin, children, isIn }) => {
                     text={'Jobcore'}
                 />
             </GoogleMapReact>
-            <small className="d-block text-center">({lat},{lng})</small>
+            <p className={`m-0 p-0 text-center ${distance > 0.2 ? "text-danger" : ""}`}>
+                {distance} miles away. <br />[ {lat}, {lng} ]
+            </p>
         </div>
     }>
         {children}
@@ -1215,19 +1241,24 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                     {<div>
                         {
                             (typeof shift.price == 'string') ?
-                                (shift.price === '0.0') ? '' : <small className="shift-price text-danger"> ${shift.price}</small>
+                                (shift.price === '0.0') ? '' : <small className="shift-price"> ${shift.price}</small>
                                 :
-                                <small className="shift-price text-danger"> {shift.price.currencySymbol}{shift.price.amount}</small>
+                                <small className="shift-price"> {shift.price.currencySymbol}{shift.price.amount}</small>
                         }{" "}
                         {clockin && <div className="d-inline-block">
                             { clockin.latitude_in > 0 && 
                                 <LatLongClockin isIn={true} clockin={clockin}>
-                                    <small className="pointer mr-2"><i className="fas fa-map-marker-alt"></i> In</small>
+                                    <small className={`pointer mr-2 ${clockin.distance_in_miles > 0.2 ? "text-danger" : ""}`}>
+                                        <i className="fas fa-map-marker-alt"></i> In
+                                        
+                                    </small>
                                 </LatLongClockin>
                             }
                             { clockin.latitude_out > 0 && 
                                 <LatLongClockin isIn={false} clockin={clockin}>
-                                    <small className="pointer"><i className="fas fa-map-marker-alt"></i> Out</small>
+                                    <small className={`pointer ${clockin.distance_out_miles > 0.2 ? "text-danger" : ""}`}>
+                                        <i className="fas fa-map-marker-alt"></i> Out
+                                    </small>
                                 </LatLongClockin>
                             }
                             { clockin.author != employee.user.profile.id ?
