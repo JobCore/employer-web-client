@@ -229,14 +229,15 @@ class PrivateLayout extends Flux.DashView {
 
         const reduce = (list) => list.map(itm => {
             return ({
-                label: itm.title || itm.user.first_name + ' ' + itm.user.last_name,
-                value: itm.id
+                label: itm.title || itm.label || itm.user.first_name + ' ' + itm.user.last_name,
+                value: itm.id || itm.value
             });
         });
 
 
         fetchTemporal('employers/me', 'current_employer');
-        fetchAll(['positions', 'badges', 'jobcore-invites']);
+        fetchAll([
+            { slug: 'positions', url: 'catalog/' + 'positions' }, { slug: 'badges', url: 'catalog/' + 'badges' }, 'jobcore-invites']);
         this.subscribe(store, 'jobcore-invites', (jcInvites) => this.setCatalog({ jcInvites: jcInvites || [] }));
         this.subscribe(store, 'invites', (invites) => this.setCatalog({ invites }));
         this.subscribe(store, 'venues', (venues) => this.setCatalog({ venues: reduce(venues) }));

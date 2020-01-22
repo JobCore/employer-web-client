@@ -154,7 +154,7 @@ export const fetchAll = (entities) => new Promise((resolve, reject) => {
         const currentRequest = { entity: entity.slug || entity, pending: true, error: false };
         requests.push(currentRequest);
 
-        GET(entity.slug || entity)
+        GET(entity.url || entity.slug || entity)
             .then(function (list) {
                 if (typeof entity.callback == 'function') entity.callback();
                 Flux.dispatchEvent(entity.slug || entity, list);
@@ -344,6 +344,32 @@ export const update = (entity, data, mode = WEngine.modes.LIVE) => new Promise((
         });
 });
 
+export const remove = (entity, data) => {
+    const path = (typeof entity == 'string') ? `employers/me/${entity}/${data.id}` : `${entity.path}/${data.id}`;
+    const event_name = (typeof entity == 'string') ? entity : entity.event_name;
+    DELETE(path)
+        .then(function (incomingObject) {
+            let entities = store.remove(event_name, data.id);
+            Flux.dispatchEvent(event_name, entities);
+
+            const name = path.split('/');
+            Notify.success("The " + name[0].substring(0, name[0].length - 1) + " was deleted successfully");
+        })
+        .catch(function (error) {
+            Notify.error(error.message || error);
+            log.error(error);
+        });
+};
+
+
+/**
+ * From here on the actions are not generic anymore
+ */
+
+
+
+
+
 export const updateProfileImage = (file) => PUTFiles('employers/me/image', [file])
     .then(function (incomingObject) {
         const payload = Session.getPayload();
@@ -361,23 +387,6 @@ export const updateProfile = (data) => {
             const payload = Session.getPayload();
             const user = Object.assign(payload.user, { profile: incomingObject });
             Session.setPayload({ user });
-        })
-        .catch(function (error) {
-            Notify.error(error.message || error);
-            log.error(error);
-        });
-};
-
-export const remove = (entity, data) => {
-    const path = (typeof entity == 'string') ? `employers/me/${entity}/${data.id}` : `${entity.path}/${data.id}`;
-    const event_name = (typeof entity == 'string') ? entity : entity.event_name;
-    DELETE(path)
-        .then(function (incomingObject) {
-            let entities = store.remove(event_name, data.id);
-            Flux.dispatchEvent(event_name, entities);
-
-            const name = path.split('/');
-            Notify.success("The " + name[0].substring(0, name[0].length - 1) + " was deleted successfully");
         })
         .catch(function (error) {
             Notify.error(error.message || error);
@@ -592,6 +601,20 @@ export const createPayment = async (payment, period) => {
     return period;
 };
 
+// export const createPayrollPeriodRating = (entity, queryString) => new Promise((accept, reject) =>
+//     GET('employers/me/' + entity, queryString)
+//         .then(function (list) {
+//             if (typeof entity.callback == 'function') entity.callback();
+//             Flux.dispatchEvent(entity.slug || entity, list);
+//             accept(list);
+//         })
+//         .catch(function (error) {
+//             Notify.error(error.message || error);
+//             log.error(error);
+//             reject(error);
+//         })
+// );
+
 export const http = { GET };
 
 class _Store extends Flux.DashStore {
@@ -680,7 +703,7 @@ class _Store extends Flux.DashStore {
 
     get(type, id) {
         const entities = this.getState(type);
-        if (entities) return entities.find(ent => ent.id == parseInt(id, 10));
+        if (entities) return entities.find(ent => ent.id == parseInt(id, 10) || ent.value == parseInt(id, 10));
         else return null;
     }
     add(type, item) {
