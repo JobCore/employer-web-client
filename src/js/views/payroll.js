@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     },
     tableCell: {
         margin: 5,
-        fontSize: 7
+        fontSize: 9
     }
 });
 
@@ -685,8 +685,20 @@ export class ManagePayroll extends Flux.DashView {
                                 :
                                 <Button icon="plus" size="small" onClick={() => {
                                     const isOpen = this.state.singlePayrollPeriod.payments.find(p => p.status === "NEW");
-                                    if (isOpen) return Notify.error('To create a new employee to timesheet you need to conclude with the recently added employee.');
+                                    const isOtherNew = this.state.payments.find(payment => payment.payments.some(item => item.status === 'NEW'));
 
+                                    if (isOpen) return;
+                                    if (isOtherNew) this.setState({
+                                        payments: this.state.payments.map(_pay => {
+                                            if (_pay.status !== 'NEW') return _pay;
+                                            else {
+                                                return {
+                                                    ..._pay,
+                                                    payments: _pay.payments.filter(p => p.status == 'NEW')
+                                                };
+                                            }
+                                        })
+                                    });
                                     const period = {
                                         ...this.state.singlePayrollPeriod,
                                         payments: this.state.singlePayrollPeriod.payments.concat([Payment({ status: "NEW", employee: { id: 'new' } }).defaults()])
@@ -704,8 +716,9 @@ export class ManagePayroll extends Flux.DashView {
                                     b.employee.id === "new" ? 1 :
                                         a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
                             ).map(pay => {
-                                const total_hours = pay.payments.reduce((total, current) => !isNaN(current.regular_hours) ? total + (parseFloat(current.regular_hours) + parseFloat(current.over_time)) : total, 0);
-                                const total_amount = pay.payments.reduce((total, current) => !isNaN(current.total_amount) ? total + parseFloat(current.total_amount) : total, 0);
+
+                                const total_hours = pay.payments.reduce((total, { regular_hours, over_time }) => total + parseFloat(regular_hours) + parseFloat(over_time), 0);
+                                const total_amount = pay.payments.reduce((total, { regular_hours, over_time, hourly_rate }) => total + (parseFloat(regular_hours) + parseFloat(over_time)) * parseFloat(hourly_rate), 0);
                                 return <table key={pay.employee.id} className="table table-striped payroll-summary">
                                     <thead>
                                         <tr>
@@ -793,6 +806,8 @@ export class ManagePayroll extends Flux.DashView {
                                                 onUndo={(payment) => updatePayments({
                                                     ...payment,
                                                     status: "PENDING",
+                                                    approved_clockin_time: null,
+                                                    approved_clockout_time: null,
                                                     id: p.id
                                                 }, this.state.singlePayrollPeriod)}
                                                 onReject={(payment) => {
@@ -814,22 +829,41 @@ export class ManagePayroll extends Flux.DashView {
                                         <tr>
                                             <td colSpan={5}>
                                                 {this.state.singlePayrollPeriod.status === 'OPEN' && pay.employee.id !== "new" &&
-                                                    <Button icon="plus" size="small" onClick={() => this.setState({
-                                                        payments: this.state.payments.map(_pay => {
-                                                            if (_pay.employee.id !== pay.employee.id) return _pay;
-                                                            else {
-                                                                return {
-                                                                    ..._pay,
-                                                                    payments: _pay.payments.concat([Payment({ status: "NEW" }).defaults()])
-                                                                };
-                                                            }
-                                                        })
-                                                    })}>Add new clockin</Button>
+                                                    <Button icon="plus" size="small" onClick={() => {
+
+                                                        if (!this.state.payments.find(payment => payment.payments.some(item => item.status === 'NEW'))) {
+                                                            this.setState({
+                                                                payments: this.state.payments.map(_pay => {
+                                                                    if (_pay.employee.id !== pay.employee.id) return _pay;
+                                                                    else {
+                                                                        return {
+                                                                            ..._pay,
+                                                                            payments: _pay.payments.concat([Payment({ status: "NEW", regular_hours: "0.00", over_time: "0.00", hourly_rate: "0.00" }).defaults()])
+                                                                        };
+                                                                    }
+                                                                })
+                                                            });
+                                                        } else {
+                                                            this.setState({
+                                                                payments: this.state.payments.map(_pay => {
+
+                                                                    return {
+                                                                        ..._pay,
+                                                                        payments: _pay.payments.filter(p => p.status != 'NEW')
+
+                                                                    };
+
+                                                                })
+                                                            });
+                                                        }
+
+                                                    }
+                                                    }>Add new clockin</Button>
                                                 }
                                             </td>
                                             <td colSpan={3} className="text-right">
-                                                Total: {Math.round(total_hours * 100) / 100} hr
-                                                <small className="d-block">${Math.round(total_amount * 100) / 100}</small>
+                                                Total: {!isNaN(total_hours) ? Math.round(total_hours * 100) / 100 : 0} hr
+                                                <small className="d-block">${!isNaN(total_amount) ? Math.round(total_amount * 100) / 100 : 0}</small>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -947,7 +981,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
     const clockInTotalHoursAfterBreak = !clockInDurationAfterBreak ? 0 : Math.round(clockInDurationAfterBreak.asHours() * 100) / 100;
 
     const diff = Math.round((clockInTotalHoursAfterBreak - plannedHours) * 100) / 100;
-    console.log(payment);
+
     useEffect(() => {
         let subs = null;
         if (payment.status === "NEW") {
@@ -991,7 +1025,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                 });
                                 else {
                                     setShift(_shift);
-                                    setClockin({ ...clockin, started_at: _shift.starting_at, ended_at: _shift.ending_at });
+                                    setClockin({ ...clockin, started_at: approvedClockin, ended_at: approvedClockout });
                                     setBreaktime(0);
                                 }
                             }
@@ -1112,7 +1146,6 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                     icon="check"
                     onClick={(value) => {
                         if (payment.status === "NEW") {
-
                             if (shift.id === undefined) Notify.error("You need to specify a shift for all the new clockins");
                             else onApprove({
                                 shift: shift,
@@ -1124,7 +1157,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                 //
                                 approved_clockin_time: clockin ? clockin.started_at : shift.starting_at,
                                 approved_clockout_time: clockin ? clockin.ended_at : shift.ending_at
-                            }).then(() => onReject({ status: "REJECTED" }));
+                            });
                         }
                         else onApprove({
                             breaktime_minutes: breaktime,
@@ -1141,7 +1174,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                     color="danger"
                     size="small"
                     icon={payment.status === "NEW" ? "trash" : "times"}
-                    onClick={(value) => { onReject({ status: "REJECTED" }); console.log("DELETED"); }}
+                    onClick={(value) => onReject({ status: "REJECTED" })}
                 />
             </td>
         }
@@ -1388,21 +1421,25 @@ export class PayrollRating extends Flux.DashView {
             if (!singlePeriod) resolve(null);
             const shiftList = singlePeriod.payments.map(s => s.shift.id).filter((v, i, s) => s.indexOf(v) === i).join(",");
             // searchMe('ratings?shift=' + shiftList)
-            console.log(singlePeriod);
-            searchMe('ratings', '?shift=' + shiftList)
+            searchMe('ratings', '?shifts=' + shiftList)
                 .then(previousRatings => {
-                    console.log(previousRatings)
+                    console.log('PREVIOIS ', previousRatings);
                     let ratings = {};
                     singlePeriod.payments.forEach(pay => {
-                        if (typeof ratings[pay.employee.id] === 'undefined') {
-                            ratings[pay.employee.id] = { employee: pay.employee, shifts: [], rating: null, comments: '' };
-                        }
+                        console.log(ratings);
+                        if (typeof ratings[pay.employee.id] === 'undefined') ratings[pay.employee.id] = { employee: pay.employee, shifts: [], rating: null, comments: '' };
+
+
+
                         const hasPreviousShift = previousRatings.find(r => r.shift.id === pay.shift.id);
+                        console.log("HASPREViOUs: ", hasPreviousShift);
                         if (!hasPreviousShift) ratings[pay.employee.id].shifts.push(pay.shift.id);
+
                     });
+                    console.log('ratings', Object.values(ratings));
                     resolve(Object.values(ratings));
                 })
-                .catch(error => Notify.error("There was an error retriving the current ratings for this payroll period shifts"))
+                .catch(error => Notify.error("There was an error retriving the current ratings for this payroll period shifts"));
         });
     }
 
@@ -1412,7 +1449,7 @@ export class PayrollRating extends Flux.DashView {
             else {
                 const singlePayrollPeriod = payrollPeriods.find(pp => pp.id == periodId);
                 this.defaultRatings(singlePayrollPeriod)
-                    .then(payments => this.setState({ singlePayrollPeriod, payments }))
+                    .then(payments => this.setState({ singlePayrollPeriod, payments }));
             }
         }
     }
@@ -1432,7 +1469,7 @@ export class PayrollRating extends Flux.DashView {
 
 
     render() {
-        console.log(this.state)
+        console.log(this.state);
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
@@ -1496,7 +1533,7 @@ export class PayrollRating extends Flux.DashView {
                                     </div>
                                     <div className="col-6 my-auto">
                                         <TextareaAutosize style={{ width: '100%' }} placeholder="Comment..." value={list.comments} onChange={(e) => {
-                                            console.log(e.target.value);
+
                                             const allPayments = this.state.payments;
                                             allPayments[i].comments = e.target.value;
                                             this.setState({
@@ -1524,11 +1561,13 @@ export class PayrollRating extends Flux.DashView {
                                 payment: p.id
                             }));
                             if (unrated) Notify.error("There are still some employees that need to be rated");
-                            else create('ratings', rated).then((res) => { if (res) update('payroll-periods', Object.assign(this.state.singlePayrollPeriod, { status: 'FINALIZED' })) })
+                            else {
+                                create('ratings', rated).then((res) => { if (res) update('payroll-periods', Object.assign(this.state.singlePayrollPeriod, { status: 'FINALIZED' })); })
+                                    .then(this.props.history.push('/payroll/report/' + this.state.singlePayrollPeriod.id))
+                                    .catch(e => Notify.error(e.message || e));
+                            }
 
-
-                                .catch(e => Notify.error(e.message || e));
-                        }}>Finalize Rating</button>
+                        }}>Finalize Period</button>
 
                     </div>
 

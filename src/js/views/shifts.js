@@ -91,7 +91,6 @@ export const Shift = (data) => {
                     timeframe: 'hr'
                 }
             };
-            console.log(store.get('positions', this.position));
             return Object.assign(this, newShift);
         }
 
