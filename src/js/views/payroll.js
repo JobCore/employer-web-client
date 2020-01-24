@@ -1,19 +1,21 @@
 import React, { useState, useEffect, useContext } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import { store, search, update, fetchSingle, searchMe, processPendingPayrollPeriods, updatePayments, createPayment, fetchAllMe, fetchTemporal, create } from '../actions.js';
+import { store, search, update, fetchSingle, searchMe, processPendingPayrollPeriods, updatePayments, createPayment, fetchAllMe, fetchTemporal, remove, create } from '../actions.js';
 import { GET } from '../utils/api_wrapper';
+
 
 import DateTime from 'react-datetime';
 import moment from 'moment';
-import { DATETIME_FORMAT, TIME_FORMAT, NOW, TODAY, YESTERDAY } from '../components/utils.js';
+import { DATETIME_FORMAT, TIME_FORMAT, NOW, TODAY, haversineDistance } from '../components/utils.js';
 import Select from 'react-select';
 
 import { Notify } from 'bc-react-notifier';
 
 import { Shift, EditOrAddShift } from './shifts.js';
+import { Employer } from './profile.js';
 import { ManageLocations, AddOrEditLocation, Location } from './locations.js';
-import { EmployeeExtendedCard, ShiftOption, ShiftCard, Theme, Button, ShiftOptionSelected, GenericCard, SearchCatalogSelect, Avatar, Toggle, Wizard, StarRating, ListCard } from '../components/index';
+import { EmployeeExtendedCard, ShiftOption, ShiftCard, DeductionExtendedCard, Theme, Button, ShiftOptionSelected, GenericCard, SearchCatalogSelect , Avatar, Toggle, Wizard, StarRating, ListCard } from '../components/index';
 import queryString from 'query-string';
 
 import TimePicker from 'rc-time-picker';
@@ -136,8 +138,12 @@ export const Clockin = (data) => {
         author: null,
         employee: null,
         shift: null,
+        created_at: null,
+        updated_at: null,
         started_at: TODAY(),
         ended_at: TODAY(),
+        distance_in_miles: 0,
+        distance_out_miles: 0,
         latitude: [],
         longitude: [],
         status: 'PENDING',
@@ -163,7 +169,9 @@ export const Clockin = (data) => {
                 latitude_in: parseFloat(this.latitude_in),
                 longitude_in: parseFloat(this.longitude_in),
                 latitude_out: parseFloat(this.latitude_out),
-                longitude_out: parseFloat(this.longitude_out)
+                longitude_out: parseFloat(this.longitude_out),
+                distance_in_miles: parseFloat(this.distance_in_miles),
+                distance_out_miles: parseFloat(this.distance_out_miles)
             };
 
             return Object.assign(this, newObject);
@@ -277,7 +285,10 @@ export const Payment = (data) => {
         unserialize: function () {
             const newObject = {
                 //shift: (typeof this.shift != 'object') ? store.get('shift', this.shift) : Shift(this.shift).defaults().unserialize(),
+                created_at: this.created_at && !moment.isMoment(this.created_at) ? moment(this.created_at) : this.created_at,
+                updated_at: this.updated_at && !moment.isMoment(this.updated_at) ? moment(this.updated_at) : this.updated_at,
             };
+
 
             return Object.assign(this, newObject);
         }
@@ -304,6 +315,235 @@ export const Payment = (data) => {
         }
     };
 };
+
+export class PayrollSettings extends Flux.DashView {
+
+    constructor() {
+        super();
+        this.state = {
+            employer: Employer().defaults(),
+            deductions: [],
+        };
+    }
+
+    setEmployer(newEmployer) {
+        const employer = Object.assign(this.state.employer, newEmployer);
+        this.setState({ employer });
+    }
+
+    componentDidMount() {
+
+        const deductions = store.getState('deduction');
+        if(!deductions){
+            searchMe('deduction');
+        } else {
+            this.setState({ deductions });
+        }
+        fetchTemporal('employers/me', 'current_employer');
+        this.subscribe(store, 'current_employer', (employer) => {
+            this.setState({ employer });
+        });
+        this.subscribe(store, 'deduction', (deductions) => {
+            this.setState({ deductions });
+        });
+
+    }
+
+    render() {
+
+        const autoClockout = this.state.employer.maximum_clockout_delay_minutes == null ? false : true;
+        const weekday = this.state.employer.payroll_period_starting_time.isoWeekday();
+        let nextDate = this.state.employer.payroll_period_starting_time.clone();
+        while (nextDate.isBefore(NOW())) nextDate = nextDate.add(7, 'days');
+
+        return (<div className="p-1 listcontents company-payroll-settings">
+            <h1><span id="company_details">Your Payroll Settings</span></h1>
+            <div className="row mt-2">
+                <div className="col-12">
+                    <h4>Next payroll will run on {nextDate.format("dddd, MMMM Do YYYY, h:mm a")}</h4>
+                </div>
+            </div>
+            <form>
+                <div className="row mt-2">
+                    <div className="col-12">
+                        <label className="d-block">When do you want your payroll to run?</label>
+                        <span>Every </span>
+                        <select className="form-control" style={{ width: "100px", display: "inline-block" }}>
+                            <option>Week</option>
+                        </select>
+                        <span> starting </span>
+                        <select
+                            value={weekday || 1}
+                            className="form-control" style={{ width: "100px", display: "inline-block" }}
+                            onChange={(e) => {
+                                const diff = (e.target.value - weekday);
+                                let newDate = this.state.employer.payroll_period_starting_time.clone().add(diff, 'days');
+                                this.setEmployer({
+                                    payroll_period_starting_time: newDate
+                                });
+                            }}
+                        >
+                            <option value={1}>Monday{"'s"}</option>
+                            <option value={2}>Tuesday{"'s"}</option>
+                            <option value={3}>Wednesday{"'s"}</option>
+                            <option value={4}>Thursday{"'s"}</option>
+                            <option value={5}>Friday{"'s"}</option>
+                            <option value={6}>Saturday{"'s"}</option>
+                            <option value={7}>Sunday{"'s"}</option>
+                        </select>
+                        <span> at </span>
+                        <DateTime
+                            dateFormat={false}
+                            styles={{ width: "100px", display: "inline-block" }}
+                            timeFormat={DATETIME_FORMAT}
+                            timeConstraints={{ minutes: { step: 15 } }}
+                            value={this.state.employer.payroll_period_starting_time}
+                            renderInput={(properties) => {
+                                const { value, ...rest } = properties;
+                                return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                            }}
+                            onChange={(value) => {
+                                const starting = moment(this.state.employer.payroll_period_starting_time.format("MM-DD-YYYY") + " " + value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                                this.setEmployer({ payroll_period_starting_time: starting });
+                            }}
+                        />
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col-12">
+                        <label className="d-block">When can talents start clocking in?</label>
+                        <select
+                            value={this.state.employer.maximum_clockin_delta_minutes}
+                            className="form-control" style={{ width: "100px", display: "inline-block" }}
+                            onChange={(e) => this.setEmployer({ maximum_clockin_delta_minutes: isNaN(e.target.value) ? null : e.target.value, timeclock_warning: true })}
+                        >
+                            <option value={5}>5 min</option>
+                            <option value={10}>10 min</option>
+                            <option value={15}>15 min</option>
+                            <option value={30}>30 min</option>
+                            <option value={45}>45 min</option>
+                            <option value={60}>1 hour</option>
+                        </select>
+                        <span> before or after the starting time of the shift</span>
+                    </div>
+                </div>
+                <div className="row mt-2">
+                    <div className="col-12">
+                        <label className="d-block">Do you want automatic checkout?</label>
+                        <select value={autoClockout} className="form-control" style={{ width: "300px", display: "inline-block" }} onChange={(e) => {
+                            this.setEmployer({ maximum_clockout_delay_minutes: e.target.value == 'true' ? 10 : null, timeclock_warning: true });
+                        }}>
+                            <option value={true}>Only if the talent forgets to checkout</option>
+                            <option value={false}>No, leave the shift active until the talent checkouts</option>
+                        </select>
+                        {!autoClockout ? '' :
+                        <span>
+                                , wait
+                            <input type="number" style={{ width: "60px" }} className="form-control d-inline-block ml-2 mr-2"
+                                    value={this.state.employer.maximum_clockout_delay_minutes}
+                                    onChange={(e) => this.setEmployer({ maximum_clockout_delay_minutes: e.target.value, timeclock_warning: true })}
+                                />
+                                min to auto checkout
+                        </span>
+                        }
+                    </div>
+                </div>
+                { this.state.employer.timeclock_warning &&
+                    <div className="alert alert-warning p-2 mt-3">
+                        Apply time clock settings to:
+                        <select
+                            value={this.state.employer.retroactive}
+                            className="form-control w-100" style={{ width: "100px", display: "inline-block" }}
+                            onChange={(e) => this.setEmployer({ retroactive: e.target.value === "true" ? true : false })}
+                            >
+                            <option value={false}>Only new shifts (from now on)</option>
+                            <option value={true}>All shifts (including previously created)</option>
+                        </select>
+                    </div>
+                }
+                <div className="row mt-2">
+                    <div className="col-12">
+                        <label>Deductions</label>
+                        <div className="p-1 listcontents">
+                            <Theme.Consumer>
+                                {({ bar }) => (<span>
+                                    {/* <Wizard continuous
+                                        steps={this.state.steps}
+                                        run={this.state.runTutorial}
+                                        callback={callback}
+                                    /> */}
+                                    {/* <h1><span id="talent_search_header">Talent Search</span></h1> */}
+                                    { this.state.deductions.length > 0
+                                    ? <table className="table table-striped payroll-summary">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Deduction</th>
+                                                <th>Status</th>
+                                                <th>Description</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {this.state.deductions.map((deduction, i) => (
+                                                <DeductionExtendedCard
+                                        key={i}
+                                        deduction={deduction}
+                                        onEditClick={() => bar.show({ 
+                                            slug: "update_deduction", 
+                                            data: deduction
+                                            })}
+                                        onDelete={() => {
+                                            const noti = Notify.info("Are you sure you want to delete this deduction?",(answer) => {
+                                                if(answer) remove('deduction', deduction);
+                                                noti.remove();
+                                            });
+                                        }}    
+                                            >
+                                                </DeductionExtendedCard>
+                                ))}
+                                        </tbody>
+                                    </table>
+                                : <p>No deductions yet</p>}
+                                </span>)}
+                            </Theme.Consumer>
+                        </div>
+                        <Theme.Consumer>
+                            {({ bar }) => (
+                                <button
+                        type="button"
+                        className="btn btn-primary"
+                        style={{ marginTop: "10px" }}
+                        onClick={() => bar.show({ 
+                            slug: "create_deduction", 
+                            data: {
+                                name: "", 
+                                active: false, 
+                                value: null,
+                                description: "",
+                                type: "PERCENTAGE"
+                        } 
+                        })}
+                    >
+                        Create deduction
+                                </button>
+                            )}
+                        </Theme.Consumer>
+                    </div>
+                </div>
+                <div className="mt-4 text-right">
+                    <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={() => update({ path: 'employers/me', event_name: 'current_employer' }, Employer(this.state.employer).validate().serialize())
+                                            .catch(e => Notify.error(e.message || e))}
+                    >Save</button>
+                </div>
+            </form>
+        </div>);
+    }
+}
+
 /**
  * EditOrAddExpiredShift
  */
@@ -910,16 +1150,22 @@ function createMapOptions(maps) {
         mapTypeControl: false
     };
 }
-const Marker = ({ text }) => (<div><img style={{ maxWidth: "25px" }} src={markerURL} /></div>);
+const Marker = ({ text, className }) => (<div className={className}><i className="fas fa-map-marker-alt fa-lg"></i></div>);
 Marker.propTypes = {
-    text: PropTypes.string
+    text: PropTypes.string,
+    className: PropTypes.string
+};
+Marker.defaultProps = {
+    className: ""
 };
 
 const LatLongClockin = ({ clockin, children, isIn }) => {
     const lat = isIn ? clockin.latitude_in : clockin.latitude_out;
     const lng = isIn ? clockin.longitude_in : clockin.longitude_out;
-    return <Tooltip placement="right" trigger={['click']} overlay={
-        <div style={{ width: "200px", height: "200px", display: "inline-block", padding: "0px" }}>
+    const distance = isIn ? clockin.distance_in_miles : clockin.distance_out_miles;
+    
+    return <Tooltip placement="right" trigger={['hover']} overlay={
+        <div style={{ width: "200px", height: "200px" }} className="p-0 d-inline-block">
             <GoogleMapReact
                 bootstrapURLKeys={{ key: process.env.GOOGLE_MAPS_WEB_KEY }}
                 defaultCenter={{ lat: 25.7617, lng: -80.1918 }}
@@ -935,7 +1181,9 @@ const LatLongClockin = ({ clockin, children, isIn }) => {
                     text={'Jobcore'}
                 />
             </GoogleMapReact>
-            <small className="d-block text-center">({lat},{lng})</small>
+            <p className={`m-0 p-0 text-center ${distance > 0.2 ? "text-danger" : ""}`}>
+                {distance} miles away. <br />[ {lat}, {lng} ]
+            </p>
         </div>
     }>
         {children}
@@ -1048,17 +1296,37 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                     {<div>
                         {
                             (typeof shift.price == 'string') ?
-                                (shift.price === '0.0') ? '' : <small className="shift-price text-danger"> ${shift.price}</small>
+                                (shift.price === '0.0') ? '' : <small className="shift-price"> ${shift.price}</small>
                                 :
-                                <small className="shift-price text-danger"> {shift.price.currencySymbol}{shift.price.amount}</small>
+                                <small className="shift-price"> {shift.price.currencySymbol}{shift.price.amount}</small>
                         }{" "}
-                        {clockin && <div className="d-inline">
-                            <LatLongClockin isIn={true} clockin={clockin}>
-                                <small className="pointer"><i className="fas fa-map-marker-alt"></i> In</small>
-                            </LatLongClockin>{" "}
-                            <LatLongClockin isIn={false} clockin={clockin}>
-                                <small className="pointer"><i className="fas fa-map-marker-alt"></i> Out</small>
-                            </LatLongClockin>
+                        {clockin && <div className="d-inline-block">
+                            { clockin.latitude_in > 0 && 
+                                <LatLongClockin isIn={true} clockin={clockin}>
+                                    <small className={`pointer mr-2 ${clockin.distance_in_miles > 0.2 ? "text-danger" : ""}`}>
+                                        <i className="fas fa-map-marker-alt"></i> In
+                                        
+                                    </small>
+                                </LatLongClockin>
+                            }
+                            { clockin.latitude_out > 0 && 
+                                <LatLongClockin isIn={false} clockin={clockin}>
+                                    <small className={`pointer ${clockin.distance_out_miles > 0.2 ? "text-danger" : ""}`}>
+                                        <i className="fas fa-map-marker-alt"></i> Out
+                                    </small>
+                                </LatLongClockin>
+                            }
+                            { clockin.author != employee.user.profile.id ?
+                                <Tooltip placement="bottom" trigger={['hover']} overlay={<small>Clocked in by a supervisor</small>}>
+                                    <i className="fas fa-user-cog text-danger ml-2"></i>
+                                </Tooltip>
+                                : !moment(payment.created_at).isSame(moment(payment.updated_at)) && payment.status === "PENDING" ? 
+                                    <Tooltip placement="bottom" trigger={['hover']} overlay={<small>Previously updated by supervisor</small>}>
+                                        <i className="fas fa-user-edit text-danger ml-2"></i>
+                                    </Tooltip>
+                                    :
+                                    null
+                            }
                         </div>}
                     </div>}
                 </td>

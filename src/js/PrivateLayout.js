@@ -16,9 +16,9 @@ import { Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilt
 import { PendingInvites, PendingJobcoreInvites, SearchShiftToInviteTalent, InviteTalentToJobcore, SearchTalentToInviteToShift } from './views/invites.js';
 import { ManageFavorites, AddFavlistsToTalent, FavlistEmployees, AddTalentToFavlist, Favlist, AddorUpdateFavlist } from './views/favorites.js';
 import { ManageLocations, AddOrEditLocation, Location } from './views/locations.js';
-import { ManagePayroll, PayrollReport, PayrollRating, SelectTimesheet, EditOrAddExpiredShift } from './views/payroll.js';
+import { ManagePayroll, PayrollReport, SelectTimesheet, EditOrAddExpiredShift, PayrollSettings, PayrollRating } from './views/payroll.js';
 import { ManageRating, Rating, RatingDetails, ReviewTalent, ReviewTalentAndShift } from './views/ratings.js';
-import { Profile, PayrollSettings, ManageUsers, InviteUserToCompanyJobcore } from './views/profile.js';
+import { Profile, ManageUsers, InviteUserToCompanyJobcore } from './views/profile.js';
 import { NOW } from './components/utils.js';
 import { Notifier, Notify } from 'bc-react-notifier';
 import log from './utils/log';
@@ -26,6 +26,8 @@ import logoURL from '../img/logo.png';
 import loadingURL from '../img/loading2.gif';
 import moment from 'moment';
 import { EngineComponent } from "./utils/write_engine";
+import EmployerBankAccounts from "../js/views/employerBankAccounts";
+import { CreateDeduction, Deduction, UpdateDeduction } from "./views/deductions";
 
 class PrivateLayout extends Flux.DashView {
 
@@ -72,6 +74,14 @@ class PrivateLayout extends Flux.DashView {
                             //console.log('create_shift', option.data);
                             this.showRightBar(ShiftDetails, option, { formData: Shift(option.data).defaults() });
                             break;
+                        case 'create_deduction':
+                          option.title = "Create deduction";
+                          this.showRightBar(CreateDeduction, option, {formData: Deduction(option.data).defaults()});
+                        break;
+                       case 'update_deduction':
+                        option.title = "Update deduction";
+                        this.showRightBar(UpdateDeduction, option, {formData: Deduction(option.data).defaults()});
+                        break;
                         case 'create_expired_shift': {
                             this.showRightBar(EditOrAddExpiredShift, option, { formData: Shift({ ...option.data }).defaults() });
                         } break;
@@ -363,10 +373,12 @@ class PrivateLayout extends Flux.DashView {
                             <Route exact path='/applicants' component={ManageApplicantions} />
                             <Route exact path='/talents' component={ManageTalents} />
                             <Route exact path='/favorites' component={ManageFavorites} />
+                            <Route exact path='/payroll-settings' component={PayrollSettings} />
                             <Route exact path='/profile' component={Profile} />
                             <Route exact path='/profile/locations' component={ManageLocations} />
                             <Route exact path='/profile/users' component={ManageUsers} />
                             <Route exact path='/profile/ratings' component={ManageRating} />
+                            <Route exact path='/profile/bank-accounts' component={EmployerBankAccounts} />
                             <Route exact path='/payroll' component={ManagePayroll} />
                             <Route exact path='/payroll/settings' component={PayrollSettings} />
                             <Route exact path='/payroll/period/:period_id' component={ManagePayroll} />

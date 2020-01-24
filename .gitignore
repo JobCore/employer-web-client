@@ -16,6 +16,7 @@ php_errorlog
 !webpack.development.js
 !.env.*
 !.env.example
+!.github/
 
 # track readme.md in the root (i.e. do NOT ignore it)
 !README.md
