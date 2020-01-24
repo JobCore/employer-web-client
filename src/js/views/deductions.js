@@ -60,9 +60,12 @@ export const CreateDeduction = ({
                 </div>
                 <div className="col-6">
                     <label>Deduction</label>
-                    <input type="number" className="form-control"
+                    <input 
+                        type="number" 
+                        className="form-control"
+                        placeholder='0.00'
                         value={formData.value}
-                        onChange={(e)=> onChange({value: Number(e.target.value)})}
+                        onChange={(e)=> onChange({value: e.target.value > 0 ? Number(e.target.value).toFixed(2) : ''})}
                     />
                 </div>
             </div>
