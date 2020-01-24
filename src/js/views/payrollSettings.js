@@ -235,7 +235,7 @@ export class PayrollSettings extends Flux.DashView {
                                 active: false, 
                                 value: null,
                                 description: "",
-                                type: "PERCENTAGE"
+                                type: ""
                         } 
                         })}
                     >

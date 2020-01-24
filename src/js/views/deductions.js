@@ -1,6 +1,7 @@
 import React from "react";
 import { validator, ValidationError } from '../utils/validation';
 import PropTypes from 'prop-types';
+import Select from 'react-select';
 
 export const Deduction = (data = {}) => {
 
@@ -9,7 +10,7 @@ export const Deduction = (data = {}) => {
         name: '',
         value: null,
         description: '',
-        type: 'PERCENTAGE',
+        type: '',
         lock: false,
         serialize: function () {
 
@@ -26,6 +27,7 @@ export const Deduction = (data = {}) => {
             if (validator.isEmpty(_deduction.name)) throw new ValidationError('The deduction name cannot be empty');
             if (!_deduction.value) throw new ValidationError('Deduction cannot be empty');
             if (validator.isEmpty(_deduction.description)) throw new ValidationError('The deduction description cannot be empty');
+            if (!_deduction.type) throw new ValidationError('The deduction type cannot be empty');
             return _deduction;
         },
         defaults: () => {
@@ -83,6 +85,16 @@ export const CreateDeduction = ({
                     <label>Lock </label>
                 </div>
             </div> */}
+            <div className="row">
+                <div className="col-12">
+                    <label>Deduction type:</label>
+                    <Select
+                        value={catalog.deductionsTypes.find((a) => a.value === formData.type)}
+                        onChange={(selection) => onChange({ type: selection.value.toString() })}
+                        options={catalog.deductionsTypes}
+                    />
+                </div>
+            </div>
             <div className="btn-bar">
                 <button 
                 type="button"
@@ -90,7 +102,7 @@ export const CreateDeduction = ({
                 onClick={() => onSave({
                     name: formData.name,
                     value: formData.value,
-                    type: 'PERCENTAGE',
+                    type: formData.type,
                     description: formData.description
                 })}
                 >
@@ -170,7 +182,6 @@ export const UpdateDeduction = ({
                     name: formData.name,
                     value: formData.value,
                     lock: formData.lock,
-                    type: 'PERCENTAGE',
                     description: formData.description
                 })}
                 >
