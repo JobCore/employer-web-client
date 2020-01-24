@@ -844,16 +844,17 @@ export class ManagePayroll extends Flux.DashView {
                                                                 })
                                                             });
                                                         } else {
+                                                    
                                                             this.setState({
                                                                 payments: this.state.payments.map(_pay => {
-
                                                                     return {
                                                                         ..._pay,
                                                                         payments: _pay.payments.filter(p => p.status != 'NEW')
 
                                                                     };
 
-                                                                })
+                                                                }),
+
                                                             });
                                                         }
 
@@ -1436,7 +1437,7 @@ export class PayrollRating extends Flux.DashView {
                         if (!hasPreviousShift) ratings[pay.employee.id].shifts.push(pay.shift.id);
 
                     });
-                    console.log('ratings', Object.values(ratings));
+                    console.log('RATINGSS', Object.values(ratings));
                     resolve(Object.values(ratings));
                 })
                 .catch(error => Notify.error("There was an error retriving the current ratings for this payroll period shifts"));
@@ -1496,7 +1497,7 @@ export class PayrollRating extends Flux.DashView {
                     {
                         this.state.payments.map((list, i) => {
 
-                            return (
+                            if(Array.isArray(list.shifts) && list.shifts.length > 0 )return (
                                 <div className="row list-card" key={i} >
 
                                     <div className="col-1 my-auto">
@@ -1552,7 +1553,7 @@ export class PayrollRating extends Flux.DashView {
                     <div className="btn-bar text-right mt-3">
 
                         <button type="button" className="btn btn-primary" onClick={() => {
-                            const unrated = this.state.payments.find(p => p.rating == null);
+                            const unrated = this.state.payments.find(p => p.rating == null && p.shifts.length > 0);
                             const rated = this.state.payments.map(p => ({
                                 employee: p.employee.id,
                                 shifts: p.shifts,
@@ -1563,7 +1564,7 @@ export class PayrollRating extends Flux.DashView {
                             if (unrated) Notify.error("There are still some employees that need to be rated");
                             else {
                                 create('ratings', rated).then((res) => { if (res) update('payroll-periods', Object.assign(this.state.singlePayrollPeriod, { status: 'FINALIZED' })); })
-                                    .then(this.props.history.push('/payroll/report/' + this.state.singlePayrollPeriod.id))
+                                    .then((resp) => {if(resp)console.log('more');this.props.history.push('/payroll/report/' + this.state.singlePayrollPeriod.id);})
                                     .catch(e => Notify.error(e.message || e));
                             }
 
