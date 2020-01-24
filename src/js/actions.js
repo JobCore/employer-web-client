@@ -72,25 +72,25 @@ export const login = (email, password, keep, history) => new Promise((resolve, r
             resolve();
         }
     })
-  .catch(function(error) {
-    reject(error.message || error);
-    Notify.error(error.message || error);
-    log.error(error);
-  })
+    .catch(function (error) {
+        reject(error.message || error);
+        Notify.error(error.message || error);
+        log.error(error);
+    })
 );
 
 export const addBankAccount = (token, metadata) => new Promise((resolve, reject) => POST('bank-accounts/',
-  normalizeToSnakeCase({ publicToken: token,  institutionName: metadata.institution.name }))
-  .then(function(data){
-    console.log('addBankAccount data: ', data);
-    resolve();
-    searchBankAccounts();
-  })
-  .catch(function(error) {
-    reject(error.message || error);
-    Notify.error(error.message || error);
-    log.error(error);
-  })
+    normalizeToSnakeCase({ publicToken: token, institutionName: metadata.institution.name }))
+    .then(function (data) {
+        console.log('addBankAccount data: ', data);
+        resolve();
+        searchBankAccounts();
+    })
+    .catch(function (error) {
+        reject(error.message || error);
+        Notify.error(error.message || error);
+        log.error(error);
+    })
 );
 
 export const signup = (formData, history) => new Promise((resolve, reject) => POST('user/register', {
@@ -312,17 +312,17 @@ export const searchMe = (entity, queryString) => new Promise((accept, reject) =>
 );
 
 export const searchBankAccounts = () => new Promise((accept, reject) =>
-  GET('bank-accounts/')
-    .then(function(list){
-      console.log("bank-accounts list: ", list);
-      Flux.dispatchEvent('bank-accounts', list);
-      accept(list);
-    })
-    .catch(function(error) {
-      Notify.error(error.message || error);
-      log.error(error);
-      reject(error);
-    })
+    GET('bank-accounts/')
+        .then(function (list) {
+            console.log("bank-accounts list: ", list);
+            Flux.dispatchEvent('bank-accounts', list);
+            accept(list);
+        })
+        .catch(function (error) {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject(error);
+        })
 );
 
 export const create = (entity, data, status = 'live') => new Promise((resolve, reject) => {
@@ -422,35 +422,18 @@ export const updateProfile = (data) => {
         });
 };
 
-export const remove = (entity, data) => {
-    const path = (typeof entity == 'string') ? `employers/me/${entity}/${data.id}` : `${entity.path}/${data.id}`;
-    const event_name = (typeof entity == 'string') ? entity : entity.event_name;
+export const removeBankAccount = (route, data) => {
+    const path = `${route}/${data.id}`;
     DELETE(path)
-        .then(function (incomingObject) {
-            let entities = store.remove(event_name, data.id);
-            Flux.dispatchEvent(event_name, entities);
-
-            const name = path.split('/');
-            Notify.success("The " + name[0].substring(0, name[0].length - 1) + " was deleted successfully");
+        .then(() => {
+            Notify.success("The " + data.name + " was deleted successfully");
+            searchBankAccounts();
         })
-        .catch(function (error) {
+        .catch((error) => {
+            console.log("bank-accounts error: ", error);
             Notify.error(error.message || error);
             log.error(error);
         });
-};
-
-export const removeBankAccount = (route, data) => {
-  const path = `${route}/${data.id}`;
-  DELETE(path)
-    .then(() => {
-      Notify.success("The "+data.name+" was deleted successfully");
-      searchBankAccounts();
-    })
-    .catch((error) => {
-      console.log("bank-accounts error: ", error);
-      Notify.error(error.message || error);
-      log.error(error);
-    });
 };
 
 export const rejectCandidate = async (shiftId, applicant) => {
@@ -689,7 +672,7 @@ class _Store extends Flux.DashStore {
         this.addEvent('payment');
         this.addEvent('clockins', clockins => !Array.isArray(clockins) ? [] : clockins.map(c => ({ ...c, started_at: moment(c.starting_at), ended_at: moment(c.ended_at) })));
         this.addEvent('jobcore-invites');
-      this.addEvent('ratings', (_ratings) => (!Array.isArray(_ratings)) ? [] : _ratings.map(ra => Rating(ra).defaults().unserialize()));
+        this.addEvent('ratings', (_ratings) => (!Array.isArray(_ratings)) ? [] : _ratings.map(ra => Rating(ra).defaults().unserialize()));
         this.addEvent('bank-accounts');
         this.addEvent('employees', (employees) => {
             if (!Array.isArray(employees)) return [];
