@@ -49,12 +49,12 @@ export const autoLogin = (token = '') => {
 };
 
 export const login = (email, password, keep, history) => new Promise((resolve, reject) => POST('login', {
-      username_or_email: email,
-      password: password,
-      exp_days: keep ? 30 : 1
-    })
-    .then(function(data){
-        if(!data.user.profile.employer){
+    username_or_email: email,
+    password: password,
+    exp_days: keep ? 30 : 1
+})
+    .then(function (data) {
+        if (!data.user.profile.employer) {
             Notify.error("Only employers are allowed to login into this application");
             reject("Only employers are allowed to login into this application");
         }
@@ -94,16 +94,16 @@ export const addBankAccount = (token, metadata) => new Promise((resolve, reject)
 );
 
 export const signup = (formData, history) => new Promise((resolve, reject) => POST('user/register', {
-      email: formData.email,
-      account_type: formData.account_type,
-      employer: formData.company || formData.employer,
-      token: formData.token || '',
-      username: formData.email,
-      first_name: formData.first_name,
-      last_name: formData.last_name,
-      password: formData.password
-    })
-    .then(function(data){
+    email: formData.email,
+    account_type: formData.account_type,
+    employer: formData.company || formData.employer,
+    token: formData.token || '',
+    username: formData.email,
+    first_name: formData.first_name,
+    last_name: formData.last_name,
+    password: formData.password
+})
+    .then(function (data) {
         Notify.success("You have signed up successfully, proceed to log in");
         history.push(`/login?type=${formData.account_type}`);
         resolve();
@@ -116,9 +116,9 @@ export const signup = (formData, history) => new Promise((resolve, reject) => PO
 );
 
 export const remind = (email) => new Promise((resolve, reject) => POST('user/password/reset', {
-      email: email
-    })
-    .then(function(data){
+    email: email
+})
+    .then(function (data) {
         resolve();
         Notify.success("Check your email!");
     })
@@ -234,7 +234,7 @@ export const fetchSingle = (entity, id) => new Promise((resolve, reject) => {
             Flux.dispatchEvent(_entity, store.replaceMerged(_entity, data.id, Models[_entity](data).defaults().unserialize()));
             resolve(data);
         })
-        .catch(function(error) {
+        .catch(function (error) {
             Notify.error(error.message || error);
             log.error(error);
             reject();
@@ -242,19 +242,19 @@ export const fetchSingle = (entity, id) => new Promise((resolve, reject) => {
 });
 
 export const processPendingPayrollPeriods = () => new Promise((resolve, reject) => {
-  const payload = Session.getPayload();
-  const params = { employer: payload.user.profile.employer.id || payload.user.profile.employer };
-  GET(`hook/generate_periods?${qs.stringify(params)}`)
-    .then(function (_newPeriods) {
-      let periods = store.getState('payroll-periods');
-      Flux.dispatchEvent('payroll-periods', periods.concat(_newPeriods));
-      resolve(_newPeriods);
-    })
-    .catch(function (error) {
-      Notify.error(error.message || error);
-      log.error(error);
-      reject();
-    });
+    const payload = Session.getPayload();
+    const params = { employer: payload.user.profile.employer.id || payload.user.profile.employer };
+    GET(`hook/generate_periods?${qs.stringify(params)}`)
+        .then(function (_newPeriods) {
+            let periods = store.getState('payroll-periods');
+            Flux.dispatchEvent('payroll-periods', periods.concat(_newPeriods));
+            resolve(_newPeriods);
+        })
+        .catch(function (error) {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject();
+        });
 });
 
 export const hook = (hookName) => new Promise((resolve, reject) => {
@@ -649,11 +649,11 @@ class _Store extends Flux.DashStore {
         this.addEvent('payment');
         this.addEvent('clockins', clockins => !Array.isArray(clockins) ? [] : clockins.map(c => ({ ...c, started_at: moment(c.starting_at), ended_at: moment(c.ended_at) })));
         this.addEvent('jobcore-invites');
-        this.addEvent('ratings');
+      this.addEvent('ratings', (_ratings) => (!Array.isArray(_ratings)) ? [] : _ratings.map(ra => Rating(ra).defaults().unserialize()));
         this.addEvent('bank-accounts');
         this.addEvent('employees', (employees) => {
             if (!Array.isArray(employees)) return [];
-            return employees.filter(em => em.user.profile).map(em => Talent(em).defaults().unserialize());
+            return employees.filter(em => em.user.profile).map(tal => Talent(tal).defaults().unserialize());
         });
         this.addEvent('favlists');
         this.addEvent('deduction');
