@@ -29,7 +29,6 @@ class Layout extends Flux.View{
                             <PrivateRoute path='/profile' component={PrivateLayout} />
                             <PrivateRoute path='/payroll' component={PrivateLayout} />
                             <PrivateRoute exact path='/home' component={PrivateLayout} />
-                            <PrivateRoute exact path='/ratings' component={PrivateLayout} />
                             <Route render={() => (<p className="text-center mt-5">Not found</p>)} />
                         </Switch>
                     </div>

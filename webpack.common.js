@@ -10,7 +10,7 @@ module.exports = {
   output: {
     filename: '[name].bundle.js',
     path: path.resolve(__dirname, 'public'),
-    publicPath: path.resolve(__dirname, '/')
+    publicPath: path.resolve(__dirname, path.sep)
   },
   module: {
     rules: [
@@ -62,14 +62,11 @@ module.exports = {
     extensions: ['*', '.js', '.jsx'],
   },
   plugins: [
-    new Dotenv({ 
-        path: './.env',
-        systemvars: true
-    }),
     new webpack.HotModuleReplacementPlugin(),
     new HtmlWebpackPlugin({
-        favicon: 'jobcore.ico',
-        template: 'template.html'
-    })
-  ],
+      favicon: 'jobcore.ico',
+      template: 'template.html'
+    }),
+    new Dotenv({ path: './.env', systemvars: true })
+  ]
 };
