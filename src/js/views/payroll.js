@@ -15,7 +15,7 @@ import { Notify } from 'bc-react-notifier';
 import { Shift, EditOrAddShift } from './shifts.js';
 import { Employer } from './profile.js';
 import { ManageLocations, AddOrEditLocation, Location } from './locations.js';
-import { EmployeeExtendedCard, ShiftOption, ShiftCard, DeductionExtendedCard, Theme, Button, ShiftOptionSelected, GenericCard, SearchCatalogSelect , Avatar, Toggle, Wizard, StarRating, ListCard } from '../components/index';
+import { EmployeeExtendedCard, ShiftOption, ShiftCard, DeductionExtendedCard, Theme, Button, ShiftOptionSelected, GenericCard, SearchCatalogSelect, Avatar, Toggle, Wizard, StarRating, ListCard } from '../components/index';
 import queryString from 'query-string';
 
 import TimePicker from 'rc-time-picker';
@@ -334,7 +334,7 @@ export class PayrollSettings extends Flux.DashView {
     componentDidMount() {
 
         const deductions = store.getState('deduction');
-        if(!deductions){
+        if (!deductions) {
             searchMe('deduction');
         } else {
             this.setState({ deductions });
@@ -436,26 +436,28 @@ export class PayrollSettings extends Flux.DashView {
                             <option value={true}>Only if the talent forgets to checkout</option>
                             <option value={false}>No, leave the shift active until the talent checkouts</option>
                         </select>
-                        {!autoClockout ? '' :
-                        <span>
+                        {!autoClockout ? '' : (
+                            <span>
                                 , wait
-                            <input type="number" style={{ width: "60px" }} className="form-control d-inline-block ml-2 mr-2"
+                                <input type="number" style={{ width: "60px" }} className="form-control d-inline-block ml-2 mr-2"
                                     value={this.state.employer.maximum_clockout_delay_minutes}
                                     onChange={(e) => this.setEmployer({ maximum_clockout_delay_minutes: e.target.value, timeclock_warning: true })}
                                 />
                                 min to auto checkout
-                        </span>
+                            </span>
+
+                        )
                         }
                     </div>
                 </div>
-                { this.state.employer.timeclock_warning &&
+                {this.state.employer.timeclock_warning &&
                     <div className="alert alert-warning p-2 mt-3">
                         Apply time clock settings to:
                         <select
                             value={this.state.employer.retroactive}
                             className="form-control w-100" style={{ width: "100px", display: "inline-block" }}
                             onChange={(e) => this.setEmployer({ retroactive: e.target.value === "true" ? true : false })}
-                            >
+                        >
                             <option value={false}>Only new shifts (from now on)</option>
                             <option value={true}>All shifts (including previously created)</option>
                         </select>
@@ -473,59 +475,59 @@ export class PayrollSettings extends Flux.DashView {
                                         callback={callback}
                                     /> */}
                                     {/* <h1><span id="talent_search_header">Talent Search</span></h1> */}
-                                    { this.state.deductions.length > 0
-                                    ? <table className="table table-striped payroll-summary">
-                                        <thead>
-                                            <tr>
-                                                <th>Name</th>
-                                                <th>Deduction</th>
-                                                <th>Status</th>
-                                                <th>Description</th>
-                                                <th></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {this.state.deductions.map((deduction, i) => (
-                                                <DeductionExtendedCard
-                                        key={i}
-                                        deduction={deduction}
-                                        onEditClick={() => bar.show({ 
-                                            slug: "update_deduction", 
-                                            data: deduction
-                                            })}
-                                        onDelete={() => {
-                                            const noti = Notify.info("Are you sure you want to delete this deduction?",(answer) => {
-                                                if(answer) remove('deduction', deduction);
-                                                noti.remove();
-                                            });
-                                        }}    
-                                            >
-                                                </DeductionExtendedCard>
-                                ))}
-                                        </tbody>
-                                    </table>
-                                : <p>No deductions yet</p>}
+                                    {this.state.deductions.length > 0
+                                        ? <table className="table table-striped payroll-summary">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Deduction</th>
+                                                    <th>Status</th>
+                                                    <th>Description</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {this.state.deductions.map((deduction, i) => (
+                                                    <DeductionExtendedCard
+                                                        key={i}
+                                                        deduction={deduction}
+                                                        onEditClick={() => bar.show({
+                                                            slug: "update_deduction",
+                                                            data: deduction
+                                                        })}
+                                                        onDelete={() => {
+                                                            const noti = Notify.info("Are you sure you want to delete this deduction?", (answer) => {
+                                                                if (answer) remove('deduction', deduction);
+                                                                noti.remove();
+                                                            });
+                                                        }}
+                                                    >
+                                                    </DeductionExtendedCard>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                        : <p>No deductions yet</p>}
                                 </span>)}
                             </Theme.Consumer>
                         </div>
                         <Theme.Consumer>
                             {({ bar }) => (
                                 <button
-                        type="button"
-                        className="btn btn-primary"
-                        style={{ marginTop: "10px" }}
-                        onClick={() => bar.show({ 
-                            slug: "create_deduction", 
-                            data: {
-                                name: "", 
-                                active: false, 
-                                value: null,
-                                description: "",
-                                type: "PERCENTAGE"
-                        } 
-                        })}
-                    >
-                        Create deduction
+                                    type="button"
+                                    className="btn btn-primary"
+                                    style={{ marginTop: "10px" }}
+                                    onClick={() => bar.show({
+                                        slug: "create_deduction",
+                                        data: {
+                                            name: "",
+                                            active: false,
+                                            value: null,
+                                            description: "",
+                                            type: "PERCENTAGE"
+                                        }
+                                    })}
+                                >
+                                    Create deduction
                                 </button>
                             )}
                         </Theme.Consumer>
@@ -536,7 +538,7 @@ export class PayrollSettings extends Flux.DashView {
                         type="button"
                         className="btn btn-primary"
                         onClick={() => update({ path: 'employers/me', event_name: 'current_employer' }, Employer(this.state.employer).validate().serialize())
-                                            .catch(e => Notify.error(e.message || e))}
+                            .catch(e => Notify.error(e.message || e))}
                     >Save</button>
                 </div>
             </form>
@@ -548,7 +550,7 @@ export class PayrollSettings extends Flux.DashView {
  * EditOrAddExpiredShift
  */
 export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, formData, error, oldShift }) => {
-
+    console.log(formData);
     const { bar } = useContext(Theme.Context);
 
     useEffect(() => {
@@ -1084,7 +1086,7 @@ export class ManagePayroll extends Flux.DashView {
                                                                 })
                                                             });
                                                         } else {
-                                                    
+
                                                             this.setState({
                                                                 payments: this.state.payments.map(_pay => {
                                                                     return {
@@ -1163,7 +1165,7 @@ const LatLongClockin = ({ clockin, children, isIn }) => {
     const lat = isIn ? clockin.latitude_in : clockin.latitude_out;
     const lng = isIn ? clockin.longitude_in : clockin.longitude_out;
     const distance = isIn ? clockin.distance_in_miles : clockin.distance_out_miles;
-    
+
     return <Tooltip placement="right" trigger={['hover']} overlay={
         <div style={{ width: "200px", height: "200px" }} className="p-0 d-inline-block">
             <GoogleMapReact
@@ -1301,26 +1303,26 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                 <small className="shift-price"> {shift.price.currencySymbol}{shift.price.amount}</small>
                         }{" "}
                         {clockin && <div className="d-inline-block">
-                            { clockin.latitude_in > 0 && 
+                            {clockin.latitude_in > 0 &&
                                 <LatLongClockin isIn={true} clockin={clockin}>
                                     <small className={`pointer mr-2 ${clockin.distance_in_miles > 0.2 ? "text-danger" : ""}`}>
                                         <i className="fas fa-map-marker-alt"></i> In
-                                        
+
                                     </small>
                                 </LatLongClockin>
                             }
-                            { clockin.latitude_out > 0 && 
+                            {clockin.latitude_out > 0 &&
                                 <LatLongClockin isIn={false} clockin={clockin}>
                                     <small className={`pointer ${clockin.distance_out_miles > 0.2 ? "text-danger" : ""}`}>
                                         <i className="fas fa-map-marker-alt"></i> Out
                                     </small>
                                 </LatLongClockin>
                             }
-                            { clockin.author != employee.user.profile.id ?
+                            {clockin.author != employee.user.profile.id ?
                                 <Tooltip placement="bottom" trigger={['hover']} overlay={<small>Clocked in by a supervisor</small>}>
                                     <i className="fas fa-user-cog text-danger ml-2"></i>
                                 </Tooltip>
-                                : !moment(payment.created_at).isSame(moment(payment.updated_at)) && payment.status === "PENDING" ? 
+                                : !moment(payment.created_at).isSame(moment(payment.updated_at)) && payment.status === "PENDING" ?
                                     <Tooltip placement="bottom" trigger={['hover']} overlay={<small>Previously updated by supervisor</small>}>
                                         <i className="fas fa-user-edit text-danger ml-2"></i>
                                     </Tooltip>
@@ -1765,7 +1767,7 @@ export class PayrollRating extends Flux.DashView {
                     {
                         this.state.payments.map((list, i) => {
 
-                            if(Array.isArray(list.shifts) && list.shifts.length > 0 )return (
+                            if (Array.isArray(list.shifts) && list.shifts.length > 0) return (
                                 <div className="row list-card" key={i} >
 
                                     <div className="col-1 my-auto">
@@ -1832,7 +1834,7 @@ export class PayrollRating extends Flux.DashView {
                             if (unrated) Notify.error("There are still some employees that need to be rated");
                             else {
                                 create('ratings', rated).then((res) => { if (res) update('payroll-periods', Object.assign(this.state.singlePayrollPeriod, { status: 'FINALIZED' })); })
-                                    .then((resp) => {if(resp)console.log('more');this.props.history.push('/payroll/report/' + this.state.singlePayrollPeriod.id);})
+                                    .then((resp) => { if (resp) console.log('more'); this.props.history.push('/payroll/report/' + this.state.singlePayrollPeriod.id); })
                                     .catch(e => Notify.error(e.message || e));
                             }
 
