@@ -933,7 +933,7 @@ EditOrAddShift.defaultProps = {
  * ShiftDetails
  */
 export const ShiftDetails = (props) => {
-
+    console.log('shift detail props', props);
     const creationMode = isNaN(props.formData.id);
 
     const shift = !props.catalog.shifts ? null : props.catalog.shifts.find(s => s.id == props.formData.id);
@@ -974,6 +974,12 @@ export const ShiftDetails = (props) => {
                             </div>
                         }
                         {props.formData.status === 'DRAFT' ? <EditOrAddShift bar={bar} {...props} oldShift={shift} /> : <ShowShift bar={bar} shift={shift} />}
+                        <div className="row text-center mt-4">
+                            <div className="col">
+                                <Button color="primary" onClick={() => bar.show({ slug: "review_talent", data: shift, allowLevels: true })}>Rate Talent</Button>
+                            </div>
+                        </div>
+
                     </div>
                 }
             </div>

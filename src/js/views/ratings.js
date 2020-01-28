@@ -270,7 +270,6 @@ ReviewTalentAndShift.propTypes = {
  */
 
 export const ReviewTalent = ({ onSave, onCancel, onChange, catalog, formData, error, bar }) => {
-
     const [shifts, setShifts] = useState([]);
     console.log(formData);
     return (<Theme.Consumer>

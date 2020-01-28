@@ -75,13 +75,13 @@ class PrivateLayout extends Flux.DashView {
                             this.showRightBar(ShiftDetails, option, { formData: Shift(option.data).defaults() });
                             break;
                         case 'create_deduction':
-                          option.title = "Create deduction";
-                          this.showRightBar(CreateDeduction, option, {formData: Deduction(option.data).defaults()});
-                        break;
-                       case 'update_deduction':
-                        option.title = "Update deduction";
-                        this.showRightBar(UpdateDeduction, option, {formData: Deduction(option.data).defaults()});
-                        break;
+                            option.title = "Create deduction";
+                            this.showRightBar(CreateDeduction, option, { formData: Deduction(option.data).defaults() });
+                            break;
+                        case 'update_deduction':
+                            option.title = "Update deduction";
+                            this.showRightBar(UpdateDeduction, option, { formData: Deduction(option.data).defaults() });
+                            break;
                         case 'create_expired_shift': {
                             this.showRightBar(EditOrAddExpiredShift, option, { formData: Shift({ ...option.data }).defaults() });
                         } break;
