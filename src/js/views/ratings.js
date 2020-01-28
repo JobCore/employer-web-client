@@ -3,7 +3,7 @@ import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
 import { store, search, fetchTemporal, GET } from '../actions.js';
 import { callback, hasTutorial } from '../utils/tutorial';
-import { GenericCard, Avatar, Stars, Theme, Button, Wizard, StarRating, SearchCatalogSelect } from '../components/index';
+import { GenericCard, Avatar, Stars, Theme, Button, Wizard, StarRating, SearchCatalogSelect, ShiftOption, ShiftOptionSelected } from '../components/index';
 import Select from 'react-select';
 import queryString from 'query-string';
 import { Session } from 'bc-react-session';
@@ -58,6 +58,7 @@ export const Rating = (data) => {
     };
 
     let _entity = Object.assign(_defaults, data);
+    console.log(_entity);
     return {
         validate: () => {
 
@@ -71,6 +72,11 @@ export const Rating = (data) => {
                 id: _entity.id,
                 comments: _entity.comments,
                 rating: _entity.rating,
+                employee: _entity.employee,
+
+                // if more than one employee will be rated for the same shift
+                employees_to_rate: _entity ? _entity.employees : [],
+
                 sender: _entity.sender,
                 shift: _entity.shift ?
                     {
@@ -269,7 +275,8 @@ ReviewTalentAndShift.propTypes = {
  * Review Talent in general
  */
 
-export const ReviewTalent = ({ onSave, onCancel, onChange, catalog, formData, error, bar }) => {
+export const ReviewTalent = ({ onSave, onCancel, onChange, catalog, formData, error }) => {
+    console.log("ReviewTalents form data", formData);
     const [shifts, setShifts] = useState([]);
     return (<Theme.Consumer>
         {({ bar }) => (
@@ -277,34 +284,32 @@ export const ReviewTalent = ({ onSave, onCancel, onChange, catalog, formData, er
                 <div className="row">
                     <div className="col-12">
                         <label>Who worked on this shift?</label>
-                        <SearchCatalogSelect
-                            isMulti={false}
-                            value={formData.employee}
-                            onChange={(emp) => {
-                                onChange({ employee: emp });
-                                GET('shifts?unrated=true&employee=' + emp.value)
-                                    .then(shifts => setShifts([
-                                        { label: `${(shifts.length == 0) ? 'No shifts found' : ''}` }
-                                    ].concat(shifts)));
-                            }}
-                            searchFunction={(search) => new Promise((resolve, reject) =>
-                                GET('catalog/employees?full_name=' + search)
-                                    .then(talents => resolve([
-                                        { label: `${(talents.length == 0) ? 'No one found: ' : ''}Invite "${search}" to jobcore`, value: 'invite_talent_to_jobcore' }
-                                    ].concat(talents)))
-                                    .catch(error => reject(error))
-                            )}
+                        <Select
+                            isMulti={true}
+                            value={formData.employees_to_rate.map(e => (
+                                {
+                                    label: e.user.first_name + " " + e.user.last_name,
+                                    value: e.id
+                                }
+                            ))}
+                            onChange={(employees) => onChange({ employees })}
+                            options={formData.employees_to_rate.map(e => ({
+                                label: e.user.first_name + " " + e.user.last_name,
+                                value: e.id
+                            }))}
                         />
 
                     </div>
                 </div>
                 <div className="row">
                     <div className="col-12">
+
                         <label>What shift was it working?</label>
                         <Select
-                            value={formData.shift}
+                            value={{ value: formData.shift }}
+                            components={{ Option: ShiftOption, SingleValue: ShiftOptionSelected({ multi: false }) }}
                             onChange={(selection) => onChange({ shift: selection.value.toString() })}
-                            options={shifts}
+                            options={[]}
                         />
                     </div>
                 </div>

@@ -356,8 +356,8 @@ export const update = (entity, data, mode = WEngine.modes.LIVE) => new Promise((
     PUT(path, data)
         .then(function (incomingObject) {
 
-            if (mode === WEngine.modes.POSPONED){
-                if(event_name === "shifts") data = Shift(incomingObject).defaults().unserialize();
+            if (mode === WEngine.modes.POSPONED) {
+                if (event_name === "shifts") data = Shift(incomingObject).defaults().unserialize();
                 WEngine.add({ entity: event_name, method: 'PUT', data, id: data.id });
             }
             else
