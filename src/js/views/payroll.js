@@ -1691,26 +1691,25 @@ export class PayrollRating extends Flux.DashView {
 
             if (!singlePeriod) resolve(null);
             const shiftList = singlePeriod.payments.map(s => s.shift.id).filter((v, i, s) => s.indexOf(v) === i).join(",");
-            // searchMe('ratings?shift=' + shiftList)
             searchMe('ratings', '?shifts=' + shiftList)
                 .then(previousRatings => {
-                    console.log('PREVIOIS ', previousRatings);
                     let ratings = {};
                     singlePeriod.payments.forEach(pay => {
-                        console.log(ratings);
                         if (typeof ratings[pay.employee.id] === 'undefined') ratings[pay.employee.id] = { employee: pay.employee, shifts: [], rating: null, comments: '' };
-
-
-
-                        const hasPreviousShift = previousRatings.find(r => r.shift.id === pay.shift.id);
-                        console.log("HASPREViOUs: ", hasPreviousShift);
+                        console.log('previous -> ', previousRatings);
+                        console.log('singlepayment -> ', pay);
+                        const hasPreviousShift = previousRatings.find(r => {
+                            if (r.shift && pay.shift) {
+                                if (r.shift.id === pay.shift.id) return true;
+                            } else return false;
+                        });
                         if (!hasPreviousShift) ratings[pay.employee.id].shifts.push(pay.shift.id);
 
                     });
                     console.log('RATINGSS', Object.values(ratings));
                     resolve(Object.values(ratings));
                 })
-                .catch(error => Notify.error("There was an error retriving the current ratings for this payroll period shifts"));
+                .catch(error => console.log(error));
         });
     }
 
