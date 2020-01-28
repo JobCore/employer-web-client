@@ -79,7 +79,7 @@ export const Rating = (data) => {
                         ending_at: moment(_entity.shift.ending_at)
                     }
                     : null,
-                created_at: (moment.isMoment(_entity.created_at)) ? _entity.created_at : moment(_entity.created_at),
+                created_at: (moment.isMoment(_entity.created_at)) ? _entity.created_at : moment(_entity.created_at)
             };
             return _formRating;
         },
@@ -270,9 +270,7 @@ ReviewTalentAndShift.propTypes = {
  */
 
 export const ReviewTalent = ({ onSave, onCancel, onChange, catalog, formData, error, bar }) => {
-
     const [shifts, setShifts] = useState([]);
-    console.log(formData);
     return (<Theme.Consumer>
         {({ bar }) => (
             < form >
@@ -283,7 +281,6 @@ export const ReviewTalent = ({ onSave, onCancel, onChange, catalog, formData, er
                             isMulti={false}
                             value={formData.employee}
                             onChange={(emp) => {
-                                console.log(emp);
                                 onChange({ employee: emp });
                                 GET('shifts?unrated=true&employee=' + emp.value)
                                     .then(shifts => setShifts([
