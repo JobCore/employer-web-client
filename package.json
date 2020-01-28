@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "API_HOST=http://localhost:8080 bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
-    "start:gitpod": "API_HOST=https://8080-b600067d-1862-49fa-bdcf-b9ebe1ba6007.ws-us02.gitpod.io bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
+    "start:gitpod": "API_HOST=https://8080-fd2c98dd-a9cb-48fa-ae47-f5e1621ee59a.ws-us02.gitpod.io bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
     "start:dev": "API_HOST=https://jobcore-test.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open --port 3000'",
     "start:prod": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open --port 3000'",
     "build": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack --config webpack.prod.js'",
@@ -102,6 +102,7 @@
     "react-router-dom": "^4.2.2",
     "react-select": "^2.0.0",
     "react-svg-inline": "^2.1.1",
+    "react-textarea-autosize": "^7.1.2",
     "react-transition-group": "^2.4.0",
     "snake-case": "^3.0.3",
     "underscore": "^1.9.1",

@@ -91,7 +91,6 @@ export const Shift = (data) => {
                     timeframe: 'hr'
                 }
             };
-
             return Object.assign(this, newShift);
         }
 
