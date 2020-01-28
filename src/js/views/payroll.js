@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useContext } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import { store, search, update, fetchSingle, searchMe, processPendingPayrollPeriods, updatePayments, createPayment, fetchAllMe, fetchTemporal, remove } from '../actions.js';
+import { store, search, update, fetchSingle, searchMe, processPendingPayrollPeriods, updatePayments, createPayment, fetchAllMe, fetchTemporal, remove, create } from '../actions.js';
 import { GET } from '../utils/api_wrapper';
+
 
 import DateTime from 'react-datetime';
 import moment from 'moment';
@@ -14,7 +15,7 @@ import { Notify } from 'bc-react-notifier';
 import { Shift, EditOrAddShift } from './shifts.js';
 import { Employer } from './profile.js';
 import { ManageLocations, AddOrEditLocation, Location } from './locations.js';
-import { EmployeeExtendedCard, ShiftOption, DeductionExtendedCard, Theme, Button, ShiftOptionSelected, GenericCard, SearchCatalogSelect, Toggle } from '../components/index';
+import { EmployeeExtendedCard, ShiftOption, ShiftCard, DeductionExtendedCard, Theme, Button, ShiftOptionSelected, GenericCard, SearchCatalogSelect, Avatar, Toggle, Wizard, StarRating, ListCard } from '../components/index';
 import queryString from 'query-string';
 
 import TimePicker from 'rc-time-picker';
@@ -28,6 +29,11 @@ import markerURL from '../../img/marker.png';
 
 import JobCoreLogo from '../../img/logo.png';
 import { Page, Image, Text, View, Document, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
+
+import TextareaAutosize from 'react-textarea-autosize';
+
+import { Redirect } from 'react-router-dom';
+
 
 const ENTITIY_NAME = 'payroll';
 
@@ -109,7 +115,7 @@ const styles = StyleSheet.create({
     },
     tableCell: {
         margin: 5,
-        fontSize: 7
+        fontSize: 9
     }
 });
 
@@ -328,7 +334,7 @@ export class PayrollSettings extends Flux.DashView {
     componentDidMount() {
 
         const deductions = store.getState('deduction');
-        if(!deductions){
+        if (!deductions) {
             searchMe('deduction');
         } else {
             this.setState({ deductions });
@@ -430,26 +436,28 @@ export class PayrollSettings extends Flux.DashView {
                             <option value={true}>Only if the talent forgets to checkout</option>
                             <option value={false}>No, leave the shift active until the talent checkouts</option>
                         </select>
-                        {!autoClockout ? '' :
-                        <span>
+                        {!autoClockout ? '' : (
+                            <span>
                                 , wait
-                            <input type="number" style={{ width: "60px" }} className="form-control d-inline-block ml-2 mr-2"
+                                <input type="number" style={{ width: "60px" }} className="form-control d-inline-block ml-2 mr-2"
                                     value={this.state.employer.maximum_clockout_delay_minutes}
                                     onChange={(e) => this.setEmployer({ maximum_clockout_delay_minutes: e.target.value, timeclock_warning: true })}
                                 />
                                 min to auto checkout
-                        </span>
+                            </span>
+
+                        )
                         }
                     </div>
                 </div>
-                { this.state.employer.timeclock_warning &&
+                {this.state.employer.timeclock_warning &&
                     <div className="alert alert-warning p-2 mt-3">
                         Apply time clock settings to:
                         <select
                             value={this.state.employer.retroactive}
                             className="form-control w-100" style={{ width: "100px", display: "inline-block" }}
                             onChange={(e) => this.setEmployer({ retroactive: e.target.value === "true" ? true : false })}
-                            >
+                        >
                             <option value={false}>Only new shifts (from now on)</option>
                             <option value={true}>All shifts (including previously created)</option>
                         </select>
@@ -467,59 +475,59 @@ export class PayrollSettings extends Flux.DashView {
                                         callback={callback}
                                     /> */}
                                     {/* <h1><span id="talent_search_header">Talent Search</span></h1> */}
-                                    { this.state.deductions.length > 0
-                                    ? <table className="table table-striped payroll-summary">
-                                        <thead>
-                                            <tr>
-                                                <th>Name</th>
-                                                <th>Deduction</th>
-                                                <th>Status</th>
-                                                <th>Description</th>
-                                                <th></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {this.state.deductions.map((deduction, i) => (
-                                                <DeductionExtendedCard
-                                        key={i}
-                                        deduction={deduction}
-                                        onEditClick={() => bar.show({ 
-                                            slug: "update_deduction", 
-                                            data: deduction
-                                            })}
-                                        onDelete={() => {
-                                            const noti = Notify.info("Are you sure you want to delete this deduction?",(answer) => {
-                                                if(answer) remove('deduction', deduction);
-                                                noti.remove();
-                                            });
-                                        }}    
-                                            >
-                                                </DeductionExtendedCard>
-                                ))}
-                                        </tbody>
-                                    </table>
-                                : <p>No deductions yet</p>}
+                                    {this.state.deductions.length > 0
+                                        ? <table className="table table-striped payroll-summary">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Deduction</th>
+                                                    <th>Status</th>
+                                                    <th>Description</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {this.state.deductions.map((deduction, i) => (
+                                                    <DeductionExtendedCard
+                                                        key={i}
+                                                        deduction={deduction}
+                                                        onEditClick={() => bar.show({
+                                                            slug: "update_deduction",
+                                                            data: deduction
+                                                        })}
+                                                        onDelete={() => {
+                                                            const noti = Notify.info("Are you sure you want to delete this deduction?", (answer) => {
+                                                                if (answer) remove('deduction', deduction);
+                                                                noti.remove();
+                                                            });
+                                                        }}
+                                                    >
+                                                    </DeductionExtendedCard>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                        : <p>No deductions yet</p>}
                                 </span>)}
                             </Theme.Consumer>
                         </div>
                         <Theme.Consumer>
                             {({ bar }) => (
                                 <button
-                        type="button"
-                        className="btn btn-primary"
-                        style={{ marginTop: "10px" }}
-                        onClick={() => bar.show({ 
-                            slug: "create_deduction", 
-                            data: {
-                                name: "", 
-                                active: false, 
-                                value: null,
-                                description: "",
-                                type: "PERCENTAGE"
-                        } 
-                        })}
-                    >
-                        Create deduction
+                                    type="button"
+                                    className="btn btn-primary"
+                                    style={{ marginTop: "10px" }}
+                                    onClick={() => bar.show({
+                                        slug: "create_deduction",
+                                        data: {
+                                            name: "",
+                                            active: false,
+                                            value: null,
+                                            description: "",
+                                            type: "PERCENTAGE"
+                                        }
+                                    })}
+                                >
+                                    Create deduction
                                 </button>
                             )}
                         </Theme.Consumer>
@@ -530,7 +538,7 @@ export class PayrollSettings extends Flux.DashView {
                         type="button"
                         className="btn btn-primary"
                         onClick={() => update({ path: 'employers/me', event_name: 'current_employer' }, Employer(this.state.employer).validate().serialize())
-                                            .catch(e => Notify.error(e.message || e))}
+                            .catch(e => Notify.error(e.message || e))}
                     >Save</button>
                 </div>
             </form>
@@ -542,7 +550,7 @@ export class PayrollSettings extends Flux.DashView {
  * EditOrAddExpiredShift
  */
 export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, formData, error, oldShift }) => {
-
+    console.log(formData);
     const { bar } = useContext(Theme.Context);
 
     useEffect(() => {
@@ -782,7 +790,7 @@ export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, for
                         };
 
                         const mainDate = getRealDate(value, formData.ending_at);
-                        onChange({ ...mainDate,  has_sensitive_updates: true });
+                        onChange({ ...mainDate, has_sensitive_updates: true });
                     }}
                     onClick={() => validating_maximum || validating_minimum ? Notify.error("Cannot create shift before payroll time or after") : onSave({
                         executed_action: 'create_expired_shift',
@@ -883,7 +891,7 @@ export class ManagePayroll extends Flux.DashView {
 
 
     render() {
-
+        console.log(this.state);
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
@@ -919,8 +927,20 @@ export class ManagePayroll extends Flux.DashView {
                                 :
                                 <Button icon="plus" size="small" onClick={() => {
                                     const isOpen = this.state.singlePayrollPeriod.payments.find(p => p.status === "NEW");
-                                    if(isOpen) return;
-                                     
+                                    const isOtherNew = this.state.payments.find(payment => payment.payments.some(item => item.status === 'NEW'));
+
+                                    if (isOpen) return;
+                                    if (isOtherNew) this.setState({
+                                        payments: this.state.payments.map(_pay => {
+                                            if (_pay.status !== 'NEW') return _pay;
+                                            else {
+                                                return {
+                                                    ..._pay,
+                                                    payments: _pay.payments.filter(p => p.status == 'NEW')
+                                                };
+                                            }
+                                        })
+                                    });
                                     const period = {
                                         ...this.state.singlePayrollPeriod,
                                         payments: this.state.singlePayrollPeriod.payments.concat([Payment({ status: "NEW", employee: { id: 'new' } }).defaults()])
@@ -938,8 +958,9 @@ export class ManagePayroll extends Flux.DashView {
                                     b.employee.id === "new" ? 1 :
                                         a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
                             ).map(pay => {
-                                const total_hours = pay.payments.reduce((total, current) => !isNaN(current.regular_hours) ? total + (parseFloat(current.regular_hours) + parseFloat(current.over_time)) : total, 0);
-                                const total_amount = pay.payments.reduce((total, current) => !isNaN(current.total_amount) ? total + parseFloat(current.total_amount) : total, 0);
+
+                                const total_hours = pay.payments.reduce((total, { regular_hours, over_time }) => total + parseFloat(regular_hours) + parseFloat(over_time), 0);
+                                const total_amount = pay.payments.reduce((total, { regular_hours, over_time, hourly_rate }) => total + (parseFloat(regular_hours) + parseFloat(over_time)) * parseFloat(hourly_rate), 0);
                                 return <table key={pay.employee.id} className="table table-striped payroll-summary">
                                     <thead>
                                         <tr>
@@ -1010,11 +1031,25 @@ export class ManagePayroll extends Flux.DashView {
                                                             ...payment,
                                                             status: "APPROVED",
                                                             payroll_period: this.state.singlePayrollPeriod.id
-                                                        }, this.state.singlePayrollPeriod);
+                                                        }, this.state.singlePayrollPeriod).then(() => this.setState({
+                                                            payments: this.state.payments.map(_pay => {
+                                                                if (_pay.employee.id !== pay.employee.id) return _pay;
+                                                                else {
+                                                                    return {
+                                                                        ..._pay,
+                                                                        payments: _pay.payments.filter(p => p.id != undefined)
+                                                                    };
+                                                                }
+                                                            })
+                                                        }));
+
+
                                                 }}
                                                 onUndo={(payment) => updatePayments({
                                                     ...payment,
                                                     status: "PENDING",
+                                                    approved_clockin_time: null,
+                                                    approved_clockout_time: null,
                                                     id: p.id
                                                 }, this.state.singlePayrollPeriod)}
                                                 onReject={(payment) => {
@@ -1036,22 +1071,42 @@ export class ManagePayroll extends Flux.DashView {
                                         <tr>
                                             <td colSpan={5}>
                                                 {this.state.singlePayrollPeriod.status === 'OPEN' && pay.employee.id !== "new" &&
-                                                    <Button icon="plus" size="small" onClick={() => this.setState({
-                                                        payments: this.state.payments.map(_pay => {
-                                                            if (_pay.employee.id !== pay.employee.id) return _pay;
-                                                            else {
-                                                                return {
-                                                                    ..._pay,
-                                                                    payments: _pay.payments.concat([Payment({ status: "NEW" }).defaults()])
-                                                                };
-                                                            }
-                                                        })
-                                                    })}>Add new clockin</Button>
+                                                    <Button icon="plus" size="small" onClick={() => {
+
+                                                        if (!this.state.payments.find(payment => payment.payments.some(item => item.status === 'NEW'))) {
+                                                            this.setState({
+                                                                payments: this.state.payments.map(_pay => {
+                                                                    if (_pay.employee.id !== pay.employee.id) return _pay;
+                                                                    else {
+                                                                        return {
+                                                                            ..._pay,
+                                                                            payments: _pay.payments.concat([Payment({ status: "NEW", regular_hours: "0.00", over_time: "0.00", hourly_rate: "0.00" }).defaults()])
+                                                                        };
+                                                                    }
+                                                                })
+                                                            });
+                                                        } else {
+
+                                                            this.setState({
+                                                                payments: this.state.payments.map(_pay => {
+                                                                    return {
+                                                                        ..._pay,
+                                                                        payments: _pay.payments.filter(p => p.status != 'NEW')
+
+                                                                    };
+
+                                                                }),
+
+                                                            });
+                                                        }
+
+                                                    }
+                                                    }>Add new clockin</Button>
                                                 }
                                             </td>
                                             <td colSpan={3} className="text-right">
-                                                Total: {Math.round(total_hours * 100) / 100} hr
-                                                <small className="d-block">${Math.round(total_amount * 100) / 100}</small>
+                                                Total: {!isNaN(total_hours) ? Math.round(total_hours * 100) / 100 : 0} hr
+                                                <small className="d-block">${!isNaN(total_amount) ? Math.round(total_amount * 100) / 100 : 0}</small>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -1061,9 +1116,11 @@ export class ManagePayroll extends Flux.DashView {
                             {this.state.singlePayrollPeriod.status === 'OPEN' ?
                                 <button type="button" className="btn btn-primary" onClick={() => {
                                     const unapproved = [].concat.apply([], this.state.payments.map(p => p.payments)).find(p => p.status === "PENDING");
+
                                     if (unapproved) Notify.error("There are still some payments that need to be approved or rejected");
-                                    else update('payroll-periods', Object.assign(this.state.singlePayrollPeriod, { status: 'FINALIZED' }))
-                                        .catch(e => Notify.error(e.message || e));
+                                    else if (Array.isArray(this.state.payments) && this.state.payments.length === 0) Notify.error("There are no clockins to review for this period");
+                                    else this.props.history.push('/payroll/rating/' + this.state.singlePayrollPeriod.id);
+
                                 }}>Finalize Period</button>
                                 :
                                 <Button className="btn btn-success" onClick={() => this.props.history.push('/payroll/report/' + this.state.singlePayrollPeriod.id)}>Take me to the Payroll Report</Button>
@@ -1108,7 +1165,7 @@ const LatLongClockin = ({ clockin, children, isIn }) => {
     const lat = isIn ? clockin.latitude_in : clockin.latitude_out;
     const lng = isIn ? clockin.longitude_in : clockin.longitude_out;
     const distance = isIn ? clockin.distance_in_miles : clockin.distance_out_miles;
-    
+
     return <Tooltip placement="right" trigger={['hover']} overlay={
         <div style={{ width: "200px", height: "200px" }} className="p-0 d-inline-block">
             <GoogleMapReact
@@ -1178,7 +1235,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
 
     useEffect(() => {
         let subs = null;
-        if (payment.status === "NEW"){
+        if (payment.status === "NEW") {
             fetchTemporal(`employers/me/shifts?start=${moment(period.starting_at).format('YYYY-MM-DD')}&end=${moment(period.ending_at).format('YYYY-MM-DD')}&employee=${employee.id}`, "employee-expired-shifts")
                 .then((_shifts) => {
                     const _posibleShifts = _shifts.map(s => ({ label: '', value: Shift(s).defaults().unserialize() }));
@@ -1190,7 +1247,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
             });
         }
         return () => {
-            if(subs) subs.unsubscribe();
+            if (subs) subs.unsubscribe();
         };
 
     }, []);
@@ -1219,7 +1276,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                 });
                                 else {
                                     setShift(_shift);
-                                    setClockin({ ...clockin, started_at: _shift.starting_at, ended_at: _shift.ending_at });
+                                    setClockin({ ...clockin, started_at: approvedClockin, ended_at: approvedClockout });
                                     setBreaktime(0);
                                 }
                             }
@@ -1246,26 +1303,26 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                 <small className="shift-price"> {shift.price.currencySymbol}{shift.price.amount}</small>
                         }{" "}
                         {clockin && <div className="d-inline-block">
-                            { clockin.latitude_in > 0 && 
+                            {clockin.latitude_in > 0 &&
                                 <LatLongClockin isIn={true} clockin={clockin}>
                                     <small className={`pointer mr-2 ${clockin.distance_in_miles > 0.2 ? "text-danger" : ""}`}>
                                         <i className="fas fa-map-marker-alt"></i> In
-                                        
+
                                     </small>
                                 </LatLongClockin>
                             }
-                            { clockin.latitude_out > 0 && 
+                            {clockin.latitude_out > 0 &&
                                 <LatLongClockin isIn={false} clockin={clockin}>
                                     <small className={`pointer ${clockin.distance_out_miles > 0.2 ? "text-danger" : ""}`}>
                                         <i className="fas fa-map-marker-alt"></i> Out
                                     </small>
                                 </LatLongClockin>
                             }
-                            { clockin.author != employee.user.profile.id ?
+                            {clockin.author != employee.user.profile.id ?
                                 <Tooltip placement="bottom" trigger={['hover']} overlay={<small>Clocked in by a supervisor</small>}>
                                     <i className="fas fa-user-cog text-danger ml-2"></i>
                                 </Tooltip>
-                                : !moment(payment.created_at).isSame(moment(payment.updated_at)) && payment.status === "PENDING" ? 
+                                : !moment(payment.created_at).isSame(moment(payment.updated_at)) && payment.status === "PENDING" ?
                                     <Tooltip placement="bottom" trigger={['hover']} overlay={<small>Previously updated by supervisor</small>}>
                                         <i className="fas fa-user-edit text-danger ml-2"></i>
                                     </Tooltip>
@@ -1584,6 +1641,211 @@ SelectShiftPeriod.propTypes = {
     catalog: PropTypes.object //contains the data needed for the form to load
 };
 
+export class PayrollRating extends Flux.DashView {
+
+    constructor() {
+        super();
+        this.state = {
+            ratings: [],
+            employer: store.getState('current_employer'),
+            payrollPeriods: [],
+            payments: [],
+            singlePayrollPeriod: null,
+            reviews: []
+        };
+    }
+
+    componentDidMount() {
+
+        this.subscribe(store, 'current_employer', (employer) => {
+            this.setState({ employer });
+        });
+
+        const payrollPeriods = store.getState('payroll-periods');
+        this.subscribe(store, 'payroll-periods', (_payrollPeriods) => {
+            this.updatePayrollPeriod(_payrollPeriods);
+            //if(!this.state.singlePayrollPeriod) this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
+        });
+        if (!payrollPeriods) {
+            searchMe('payroll-periods');
+        }
+        else {
+            this.updatePayrollPeriod(payrollPeriods);
+            this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
+
+        }
+
+        this.removeHistoryListener = this.props.history.listen((data) => {
+            const period = /\/payroll\/period\/(\d+)/gm;
+            const periodMatches = period.exec(data.pathname);
+            // const search = /\?talent_id=(\d+)/gm;
+            // const searchMatches = search.exec(data.search);
+            if (periodMatches) this.getSinglePeriod(periodMatches[1]);
+        });
+
+    }
+
+    defaultRatings(singlePeriod) {
+
+        return new Promise((resolve, reject) => {
+
+            if (!singlePeriod) resolve(null);
+            const shiftList = singlePeriod.payments.map(s => s.shift.id).filter((v, i, s) => s.indexOf(v) === i).join(",");
+            searchMe('ratings', '?shifts=' + shiftList)
+                .then(previousRatings => {
+                    let ratings = {};
+                    singlePeriod.payments.forEach(pay => {
+                        if (typeof ratings[pay.employee.id] === 'undefined') ratings[pay.employee.id] = { employee: pay.employee, shifts: [], rating: null, comments: '' };
+                        console.log('previous -> ', previousRatings);
+                        console.log('singlepayment -> ', pay);
+                        const hasPreviousShift = previousRatings.find(r => {
+                            if (r.shift && pay.shift) {
+                                if (r.shift.id === pay.shift.id) return true;
+                            } else return false;
+                        });
+                        if (!hasPreviousShift) ratings[pay.employee.id].shifts.push(pay.shift.id);
+
+                    });
+                    console.log('RATINGSS', Object.values(ratings));
+                    resolve(Object.values(ratings));
+                })
+                .catch(error => console.log(error));
+        });
+    }
+
+    getSinglePeriod(periodId, payrollPeriods) {
+        if (typeof periodId !== 'undefined') {
+            if (!payrollPeriods) fetchSingle("payroll-periods", periodId);
+            else {
+                const singlePayrollPeriod = payrollPeriods.find(pp => pp.id == periodId);
+                this.defaultRatings(singlePayrollPeriod)
+                    .then(payments => this.setState({ singlePayrollPeriod, payments }));
+            }
+        }
+    }
+
+    updatePayrollPeriod(payrollPeriods) {
+
+        if (payrollPeriods == null) return;
+
+        let singlePayrollPeriod = null;
+        if (typeof this.props.match.params.period_id !== 'undefined') {
+            singlePayrollPeriod = payrollPeriods.find(pp => pp.id == this.props.match.params.period_id);
+        }
+
+        this.defaultRatings(singlePayrollPeriod)
+            .then(payments => this.setState({ payrollPeriods, singlePayrollPeriod: singlePayrollPeriod || null, payments }));
+    }
+
+
+    render() {
+        console.log(this.state);
+        if (!this.state.employer) return "Loading...";
+        else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
+            return <div className="p-1 listcontents text-center">
+                <h3>Please setup your payroll settings first.</h3>
+                <Button color="success" onClick={() => this.props.history.push("/payroll-settings")}>Setup Payroll Settings</Button>
+            </div>;
+        }
+
+        //const allowLevels = (window.location.search != '');
+        return (<div className="p-1 listcontents">
+            <Theme.Consumer>
+                {({ bar }) => (<span>
+                    {(!this.state.singlePayrollPeriod) ? '' :
+                        (this.state.singlePayrollPeriod.payments.length > 0) ?
+                            <div>
+                                <p className="text-right">
+                                    <h2>Rating {this.state.singlePayrollPeriod.label}</h2>
+                                </p>
+                            </div>
+                            :
+                            <p>No payments to review for this period</p>
+                    }
+
+                    {
+                        this.state.payments.map((list, i) => {
+
+                            if (Array.isArray(list.shifts) && list.shifts.length > 0) return (
+                                <div className="row list-card" key={i} >
+
+                                    <div className="col-1 my-auto">
+
+                                        <Avatar url={list.employee.user.profile.picture} />
+                                    </div>
+                                    <div className="col-3 my-auto">
+
+                                        <span>{list.employee.user.first_name + " " + list.employee.user.last_name}</span>
+                                    </div>
+                                    <div className="col my-auto">
+                                        <StarRating
+                                            onClick={(e) => {
+                                                const allPayments = this.state.payments;
+                                                allPayments[i].rating = e;
+                                                this.setState({
+                                                    allPayments
+                                                });
+                                            }
+                                            }
+                                            onHover={() => null}
+                                            direction="right"
+                                            fractions={2}
+                                            quiet={false}
+                                            readonly={false}
+                                            totalSymbols={5}
+                                            value={list.rating}
+                                            placeholderValue={0}
+                                            placeholderRating={Number(0)}
+                                            emptySymbol="far fa-star md"
+                                            fullSymbol="fas fa-star"
+                                            placeholderSymbol={"fas fa-star"}
+                                        />
+                                    </div>
+                                    <div className="col-6 my-auto">
+                                        <TextareaAutosize style={{ width: '100%' }} placeholder="Comment..." value={list.comments} onChange={(e) => {
+
+                                            const allPayments = this.state.payments;
+                                            allPayments[i].comments = e.target.value;
+                                            this.setState({
+                                                allPayments
+                                            });
+                                        }} />
+                                    </div>
+
+                                </div>);
+
+
+                        })
+
+                    }
+
+                    <div className="btn-bar text-right mt-3">
+
+                        <button type="button" className="btn btn-primary" onClick={() => {
+                            const unrated = this.state.payments.find(p => p.rating == null && p.shifts.length > 0);
+                            const rated = this.state.payments.map(p => ({
+                                employee: p.employee.id,
+                                shifts: p.shifts,
+                                rating: p.rating,
+                                comments: p.comments,
+                                payment: p.id
+                            }));
+                            if (unrated) Notify.error("There are still some employees that need to be rated");
+                            else {
+                                create('ratings', rated).then((res) => { if (res) update('payroll-periods', Object.assign(this.state.singlePayrollPeriod, { status: 'FINALIZED' })); })
+                                    .then((resp) => { if (resp) console.log('more'); this.props.history.push('/payroll/report/' + this.state.singlePayrollPeriod.id); })
+                                    .catch(e => Notify.error(e.message || e));
+                            }
+
+                        }}>Finalize Period</button>
+
+                    </div>
+
+                </span>)}
+            </Theme.Consumer>
+        </div >);
+    }
+}
 export class PayrollReport extends Flux.DashView {
 
     constructor() {
@@ -1679,10 +1941,14 @@ export class PayrollReport extends Flux.DashView {
                         (this.state.singlePayrollPeriod.payments.length > 0) ?
                             <div>
                                 <p className="text-right">
-                                    <h1 className="float-left">Payments for {this.state.singlePayrollPeriod.label}</h1>
-                                    <Button className="btn btn-info" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button>
+                                    <h2>Payments for {this.state.singlePayrollPeriod.label}</h2>
                                 </p>
-                                <div className="mb-2">
+
+                                <div className="row mb-4 text-right">
+                                    <div className="col">
+
+                                        <Button size="small" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button>
+                                    </div>
                                     <PDFDownloadLink document={
                                         <Document>
                                             {/* <Page style={styles.page}> */}
@@ -1776,16 +2042,21 @@ export class PayrollReport extends Flux.DashView {
                                             </Page>
                                         </Document>
                                     } fileName={"JobCore " + this.state.singlePayrollPeriod.label + ".pdf"}>
-                                        {({ blob, url, loading, error }) => (loading ? 'Loading...' : <Button color="success" size="small">Export to PDF</Button>
+                                        {({ blob, url, loading, error }) => (loading ? 'Loading...' : (
+                                            <div className="col">
+                                                <Button color="success" size="small" >Export to PDF</Button>
+                                            </div>
+                                        )
                                         )}
                                     </PDFDownloadLink>
+
+
                                 </div>
+
+                                {/* <Button className="btn btn-info" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button> */}
+
                                 {this.state.singlePayrollPeriod.status == "OPEN" &&
-                                    <div className="alert alert-warning p-2">This period is still open, <a href="#" onClick={(e) => {
-                                        e.preventDefault();
-                                        this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id);
-                                    }}>click here to review it.</a>
-                                    </div>
+                                    <Redirect from={'/payroll/report/' + this.state.singlePayrollPeriod.id} to={'/payroll/rating/' + this.state.singlePayrollPeriod.id} />
                                 }
                                 <table className="table table-striped payroll-summary">
                                     <thead>
@@ -1840,6 +2111,6 @@ export class PayrollReport extends Flux.DashView {
                     }
                 </span>)}
             </Theme.Consumer>
-        </div>);
+        </div >);
     }
 }
