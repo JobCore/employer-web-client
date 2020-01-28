@@ -200,7 +200,15 @@ class PrivateLayout extends Flux.DashView {
                             break;
                         case 'review_talent':
                             option.title = "Review Talent";
-                            this.showRightBar(ReviewTalent, option, { formData: Rating(option.data).getFormData() });
+                            this.showRightBar(ReviewTalent, option, {
+                                formData: Rating({
+                                    comments: '',
+                                    employees: option.data.employees,
+                                    shift: option.data,
+                                    created_at: NOW(),
+                                    rating: 0
+                                }).getFormData()
+                            });
                             break;
                         case 'review_talent_and_shift':
                             option.title = "Review Talent";
