@@ -286,7 +286,7 @@ export const Payment = (data) => {
             const newObject = {
                 //shift: (typeof this.shift != 'object') ? store.get('shift', this.shift) : Shift(this.shift).defaults().unserialize(),
                 created_at: this.created_at && !moment.isMoment(this.created_at) ? moment(this.created_at) : this.created_at,
-                updated_at: this.updated_at && !moment.isMoment(this.updated_at) ? moment(this.updated_at) : this.updated_at,
+                updated_at: this.updated_at && !moment.isMoment(this.updated_at) ? moment(this.updated_at) : this.updated_at
             };
 
 
@@ -322,7 +322,7 @@ export class PayrollSettings extends Flux.DashView {
         super();
         this.state = {
             employer: Employer().defaults(),
-            deductions: [],
+            deductions: []
         };
     }
 
@@ -550,7 +550,7 @@ export class PayrollSettings extends Flux.DashView {
  * EditOrAddExpiredShift
  */
 export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, formData, error, oldShift }) => {
-    console.log(formData);
+
     const { bar } = useContext(Theme.Context);
 
     useEffect(() => {
@@ -891,7 +891,7 @@ export class ManagePayroll extends Flux.DashView {
 
 
     render() {
-        console.log(this.state);
+
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
@@ -1095,8 +1095,7 @@ export class ManagePayroll extends Flux.DashView {
 
                                                                     };
 
-                                                                }),
-
+                                                                })
                                                             });
                                                         }
 
@@ -1270,8 +1269,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                         ending_at: moment(period.starting_at).add(2, "hours"),
                                         period_starting: moment(period.starting_at),
                                         period_ending: moment(period.ending_at),
-                                        application_restriction: 'SPECIFIC_PEOPLE',
-
+                                        application_restriction: 'SPECIFIC_PEOPLE'
                                     }
                                 });
                                 else {
@@ -1696,8 +1694,6 @@ export class PayrollRating extends Flux.DashView {
                     let ratings = {};
                     singlePeriod.payments.forEach(pay => {
                         if (typeof ratings[pay.employee.id] === 'undefined') ratings[pay.employee.id] = { employee: pay.employee, shifts: [], rating: null, comments: '' };
-                        console.log('previous -> ', previousRatings);
-                        console.log('singlepayment -> ', pay);
                         const hasPreviousShift = previousRatings.find(r => {
                             if (r.shift && pay.shift) {
                                 if (r.shift.id === pay.shift.id) return true;
@@ -1706,10 +1702,9 @@ export class PayrollRating extends Flux.DashView {
                         if (!hasPreviousShift) ratings[pay.employee.id].shifts.push(pay.shift.id);
 
                     });
-                    console.log('RATINGSS', Object.values(ratings));
                     resolve(Object.values(ratings));
                 })
-                .catch(error => console.log(error));
+                .catch(error => Notify.error("There was an error fetching the ratings for the shift"));
         });
     }
 
@@ -1739,7 +1734,6 @@ export class PayrollRating extends Flux.DashView {
 
 
     render() {
-        console.log(this.state);
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
@@ -1833,7 +1827,7 @@ export class PayrollRating extends Flux.DashView {
                             if (unrated) Notify.error("There are still some employees that need to be rated");
                             else {
                                 create('ratings', rated).then((res) => { if (res) update('payroll-periods', Object.assign(this.state.singlePayrollPeriod, { status: 'FINALIZED' })); })
-                                    .then((resp) => { if (resp) console.log('more'); this.props.history.push('/payroll/report/' + this.state.singlePayrollPeriod.id); })
+                                    .then((resp) => { this.props.history.push('/payroll/report/' + this.state.singlePayrollPeriod.id); })
                                     .catch(e => Notify.error(e.message || e));
                             }
 
