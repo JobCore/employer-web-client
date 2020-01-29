@@ -1592,7 +1592,8 @@ export class PayrollReport extends Flux.DashView {
             employer: store.getState('current_employer'),
             payrollPeriods: [],
             payments: [],
-            singlePayrollPeriod: null
+            singlePayrollPeriod: null,
+            paymentBox: []
         };
     }
 
@@ -1670,7 +1671,7 @@ export class PayrollReport extends Flux.DashView {
                 <Button color="success" onClick={() => this.props.history.push("/payroll/settings")}>Setup Payroll Settings</Button>
             </div>;
         }
-
+        console.log("paymentBox: ", this.state.paymentBox);
         //const allowLevels = (window.location.search != '');
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
@@ -1678,108 +1679,6 @@ export class PayrollReport extends Flux.DashView {
                     {(!this.state.singlePayrollPeriod) ? '' :
                         (this.state.singlePayrollPeriod.payments.length > 0) ?
                             <div>
-                                <p className="text-right">
-                                    <h1 className="float-left">Payments for {this.state.singlePayrollPeriod.label}</h1>
-                                    <Button className="btn btn-info" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button>
-                                </p>
-                                <div className="mb-2">
-                                    <PDFDownloadLink document={
-                                        <Document>
-                                            {/* <Page style={styles.page}> */}
-                                            <Page style={styles.body}>
-                                                <View style={styles.section}>
-                                                    <Image source={JobCoreLogo} style={styles.image} />
-                                                </View>
-                                                {this.state.employer.picture ? (
-                                                    <View style={styles.section}>
-                                                        <Image src={this.state.employer.picture} style={styles.image_company} />
-                                                    </View>
-                                                ) : null}
-
-
-                                                <View style={{ color: 'black', marginTop: 15, marginBottom: 15, fontSize: 15 }}>
-                                                    <Text>{moment(this.state.singlePayrollPeriod.starting_at).format('MMMM D') + " - " + moment(this.state.singlePayrollPeriod.ending_at).format('LL')}</Text>
-                                                </View>
-                                                <View style={styles.table}>
-                                                    <View style={styles.tableRow}>
-                                                        <View style={styles.tableCol1Header}>
-                                                            <Text style={styles.tableCellHeader}>STAFF</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>REGULAR</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>PTO</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>HOLIDAY</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>SICK</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>OT</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>DBL</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>TOTAL</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>LABOR</Text>
-                                                        </View>
-                                                    </View>
-
-                                                    {this.state.payments.sort((a, b) =>
-                                                        a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
-                                                    ).map(pay => {
-                                                        const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
-                                                            return {
-                                                                over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
-                                                                regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
-                                                                total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount),
-                                                                status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
-                                                            };
-                                                        }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
-                                                        return <View key={pay.employee.id} style={styles.tableRow}>
-                                                            <View style={styles.tableCol1}>
-                                                                <Text style={styles.tableCell}>{pay.employee.user.last_name + " " + pay.employee.user.first_name + " - " + total.status.toLowerCase()}</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>{Math.round(total.regular_hours * 100) / 100}</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>-</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>-</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>-</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>{Math.round(total.over_time * 100) / 100}</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>-</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>${Math.round(total.total_amount * 100) / 100}</Text>
-                                                            </View>
-                                                        </View>;
-                                                    })}
-                                                </View>
-                                            </Page>
-                                        </Document>
-                                    } fileName={"JobCore " + this.state.singlePayrollPeriod.label + ".pdf"}>
-                                        {({ blob, url, loading, error }) => (loading ? 'Loading...' : <Button color="success" size="small">Export to PDF</Button>
-                                        )}
-                                    </PDFDownloadLink>
-                                </div>
                                 {this.state.singlePayrollPeriod.status == "OPEN" &&
                                     <div className="alert alert-warning p-2">This period is still open, <a href="#" onClick={(e) => {
                                         e.preventDefault();
@@ -1790,6 +1689,9 @@ export class PayrollReport extends Flux.DashView {
                                 <table className="table table-striped payroll-summary">
                                     <thead>
                                         <tr>
+                                            <th scope="col">Pay</th>
+                                            <th scope="col">Pay by check</th>
+                                            <th scope="col">Pay by transfer</th>
                                             <th scope="col">Staff</th>
                                             <th scope="col">Regular Hrs</th>
                                             <th scope="col">PTO</th>
@@ -1799,7 +1701,6 @@ export class PayrollReport extends Flux.DashView {
                                             <th scope="col">DBL</th>
                                             <th scope="col">Total Hrs</th>
                                             <th scope="col">Labor</th>
-                                            <th scope="col"></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -1816,6 +1717,87 @@ export class PayrollReport extends Flux.DashView {
                                             }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
                                             return <tr key={pay.employee.id}>
                                                 <td>
+                                                    <input
+                                                    type="checkbox"
+                                                    placeholder="Pay"
+                                                    checked={this.state.paymentBox.filter(payment => payment.id === pay.employee.id).length > 0}
+                                                    onChange={(e)=> {
+                                                        if(e.target.checked){
+                                                            let arrayCopy = this.state.paymentBox.slice();
+                                                            arrayCopy.push({
+                                                                pay: pay,
+                                                                total: total,
+                                                                id: pay.employee.id
+                                                            });
+                                                            this.setState({ paymentBox: arrayCopy});
+                                                        } else {
+                                                            let arrayCopy = this.state.paymentBox.slice().filter(payment => payment.id !== pay.employee.id);
+                                                            this.setState({ paymentBox: arrayCopy });
+                                                        }
+                                                    }}
+                                                />
+                                                </td>
+                                                <td>
+                                                    <input
+                                                    type="checkbox"
+                                                    placeholder="Pay by check"
+                                                    checked={this.state.paymentBox.filter(payment => payment.id === pay.employee.id)[0] 
+                                                        ? this.state.paymentBox.filter(payment => payment.id === pay.employee.id)[0].payByCheck
+                                                    : false}
+                                                    onChange={(e)=> {
+                                                        let arrayCopy = this.state.paymentBox.slice().filter(payment => payment.id !== pay.employee.id);
+                                                        if(e.target.checked){
+                                                            arrayCopy.push({
+                                                                pay: pay,
+                                                                total: total,
+                                                                id: pay.employee.id,
+                                                                payByCheck: true,
+                                                                payByTransfer: false
+                                                            });
+                                                            this.setState({ paymentBox: arrayCopy});
+                                                        } else {
+                                                            arrayCopy.push({
+                                                                pay: pay,
+                                                                total: total,
+                                                                id: pay.employee.id,
+                                                                payByCheck: false,
+                                                            });
+                                                            this.setState({ paymentBox: arrayCopy });
+                                                        }
+                                                    }}
+                                                />
+                                                </td>
+                                                <td>
+                                                    <input
+                                                    type="checkbox"
+                                                    placeholder="Pay by transfer"
+                                                    checked={this.state.paymentBox.filter(payment => payment.id === pay.employee.id)[0]
+                                                        ? this.state.paymentBox.filter(payment => payment.id === pay.employee.id)[0].payByTransfer
+                                                    : null}
+                                                    onChange={(e)=> {
+                                                        let arrayCopy = this.state.paymentBox.slice().filter(payment => payment.id !== pay.employee.id);
+                                                        if(e.target.checked){
+                                                            arrayCopy.push({
+                                                                pay: pay,
+                                                                total: total,
+                                                                id: pay.employee.id,
+                                                                payByCheck: false,
+                                                                payByTransfer: true
+                                                            });
+                                                            this.setState({ paymentBox: arrayCopy});
+                                                        } else {
+                                                            arrayCopy.push({
+                                                                pay: pay,
+                                                                total: total,
+                                                                id: pay.employee.id,
+                                                                payByTransfer: false,
+                                                            });
+                                                            this.setState({ paymentBox: arrayCopy });
+                                                        }
+                                                    }}
+                                                />
+                                                </td>
+                                                <td>
                                                     {pay.employee.user.last_name}, {pay.employee.user.first_name}
                                                     <p className="m-0 p-0"><span className="badge">{total.status.toLowerCase()}</span></p>
                                                 </td>
@@ -1827,13 +1809,11 @@ export class PayrollReport extends Flux.DashView {
                                                 <td>-</td>
                                                 <td>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</td>
                                                 <td>${Math.round(total.total_amount * 100) / 100}</td>
-                                                <td>
-                                                    <Button color="success" size="small" onClick={() => null}>Create payment</Button>
-                                                </td>
                                             </tr>;
                                         })}
                                     </tbody>
                                 </table>
+                                <Button color="success" size="small" onClick={() => null}>Make payments</Button>
                             </div>
                             :
                             <p>No payments to review for this period</p>
