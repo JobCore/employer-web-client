@@ -1,15 +1,16 @@
 import React, { useContext, useState } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import { store, search, fetchTemporal, GET } from '../actions.js';
+import { store, search, fetchTemporal, create, GET } from '../actions.js';
 import { callback, hasTutorial } from '../utils/tutorial';
-import { GenericCard, Avatar, Stars, Theme, Button, Wizard, StarRating, SearchCatalogSelect, ShiftOption, ShiftOptionSelected } from '../components/index';
+import { GenericCard, Avatar, Stars, Theme, Button, Wizard, StarRating, SearchCatalogSelect, ShiftOption, ShiftOptionSelected, EmployeeExtendedCard } from '../components/index';
 import Select from 'react-select';
 import queryString from 'query-string';
 import { Session } from 'bc-react-session';
 import moment from 'moment';
 import { Notify } from 'bc-react-notifier';
 import { NOW } from "../components/utils.js";
+import { Talent } from '../views/talents.js';
 
 //gets the querystring and creats a formData object to be used when opening the rightbar
 export const getRatingInitialFilters = (catalog) => {
@@ -58,7 +59,7 @@ export const Rating = (data) => {
     };
 
     let _entity = Object.assign(_defaults, data);
-    console.log(_entity);
+    console.log('entidad ', _entity);
     return {
         validate: () => {
 
@@ -274,10 +275,91 @@ ReviewTalentAndShift.propTypes = {
 /**
  * Review Talent in general
  */
+export const RatingEmployees = (props) => {
+
+    const { onCancel, onSave, catalog, formData } = props;
+    const [rates, setRates] = useState(formData.shift.employees);
+    const [showUnrated, setUnrated] = useState(false);
+    const dataToSend = [...formData.shift, rates];
+    console.log(rates);
+    return (<Theme.Consumer>
+        {({ bar }) => (<div className="sidebar-applicants">
+
+            <div className="top-bar">
+                {!showUnrated ? (
+                    <button type="button" className="btn btn-primary btn-sm"
+                        // onClick={() => setRates(rates.filter((rate) => {
+                        //     if(Array.isArray(formData.ratings) && formData.ratings.length > 0){
+                        //         formData.ratings.empl
+                        //     }
+                        // }))}
+                        onClick={() => {
+                            if (Array.isArray(formData.ratings)) {
+                                setUnrated(true);
+                                const ratedEmployees = formData.ratings.map(rated => rated.employee);
+                                return setRates(rates.filter(el => ratedEmployees.includes(el.id)));
+                            }
+                        }}
+                    // onClick={() => bar.show({ slug: "review_talent", data: catalog.shift, allowLevels: true })}
+
+                    >
+                        Rate employee
+                    </button>
+                ) : (<button type="button" className="btn btn-primary btn-sm" onClick={() => { setRates(formData.shift.employees); setUnrated(false); }}> Show all employees</button>)}
+
+
+
+
+
+            </div>
+
+            <h3>Shift Ratings:</h3>
+            <ul style={{ overflowY: "auto", maxHeight: "75vh" }}>
+                {
+                    rates.length > 0 ?
+                        rates.map((tal, i) => (
+                            <EmployeeExtendedCard
+                                key={i}
+                                employee={tal}
+                                hover={false}
+                                showFavlist={false}
+                            >
+
+                            </EmployeeExtendedCard>)
+                        )
+                        :
+                        <li>There are no unrated employees for this shift</li>
+                }
+            </ul>
+            {
+                showUnrated && rates.length > 0 && (
+                    <div className="row text-center mt-4">
+                        <div className="col-12">
+                            <Button color="primary" onClick={() => bar.show({ slug: "review_talent", data: dataToSend, allowLevels: true })} type="button" className="btn btn-primary btn-sm">Rate Employees</Button>
+
+                        </div>
+                    </div>
+                )
+            }
+        </div>)}
+    </Theme.Consumer>);
+};
+RatingEmployees.propTypes = {
+    onSave: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    catalog: PropTypes.object, //contains the data needed for the form to load
+    formData: PropTypes.object, //contains the data needed for the form to load
+    context: PropTypes.object //contact any additional data for context purposes
+};
+
 
 export const ReviewTalent = ({ onSave, onCancel, onChange, catalog, formData, error }) => {
-    console.log("ReviewTalents form data", formData);
     const [shifts, setShifts] = useState([]);
+    const [rating, setRating] = useState('');
+    const [comments, setComments] = useState('');
+
+    console.log(formData);
+    const employees_to_rate = formData.shift;
     return (<Theme.Consumer>
         {({ bar }) => (
             < form >
@@ -286,14 +368,14 @@ export const ReviewTalent = ({ onSave, onCancel, onChange, catalog, formData, er
                         <label>Who worked on this shift?</label>
                         <Select
                             isMulti={true}
-                            value={formData.employees_to_rate.map(e => (
+                            value={employees_to_rate.map(e => (
                                 {
                                     label: e.user.first_name + " " + e.user.last_name,
                                     value: e.id
                                 }
                             ))}
                             onChange={(employees) => onChange({ employees })}
-                            options={formData.employees_to_rate.map(e => ({
+                            options={employees_to_rate.map(e => ({
                                 label: e.user.first_name + " " + e.user.last_name,
                                 value: e.id
                             }))}
@@ -301,7 +383,7 @@ export const ReviewTalent = ({ onSave, onCancel, onChange, catalog, formData, er
 
                     </div>
                 </div>
-                <div className="row">
+                {/* <div className="row">
                     <div className="col-12">
 
                         <label>What shift was it working?</label>
@@ -312,38 +394,52 @@ export const ReviewTalent = ({ onSave, onCancel, onChange, catalog, formData, er
                             options={[]}
                         />
                     </div>
-                </div>
+                </div> */}
                 <div className="row">
                     <div className="col-12">
                         <label>How was his performance during the shift</label>
                         <StarRating
-                            fractions={0.5}
+                            onClick={(e) =>
+                                setRating(e)
+                            }
                             onHover={() => null}
-                            onClick={() => null}
                             direction="right"
-                            quiet={true}
+                            fractions={2}
+                            quiet={false}
                             readonly={false}
-                            value={0}
                             totalSymbols={5}
+                            value={rating}
                             placeholderValue={0}
-                            fullSymbol="far fa-star fa-xs"
-                            emptySymbol="fas fa-star fa-xs"
-                            placeholderSymbol="fas fa-star fa-xs"
+                            placeholderRating={Number(0)}
+                            emptySymbol="far fa-star md"
+                            fullSymbol="fas fa-star"
+                            placeholderSymbol={"fas fa-star"}
                         />
                     </div>
                 </div>
                 <div className="row">
                     <div className="col-12">
                         <label>Any comments?</label>
-                        <textarea className="form-control"></textarea>
+                        <textarea className="form-control" onChange={e => setComments(e.target.value)}></textarea>
                     </div>
                 </div>
                 <div className="btn-bar">
                     <Button color="success"
-                        onClick={() => onSave({
-                            executed_action: '',
-                            status: 'OPEN'
-                        })}>Send Review</Button>
+                        onClick={() => create('ratings',
+                            // {
+                            //     employee: formData.employees_to_rate.map(e => e.id),
+                            //     shifts: formData.shift.id,
+                            //     rating: rating,
+                            //     comments: comments
+                            // }
+                            formData.employees_to_rate.map(e => ({
+                                employee: e.id,
+                                shift: formData.shift.id,
+                                rating: rating,
+                                comments: comments
+                            }))
+                        ).then((res) => console.log(res))
+                            .catch(e => Notify.error(e.message || e))}>Send Review</Button>
                 </div>
             </form>
         )}

@@ -396,6 +396,7 @@ FilterShifts.propTypes = {
  */
 export const ShiftApplicants = (props) => {
     const { onCancel, onSave, catalog } = props;
+    console.log(props);
     return (<Theme.Consumer>
         {({ bar }) => (<div className="sidebar-applicants">
             {catalog.shift.expired ?
@@ -935,10 +936,10 @@ EditOrAddShift.defaultProps = {
  * ShiftDetails
  */
 export const ShiftDetails = (props) => {
+    console.log(props);
     const creationMode = isNaN(props.formData.id);
 
     const shift = !props.catalog.shifts ? null : props.catalog.shifts.find(s => s.id == props.formData.id);
-    console.log('shift detail', shift);
     if (!creationMode && (!shift || typeof shift === 'undefined')) return <div>Loading shift...</div>;
     return (<Theme.Consumer>
         {({ bar }) => (
@@ -976,11 +977,14 @@ export const ShiftDetails = (props) => {
                             </div>
                         }
                         {props.formData.status === 'DRAFT' ? <EditOrAddShift bar={bar} {...props} oldShift={shift} /> : <ShowShift bar={bar} shift={shift} />}
+
+
                         <div className="row text-center mt-4">
                             <div className="col">
-                                <Button color="primary" onClick={() => bar.show({ slug: "review_talent", data: shift, allowLevels: true })}>Rate Talent</Button>
+                                <Button color="primary" onClick={() => bar.show({ slug: "show_employees_rating", data: shift, allowLevels: true })}>Rate Talent</Button>
                             </div>
                         </div>
+
 
                     </div>
                 }
