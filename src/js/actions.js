@@ -424,6 +424,19 @@ export const updateProfile = (data) => {
         });
 };
 
+export const createSubscription = (data) => {
+    const employer = store.getState('current_employer');
+    POST(`employers/me/subscription`, data)
+        .then(function (active_subscription) {
+            Flux.dispatchEvent('current_employer', { ...employer, active_subscription });
+            Notify.success("The subscription was changed successfully");
+        })
+        .catch(function (error) {
+            Notify.error(error.message || error);
+            log.error(error);
+        });
+};
+
 export const removeBankAccount = (route, data) => {
     const path = `${route}/${data.id}`;
     DELETE(path)
