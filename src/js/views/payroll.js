@@ -1593,7 +1593,6 @@ export class PayrollReport extends Flux.DashView {
             payrollPeriods: [],
             payments: [],
             singlePayrollPeriod: null,
-            paymentBox: []
         };
     }
 
@@ -1689,18 +1688,13 @@ export class PayrollReport extends Flux.DashView {
                                 <table className="table table-striped payroll-summary">
                                     <thead>
                                         <tr>
-                                            <th scope="col">Pay</th>
-                                            <th scope="col">Pay by check</th>
-                                            <th scope="col">Pay by transfer</th>
                                             <th scope="col">Staff</th>
                                             <th scope="col">Regular Hrs</th>
-                                            <th scope="col">PTO</th>
-                                            <th scope="col">Holiday</th>
-                                            <th scope="col">Sick</th>
-                                            <th scope="col">OT</th>
-                                            <th scope="col">DBL</th>
-                                            <th scope="col">Total Hrs</th>
-                                            <th scope="col">Labor</th>
+                                            <th scope="col">Over Time</th>
+                                            <th scope="col">Earnings</th>
+                                            <th scope="col">Taxes</th>
+                                            <th scope="col">Amount</th>
+                                            <th scope="col"></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -1717,103 +1711,34 @@ export class PayrollReport extends Flux.DashView {
                                             }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
                                             return <tr key={pay.employee.id}>
                                                 <td>
-                                                    <input
-                                                    type="checkbox"
-                                                    placeholder="Pay"
-                                                    checked={this.state.paymentBox.filter(payment => payment.id === pay.employee.id).length > 0}
-                                                    onChange={(e)=> {
-                                                        if(e.target.checked){
-                                                            let arrayCopy = this.state.paymentBox.slice();
-                                                            arrayCopy.push({
-                                                                pay: pay,
-                                                                total: total,
-                                                                id: pay.employee.id
-                                                            });
-                                                            this.setState({ paymentBox: arrayCopy});
-                                                        } else {
-                                                            let arrayCopy = this.state.paymentBox.slice().filter(payment => payment.id !== pay.employee.id);
-                                                            this.setState({ paymentBox: arrayCopy });
-                                                        }
-                                                    }}
-                                                />
-                                                </td>
-                                                <td>
-                                                    <input
-                                                    type="checkbox"
-                                                    placeholder="Pay by check"
-                                                    checked={this.state.paymentBox.filter(payment => payment.id === pay.employee.id)[0] 
-                                                        ? this.state.paymentBox.filter(payment => payment.id === pay.employee.id)[0].payByCheck
-                                                    : false}
-                                                    onChange={(e)=> {
-                                                        let arrayCopy = this.state.paymentBox.slice().filter(payment => payment.id !== pay.employee.id);
-                                                        if(e.target.checked){
-                                                            arrayCopy.push({
-                                                                pay: pay,
-                                                                total: total,
-                                                                id: pay.employee.id,
-                                                                payByCheck: true,
-                                                                payByTransfer: false
-                                                            });
-                                                            this.setState({ paymentBox: arrayCopy});
-                                                        } else {
-                                                            arrayCopy.push({
-                                                                pay: pay,
-                                                                total: total,
-                                                                id: pay.employee.id,
-                                                                payByCheck: false,
-                                                            });
-                                                            this.setState({ paymentBox: arrayCopy });
-                                                        }
-                                                    }}
-                                                />
-                                                </td>
-                                                <td>
-                                                    <input
-                                                    type="checkbox"
-                                                    placeholder="Pay by transfer"
-                                                    checked={this.state.paymentBox.filter(payment => payment.id === pay.employee.id)[0]
-                                                        ? this.state.paymentBox.filter(payment => payment.id === pay.employee.id)[0].payByTransfer
-                                                    : null}
-                                                    onChange={(e)=> {
-                                                        let arrayCopy = this.state.paymentBox.slice().filter(payment => payment.id !== pay.employee.id);
-                                                        if(e.target.checked){
-                                                            arrayCopy.push({
-                                                                pay: pay,
-                                                                total: total,
-                                                                id: pay.employee.id,
-                                                                payByCheck: false,
-                                                                payByTransfer: true
-                                                            });
-                                                            this.setState({ paymentBox: arrayCopy});
-                                                        } else {
-                                                            arrayCopy.push({
-                                                                pay: pay,
-                                                                total: total,
-                                                                id: pay.employee.id,
-                                                                payByTransfer: false,
-                                                            });
-                                                            this.setState({ paymentBox: arrayCopy });
-                                                        }
-                                                    }}
-                                                />
-                                                </td>
-                                                <td>
                                                     {pay.employee.user.last_name}, {pay.employee.user.first_name}
                                                     <p className="m-0 p-0"><span className="badge">{total.status.toLowerCase()}</span></p>
                                                 </td>
                                                 <td>{Math.round(total.regular_hours * 100) / 100}</td>
-                                                <td>-</td>
-                                                <td>-</td>
-                                                <td>-</td>
                                                 <td>{Math.round(total.over_time * 100) / 100}</td>
                                                 <td>-</td>
-                                                <td>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</td>
-                                                <td>${Math.round(total.total_amount * 100) / 100}</td>
+                                                <td>-</td>
+                                                <td>{total.total_amount}</td>
+                                                <td>
+                                                    <Button 
+                                                    color="success" 
+                                                    size="small" 
+                                                    onClick={() => bar.show({ 
+                                                        slug: "make_payment", 
+                                                        data: {
+                                                            pay: pay, 
+                                                            total: total,
+                                                    } 
+                                                    })}>
+                                                        Make payment
+                                                    </Button>
+                                                </td>
+                                                {/* <td>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</td>
+                                                <td>${Math.round(total.total_amount * 100) / 100}</td> */}
                                             </tr>;
                                         })}
                                     </tbody>
                                 </table>
-                                <Button color="success" size="small" onClick={() => null}>Make payments</Button>
                             </div>
                             :
                             <p>No payments to review for this period</p>
