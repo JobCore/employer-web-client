@@ -978,12 +978,13 @@ export const ShiftDetails = (props) => {
                         }
                         {props.formData.status === 'DRAFT' ? <EditOrAddShift bar={bar} {...props} oldShift={shift} /> : <ShowShift bar={bar} shift={shift} />}
 
-
-                        <div className="row text-center mt-4">
-                            <div className="col">
-                                <Button color="primary" onClick={() => bar.show({ slug: "show_employees_rating", data: shift, allowLevels: true })}>Rate Talent</Button>
+                        {moment(props.formData.ending_at).isBefore(NOW()) &&
+                            <div className="row text-center mt-4">
+                                <div className="col">
+                                    <Button color="primary" onClick={() => bar.show({ slug: "show_employees_rating", data: shift, allowLevels: true })}>Rate Employees</Button>
+                                </div>
                             </div>
-                        </div>
+                        }
 
 
                     </div>

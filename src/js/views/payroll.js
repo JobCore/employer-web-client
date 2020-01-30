@@ -1817,13 +1817,34 @@ export class PayrollRating extends Flux.DashView {
 
                         <button type="button" className="btn btn-primary" onClick={() => {
                             const unrated = this.state.payments.find(p => p.rating == null && p.shifts.length > 0);
-                            const rated = this.state.payments.map(p => ({
-                                employee: p.employee.id,
-                                shifts: p.shifts,
-                                rating: p.rating,
-                                comments: p.comments,
-                                payment: p.id
-                            }));
+                            // const rated = this.state.payments.map(p => ({
+                            //     employee: p.employee.id,
+                            //     shifts: p.shifts,
+                            //     rating: p.rating,
+                            //     comments: p.comments,
+                            //     payment: p.id
+                            // }));
+                            const rated = this.state.payments.map(p => {
+                                if (p.shifts.length > 1) {
+                                    return p.shifts.map(s => ({
+                                        employee: p.employee.id,
+                                        shift: s.shifts,
+                                        rating: p.rating,
+                                        comments: p.comments,
+                                        payment: p.id
+                                    }));
+                                } else {
+                                    return (
+                                        {
+                                            employee: p.employee.id,
+                                            shift: p.shifts[0],
+                                            rating: p.rating,
+                                            comments: p.comments,
+                                            payment: p.id
+                                        }
+                                    );
+                                }
+                            });
                             if (unrated) Notify.error("There are still some employees that need to be rated");
                             else {
                                 create('ratings', rated).then((res) => { if (res) update('payroll-periods', Object.assign(this.state.singlePayrollPeriod, { status: 'FINALIZED' })); })

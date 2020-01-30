@@ -17,7 +17,7 @@ import { PendingInvites, PendingJobcoreInvites, SearchShiftToInviteTalent, Invit
 import { ManageFavorites, AddFavlistsToTalent, FavlistEmployees, AddTalentToFavlist, Favlist, AddorUpdateFavlist } from './views/favorites.js';
 import { ManageLocations, AddOrEditLocation, Location } from './views/locations.js';
 import { ManagePayroll, PayrollReport, SelectTimesheet, EditOrAddExpiredShift, PayrollSettings, PayrollRating } from './views/payroll.js';
-import { ManageRating, Rating, RatingDetails, ReviewTalent, ReviewTalentAndShift, RatingEmployees } from './views/ratings.js';
+import { ManageRating, Rating, RatingDetails, ReviewTalent, ReviewTalentAndShift, RatingEmployees, UnratingEmployees } from './views/ratings.js';
 import { Profile, ManageUsers, InviteUserToCompanyJobcore } from './views/profile.js';
 import { NOW } from './components/utils.js';
 import { Notifier, Notify } from 'bc-react-notifier';
@@ -207,18 +207,13 @@ class PrivateLayout extends Flux.DashView {
                                 formData: Rating({
                                     comments: '',
                                     employees: option.data.employees,
-                                    shift: option.data,
+                                    shift: option.data.shift,
                                     created_at: NOW(),
                                     rating: 0
                                 }).getFormData()
                             });
                             break;
                         case 'show_employees_rating': {
-                            // fetchAllMe(['ratings']).then(() => {
-                            //     this.showRightBar(RatingEmployees, option, {
-                            //         shift: option.data
-                            //     });
-                            // });
                             searchMe('ratings', '?shift=' + option.data.id).then((data) =>
                                 this.showRightBar(RatingEmployees, option, {
                                     formData: {
@@ -228,6 +223,9 @@ class PrivateLayout extends Flux.DashView {
                                 })
                             );
                         } break;
+                        case 'show_employees_unrating':
+                            this.showRightBar(UnratingEmployees, option, { formData: option.data });
+                            break;
                         case 'review_talent_and_shift':
                             option.title = "Review Talent";
                             this.showRightBar(ReviewTalentAndShift, option, { formData: Rating(option.data).getFormData() });
