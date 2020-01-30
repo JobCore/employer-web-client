@@ -60,7 +60,7 @@ export default class Home extends Flux.DashView {
         else this.setState({ shifts });
     }
 
-    render() {aeteth
+    render() {
         return (
             <Theme.Consumer>
                 {({ bar }) =>
