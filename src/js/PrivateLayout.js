@@ -28,6 +28,7 @@ import moment from 'moment';
 import { EngineComponent } from "./utils/write_engine";
 import EmployerBankAccounts from "../js/views/employerBankAccounts";
 import { CreateDeduction, Deduction, UpdateDeduction } from "./views/deductions";
+import { MakePayment, Payment } from "./views/payments";
 
 class PrivateLayout extends Flux.DashView {
 
@@ -85,6 +86,10 @@ class PrivateLayout extends Flux.DashView {
                        case 'update_deduction':
                         option.title = "Update deduction";
                         this.showRightBar(UpdateDeduction, option, {formData: Deduction(option.data).defaults()});
+                        break;
+                       case 'make_payment':
+                        option.title = "Make payment";
+                        this.showRightBar(MakePayment, option, {formData: Payment(option.data).defaults()});
                         break;
                         case 'create_expired_shift': {
                             this.showRightBar(EditOrAddExpiredShift, option, { formData: Shift({ ...option.data }).defaults() });
