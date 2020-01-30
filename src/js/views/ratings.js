@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
 import { store, search, fetchTemporal, create, GET } from '../actions.js';
@@ -181,6 +181,7 @@ export class ManageRating extends Flux.DashView {
 export const RatingDetails = (props) => {
     const { formData } = props;
     const { shift } = formData;
+
     return (<Theme.Consumer>
         {({ bar }) =>
             (<li className="aplication-details">
@@ -276,48 +277,116 @@ ReviewTalentAndShift.propTypes = {
  * Review Talent in general
  */
 export const RatingEmployees = (props) => {
+    const [possibleRatings, setPossibleShifts] = useState(null);
 
+
+    useEffect(() => {
+        let subs = store.subscribe('ratings', (_ratings) => {
+            console.log(_ratings);
+            const _possibleRatings = _ratings;
+            setPossibleShifts(_possibleRatings);
+        });
+
+        return () => {
+            if (subs) subs.unsubscribe();
+        };
+
+    }, []);
     const { onCancel, onSave, catalog, formData } = props;
-    const [rates, setRates] = useState(formData.shift.employees);
-    const [showUnrated, setUnrated] = useState(false);
-    const dataToSend = [...formData.shift, rates];
-    console.log(rates);
+
+    const shiftEmployees = formData.shift.employees.map((e) => {
+        if (formData.ratings.find(rated => rated.employee == e.id)) {
+            var ratedEmployee = Object.assign({}, e);
+            ratedEmployee.rating = formData.ratings.find(rated => rated.employee == e.id).rating;
+            ratedEmployee.created_at = formData.ratings.find(rated => rated.employee == e.id).created_at;
+            return ratedEmployee;
+        } else {
+            return e;
+        }
+    });
+
+    console.log(shiftEmployees);
+    console.log(formData.ratings);
     return (<Theme.Consumer>
         {({ bar }) => (<div className="sidebar-applicants">
-
-            <div className="top-bar">
-                {!showUnrated ? (
+            {shiftEmployees.find(e => !e.rating) ? (
+                <div className="top-bar">
                     <button type="button" className="btn btn-primary btn-sm"
-                        // onClick={() => setRates(rates.filter((rate) => {
-                        //     if(Array.isArray(formData.ratings) && formData.ratings.length > 0){
-                        //         formData.ratings.empl
-                        //     }
-                        // }))}
-                        onClick={() => {
-                            if (Array.isArray(formData.ratings)) {
-                                setUnrated(true);
-                                const ratedEmployees = formData.ratings.map(rated => rated.employee);
-                                return setRates(rates.filter(el => ratedEmployees.includes(el.id)));
-                            }
-                        }}
-                    // onClick={() => bar.show({ slug: "review_talent", data: catalog.shift, allowLevels: true })}
+                        onClick={() => bar.show({ slug: "review_talent", data: { shift: formData.shift, employees: shiftEmployees.filter(e => !e.rating) }, allowLevels: true })}
 
                     >
                         Rate employee
                     </button>
-                ) : (<button type="button" className="btn btn-primary btn-sm" onClick={() => { setRates(formData.shift.employees); setUnrated(false); }}> Show all employees</button>)}
+                </div>
+            ) : (
+                    null
+                )}
 
 
+            <h3>Shift Ratings:</h3>
+            <ul style={{ overflowY: "auto", maxHeight: "75vh" }}>
+                {
+                    shiftEmployees.length > 0 ?
+                        shiftEmployees.map((tal, i) => (
+                            <GenericCard key={i} hover={true}>
+                                <Avatar url={tal.user.profile.picture} />
+                                <a href="#"><b>{tal.user.first_name + ' ' + tal.user.last_name}</b></a>
 
+                                <Stars rating={Number(tal.rating)} noRatingLabel="Not yet rated for this shift" />
+                                {
+                                    tal.rating ? null : (
+                                        <div className="btn-group" role="group" aria-label="Basic example">
+                                            <Button
+                                                className="mt-0 text-white" label="Rate"
+                                                notePosition="left" note="Rate Employee"
+                                                onClick={() => bar.show({ slug: "review_talent", data: { shift: formData.shift, employees: [tal] }, allowLevels: true })}
+                                            >
+                                                Rate
+                                            </Button>
 
+                                        </div>
 
+                                    )
+                                }
+                            </GenericCard>
+
+                        ))
+                        :
+                        <li>No ratings were found for this shift</li>
+                }
+            </ul>
+        </div>)}
+    </Theme.Consumer>);
+};
+RatingEmployees.propTypes = {
+    onSave: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    catalog: PropTypes.object, //contains the data needed for the form to load
+    formData: PropTypes.object, //contains the data needed for the form to load
+    context: PropTypes.object //contact any additional data for context purposes
+};
+export const UnratingEmployees = (props) => {
+
+    console.log(props);
+    const { onCancel, onSave, catalog, formData } = props;
+    const unrated_employees = formData.employees.filter(e => !e.rating);
+    return (<Theme.Consumer>
+        {({ bar }) => (<div className="sidebar-applicants">
+
+            <div className="top-bar">
+                <button type="button" className="btn btn-primary btn-sm"
+                    onClick={() => bar.show({ slug: "review_talent", data: catalog.shift, allowLevels: true })}
+
+                >
+                    Rate employee
+                </button>
             </div>
 
             <h3>Shift Ratings:</h3>
             <ul style={{ overflowY: "auto", maxHeight: "75vh" }}>
                 {
-                    rates.length > 0 ?
-                        rates.map((tal, i) => (
+                    unrated_employees.length > 0 ?
+                        unrated_employees.map((tal, i) => (
                             <EmployeeExtendedCard
                                 key={i}
                                 employee={tal}
@@ -328,23 +397,13 @@ export const RatingEmployees = (props) => {
                             </EmployeeExtendedCard>)
                         )
                         :
-                        <li>There are no unrated employees for this shift</li>
+                        <li>No ratings were found for this shift</li>
                 }
             </ul>
-            {
-                showUnrated && rates.length > 0 && (
-                    <div className="row text-center mt-4">
-                        <div className="col-12">
-                            <Button color="primary" onClick={() => bar.show({ slug: "review_talent", data: dataToSend, allowLevels: true })} type="button" className="btn btn-primary btn-sm">Rate Employees</Button>
-
-                        </div>
-                    </div>
-                )
-            }
         </div>)}
     </Theme.Consumer>);
 };
-RatingEmployees.propTypes = {
+UnratingEmployees.propTypes = {
     onSave: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
     catalog: PropTypes.object, //contains the data needed for the form to load
@@ -357,28 +416,29 @@ export const ReviewTalent = ({ onSave, onCancel, onChange, catalog, formData, er
     const [shifts, setShifts] = useState([]);
     const [rating, setRating] = useState('');
     const [comments, setComments] = useState('');
+    const [employeesToRate, setEmployeesToRate] = useState(formData.employees_to_rate.map(e => (
+        {
+            label: e.user.first_name + " " + e.user.last_name,
+            value: e.id
+        }
+    )));
 
-    console.log(formData);
-    const employees_to_rate = formData.shift;
     return (<Theme.Consumer>
         {({ bar }) => (
             < form >
                 <div className="row">
                     <div className="col-12">
                         <label>Who worked on this shift?</label>
+
                         <Select
-                            isMulti={true}
-                            value={employees_to_rate.map(e => (
-                                {
-                                    label: e.user.first_name + " " + e.user.last_name,
-                                    value: e.id
-                                }
-                            ))}
-                            onChange={(employees) => onChange({ employees })}
-                            options={employees_to_rate.map(e => ({
+                            isMulti
+                            value={employeesToRate}
+                            onChange={(employees) => setEmployeesToRate(employees)}
+                            options={formData.employees_to_rate.map(e => ({
                                 label: e.user.first_name + " " + e.user.last_name,
                                 value: e.id
                             }))}
+
                         />
 
                     </div>
@@ -438,7 +498,7 @@ export const ReviewTalent = ({ onSave, onCancel, onChange, catalog, formData, er
                                 rating: rating,
                                 comments: comments
                             }))
-                        ).then((res) => console.log(res))
+                        ).then((res) => bar.close("last"))
                             .catch(e => Notify.error(e.message || e))}>Send Review</Button>
                 </div>
             </form>
