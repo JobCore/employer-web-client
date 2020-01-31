@@ -70,29 +70,17 @@ export const MakePayment = ({
                 </div>
             </div>
             <div className="row">
-                <div className="col-6">
-                    <div className="btn-bar">
-                        <button 
-                        type="button"
-                        className="btn btn-success" 
-                        style={{ margin: 0, padding: 12}}
-                        onClick={() => null}
-                        >
-                            Manual Payment
-                        </button>
-                    </div>
+                <div className="col-12">
+                    <label>Payment methods</label>
                 </div>
-                <div className="col-6">
-                    <div className="btn-bar">
-                        <button 
-                        type="button"
-                        className="btn btn-success"
-                        style={{ margin: 0, padding: 12}}
-                        onClick={() => null}
-                        >
-                            Electronic Payment
-                        </button>
-                    </div>
+                <div className="col-12 payment-cell">
+                        Check Payment
+                </div>
+                <div className="col-12 payment-cell">
+                        Bank of america 
+                </div>
+                <div className="col-12 payment-cell">
+                        Wells fargo
                 </div>
             </div>
             
