@@ -21,7 +21,6 @@ export default class ShiftCard extends React.Component{
         const startDate = this.props.shift.starting_at.format('ll');
         const startTime = this.props.shift.starting_at.format('LT');
         const endTime = this.props.shift.ending_at.format('LT');
-
         if(!this.props.shift.position) return "Invalid shift, missin position";
         if(!this.props.shift.venue) return "Invalid shift, missin venue";
         return (<Theme.Consumer>

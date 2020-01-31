@@ -18,6 +18,7 @@ export const ShiftOptionSelected = require('./shift-option/ShiftOptionSelected')
 export const Toggle = require('./toggle/Toggle').default;
 export const Button = require('./button/Button').default;
 export const LoadBar = require('./load-bar/LoadBar').default;
+// export const TextAreaAutoSize = require('./text-area-autosize/TextAreaAutoSize').default;
 
 export const Stars = require('./stars/Stars').default;
 export const StarRating = require('./rating/Rating').default;
