@@ -18,7 +18,7 @@ import { PendingInvites, PendingJobcoreInvites, SearchShiftToInviteTalent, Invit
 import { ManageFavorites, AddFavlistsToTalent, FavlistEmployees, AddTalentToFavlist, Favlist, AddorUpdateFavlist } from './views/favorites.js';
 import { ManageLocations, AddOrEditLocation, Location } from './views/locations.js';
 import { ManagePayroll, PayrollReport, SelectTimesheet, EditOrAddExpiredShift, PayrollSettings, PayrollRating } from './views/payroll.js';
-import { ManageRating, Rating, RatingDetails, ReviewTalent, ReviewTalentAndShift } from './views/ratings.js';
+import { ManageRating, Rating, RatingDetails, ReviewTalent, ReviewTalentAndShift, RatingEmployees, UnratingEmployees } from './views/ratings.js';
 import { Profile, ManageUsers, InviteUserToCompanyJobcore } from './views/profile.js';
 import { NOW } from './components/utils.js';
 import { Notifier, Notify } from 'bc-react-notifier';
@@ -29,6 +29,7 @@ import moment from 'moment';
 import { EngineComponent } from "./utils/write_engine";
 import EmployerBankAccounts from "../js/views/employerBankAccounts";
 import { CreateDeduction, Deduction, UpdateDeduction } from "./views/deductions";
+import { MakePayment, Payment } from "./views/payments";
 
 class PrivateLayout extends Flux.DashView {
 
@@ -66,6 +67,10 @@ class PrivateLayout extends Flux.DashView {
                     { label: 'Filled', value: 'FILLED' },
                     { label: 'Completed', value: 'EXPIRED' },
                     { label: 'Paid', value: 'COMPLETED' }
+                ],
+                deductionsTypes: [ 
+                    { value: 'PERCENTAGE', label: 'Percentage' },
+                    { value: 'AMOUNT', label: 'Amount' }
                 ]
             },
             bar: {
@@ -83,6 +88,10 @@ class PrivateLayout extends Flux.DashView {
                        case 'update_deduction':
                         option.title = "Update deduction";
                         this.showRightBar(UpdateDeduction, option, {formData: Deduction(option.data).defaults()});
+                        break;
+                       case 'make_payment':
+                        option.title = "Make payment";
+                        this.showRightBar(MakePayment, option, {formData: Payment(option.data).defaults()});
                         break;
                         case 'create_expired_shift': {
                             this.showRightBar(EditOrAddExpiredShift, option, { formData: Shift({ ...option.data }).defaults() });
@@ -124,6 +133,7 @@ class PrivateLayout extends Flux.DashView {
                                 })
                             );
                             break;
+
                         case 'talent_shift_clockins':
                             searchMe('clockins', `?shift=${option.data.shift.id}&employee=${option.data.employee.id}`).then((data) =>
                                 this.showRightBar(ShiftTalentClockins, option, {
@@ -202,7 +212,30 @@ class PrivateLayout extends Flux.DashView {
                             break;
                         case 'review_talent':
                             option.title = "Review Talent";
-                            this.showRightBar(ReviewTalent, option, { formData: Rating(option.data).getFormData() });
+                            console.log('OPTION', option);
+                            this.showRightBar(ReviewTalent, option, {
+
+                                formData: Rating({
+                                    comments: '',
+                                    employees: option.data.employees,
+                                    shift: option.data.shift,
+                                    created_at: NOW(),
+                                    rating: 0
+                                }).getFormData()
+                            });
+                            break;
+                        case 'show_employees_rating': {
+                            searchMe('ratings', '?shift=' + option.data.id).then((data) =>
+                                this.showRightBar(RatingEmployees, option, {
+                                    formData: {
+                                        ratings: data,
+                                        shift: option.data
+                                    }
+                                })
+                            );
+                        } break;
+                        case 'show_employees_unrating':
+                            this.showRightBar(UnratingEmployees, option, { formData: option.data });
                             break;
                         case 'review_talent_and_shift':
                             option.title = "Review Talent";

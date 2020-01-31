@@ -1254,7 +1254,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                 if (_shift == 'new_shift') bar.show({
                                     slug: "create_expired_shift", data: {
                                         employeesToAdd: [{ label: employee.user.first_name + " " + employee.user.last_name, value: employee.id }],
-                                        // Dates are in utc so I decided to change it to local time 
+                                        // Dates are in utc so I decided to change it to local time
                                         starting_at: moment(period.starting_at),
                                         ending_at: moment(period.starting_at).add(2, "hours"),
                                         period_starting: moment(period.starting_at),
@@ -1738,8 +1738,7 @@ export class PayrollRating extends Flux.DashView {
                 <Button color="success" onClick={() => this.props.history.push("/payroll-settings")}>Setup Payroll Settings</Button>
             </div>;
         }
-
-        //const allowLevels = (window.location.search != '');
+        console.log(this.state.payments);
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({ bar }) => (<span>
@@ -1814,12 +1813,26 @@ export class PayrollRating extends Flux.DashView {
 
                         <button type="button" className="btn btn-primary" onClick={() => {
                             const unrated = this.state.payments.find(p => p.rating == null && p.shifts.length > 0);
-                            const rated = this.state.payments.map(p => ({
-                                employee: p.employee.id,
-                                shifts: p.shifts,
-                                rating: p.rating,
-                                comments: p.comments,
-                                payment: p.id
+                            const rated = [].concat.apply([], this.state.payments.filter(s => s.shifts.length > 0).map(p => {
+                                if (p.shifts.length > 1) {
+                                    return p.shifts.map(s => ({
+                                        employee: p.employee.id,
+                                        shift: s,
+                                        rating: p.rating,
+                                        comments: p.comments,
+                                        payment: p.id
+                                    }));
+                                } else {
+                                    return (
+                                        [{
+                                            employee: p.employee.id,
+                                            shift: p.shifts[0],
+                                            rating: p.rating,
+                                            comments: p.comments,
+                                            payment: p.id
+                                        }]
+                                    );
+                                }
                             }));
                             if (unrated) Notify.error("There are still some employees that need to be rated");
                             else {
@@ -1845,7 +1858,7 @@ export class PayrollReport extends Flux.DashView {
             employer: store.getState('current_employer'),
             payrollPeriods: [],
             payments: [],
-            singlePayrollPeriod: null
+            singlePayrollPeriod: null,
         };
     }
 
@@ -1916,6 +1929,7 @@ export class PayrollReport extends Flux.DashView {
 
 
     render() {
+        const taxesMagicNumber = 3.00;
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
@@ -1923,7 +1937,6 @@ export class PayrollReport extends Flux.DashView {
                 <Button color="success" onClick={() => this.props.history.push("/payroll/settings")}>Setup Payroll Settings</Button>
             </div>;
         }
-
         //const allowLevels = (window.location.search != '');
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
@@ -1934,7 +1947,6 @@ export class PayrollReport extends Flux.DashView {
                                 <p className="text-right">
                                     <h2>Payments for {this.state.singlePayrollPeriod.label}</h2>
                                 </p>
-
                                 <div className="row mb-4 text-right">
                                     <div className="col">
 
@@ -2022,7 +2034,7 @@ export class PayrollReport extends Flux.DashView {
                                                                 <Text style={styles.tableCell}>-</Text>
                                                             </View>
                                                             <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</Text>
+                                                                <Text style={styles.tableCell}>{total.regular_hours > 40 ? total.regular_hours - 40 : 0}</Text>
                                                             </View>
                                                             <View style={styles.tableCol}>
                                                                 <Text style={styles.tableCell}>${Math.round(total.total_amount * 100) / 100}</Text>
@@ -2044,8 +2056,6 @@ export class PayrollReport extends Flux.DashView {
 
                                 </div>
 
-                                {/* <Button className="btn btn-info" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button> */}
-
                                 {this.state.singlePayrollPeriod.status == "OPEN" &&
                                     <Redirect from={'/payroll/report/' + this.state.singlePayrollPeriod.id} to={'/payroll/rating/' + this.state.singlePayrollPeriod.id} />
                                 }
@@ -2054,13 +2064,10 @@ export class PayrollReport extends Flux.DashView {
                                         <tr>
                                             <th scope="col">Staff</th>
                                             <th scope="col">Regular Hrs</th>
-                                            <th scope="col">PTO</th>
-                                            <th scope="col">Holiday</th>
-                                            <th scope="col">Sick</th>
-                                            <th scope="col">OT</th>
-                                            <th scope="col">DBL</th>
-                                            <th scope="col">Total Hrs</th>
-                                            <th scope="col">Labor</th>
+                                            <th scope="col">Over Time</th>
+                                            <th scope="col">Earnings</th>
+                                            <th scope="col">Taxes</th>
+                                            <th scope="col">Amount</th>
                                             <th scope="col"></th>
                                         </tr>
                                     </thead>
@@ -2082,16 +2089,26 @@ export class PayrollReport extends Flux.DashView {
                                                     <p className="m-0 p-0"><span className="badge">{total.status.toLowerCase()}</span></p>
                                                 </td>
                                                 <td>{Math.round(total.regular_hours * 100) / 100}</td>
-                                                <td>-</td>
-                                                <td>-</td>
-                                                <td>-</td>
                                                 <td>{Math.round(total.over_time * 100) / 100}</td>
-                                                <td>-</td>
-                                                <td>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</td>
-                                                <td>${Math.round(total.total_amount * 100) / 100}</td>
+                                                <td>{total.total_amount - taxesMagicNumber}</td>
+                                                <td>{taxesMagicNumber}</td>
+                                                <td>{total.total_amount}</td>
                                                 <td>
-                                                    <Button color="success" size="small" onClick={() => null}>Create payment</Button>
+                                                    <Button 
+                                                    color="success" 
+                                                    size="small" 
+                                                    onClick={() => bar.show({ 
+                                                        slug: "make_payment", 
+                                                        data: {
+                                                            pay: pay, 
+                                                            total: total,
+                                                    } 
+                                                    })}>
+                                                        Make payment
+                                                    </Button>
                                                 </td>
+                                                {/* <td>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</td>
+                                                <td>${Math.round(total.total_amount * 100) / 100}</td> */}
                                             </tr>;
                                         })}
                                     </tbody>

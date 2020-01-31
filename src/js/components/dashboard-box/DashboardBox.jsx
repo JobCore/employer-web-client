@@ -12,7 +12,6 @@ const statusLabel = {
     "DRAFT": "draft"
 };
 const DashboardBox = ({shifts, title, status, id}) => {
-
     const [ collapsed, setCollapsed ] = useState(true);
 
     const shiftsHTML = (!Array.isArray(shifts)) ? [] : shifts.map((s,i) => (<ShiftCard key={i} shift={s} clickForDetails={true} showStatus={true} />));
