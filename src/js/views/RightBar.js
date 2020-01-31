@@ -4,6 +4,7 @@ import {create, update, remove, acceptCandidate, rejectCandidate, deleteShiftEmp
 import {withRouter} from 'react-router-dom';
 import queryString from 'query-string';
 import {Deduction} from '../views/deductions';
+import {Payment} from '../views/payments';
 import {Shift} from '../views/shifts.js';
 import {Invite} from '../views/invites.js';
 import {Location} from '../views/locations.js';
@@ -164,6 +165,10 @@ class RightBar extends React.Component {
                 break;
                 case 'update_deduction':
                         update(`deduction`, Deduction(this.state.formData).validate().serialize());
+                        this.props.onClose();
+                break;
+                case 'make_payment':
+                        create(`payment`, Payment(this.state.formData).validate().serialize());
                         this.props.onClose();
                 break;
                 default: throw new Error("Missing logic onSave() for "+this.props.option.slug);
