@@ -1663,6 +1663,7 @@ export class PayrollReport extends Flux.DashView {
 
 
     render() {
+        const taxesMagicNumber = 3.00;
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
@@ -1715,8 +1716,8 @@ export class PayrollReport extends Flux.DashView {
                                                 </td>
                                                 <td>{Math.round(total.regular_hours * 100) / 100}</td>
                                                 <td>{Math.round(total.over_time * 100) / 100}</td>
-                                                <td>-</td>
-                                                <td>-</td>
+                                                <td>{total.total_amount - taxesMagicNumber}</td>
+                                                <td>{taxesMagicNumber}</td>
                                                 <td>{total.total_amount}</td>
                                                 <td>
                                                     <Button 
