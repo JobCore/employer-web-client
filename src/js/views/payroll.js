@@ -1741,8 +1741,7 @@ export class PayrollRating extends Flux.DashView {
                 <Button color="success" onClick={() => this.props.history.push("/payroll-settings")}>Setup Payroll Settings</Button>
             </div>;
         }
-
-        //const allowLevels = (window.location.search != '');
+        console.log(this.state.payments);
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({ bar }) => (<span>
@@ -1824,7 +1823,7 @@ export class PayrollRating extends Flux.DashView {
                             //     comments: p.comments,
                             //     payment: p.id
                             // }));
-                            const rated = this.state.payments.map(p => {
+                            const rated = this.state.payments.filter(s => s.shifts.length > 0).map(p => {
                                 if (p.shifts.length > 1) {
                                     return p.shifts.map(s => ({
                                         employee: p.employee.id,
