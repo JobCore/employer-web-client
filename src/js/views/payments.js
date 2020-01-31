@@ -46,7 +46,6 @@ export const MakePayment = ({
  }) => {
         console.log('MakePayment formData: ', formData);
         console.log('MakePayment error: ', error);
-        // const payment = formData.pay.payments[0]
         return ( <form>
             <div className="row">
                 <div className="col-12">
