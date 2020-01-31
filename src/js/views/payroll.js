@@ -1750,8 +1750,8 @@ export class PayrollRating extends Flux.DashView {
                     {(!this.state.singlePayrollPeriod) ? '' :
                         (this.state.singlePayrollPeriod.payments.length > 0) ?
                             <div>
-                                <p className="text-right">
-                                    <h2 className="mb-0">Please rate the talents for this period {this.state.singlePayrollPeriod.label}</h2>
+                                <p className="text-center">
+                                    <h2 className="mb-0">Please rate the talents for this period</h2>
                                     <h4 className="mt-0">{this.state.singlePayrollPeriod.label}</h4>
                                 </p>
                             </div>
@@ -2073,9 +2073,10 @@ export class PayrollReport extends Flux.DashView {
                                             <th scope="col">Staff</th>
                                             <th scope="col">Regular Hrs</th>
                                             <th scope="col">Over Time</th>
-                                            <th scope="col">Earnings</th>
+                                            <th scope="col">Total Hours</th>
+                                            <th scope="col">Total Earnings</th>
                                             <th scope="col">Taxes</th>
-                                            <th scope="col">Amount</th>
+                                            <th scope="col">Check Amount</th>
                                             <th scope="col"></th>
                                         </tr>
                                     </thead>
@@ -2099,9 +2100,10 @@ export class PayrollReport extends Flux.DashView {
                                                 </td>
                                                 <td>{Math.round(total.regular_hours * 100) / 100}</td>
                                                 <td>{Math.round(total.over_time * 100) / 100}</td>
-                                                <td>{Math.round(total.total_amount - taxesMagicNumber * 100) / 100}</td>
+                                                <td>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</td>
+                                                <td>${Math.round(total.total_amount * 100) / 100}</td>
                                                 <td>0</td>
-                                                <td>{Math.round(total.total_amount * 100) / 100}</td>
+                                                <td>${Math.round((total.total_amount - taxesMagicNumber) * 100) / 100}</td>
                                                 <td>
                                                     <Button 
                                                     color="success" 
