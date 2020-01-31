@@ -26,9 +26,10 @@ const sizes = {
   small: { btn: 'btn-sm', icon: 'icon-xs' }
 };
 
-const Button = ({ color, onClick, propagate, icon, children, className, note, rounded, size, onMouseEnter, onMouseLeave, onFocus, notePosition, withAlert }) => {
+const Button = ({ color, onClick, propagate, icon, children, className, note, rounded, size, onMouseEnter, onMouseLeave, onFocus, notePosition, withAlert, style }) => {
   return (
       <button
+        style={style}
         type="button"
         className={"jc-button btn btn-"+color+" "+notePosition+" "+sizes[size].btn+(withAlert ? ' with-note':'')+(rounded ? ' rounded':'')+" "+className}
         onMouseEnter={(e) => (onMouseEnter) ? onMouseEnter(e):null}
@@ -61,7 +62,8 @@ Button.propTypes = {
   notePosition: PropTypes.string,
   withAlert: PropTypes.bool,
   size: PropTypes.string,
-  rounded: PropTypes.bool
+  rounded: PropTypes.bool,
+  style: PropTypes.object
 };
 Button.defaultProps = {
   propagate: false,

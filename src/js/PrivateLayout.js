@@ -29,6 +29,7 @@ import moment from 'moment';
 import { EngineComponent } from "./utils/write_engine";
 import EmployerBankAccounts from "../js/views/employerBankAccounts";
 import { CreateDeduction, Deduction, UpdateDeduction } from "./views/deductions";
+import { MakePayment, Payment } from "./views/payments";
 
 class PrivateLayout extends Flux.DashView {
 
@@ -66,6 +67,10 @@ class PrivateLayout extends Flux.DashView {
                     { label: 'Filled', value: 'FILLED' },
                     { label: 'Completed', value: 'EXPIRED' },
                     { label: 'Paid', value: 'COMPLETED' }
+                ],
+                deductionsTypes: [ 
+                    { value: 'PERCENTAGE', label: 'Percentage' },
+                    { value: 'AMOUNT', label: 'Amount' }
                 ]
             },
             bar: {
@@ -77,13 +82,17 @@ class PrivateLayout extends Flux.DashView {
                             this.showRightBar(ShiftDetails, option, { formData: Shift(option.data).defaults() });
                             break;
                         case 'create_deduction':
-                            option.title = "Create deduction";
-                            this.showRightBar(CreateDeduction, option, { formData: Deduction(option.data).defaults() });
-                            break;
-                        case 'update_deduction':
-                            option.title = "Update deduction";
-                            this.showRightBar(UpdateDeduction, option, { formData: Deduction(option.data).defaults() });
-                            break;
+                          option.title = "Create deduction";
+                          this.showRightBar(CreateDeduction, option, {formData: Deduction(option.data).defaults()});
+                        break;
+                       case 'update_deduction':
+                        option.title = "Update deduction";
+                        this.showRightBar(UpdateDeduction, option, {formData: Deduction(option.data).defaults()});
+                        break;
+                       case 'make_payment':
+                        option.title = "Make payment";
+                        this.showRightBar(MakePayment, option, {formData: Payment(option.data).defaults()});
+                        break;
                         case 'create_expired_shift': {
                             this.showRightBar(EditOrAddExpiredShift, option, { formData: Shift({ ...option.data }).defaults() });
                         } break;
