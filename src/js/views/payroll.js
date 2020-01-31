@@ -1670,7 +1670,6 @@ export class PayrollReport extends Flux.DashView {
                 <Button color="success" onClick={() => this.props.history.push("/payroll/settings")}>Setup Payroll Settings</Button>
             </div>;
         }
-        console.log("paymentBox: ", this.state.paymentBox);
         //const allowLevels = (window.location.search != '');
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
