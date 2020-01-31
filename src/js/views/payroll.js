@@ -959,8 +959,8 @@ export class ManagePayroll extends Flux.DashView {
                                         a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
                             ).map(pay => {
 
-                                const total_hours = pay.payments.reduce((total, { regular_hours, over_time }) => total + parseFloat(regular_hours) + parseFloat(over_time), 0);
-                                const total_amount = pay.payments.reduce((total, { regular_hours, over_time, hourly_rate }) => total + (parseFloat(regular_hours) + parseFloat(over_time)) * parseFloat(hourly_rate), 0);
+                                const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + parseFloat(regular_hours) + parseFloat(over_time), 0);
+                                const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + (parseFloat(regular_hours) + parseFloat(over_time)) * parseFloat(hourly_rate), 0);
                                 return <table key={pay.employee.id} className="table table-striped payroll-summary">
                                     <thead>
                                         <tr>
@@ -1741,8 +1741,7 @@ export class PayrollRating extends Flux.DashView {
                 <Button color="success" onClick={() => this.props.history.push("/payroll-settings")}>Setup Payroll Settings</Button>
             </div>;
         }
-
-        //const allowLevels = (window.location.search != '');
+        console.log(this.state.payments);
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({ bar }) => (<span>
@@ -1817,12 +1816,26 @@ export class PayrollRating extends Flux.DashView {
 
                         <button type="button" className="btn btn-primary" onClick={() => {
                             const unrated = this.state.payments.find(p => p.rating == null && p.shifts.length > 0);
-                            const rated = this.state.payments.map(p => ({
-                                employee: p.employee.id,
-                                shifts: p.shifts,
-                                rating: p.rating,
-                                comments: p.comments,
-                                payment: p.id
+                            const rated = [].concat.apply([], this.state.payments.filter(s => s.shifts.length > 0).map(p => {
+                                if (p.shifts.length > 1) {
+                                    return p.shifts.map(s => ({
+                                        employee: p.employee.id,
+                                        shift: s,
+                                        rating: p.rating,
+                                        comments: p.comments,
+                                        payment: p.id
+                                    }));
+                                } else {
+                                    return (
+                                        [{
+                                            employee: p.employee.id,
+                                            shift: p.shifts[0],
+                                            rating: p.rating,
+                                            comments: p.comments,
+                                            payment: p.id
+                                        }]
+                                    );
+                                }
                             }));
                             if (unrated) Notify.error("There are still some employees that need to be rated");
                             else {
@@ -1937,6 +1950,115 @@ export class PayrollReport extends Flux.DashView {
                                 <p className="text-right">
                                     <h2>Payments for {this.state.singlePayrollPeriod.label}</h2>
                                 </p>
+                                <div className="row mb-4 text-right">
+                                    <div className="col">
+
+                                        <Button size="small" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button>
+                                    </div>
+                                    <PDFDownloadLink document={
+                                        <Document>
+                                            {/* <Page style={styles.page}> */}
+                                            <Page style={styles.body}>
+                                                <View style={styles.section}>
+                                                    <Image source={JobCoreLogo} style={styles.image} />
+                                                </View>
+                                                {this.state.employer.picture ? (
+                                                    <View style={styles.section}>
+                                                        <Image src={this.state.employer.picture} style={styles.image_company} />
+                                                    </View>
+                                                ) : null}
+
+
+                                                <View style={{ color: 'black', marginTop: 15, marginBottom: 15, fontSize: 15 }}>
+                                                    <Text>{moment(this.state.singlePayrollPeriod.starting_at).format('MMMM D') + " - " + moment(this.state.singlePayrollPeriod.ending_at).format('LL')}</Text>
+                                                </View>
+                                                <View style={styles.table}>
+                                                    <View style={styles.tableRow}>
+                                                        <View style={styles.tableCol1Header}>
+                                                            <Text style={styles.tableCellHeader}>STAFF</Text>
+                                                        </View>
+                                                        <View style={styles.tableColHeader}>
+                                                            <Text style={styles.tableCellHeader}>REGULAR</Text>
+                                                        </View>
+                                                        <View style={styles.tableColHeader}>
+                                                            <Text style={styles.tableCellHeader}>PTO</Text>
+                                                        </View>
+                                                        <View style={styles.tableColHeader}>
+                                                            <Text style={styles.tableCellHeader}>HOLIDAY</Text>
+                                                        </View>
+                                                        <View style={styles.tableColHeader}>
+                                                            <Text style={styles.tableCellHeader}>SICK</Text>
+                                                        </View>
+                                                        <View style={styles.tableColHeader}>
+                                                            <Text style={styles.tableCellHeader}>OT</Text>
+                                                        </View>
+                                                        <View style={styles.tableColHeader}>
+                                                            <Text style={styles.tableCellHeader}>DBL</Text>
+                                                        </View>
+                                                        <View style={styles.tableColHeader}>
+                                                            <Text style={styles.tableCellHeader}>TOTAL</Text>
+                                                        </View>
+                                                        <View style={styles.tableColHeader}>
+                                                            <Text style={styles.tableCellHeader}>LABOR</Text>
+                                                        </View>
+                                                    </View>
+
+                                                    {this.state.payments.sort((a, b) =>
+                                                        a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
+                                                    ).map(pay => {
+                                                        const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
+                                                            return {
+                                                                over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
+                                                                regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
+                                                                total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount),
+                                                                status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
+                                                            };
+                                                        }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
+                                                        return <View key={pay.employee.id} style={styles.tableRow}>
+                                                            <View style={styles.tableCol1}>
+                                                                <Text style={styles.tableCell}>{pay.employee.user.last_name + " " + pay.employee.user.first_name + " - " + total.status.toLowerCase()}</Text>
+                                                            </View>
+                                                            <View style={styles.tableCol}>
+                                                                <Text style={styles.tableCell}>{Math.round(total.regular_hours * 100) / 100}</Text>
+                                                            </View>
+                                                            <View style={styles.tableCol}>
+                                                                <Text style={styles.tableCell}>-</Text>
+                                                            </View>
+                                                            <View style={styles.tableCol}>
+                                                                <Text style={styles.tableCell}>-</Text>
+                                                            </View>
+                                                            <View style={styles.tableCol}>
+                                                                <Text style={styles.tableCell}>-</Text>
+                                                            </View>
+                                                            <View style={styles.tableCol}>
+                                                                <Text style={styles.tableCell}>{Math.round(total.over_time * 100) / 100}</Text>
+                                                            </View>
+                                                            <View style={styles.tableCol}>
+                                                                <Text style={styles.tableCell}>-</Text>
+                                                            </View>
+                                                            <View style={styles.tableCol}>
+                                                                <Text style={styles.tableCell}>{total.regular_hours > 40 ? total.regular_hours - 40 : 0}</Text>
+                                                            </View>
+                                                            <View style={styles.tableCol}>
+                                                                <Text style={styles.tableCell}>${Math.round(total.total_amount * 100) / 100}</Text>
+                                                            </View>
+                                                        </View>;
+                                                    })}
+                                                </View>
+                                            </Page>
+                                        </Document>
+                                    } fileName={"JobCore " + this.state.singlePayrollPeriod.label + ".pdf"}>
+                                        {({ blob, url, loading, error }) => (loading ? 'Loading...' : (
+                                            <div className="col">
+                                                <Button color="success" size="small" >Export to PDF</Button>
+                                            </div>
+                                        )
+                                        )}
+                                    </PDFDownloadLink>
+
+
+                                </div>
+
                                 {this.state.singlePayrollPeriod.status == "OPEN" &&
                                     <Redirect from={'/payroll/report/' + this.state.singlePayrollPeriod.id} to={'/payroll/rating/' + this.state.singlePayrollPeriod.id} />
                                 }
