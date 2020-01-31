@@ -73,7 +73,7 @@ export const MakePayment = ({
                 <div className="col-12">
                     <label>Payment methods</label>
                 </div>
-                <div className="col-12 payment-cell">
+                <div className="col-12 payment-cell" style={{ borderTop: "1px solid"}}>
                         Check Payment
                 </div>
                 <div className="col-12 payment-cell">
