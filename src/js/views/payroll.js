@@ -948,7 +948,7 @@ export class ManagePayroll extends Flux.DashView {
                             ).map(pay => {
 
                                 const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + parseFloat(regular_hours) + parseFloat(over_time), 0);
-                                const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + (parseFloat(regular_hours) + parseFloat(over_time)) * parseFloat(hourly_rate), 0);
+                                const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + ((parseFloat(regular_hours) * parseFloat(hourly_rate)) + (parseFloat(over_time)  * parseFloat(hourly_rate) * 1.5)), 0);
                                 return <table key={pay.employee.id} className="table table-striped payroll-summary">
                                     <thead>
                                         <tr>
@@ -1093,6 +1093,11 @@ export class ManagePayroll extends Flux.DashView {
                                             </td>
                                             <td colSpan={3} className="text-right">
                                                 Total: {!isNaN(total_hours) ? Math.round(total_hours * 100) / 100 : 0} hr
+                                                { total_hours > 40 &&
+                                                    <Tooltip placement="bottom" trigger={['hover']} overlay={<small>This employee has overtime</small>}>
+                                                        <i className="fas fa-stopwatch text-danger fa-xs mr-2"></i>
+                                                    </Tooltip>
+                                                }
                                                 <small className="d-block">${!isNaN(total_amount) ? Math.round(total_amount * 100) / 100 : 0}</small>
                                             </td>
                                         </tr>
@@ -1692,12 +1697,8 @@ export class PayrollRating extends Flux.DashView {
                     let ratings = {};
                     singlePeriod.payments.forEach(pay => {
                         if (typeof ratings[pay.employee.id] === 'undefined') ratings[pay.employee.id] = { employee: pay.employee, shifts: [], rating: null, comments: '' };
-                        const hasPreviousShift = previousRatings.find(r => {
-                            if (r.shift && pay.shift) {
-                                if (r.shift.id === pay.shift.id) return true;
-                            } else return false;
-                        });
-                        if (!hasPreviousShift) ratings[pay.employee.id].shifts.push(pay.shift.id);
+                        const hasPreviousShift = previousRatings.find(r => (r.shift && pay.shift && r.shift.id === pay.shift.id && r.employee === pay.employee.id));
+                        if (!hasPreviousShift && pay.shift) ratings[pay.employee.id].shifts.push(pay.shift.id);
 
                     });
                     resolve(Object.values(ratings));
@@ -1739,15 +1740,19 @@ export class PayrollRating extends Flux.DashView {
                 <Button color="success" onClick={() => this.props.history.push("/payroll-settings")}>Setup Payroll Settings</Button>
             </div>;
         }
-        console.log(this.state.payments);
-        return (<div className="p-1 listcontents">
+
+        return (<div className="p-1 listcontents mx-auto">
+            {this.state.singlePayrollPeriod && this.state.singlePayrollPeriod.status == "FINALIZED" &&
+                <Redirect from={'/payroll/rating/' + this.state.singlePayrollPeriod.id} to={'/payroll/report/' + this.state.singlePayrollPeriod.id} />
+            }
             <Theme.Consumer>
                 {({ bar }) => (<span>
                     {(!this.state.singlePayrollPeriod) ? '' :
                         (this.state.singlePayrollPeriod.payments.length > 0) ?
                             <div>
                                 <p className="text-right">
-                                    <h2>Rating {this.state.singlePayrollPeriod.label}</h2>
+                                    <h2 className="mb-0">Please rate the talents for this period {this.state.singlePayrollPeriod.label}</h2>
+                                    <h4 className="mt-0">{this.state.singlePayrollPeriod.label}</h4>
                                 </p>
                             </div>
                             :
@@ -1793,7 +1798,7 @@ export class PayrollRating extends Flux.DashView {
                                         />
                                     </div>
                                     <div className="col-6 my-auto">
-                                        <TextareaAutosize style={{ width: '100%' }} placeholder="Comment..." value={list.comments} onChange={(e) => {
+                                        <TextareaAutosize style={{ width: '100%' }} placeholder="Any additional comments?" value={list.comments} onChange={(e) => {
 
                                             const allPayments = this.state.payments;
                                             allPayments[i].comments = e.target.value;
@@ -1810,7 +1815,7 @@ export class PayrollRating extends Flux.DashView {
 
                     }
 
-                    <div className="btn-bar text-right mt-3">
+                    <div className="btn-bar text-center mt-3">
 
                         <button type="button" className="btn btn-primary" onClick={() => {
                             const unrated = this.state.payments.find(p => p.rating == null && p.shifts.length > 0);
@@ -1900,7 +1905,7 @@ export class PayrollReport extends Flux.DashView {
             if (typeof groupedPayments[pay.employee.id] === 'undefined') {
                 groupedPayments[pay.employee.id] = { employee: pay.employee, payments: [] };
             }
-            groupedPayments[pay.employee.id].payments.push(pay);
+            if(pay.status === "APPROVED") groupedPayments[pay.employee.id].payments.push(pay);
         });
 
         return Object.values(groupedPayments);
@@ -1930,7 +1935,8 @@ export class PayrollReport extends Flux.DashView {
 
 
     render() {
-        const taxesMagicNumber = 3.00;
+
+        const taxesMagicNumber = 0;
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
@@ -2009,6 +2015,7 @@ export class PayrollReport extends Flux.DashView {
                                                                 over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
                                                                 regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
                                                                 total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount),
+                                                                taxes: taxesMagicNumber,
                                                                 status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
                                                             };
                                                         }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
@@ -2080,6 +2087,7 @@ export class PayrollReport extends Flux.DashView {
                                                 return {
                                                     over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
                                                     regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
+                                                    taxes: taxesMagicNumber,
                                                     total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount),
                                                     status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
                                                 };
@@ -2091,9 +2099,9 @@ export class PayrollReport extends Flux.DashView {
                                                 </td>
                                                 <td>{Math.round(total.regular_hours * 100) / 100}</td>
                                                 <td>{Math.round(total.over_time * 100) / 100}</td>
-                                                <td>{total.total_amount - taxesMagicNumber}</td>
-                                                <td>{taxesMagicNumber}</td>
-                                                <td>{total.total_amount}</td>
+                                                <td>{Math.round(total.total_amount - taxesMagicNumber * 100) / 100}</td>
+                                                <td>0</td>
+                                                <td>{Math.round(total.total_amount * 100) / 100}</td>
                                                 <td>
                                                     <Button 
                                                     color="success" 
