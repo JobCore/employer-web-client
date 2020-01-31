@@ -1,15 +1,16 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import { store, search, fetchTemporal, GET } from '../actions.js';
+import { store, search, fetchTemporal, create, GET } from '../actions.js';
 import { callback, hasTutorial } from '../utils/tutorial';
-import { GenericCard, Avatar, Stars, Theme, Button, Wizard, StarRating, SearchCatalogSelect } from '../components/index';
+import { GenericCard, Avatar, Stars, Theme, Button, Wizard, StarRating, SearchCatalogSelect, ShiftOption, ShiftOptionSelected, EmployeeExtendedCard } from '../components/index';
 import Select from 'react-select';
 import queryString from 'query-string';
 import { Session } from 'bc-react-session';
 import moment from 'moment';
 import { Notify } from 'bc-react-notifier';
 import { NOW } from "../components/utils.js";
+import { Talent } from '../views/talents.js';
 
 //gets the querystring and creats a formData object to be used when opening the rightbar
 export const getRatingInitialFilters = (catalog) => {
@@ -58,6 +59,7 @@ export const Rating = (data) => {
     };
 
     let _entity = Object.assign(_defaults, data);
+    console.log('entidad ', _entity);
     return {
         validate: () => {
 
@@ -71,6 +73,11 @@ export const Rating = (data) => {
                 id: _entity.id,
                 comments: _entity.comments,
                 rating: _entity.rating,
+                employee: _entity.employee,
+
+                // if more than one employee will be rated for the same shift
+                employees_to_rate: _entity ? _entity.employees : [],
+
                 sender: _entity.sender,
                 shift: _entity.shift ?
                     {
@@ -174,6 +181,7 @@ export class ManageRating extends Flux.DashView {
 export const RatingDetails = (props) => {
     const { formData } = props;
     const { shift } = formData;
+
     return (<Theme.Consumer>
         {({ bar }) =>
             (<li className="aplication-details">
@@ -268,77 +276,214 @@ ReviewTalentAndShift.propTypes = {
 /**
  * Review Talent in general
  */
+export const RatingEmployees = (props) => {
 
-export const ReviewTalent = ({ onSave, onCancel, onChange, catalog, formData, error, bar }) => {
+    const { onCancel, onSave, catalog, formData } = props;
+
+    const shiftEmployees = formData.shift.employees.map((e) => {
+        if (formData.ratings.find(rated => rated.employee == e.id)) {
+            var ratedEmployee = Object.assign({}, e);
+            ratedEmployee.rating = formData.ratings.find(rated => rated.employee == e.id).rating;
+            ratedEmployee.created_at = formData.ratings.find(rated => rated.employee == e.id).created_at;
+            return ratedEmployee;
+        } else {
+            return e;
+        }
+    });
+
+    return (<Theme.Consumer>
+        {({ bar }) => (<div className="sidebar-applicants">
+            {shiftEmployees.find(e => !e.rating) ? (
+                <div className="top-bar">
+                    <button type="button" className="btn btn-primary btn-sm"
+                        onClick={() => bar.show({ slug: "review_talent", data: { shift: formData.shift, employees: shiftEmployees.filter(e => !e.rating) }, allowLevels: true })}
+
+                    >
+                        Rate employee
+                    </button>
+                </div>
+            ) : (
+                    null
+                )}
+
+
+            <h3>Shift Ratings:</h3>
+            <ul style={{ overflowY: "auto", maxHeight: "75vh" }}>
+                {
+                    shiftEmployees.length > 0 ?
+                        shiftEmployees.map((tal, i) => (
+                            <GenericCard key={i} hover={true}>
+                                <Avatar url={tal.user.profile.picture} />
+                                <a href="#"><b>{tal.user.first_name + ' ' + tal.user.last_name}</b></a>
+
+                                <Stars rating={Number(tal.rating)} noRatingLabel="Not yet rated for this shift" />
+                                {
+                                    tal.rating ? null : (
+                                        <div className="btn-group" role="group" aria-label="Basic example">
+                                            <Button
+                                                className="mt-0 text-white" label="Rate"
+                                                notePosition="left" note="Rate Employee"
+                                                onClick={() => bar.show({ slug: "review_talent", data: { shift: formData.shift, employees: [tal] }, allowLevels: true })}
+                                            >
+                                                Rate
+                                            </Button>
+
+                                        </div>
+
+                                    )
+                                }
+                            </GenericCard>
+
+                        ))
+                        :
+                        <li>No ratings were found for this shift</li>
+                }
+            </ul>
+        </div>)}
+    </Theme.Consumer>);
+};
+RatingEmployees.propTypes = {
+    onSave: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    catalog: PropTypes.object, //contains the data needed for the form to load
+    formData: PropTypes.object, //contains the data needed for the form to load
+    context: PropTypes.object //contact any additional data for context purposes
+};
+export const UnratingEmployees = (props) => {
+
+    console.log(props);
+    const { onCancel, onSave, catalog, formData } = props;
+    const unrated_employees = formData.employees.filter(e => !e.rating);
+    return (<Theme.Consumer>
+        {({ bar }) => (<div className="sidebar-applicants">
+
+            <div className="top-bar">
+                <button type="button" className="btn btn-primary btn-sm"
+                    onClick={() => bar.show({ slug: "review_talent", data: catalog.shift, allowLevels: true })}
+
+                >
+                    Rate employee
+                </button>
+            </div>
+
+            <h3>Shift Ratings:</h3>
+            <ul style={{ overflowY: "auto", maxHeight: "75vh" }}>
+                {
+                    unrated_employees.length > 0 ?
+                        unrated_employees.map((tal, i) => (
+                            <EmployeeExtendedCard
+                                key={i}
+                                employee={tal}
+                                hover={false}
+                                showFavlist={false}
+                            >
+
+                            </EmployeeExtendedCard>)
+                        )
+                        :
+                        <li>No ratings were found for this shift</li>
+                }
+            </ul>
+        </div>)}
+    </Theme.Consumer>);
+};
+UnratingEmployees.propTypes = {
+    onSave: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    catalog: PropTypes.object, //contains the data needed for the form to load
+    formData: PropTypes.object, //contains the data needed for the form to load
+    context: PropTypes.object //contact any additional data for context purposes
+};
+
+
+export const ReviewTalent = ({ onSave, onCancel, onChange, catalog, formData, error }) => {
     const [shifts, setShifts] = useState([]);
+    const [rating, setRating] = useState('');
+    const [comments, setComments] = useState('');
+    const [employeesToRate, setEmployeesToRate] = useState(formData.employees_to_rate.map(e => (
+        {
+            label: e.user.first_name + " " + e.user.last_name,
+            value: e.id
+        }
+    )));
+
     return (<Theme.Consumer>
         {({ bar }) => (
             < form >
                 <div className="row">
                     <div className="col-12">
                         <label>Who worked on this shift?</label>
-                        <SearchCatalogSelect
-                            isMulti={false}
-                            value={formData.employee}
-                            onChange={(emp) => {
-                                onChange({ employee: emp });
-                                GET('shifts?unrated=true&employee=' + emp.value)
-                                    .then(shifts => setShifts([
-                                        { label: `${(shifts.length == 0) ? 'No shifts found' : ''}` }
-                                    ].concat(shifts)));
-                            }}
-                            searchFunction={(search) => new Promise((resolve, reject) =>
-                                GET('catalog/employees?full_name=' + search)
-                                    .then(talents => resolve([
-                                        { label: `${(talents.length == 0) ? 'No one found: ' : ''}Invite "${search}" to jobcore`, value: 'invite_talent_to_jobcore' }
-                                    ].concat(talents)))
-                                    .catch(error => reject(error))
-                            )}
+
+                        <Select
+                            isMulti
+                            value={employeesToRate}
+                            onChange={(employees) => setEmployeesToRate(employees)}
+                            options={formData.employees_to_rate.map(e => ({
+                                label: e.user.first_name + " " + e.user.last_name,
+                                value: e.id
+                            }))}
+
                         />
 
                     </div>
                 </div>
-                <div className="row">
+                {/* <div className="row">
                     <div className="col-12">
+
                         <label>What shift was it working?</label>
                         <Select
-                            value={formData.shift}
+                            value={{ value: formData.shift }}
+                            components={{ Option: ShiftOption, SingleValue: ShiftOptionSelected({ multi: false }) }}
                             onChange={(selection) => onChange({ shift: selection.value.toString() })}
-                            options={shifts}
+                            options={[]}
                         />
                     </div>
-                </div>
+                </div> */}
                 <div className="row">
                     <div className="col-12">
                         <label>How was his performance during the shift</label>
                         <StarRating
-                            fractions={0.5}
+                            onClick={(e) =>
+                                setRating(e)
+                            }
                             onHover={() => null}
-                            onClick={() => null}
                             direction="right"
-                            quiet={true}
+                            fractions={2}
+                            quiet={false}
                             readonly={false}
-                            value={0}
                             totalSymbols={5}
+                            value={rating}
                             placeholderValue={0}
-                            fullSymbol="far fa-star fa-xs"
-                            emptySymbol="fas fa-star fa-xs"
-                            placeholderSymbol="fas fa-star fa-xs"
+                            placeholderRating={Number(0)}
+                            emptySymbol="far fa-star md"
+                            fullSymbol="fas fa-star"
+                            placeholderSymbol={"fas fa-star"}
                         />
                     </div>
                 </div>
                 <div className="row">
                     <div className="col-12">
                         <label>Any comments?</label>
-                        <textarea className="form-control"></textarea>
+                        <textarea className="form-control" onChange={e => setComments(e.target.value)}></textarea>
                     </div>
                 </div>
                 <div className="btn-bar">
                     <Button color="success"
-                        onClick={() => onSave({
-                            executed_action: '',
-                            status: 'OPEN'
-                        })}>Send Review</Button>
+                        onClick={() => create('ratings',
+                            // {
+                            //     employee: formData.employees_to_rate.map(e => e.id),
+                            //     shifts: formData.shift.id,
+                            //     rating: rating,
+                            //     comments: comments
+                            // }
+                            formData.employees_to_rate.map(e => ({
+                                employee: e.id,
+                                shift: formData.shift.id,
+                                rating: rating,
+                                comments: comments
+                            }))
+                        ).then((res) => bar.close("last"))
+                            .catch(e => Notify.error(e.message || e))}>Send Review</Button>
                 </div>
             </form>
         )}
