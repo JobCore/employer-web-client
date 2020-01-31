@@ -1149,10 +1149,11 @@ Marker.defaultProps = {
 };
 
 const LatLongClockin = ({ clockin, children, isIn }) => {
+    if(!clockin) return null;
     const lat = isIn ? clockin.latitude_in : clockin.latitude_out;
     const lng = isIn ? clockin.longitude_in : clockin.longitude_out;
     const distance = isIn ? clockin.distance_in_miles : clockin.distance_out_miles;
-    const time = isIn ? clockin.starting_at.format('LT') : clockin.ending_at.format('LT');
+    const time = isIn ? clockin.started_at.format('LT') : clockin.ended_at ? clockin.ended_at.format('LT') : "";
 
     return <Tooltip placement="right" trigger={['hover']} overlay={
         <div style={{ width: "200px", height: "200px" }} className="p-0 d-inline-block">
