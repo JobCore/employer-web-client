@@ -66,6 +66,10 @@ class PrivateLayout extends Flux.DashView {
                     { label: 'Filled', value: 'FILLED' },
                     { label: 'Completed', value: 'EXPIRED' },
                     { label: 'Paid', value: 'COMPLETED' }
+                ],
+                deductionsTypes: [ 
+                    { value: 'PERCENTAGE', label: 'Percentage' },
+                    { value: 'AMOUNT', label: 'Amount' }
                 ]
             },
             bar: {

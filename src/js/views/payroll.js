@@ -1264,7 +1264,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                 if (_shift == 'new_shift') bar.show({
                                     slug: "create_expired_shift", data: {
                                         employeesToAdd: [{ label: employee.user.first_name + " " + employee.user.last_name, value: employee.id }],
-                                        // Dates are in utc so I decided to change it to local time 
+                                        // Dates are in utc so I decided to change it to local time
                                         starting_at: moment(period.starting_at),
                                         ending_at: moment(period.starting_at).add(2, "hours"),
                                         period_starting: moment(period.starting_at),
