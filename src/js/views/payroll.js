@@ -1741,8 +1741,7 @@ export class PayrollRating extends Flux.DashView {
                 <Button color="success" onClick={() => this.props.history.push("/payroll-settings")}>Setup Payroll Settings</Button>
             </div>;
         }
-
-        //const allowLevels = (window.location.search != '');
+        console.log(this.state.payments);
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({ bar }) => (<span>
@@ -1817,13 +1816,34 @@ export class PayrollRating extends Flux.DashView {
 
                         <button type="button" className="btn btn-primary" onClick={() => {
                             const unrated = this.state.payments.find(p => p.rating == null && p.shifts.length > 0);
-                            const rated = this.state.payments.map(p => ({
-                                employee: p.employee.id,
-                                shifts: p.shifts,
-                                rating: p.rating,
-                                comments: p.comments,
-                                payment: p.id
-                            }));
+                            // const rated = this.state.payments.map(p => ({
+                            //     employee: p.employee.id,
+                            //     shifts: p.shifts,
+                            //     rating: p.rating,
+                            //     comments: p.comments,
+                            //     payment: p.id
+                            // }));
+                            const rated = this.state.payments.filter(s => s.shifts.length > 0).map(p => {
+                                if (p.shifts.length > 1) {
+                                    return p.shifts.map(s => ({
+                                        employee: p.employee.id,
+                                        shift: s.shifts,
+                                        rating: p.rating,
+                                        comments: p.comments,
+                                        payment: p.id
+                                    }));
+                                } else {
+                                    return (
+                                        {
+                                            employee: p.employee.id,
+                                            shift: p.shifts[0],
+                                            rating: p.rating,
+                                            comments: p.comments,
+                                            payment: p.id
+                                        }
+                                    );
+                                }
+                            });
                             if (unrated) Notify.error("There are still some employees that need to be rated");
                             else {
                                 create('ratings', rated).then((res) => { if (res) update('payroll-periods', Object.assign(this.state.singlePayrollPeriod, { status: 'FINALIZED' })); })
@@ -2025,7 +2045,7 @@ export class PayrollReport extends Flux.DashView {
                                                                 <Text style={styles.tableCell}>-</Text>
                                                             </View>
                                                             <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</Text>
+                                                                <Text style={styles.tableCell}>{total.regular_hours > 40 ? total.regular_hours - 40 : 0}</Text>
                                                             </View>
                                                             <View style={styles.tableCol}>
                                                                 <Text style={styles.tableCell}>${Math.round(total.total_amount * 100) / 100}</Text>
