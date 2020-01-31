@@ -2046,7 +2046,7 @@ export class PayrollReport extends Flux.DashView {
                                                                 <Text style={styles.tableCell}>-</Text>
                                                             </View>
                                                             <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</Text>
+                                                                <Text style={styles.tableCell}>{total.regular_hours > 40 ? total.regular_hours - 40 : 0}</Text>
                                                             </View>
                                                             <View style={styles.tableCol}>
                                                                 <Text style={styles.tableCell}>${Math.round(total.total_amount * 100) / 100}</Text>

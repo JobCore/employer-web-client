@@ -277,21 +277,7 @@ ReviewTalentAndShift.propTypes = {
  * Review Talent in general
  */
 export const RatingEmployees = (props) => {
-    const [possibleRatings, setPossibleShifts] = useState(null);
 
-
-    useEffect(() => {
-        let subs = store.subscribe('ratings', (_ratings) => {
-            console.log(_ratings);
-            const _possibleRatings = _ratings;
-            setPossibleShifts(_possibleRatings);
-        });
-
-        return () => {
-            if (subs) subs.unsubscribe();
-        };
-
-    }, []);
     const { onCancel, onSave, catalog, formData } = props;
 
     const shiftEmployees = formData.shift.employees.map((e) => {
@@ -305,8 +291,6 @@ export const RatingEmployees = (props) => {
         }
     });
 
-    console.log(shiftEmployees);
-    console.log(formData.ratings);
     return (<Theme.Consumer>
         {({ bar }) => (<div className="sidebar-applicants">
             {shiftEmployees.find(e => !e.rating) ? (

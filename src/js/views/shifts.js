@@ -936,7 +936,6 @@ EditOrAddShift.defaultProps = {
  * ShiftDetails
  */
 export const ShiftDetails = (props) => {
-    console.log(props);
     const creationMode = isNaN(props.formData.id);
 
     const shift = !props.catalog.shifts ? null : props.catalog.shifts.find(s => s.id == props.formData.id);
