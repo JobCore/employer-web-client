@@ -47,8 +47,6 @@ export const CreateDeduction = ({
     bar, 
     error
  }) => {
-        console.log('CreateDeduction formData: ', formData);
-        console.log('CreateDeduction error: ', error);
         return ( <form>
             <div className="row">
                 <div className="col-6">
@@ -137,8 +135,6 @@ export const UpdateDeduction = ({
     bar, 
     error
  }) => {
-        console.log('CreateDeduction formData: ', formData);
-        console.log('CreateDeduction error: ', error);
         return ( <form>
             <div className="row">
                 <div className="col-6">

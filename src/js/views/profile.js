@@ -65,8 +65,7 @@ export class Profile extends Flux.DashView {
     componentDidMount() {
 
         let employer = store.getState('current_employer');
-        if (!employer) fetchTemporal('employers/me', 'current_employer');
-        else this.setState({ employer });
+        if (employer) this.setState({ employer });
 
         this.subscribe(store, 'current_employer', (employer) => {
             this.setState({ employer });
@@ -86,6 +85,17 @@ export class Profile extends Flux.DashView {
                     <div className="col-6">
                         <label>Rating</label>
                         <p>Talents rated you with <span className="text-success">{this.state.employer.rating} points.</span></p>
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col-12">
+                        <label>Subscription</label>
+                        <p>{ this.state.employer.active_subscription ? 
+                                this.state.employer.active_subscription.title 
+                                : 
+                                "No active subscription"
+                            } 
+                            <Button className="ml-2" onClick={() => this.props.history.push('/profile/subscription')} size="small">update</Button></p>
                     </div>
                 </div>
                 <div className="row">
@@ -148,6 +158,9 @@ export class Profile extends Flux.DashView {
         </div>);
     }
 }
+Profile.propTypes = {
+    history: PropTypes.object,
+};
 
 export class ManageUsers extends Flux.DashView {
 

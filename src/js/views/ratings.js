@@ -1,12 +1,12 @@
 import React, { useContext, useState } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import {store, search, fetchTemporal, GET} from '../actions.js';
-import {callback, hasTutorial} from '../utils/tutorial';
-import {GenericCard, Avatar, Stars, Theme, Button, Wizard, StarRating, SearchCatalogSelect } from '../components/index';
+import { store, search, fetchTemporal, GET } from '../actions.js';
+import { callback, hasTutorial } from '../utils/tutorial';
+import { GenericCard, Avatar, Stars, Theme, Button, Wizard, StarRating, SearchCatalogSelect } from '../components/index';
 import Select from 'react-select';
 import queryString from 'query-string';
-import {Session} from 'bc-react-session';
+import { Session } from 'bc-react-session';
 import moment from 'moment';
 import { Notify } from 'bc-react-notifier';
 import { NOW } from "../components/utils.js";
@@ -14,9 +14,9 @@ import { NOW } from "../components/utils.js";
 //gets the querystring and creats a formData object to be used when opening the rightbar
 export const getRatingInitialFilters = (catalog) => {
     let query = queryString.parse(window.location.search);
-    if(typeof query == 'undefined') return {};
-    if(!Array.isArray(query.positions)) query.positions = (typeof query.positions == 'undefined') ? [] : [query.positions];
-    if(!Array.isArray(query.badges)) query.badges = (typeof query.badges == 'undefined') ? [] : [query.badges];
+    if (typeof query == 'undefined') return {};
+    if (!Array.isArray(query.positions)) query.positions = (typeof query.positions == 'undefined') ? [] : [query.positions];
+    if (!Array.isArray(query.badges)) query.badges = (typeof query.badges == 'undefined') ? [] : [query.badges];
     return {
         positions: query.positions.map(pId => catalog.positions.find(pos => pos.value == pId)),
         badges: query.badges.map(bId => catalog.badges.find(b => b.value == bId)),
@@ -29,7 +29,7 @@ export const Rating = (data) => {
     const session = Session.getPayload();
     const _defaults = {
         //foo: 'bar',
-        serialize: function(){
+        serialize: function () {
 
             const newRating = {
                 comments: '',
@@ -41,14 +41,14 @@ export const Rating = (data) => {
 
             return Object.assign(this, newRating);
         },
-        unserialize: function(){
+        unserialize: function () {
             //this.fullName = function() { return (this.user.first_name.length>0) ? this.user.first_name + ' ' + this.user.last_name : 'No name specified'; };
             let shift = null;
-            if(this.shift){
-                shift = { 
-                    ...this.shift, 
+            if (this.shift) {
+                shift = {
+                    ...this.shift,
                     starting_at: moment(this.shift.starting_at),
-                    ending_at: moment(this.shift.ending_at) 
+                    ending_at: moment(this.shift.ending_at)
                 };
             }
 
@@ -72,13 +72,14 @@ export const Rating = (data) => {
                 comments: _entity.comments,
                 rating: _entity.rating,
                 sender: _entity.sender,
-                shift: _entity.shift ? 
-                    {   ..._entity.shift,
+                shift: _entity.shift ?
+                    {
+                        ..._entity.shift,
                         starting_at: moment(_entity.shift.starting_at),
                         ending_at: moment(_entity.shift.ending_at)
                     }
                     : null,
-                created_at: (moment.isMoment(_entity.created_at) ) ? _entity.created_at : moment(_entity.created_at),
+                created_at: (moment.isMoment(_entity.created_at)) ? _entity.created_at : moment(_entity.created_at)
             };
             return _formRating;
         },
@@ -86,7 +87,7 @@ export const Rating = (data) => {
             const _filters = {
                 //positions: _entity.positions.map( item => item.value ),
             };
-            for(let key in _entity) if(typeof _entity[key] == 'function') delete _entity[key];
+            for (let key in _entity) if (typeof _entity[key] == 'function') delete _entity[key];
             return Object.assign(_entity, _filters);
         }
     };
@@ -94,7 +95,7 @@ export const Rating = (data) => {
 
 export class ManageRating extends Flux.DashView {
 
-    constructor(){
+    constructor() {
         super();
         this.state = {
             ratings: [],
@@ -104,7 +105,7 @@ export class ManageRating extends Flux.DashView {
         };
     }
 
-    componentDidMount(){
+    componentDidMount() {
 
         this.filter();
         this.subscribe(store, 'ratings', (ratings) => {
@@ -123,18 +124,18 @@ export class ManageRating extends Flux.DashView {
         });
     }
 
-    filter(ratings=null){
+    filter(ratings = null) {
         search('ratings', window.location.search);
     }
 
     render() {
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
-                {({bar}) => (<span>
+                {({ bar }) => (<span>
                     <Wizard continuous
-                      steps={this.state.steps}
-                      run={this.state.runTutorial}
-                      callback={callback}
+                        steps={this.state.steps}
+                        run={this.state.runTutorial}
+                        callback={callback}
                     />
                     <h2>Company Ratings</h2>
                     <div className="row mt-2">
@@ -150,12 +151,12 @@ export class ManageRating extends Flux.DashView {
                     <div className="row">
                         <div className="col-12">
                             <h3>Recent Ratings</h3>
-                            {this.state.ratings.map((rate,i) => (
+                            {this.state.ratings.map((rate, i) => (
                                 <GenericCard key={i} hover={true} onClick={() => bar.show({ slug: "show_single_rating", data: rate, allowLevels: false })}>
                                     <Avatar url={rate.sender.picture} />
-                                    <Stars className="float-left" rating={Number(rate.rating)}  />
-                                    <span>{`  on ${rate.created_at.substring(0,10)}`}</span>
-                                    <p className="mt-0">{rate.comments !== '' ? `"${rate.comments}"` : `The talent didn't provide any comments for this rating.` }</p>
+                                    <Stars className="float-left" rating={Number(rate.rating)} />
+                                    <span>{`  on ${rate.created_at.substring(0, 10)}`}</span>
+                                    <p className="mt-0">{rate.comments !== '' ? `"${rate.comments}"` : `The talent didn't provide any comments for this rating.`}</p>
                                 </GenericCard>
                             ))}
                         </div>
@@ -174,18 +175,18 @@ export const RatingDetails = (props) => {
     const { formData } = props;
     const { shift } = formData;
     return (<Theme.Consumer>
-        {({bar}) =>
+        {({ bar }) =>
             (<li className="aplication-details">
                 <Avatar url={formData.sender.picture} />
                 <p>{formData.sender.user.first_name + ' ' + formData.sender.user.last_name}</p>
                 <div>
-                    <Stars rating={Number(formData.rating)}  />
+                    <Stars rating={Number(formData.rating)} />
                 </div>
                 <h5 className="mt-3">
-                    {formData.comments !== '' ? `"${formData.comments}"` : `${formData.sender.user.first_name} didn't provide any comments for this rating.` }
+                    {formData.comments !== '' ? `"${formData.comments}"` : `${formData.sender.user.first_name} didn't provide any comments for this rating.`}
                 </h5>
-                { !shift || typeof shift.position === 'undefined' ? 
-                    'Loading shift information...' : 
+                {!shift || typeof shift.position === 'undefined' ?
+                    'Loading shift information...' :
                     <div>
                         <a href="#" className="shift-position">{shift.position.title}</a> @
                         <a href="#" className="shift-location"> {shift.venue.title}</a>
@@ -197,8 +198,8 @@ export const RatingDetails = (props) => {
     </Theme.Consumer>);
 };
 RatingDetails.propTypes = {
-  catalog: PropTypes.object.isRequired,
-  formData: PropTypes.object
+    catalog: PropTypes.object.isRequired,
+    formData: PropTypes.object
 };
 
 
@@ -207,14 +208,14 @@ RatingDetails.propTypes = {
  */
 export const PendingRatings = (props) => {
     return (<Theme.Consumer>
-        {({bar}) =>
+        {({ bar }) =>
             (<li className="aplication-details">
             </li>)}
     </Theme.Consumer>);
 };
 PendingRatings.propTypes = {
-  catalog: PropTypes.object.isRequired,
-  formData: PropTypes.object
+    catalog: PropTypes.object.isRequired,
+    formData: PropTypes.object
 };
 
 
@@ -228,7 +229,7 @@ export const ReviewTalentAndShift = (props) => {
     const startTime = shift.starting_at.format('LT');
     const endTime = shift.ending_at.format('LT');
     return (<Theme.Consumer>
-        {({bar}) =>
+        {({ bar }) =>
             (<li className="aplication-details">
                 <h4>How satisfied are you with {employee.user.first_name}{"'"}s performance during this shift?</h4>
                 <p className="mb-3">
@@ -259,8 +260,8 @@ export const ReviewTalentAndShift = (props) => {
     </Theme.Consumer>);
 };
 ReviewTalentAndShift.propTypes = {
-  catalog: PropTypes.object.isRequired,
-  formData: PropTypes.object
+    catalog: PropTypes.object.isRequired,
+    formData: PropTypes.object
 };
 
 
@@ -268,79 +269,80 @@ ReviewTalentAndShift.propTypes = {
  * Review Talent in general
  */
 
-export const ReviewTalent = ({ onSave, onCancel, onChange, catalog, formData, error }) => {
+export const ReviewTalent = ({ onSave, onCancel, onChange, catalog, formData, error, bar }) => {
+    const [shifts, setShifts] = useState([]);
+    return (<Theme.Consumer>
+        {({ bar }) => (
+            < form >
+                <div className="row">
+                    <div className="col-12">
+                        <label>Who worked on this shift?</label>
+                        <SearchCatalogSelect
+                            isMulti={false}
+                            value={formData.employee}
+                            onChange={(emp) => {
+                                onChange({ employee: emp });
+                                GET('shifts?unrated=true&employee=' + emp.value)
+                                    .then(shifts => setShifts([
+                                        { label: `${(shifts.length == 0) ? 'No shifts found' : ''}` }
+                                    ].concat(shifts)));
+                            }}
+                            searchFunction={(search) => new Promise((resolve, reject) =>
+                                GET('catalog/employees?full_name=' + search)
+                                    .then(talents => resolve([
+                                        { label: `${(talents.length == 0) ? 'No one found: ' : ''}Invite "${search}" to jobcore`, value: 'invite_talent_to_jobcore' }
+                                    ].concat(talents)))
+                                    .catch(error => reject(error))
+                            )}
+                        />
 
-    const { bar } = useContext(Theme.Context);
-    const [ shifts, setShifts ] = useState([]);
-
-    return (
-        <form>
-            <div className="row">
-                <div className="col-12">
-                    <label>Who worked on this shift?</label>
-                    <SearchCatalogSelect
-                        isMulti={false}
-                        value={formData.employee}
-                        onChange={(emp) => {
-                            onChange({ employee: emp });
-                            GET('shift?unrated=true&employee='+emp.value)
-                                .then(shifts => setShifts([
-                                    { label: `${(shifts.length == 0) ? 'No shifts found' : ''}` }
-                                ].concat(shifts)));
-                        }}
-                        searchFunction={(search) => new Promise((resolve, reject) =>
-                            GET('catalog/employees?full_name=' + search)
-                                .then(talents => resolve([
-                                    { label: `${(talents.length == 0) ? 'No one found: ' : ''}Invite "${search}" to jobcore`, value: 'invite_talent_to_jobcore' }
-                                ].concat(talents)))
-                                .catch(error => reject(error))
-                        )}
-                    />
+                    </div>
                 </div>
-            </div>
-            <div className="row">
-                <div className="col-12">
-                    <label>What shift was it working?</label>
-                    <Select
-                        value={formData.shift}
-                        onChange={(selection) => onChange({ shift: selection.value.toString() })}
-                        options={shifts}
-                    />
+                <div className="row">
+                    <div className="col-12">
+                        <label>What shift was it working?</label>
+                        <Select
+                            value={formData.shift}
+                            onChange={(selection) => onChange({ shift: selection.value.toString() })}
+                            options={shifts}
+                        />
+                    </div>
                 </div>
-            </div>
-            <div className="row">
-                <div className="col-12">
-                    <label>How was his performance during the shift</label>
-                    <StarRating
-                        fractions={0.5}
-                        onHover={() => null}
-                        onClick={() => null}
-                        direction="right"
-                        quiet={true}
-                        readonly={false}
-                        value={0}
-                        totalSymbols={5}
-                        placeholderValue={0}
-                        fullSymbol="far fa-star fa-xs"
-                        emptySymbol="fas fa-star fa-xs"
-                        placeholderSymbol="fas fa-star fa-xs"
-                    />
+                <div className="row">
+                    <div className="col-12">
+                        <label>How was his performance during the shift</label>
+                        <StarRating
+                            fractions={0.5}
+                            onHover={() => null}
+                            onClick={() => null}
+                            direction="right"
+                            quiet={true}
+                            readonly={false}
+                            value={0}
+                            totalSymbols={5}
+                            placeholderValue={0}
+                            fullSymbol="far fa-star fa-xs"
+                            emptySymbol="fas fa-star fa-xs"
+                            placeholderSymbol="fas fa-star fa-xs"
+                        />
+                    </div>
                 </div>
-            </div>
-            <div className="row">
-                <div className="col-12">
-                    <label>Any comments?</label>
-                    <textarea className="form-control"></textarea>
+                <div className="row">
+                    <div className="col-12">
+                        <label>Any comments?</label>
+                        <textarea className="form-control"></textarea>
+                    </div>
                 </div>
-            </div>
-            <div className="btn-bar">
-                <Button color="success"
-                    onClick={() => onSave({
-                        executed_action: '',
-                        status: 'OPEN'
-                    })}>Send Review</Button>
-            </div>
-        </form>
+                <div className="btn-bar">
+                    <Button color="success"
+                        onClick={() => onSave({
+                            executed_action: '',
+                            status: 'OPEN'
+                        })}>Send Review</Button>
+                </div>
+            </form>
+        )}
+    </Theme.Consumer>
     );
 };
 ReviewTalent.propTypes = {

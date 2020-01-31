@@ -1,16 +1,16 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 //include images into your bundle
-import {DashboardBox, Wizard, Theme, Button, ShiftBadge } from '../components/index';
-import {store, fetchAllMe} from '../actions.js';
-import {callback, hasTutorial} from '../utils/tutorial';
-import {NOW} from '../components/utils.js';
-import {Session} from 'bc-react-session';
+import { DashboardBox, Wizard, Theme, Button, ShiftBadge } from '../components/index';
+import { store, fetchAllMe } from '../actions.js';
+import { callback, hasTutorial } from '../utils/tutorial';
+import { NOW } from '../components/utils.js';
+import { Session } from 'bc-react-session';
 import moment from 'moment';
 import { CalendarView } from "../components/calendar/index.js";
 
 export default class Home extends Flux.DashView {
-    constructor(){
+    constructor() {
         super();
 
         this.state = {
@@ -24,7 +24,7 @@ export default class Home extends Flux.DashView {
                     disableBeacon: true,
                     styles: {
                         options: {
-                        zIndex: 10000
+                            zIndex: 10000
                         }
                     },
                     locale: { skip: "Skip tutorial" },
@@ -48,26 +48,27 @@ export default class Home extends Flux.DashView {
             ]
         };
     }
-    componentDidMount(){
+    componentDidMount() {
 
         this.subscribe(store, 'shifts', (shifts) => {
-            if(Array.isArray(shifts)) this.setState({shifts});
+
+            if (Array.isArray(shifts)) this.setState({ shifts });
         });
-        
+
         let shifts = store.getState('shifts');
-        if(!shifts) fetchAllMe(['shifts']);
+        if (!shifts) fetchAllMe(['shifts']);
         else this.setState({ shifts });
     }
 
     render() {
         return (
             <Theme.Consumer>
-                {({bar}) =>
+                {({ bar }) =>
                     <div>
                         <Wizard continuous
-                        steps={this.state.steps}
-                        run={this.state.runTutorial && this.state.session.active}
-                        callback={callback}
+                            steps={this.state.steps}
+                            run={this.state.runTutorial && this.state.session.active}
+                            callback={callback}
                         />
                         <div className="row">
                             <div className="col-8">
@@ -78,9 +79,9 @@ export default class Home extends Flux.DashView {
                                     yAxisWidth={0}
                                     blockHoverIcon={false}
                                     ToolbarComponent={({ setCurrentDate, currentDate }) => <div className="text-right" style={{ position: "absolute", right: 0 }}>
-                                        {<Button size="small" onClick={() => setCurrentDate(moment(currentDate ).add(-1,'day'))}>{'<<'}</Button>}
-                                        {<Button size="small" onClick={() => setCurrentDate(moment(currentDate).add(1,'day'))}>{'>>'}</Button>}
-                                        <Button size="small" onClick={() => this.props.history.push('./calendar#start='+moment(currentDate ).add(-1,'month').format('YYYY-MM-DD')+'&end='+moment(currentDate ).add(2,'month').format('YYYY-MM-DD'))}>Go to calendar</Button>
+                                        {<Button size="small" onClick={() => setCurrentDate(moment(currentDate).add(-1, 'day'))}>{'<<'}</Button>}
+                                        {<Button size="small" onClick={() => setCurrentDate(moment(currentDate).add(1, 'day'))}>{'>>'}</Button>}
+                                        <Button size="small" onClick={() => this.props.history.push('./calendar#start=' + moment(currentDate).add(-1, 'month').format('YYYY-MM-DD') + '&end=' + moment(currentDate).add(2, 'month').format('YYYY-MM-DD'))}>Go to calendar</Button>
                                     </div>
                                     }
                                     eventBoxStyles={{
@@ -89,21 +90,30 @@ export default class Home extends Flux.DashView {
                                     dayBlockStyles={{
                                         backgroundColor: "rgba(255,255,255,0.3)",
                                         borderRight: "1px solid #e3e3e3",
-                                        borderBottom: "1px solid #e3e3e3",
+                                        borderBottom: "1px solid #e3e3e3"
                                     }}
                                     onClick={e => e.data &&
-                                        bar.show({ slug: "shift_details", data: {
-                                            ...e.data,
-                                            starting_at: e.start,
-                                            ending_at: e.end
-                                        }})
+                                        bar.show({
+                                            slug: "shift_details", data: {
+                                                ...e.data,
+                                                starting_at: e.start,
+                                                ending_at: e.end
+                                            }
+                                        })
                                     }
-                                    events={{ today: this.state.shifts.map(s => ({
-                                        start: moment(s.starting_at),
-                                        end: moment(s.ending_at),
-                                        label: <span><ShiftBadge {...s} /> {s.position.title} - {s.venue.title}</span>,
-                                        data: s
-                                    })) }}
+                                    events={{
+                                        today: this.state.shifts.map(s => {
+                                            return ({
+                                                start: moment(s.starting_at),
+                                                end: moment(s.ending_at),
+                                                label: <span><ShiftBadge {...s} /> {s.position.title} - {s.venue.title}</span>,
+                                                data: s
+
+                                            }
+                                            );
+                                        })
+
+                                    }}
                                 />
                                 <DashboardBox id="draft_shifts"
                                     status="DRAFT"
@@ -123,7 +133,7 @@ export default class Home extends Flux.DashView {
                                 <DashboardBox id="expired_shifts"
                                     status="EXPIRED"
                                     title="Completed Shifts"
-                                    shifts={this.state.shifts.filter(s => !['DRAFT','COMPLETED','CANCELLED'].includes(s.status) && moment(s.ending_at).isBefore(NOW()))}
+                                    shifts={this.state.shifts.filter(s => !['DRAFT', 'COMPLETED', 'CANCELLED'].includes(s.status) && moment(s.ending_at).isBefore(NOW()))}
                                 />
                                 <DashboardBox id="completed_shifts"
                                     status="COMPLETED"

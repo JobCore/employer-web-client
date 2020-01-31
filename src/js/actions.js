@@ -72,25 +72,25 @@ export const login = (email, password, keep, history) => new Promise((resolve, r
             resolve();
         }
     })
-  .catch(function(error) {
-    reject(error.message || error);
-    Notify.error(error.message || error);
-    log.error(error);
-  })
+    .catch(function (error) {
+        reject(error.message || error);
+        Notify.error(error.message || error);
+        log.error(error);
+    })
 );
 
 export const addBankAccount = (token, metadata) => new Promise((resolve, reject) => POST('bank-accounts/',
-  normalizeToSnakeCase({ publicToken: token,  institutionName: metadata.institution.name }))
-  .then(function(data){
-    console.log('addBankAccount data: ', data);
-    resolve();
-    searchBankAccounts();
-  })
-  .catch(function(error) {
-    reject(error.message || error);
-    Notify.error(error.message || error);
-    log.error(error);
-  })
+    normalizeToSnakeCase({ publicToken: token, institutionName: metadata.institution.name }))
+    .then(function (data) {
+        console.log('addBankAccount data: ', data);
+        resolve();
+        searchBankAccounts();
+    })
+    .catch(function (error) {
+        reject(error.message || error);
+        Notify.error(error.message || error);
+        log.error(error);
+    })
 );
 
 export const signup = (formData, history) => new Promise((resolve, reject) => POST('user/register', {
@@ -168,7 +168,7 @@ export const fetchAll = (entities) => new Promise((resolve, reject) => {
         const currentRequest = { entity: entity.slug || entity, pending: true, error: false };
         requests.push(currentRequest);
 
-        GET(entity.slug || entity)
+        GET(entity.url || entity.slug || entity)
             .then(function (list) {
                 if (typeof entity.callback == 'function') entity.callback();
                 Flux.dispatchEvent(entity.slug || entity, list);
@@ -312,17 +312,17 @@ export const searchMe = (entity, queryString) => new Promise((accept, reject) =>
 );
 
 export const searchBankAccounts = () => new Promise((accept, reject) =>
-  GET('bank-accounts/')
-    .then(function(list){
-      console.log("bank-accounts list: ", list);
-      Flux.dispatchEvent('bank-accounts', list);
-      accept(list);
-    })
-    .catch(function(error) {
-      Notify.error(error.message || error);
-      log.error(error);
-      reject(error);
-    })
+    GET('bank-accounts/')
+        .then(function (list) {
+            console.log("bank-accounts list: ", list);
+            Flux.dispatchEvent('bank-accounts', list);
+            accept(list);
+        })
+        .catch(function (error) {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject(error);
+        })
 );
 
 export const create = (entity, data, status = 'live') => new Promise((resolve, reject) => {
@@ -356,8 +356,10 @@ export const update = (entity, data, mode = WEngine.modes.LIVE) => new Promise((
     PUT(path, data)
         .then(function (incomingObject) {
 
-            if (mode === WEngine.modes.POSPONED)
+            if (mode === WEngine.modes.POSPONED){
+                if(event_name === "shifts") data = Shift(incomingObject).defaults().unserialize();
                 WEngine.add({ entity: event_name, method: 'PUT', data, id: data.id });
+            }
             else
                 Notify.success("The " + event_name + " was updated successfully");
 
@@ -371,6 +373,32 @@ export const update = (entity, data, mode = WEngine.modes.LIVE) => new Promise((
             reject(error);
         });
 });
+
+export const remove = (entity, data) => {
+    const path = (typeof entity == 'string') ? `employers/me/${entity}/${data.id}` : `${entity.path}/${data.id}`;
+    const event_name = (typeof entity == 'string') ? entity : entity.event_name;
+    DELETE(path)
+        .then(function (incomingObject) {
+            let entities = store.remove(event_name, data.id);
+            Flux.dispatchEvent(event_name, entities);
+
+            const name = path.split('/');
+            Notify.success("The " + name[0].substring(0, name[0].length - 1) + " was deleted successfully");
+        })
+        .catch(function (error) {
+            Notify.error(error.message || error);
+            log.error(error);
+        });
+};
+
+
+/**
+ * From here on the actions are not generic anymore
+ */
+
+
+
+
 
 export const updateProfileImage = (file) => PUTFiles('employers/me/image', [file])
     .then(function (incomingObject) {
@@ -396,16 +424,12 @@ export const updateProfile = (data) => {
         });
 };
 
-export const remove = (entity, data) => {
-    const path = (typeof entity == 'string') ? `employers/me/${entity}/${data.id}` : `${entity.path}/${data.id}`;
-    const event_name = (typeof entity == 'string') ? entity : entity.event_name;
-    DELETE(path)
-        .then(function (incomingObject) {
-            let entities = store.remove(event_name, data.id);
-            Flux.dispatchEvent(event_name, entities);
-
-            const name = path.split('/');
-            Notify.success("The " + name[0].substring(0, name[0].length - 1) + " was deleted successfully");
+export const createSubscription = (data) => {
+    const employer = store.getState('current_employer');
+    POST(`employers/me/subscription`, data)
+        .then(function (active_subscription) {
+            Flux.dispatchEvent('current_employer', { ...employer, active_subscription });
+            Notify.success("The subscription was changed successfully");
         })
         .catch(function (error) {
             Notify.error(error.message || error);
@@ -414,17 +438,17 @@ export const remove = (entity, data) => {
 };
 
 export const removeBankAccount = (route, data) => {
-  const path = `${route}/${data.id}`;
-  DELETE(path)
-    .then(() => {
-      Notify.success("The "+data.name+" was deleted successfully");
-      searchBankAccounts();
-    })
-    .catch((error) => {
-      console.log("bank-accounts error: ", error);
-      Notify.error(error.message || error);
-      log.error(error);
-    });
+    const path = `${route}/${data.id}`;
+    DELETE(path)
+        .then(() => {
+            Notify.success("The " + data.name + " was deleted successfully");
+            searchBankAccounts();
+        })
+        .catch((error) => {
+            console.log("bank-accounts error: ", error);
+            Notify.error(error.message || error);
+            log.error(error);
+        });
 };
 
 export const rejectCandidate = async (shiftId, applicant) => {
@@ -599,7 +623,7 @@ export const updateTalentList = (action, employee, listId) => {
 };
 
 export const updatePayments = async (payments, period) => {
-
+    console.log(payments);
     if (!Array.isArray(payments)) payments = [payments];
     for (let i = 0; i < payments.length; i++) {
         let data = { ...payments[i] };
@@ -634,6 +658,20 @@ export const createPayment = async (payment, period) => {
     return period;
 };
 
+// export const createPayrollPeriodRating = (entity, queryString) => new Promise((accept, reject) =>
+//     GET('employers/me/' + entity, queryString)
+//         .then(function (list) {
+//             if (typeof entity.callback == 'function') entity.callback();
+//             Flux.dispatchEvent(entity.slug || entity, list);
+//             accept(list);
+//         })
+//         .catch(function (error) {
+//             Notify.error(error.message || error);
+//             log.error(error);
+//             reject(error);
+//         })
+// );
+
 export const http = { GET };
 
 class _Store extends Flux.DashStore {
@@ -649,7 +687,7 @@ class _Store extends Flux.DashStore {
         this.addEvent('payment');
         this.addEvent('clockins', clockins => !Array.isArray(clockins) ? [] : clockins.map(c => ({ ...c, started_at: moment(c.starting_at), ended_at: moment(c.ended_at) })));
         this.addEvent('jobcore-invites');
-      this.addEvent('ratings', (_ratings) => (!Array.isArray(_ratings)) ? [] : _ratings.map(ra => Rating(ra).defaults().unserialize()));
+        this.addEvent('ratings', (_ratings) => (!Array.isArray(_ratings)) ? [] : _ratings.map(ra => Rating(ra).defaults().unserialize()));
         this.addEvent('bank-accounts');
         this.addEvent('employees', (employees) => {
             if (!Array.isArray(employees)) return [];
@@ -682,7 +720,7 @@ class _Store extends Flux.DashStore {
         // Payroll related data
         this.addEvent('payroll-periods', (period) => {
             return (!period || (Object.keys(period).length === 0 && period.constructor === Object)) ? [{ label: "Loading payment periods...", value: null }] : period.map(p => {
-                p.label = `From ${moment(p.starting_at).format('MMMM Do YYYY, h:mm')} to ${moment(p.ending_at).format('MMMM Do YYYY, h:mm')}`;
+                p.label = `From ${moment(p.starting_at).format('MM-D-YY h:mm A')} to ${moment(p.ending_at).format('MM-D-YY h:mm A')}`;
                 return p;
             });
         });
@@ -724,7 +762,7 @@ class _Store extends Flux.DashStore {
 
     get(type, id) {
         const entities = this.getState(type);
-        if (entities) return entities.find(ent => ent.id == parseInt(id, 10));
+        if (entities) return entities.find(ent => ent.id == parseInt(id, 10) || ent.value == parseInt(id, 10));
         else return null;
     }
     add(type, item) {
