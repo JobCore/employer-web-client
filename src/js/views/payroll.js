@@ -1823,27 +1823,27 @@ export class PayrollRating extends Flux.DashView {
                             //     comments: p.comments,
                             //     payment: p.id
                             // }));
-                            const rated = this.state.payments.filter(s => s.shifts.length > 0).map(p => {
+                            const rated = [].concat.apply([], this.state.payments.filter(s => s.shifts.length > 0).map(p => {
                                 if (p.shifts.length > 1) {
                                     return p.shifts.map(s => ({
                                         employee: p.employee.id,
-                                        shift: s.shifts,
+                                        shift: s,
                                         rating: p.rating,
                                         comments: p.comments,
                                         payment: p.id
                                     }));
                                 } else {
                                     return (
-                                        {
+                                        [{
                                             employee: p.employee.id,
                                             shift: p.shifts[0],
                                             rating: p.rating,
                                             comments: p.comments,
                                             payment: p.id
-                                        }
+                                        }]
                                     );
                                 }
-                            });
+                            }));
                             if (unrated) Notify.error("There are still some employees that need to be rated");
                             else {
                                 create('ratings', rated).then((res) => { if (res) update('payroll-periods', Object.assign(this.state.singlePayrollPeriod, { status: 'FINALIZED' })); })
