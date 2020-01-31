@@ -3,5 +3,10 @@
   margin-left: 4px;
   padding: 10px;
   cursor: pointer;
-  margin-bottom: 8px;
+  margin-bottom: 0;
+  border-top: none;
+  &:hover{
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.05);
+}
 }
