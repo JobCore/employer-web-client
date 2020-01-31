@@ -2,7 +2,7 @@ import React from "react";
 import { validator, ValidationError } from '../utils/validation';
 import PropTypes from 'prop-types';
 import Select from 'react-select';
-
+import { Button } from '../components/index';
 export const Payment = (data = {}) => {
 
     const _defaults = {
@@ -46,6 +46,15 @@ export const MakePayment = ({
  }) => {
         console.log('MakePayment formData: ', formData);
         console.log('MakePayment error: ', error);
+        const taxesMagicNumber = 3.00;
+        const bankAccounts = [
+            {
+                name: "Bank of america"
+            },
+            {
+                name: "Wells fargo"
+            },
+        ];
         return ( <form>
             <div className="row">
                 <div className="col-12">
@@ -59,10 +68,10 @@ export const MakePayment = ({
                     <label>Over time:</label>{` ${formData.total.over_time}`}
                 </div>
                 <div className="col-12">
-                    <label>Earnings:</label>{` 0.00`}
+                    <label>Earnings:</label>{` ${formData.total.total_amount - taxesMagicNumber}`}
                 </div>
                 <div className="col-12">
-                    <label>Taxes:</label>{` 0.00`}
+                    <label>Taxes:</label>{` ${taxesMagicNumber}`}
                 </div>
                 <div className="col-12">
                     <label>Amount:</label>{` ${formData.total.total_amount}`}
@@ -72,15 +81,28 @@ export const MakePayment = ({
                 <div className="col-12">
                     <label>Payment methods</label>
                 </div>
-                <div className="col-12 payment-cell" style={{ borderTop: "1px solid"}}>
-                        Check Payment
-                </div>
                 <div className="col-12 payment-cell">
-                        Bank of america 
+                    <Button 
+                        style={{ width: '200px' }}
+                        color="success" 
+                        size="small" 
+                        onClick={() => null}>
+                            Check payment
+                    </Button>
                 </div>
-                <div className="col-12 payment-cell">
-                        Wells fargo
-                </div>
+                {bankAccounts && bankAccounts.length > 0
+                ? bankAccounts.map((bankaccount, i) =>
+                    <div className="col-12 payment-cell" key={i}>
+                        <Button 
+                            style={{ width: '200px' }}
+                            color="success" 
+                            size="small" 
+                            onClick={() => null}>
+                            {bankaccount.name}
+                        </Button>
+                    </div>
+                    )
+            : null}
             </div>
             
         </form>);
