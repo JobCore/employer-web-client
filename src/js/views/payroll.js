@@ -526,7 +526,7 @@ export class PayrollSettings extends Flux.DashView {
                                 className="btn btn-primary"
                                 onClick={() => update({ path: 'employers/me', event_name: 'current_employer' }, Employer(this.state.employer).validate().serialize())
                                     .catch(e => Notify.error(e.message || e))}
-                            >Save</button>
+                            >Save Payroll Settings</button>
                         </div>
                     </form>
                 </div>}
