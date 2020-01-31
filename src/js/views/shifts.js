@@ -136,7 +136,8 @@ export const Shift = (data) => {
                 start_time: (moment.isMoment(_shift.starting_at)) ? _shift.starting_at : moment(_shift.starting_at.format("MM/DD/YYYY") + ' ' + _shift.starting_at),
                 finish_time: (moment.isMoment(_shift.starting_at)) ? _shift.ending_at : moment(_shift.ending_at.format("MM/DD/YYYY") + ' ' + _shift.ending_at),
                 minimum_allowed_rating: _shift.minimum_allowed_rating.toString(),
-                venue: _shift.venue.id.toString() || _shift.venue.toString()
+                venue: _shift.venue.id.toString() || _shift.venue.toString(),
+                employees: _shift.employees
             };
             return _formShift;
         }
@@ -395,6 +396,7 @@ FilterShifts.propTypes = {
  */
 export const ShiftApplicants = (props) => {
     const { onCancel, onSave, catalog } = props;
+    console.log(props);
     return (<Theme.Consumer>
         {({ bar }) => (<div className="sidebar-applicants">
             {catalog.shift.expired ?
@@ -462,6 +464,7 @@ ShiftApplicants.propTypes = {
  */
 export const ShiftEmployees = (props) => {
     const { onCancel, onSave, catalog } = props;
+    console.log(props);
     return (<Theme.Consumer>
         {({ bar }) => (<div className="sidebar-applicants">
             {catalog.shift.expired ?
@@ -572,7 +575,7 @@ ShiftInvites.propTypes = {
  * EditOrAddShift
  */
 const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar, oldShift }) => {
-
+    console.log(formData);
     useEffect(() => {
         const venues = store.getState('venues');
         const favlists = store.getState('favlists');
@@ -933,7 +936,6 @@ EditOrAddShift.defaultProps = {
  * ShiftDetails
  */
 export const ShiftDetails = (props) => {
-
     const creationMode = isNaN(props.formData.id);
 
     const shift = !props.catalog.shifts ? null : props.catalog.shifts.find(s => s.id == props.formData.id);
@@ -974,6 +976,16 @@ export const ShiftDetails = (props) => {
                             </div>
                         }
                         {props.formData.status === 'DRAFT' ? <EditOrAddShift bar={bar} {...props} oldShift={shift} /> : <ShowShift bar={bar} shift={shift} />}
+
+                        {moment(props.formData.ending_at).isBefore(NOW()) &&
+                            <div className="row text-center mt-4">
+                                <div className="col">
+                                    <Button color="primary" onClick={() => bar.show({ slug: "show_employees_rating", data: shift, allowLevels: true })}>Rate Employees</Button>
+                                </div>
+                            </div>
+                        }
+
+
                     </div>
                 }
             </div>

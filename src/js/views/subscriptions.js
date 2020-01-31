@@ -110,7 +110,7 @@ export const YourSubscription = (props) => {
                 <p className="m-0">Base Price</p>
                 <p className="m-0">Job Postings /mo.</p>
                 <p className="m-0">Maximum active employees / mo.</p>
-                <p className="m-0">Maximum clockins / mo.</p>
+                <p className="m-0">Maximum Clock In/Out / mo.</p>
                 <p className="m-0">Talent Search	</p>
                 <p className="m-0">Rate Talent</p>
                 <p className="m-0">Invite Talent Manually</p>
