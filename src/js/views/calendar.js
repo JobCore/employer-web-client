@@ -55,7 +55,7 @@ export const ShiftCalendar = ({ catalog }) => {
         setFilters(r);
 
         const _filters = Object.assign({}, r);
-        console.log(_filters);
+
         if (moment.isMoment(_filters.start)) _filters.start = _filters.start.format('YYYY-MM-DD');
         if (moment.isMoment(_filters.end)) _filters.end = _filters.end.format('YYYY-MM-DD');
         searchMe('shifts', '?serializer=big&' + queryString.stringify(_filters));
@@ -215,7 +215,7 @@ export const ShiftCalendar = ({ catalog }) => {
                         dayBlockStyles={{
                             backgroundColor: "rgba(255,255,255,0.3)",
                             borderRight: "1px solid #e3e3e3",
-                            borderBottom: "1px solid #e3e3e3",
+                            borderBottom: "1px solid #e3e3e3"
                         }}
                         tableStyles={{
                             maxHeight: "65vh"

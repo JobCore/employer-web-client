@@ -34,7 +34,7 @@ export const Invite = (data) => {
             if((typeof this.position == 'object') && ['number','string'].indexOf(dataType) == -1) return this;
             const newInvite = {
                 shift: Shift(this.shift).defaults().unserialize(),
-                created_at: (!moment.isMoment(this.created_at)) ? moment(this.created_at) : this.created_at,
+                created_at: (!moment.isMoment(this.created_at)) ? moment(this.created_at) : this.created_at
             };
 
             return Object.assign(this, newInvite);

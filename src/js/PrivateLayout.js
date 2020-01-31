@@ -7,6 +7,7 @@ import ButtonBar from './views/ButtonBar';
 import { Session } from 'bc-react-session';
 import { Theme, SideBar, LoadBar } from './components/index';
 import { ShiftCalendar } from "./views/calendar.js";
+import { YourSubscription } from "./views/subscriptions.js";
 import {
     ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters, RateShift, ShiftInvites, ShiftEmployees,
     ShiftTalentClockins
@@ -16,7 +17,7 @@ import { Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilt
 import { PendingInvites, PendingJobcoreInvites, SearchShiftToInviteTalent, InviteTalentToJobcore, SearchTalentToInviteToShift } from './views/invites.js';
 import { ManageFavorites, AddFavlistsToTalent, FavlistEmployees, AddTalentToFavlist, Favlist, AddorUpdateFavlist } from './views/favorites.js';
 import { ManageLocations, AddOrEditLocation, Location } from './views/locations.js';
-import { ManagePayroll, PayrollReport, SelectTimesheet, EditOrAddExpiredShift, PayrollSettings } from './views/payroll.js';
+import { ManagePayroll, PayrollReport, SelectTimesheet, EditOrAddExpiredShift, PayrollSettings, PayrollRating } from './views/payroll.js';
 import { ManageRating, Rating, RatingDetails, ReviewTalent, ReviewTalentAndShift } from './views/ratings.js';
 import { Profile, ManageUsers, InviteUserToCompanyJobcore } from './views/profile.js';
 import { NOW } from './components/utils.js';
@@ -42,6 +43,7 @@ class PrivateLayout extends Flux.DashView {
             loading: true,
             userStatus: null,
             sideBarLevels: [],
+            employer: null,
             catalog: {
                 positions: [],
                 venues: [],
@@ -248,14 +250,16 @@ class PrivateLayout extends Flux.DashView {
 
         const reduce = (list) => list.map(itm => {
             return ({
-                label: itm.title || itm.user.first_name + ' ' + itm.user.last_name,
-                value: itm.id
+                label: itm.title || itm.label || itm.user.first_name + ' ' + itm.user.last_name,
+                value: itm.id || itm.value
             });
         });
 
 
+        this.subscribe(store, 'current_employer', (employer) => this.setState({ employer }));
         fetchTemporal('employers/me', 'current_employer');
-        fetchAll(['positions', 'badges', 'jobcore-invites']);
+        fetchAll([
+            { slug: 'positions', url: 'catalog/' + 'positions' }, { slug: 'badges', url: 'catalog/' + 'badges' }, 'jobcore-invites']);
         this.subscribe(store, 'jobcore-invites', (jcInvites) => this.setCatalog({ jcInvites: jcInvites || [] }));
         this.subscribe(store, 'invites', (invites) => this.setCatalog({ invites }));
         this.subscribe(store, 'venues', (venues) => this.setCatalog({ venues: reduce(venues) }));
@@ -294,7 +298,6 @@ class PrivateLayout extends Flux.DashView {
             if (this.currentPath != e.pathname) this.closeRightBar('all');
             this.currentPath = e.pathname;
         });
-        //this.showRightBar(AddShift);
     }
 
     componentWillUnmount() {
@@ -363,11 +366,19 @@ class PrivateLayout extends Flux.DashView {
                         </ul>
                     </div>
                     <div className="right_pane bc-scrollbar">
-                        {this.state.userStatus === 'PENDING_EMAIL_VALIDATION' && <div className="alert alert-warning p-2 text-center" style={{ marginLeft: "-15px" }}>You need to validate your email to receive notifications
+                        {this.state.userStatus === 'PENDING_EMAIL_VALIDATION' && <div className="alert alert-warning p-2 text-center mb-0" style={{ marginLeft: "-15px" }}>You need to validate your email to receive notifications
                             <button className="btn btn-success btn-sm ml-2" onClick={() => resendValidationLink(this.state.user.email)}>
                                 Resend validation link
                             </button>
                         </div>
+                        }
+                        {
+                            this.state.employer && this.state.employer.active_subscription && this.state.employer.active_subscription.unique_name === "demo" && 
+                                <div className="alert alert-warning p-2 text-center mb-0" style={{ marginLeft: "-15px" }}>You are currently on a limited demo plan
+                                    <button className="btn btn-success btn-sm ml-2" onClick={() => this.props.history.push('/profile/subscription')}>
+                                        Upgrade my plan
+                                    </button>
+                                </div>
                         }
                         <Notifier />
                         <div className="row">
@@ -383,6 +394,7 @@ class PrivateLayout extends Flux.DashView {
                             <Route exact path='/favorites' component={ManageFavorites} />
                             <Route exact path='/payroll-settings' component={PayrollSettings} />
                             <Route exact path='/profile' component={Profile} />
+                            <Route exact path='/profile/subscription' component={YourSubscription} />
                             <Route exact path='/profile/locations' component={ManageLocations} />
                             <Route exact path='/profile/users' component={ManageUsers} />
                             <Route exact path='/profile/ratings' component={ManageRating} />
@@ -391,6 +403,7 @@ class PrivateLayout extends Flux.DashView {
                             <Route exact path='/payroll/settings' component={PayrollSettings} />
                             <Route exact path='/payroll/period/:period_id' component={ManagePayroll} />
                             <Route exact path='/payroll/report/:period_id' component={PayrollReport} />
+                            <Route exact path='/payroll/rating/:period_id' component={PayrollRating} />
                             <Route exact path='/rate' component={RateShift} />
                             <Route exact path='/home' component={Dashboard} />
                             <Route exact path='/' component={Dashboard} />
