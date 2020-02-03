@@ -172,7 +172,6 @@ export const ShiftCalendar = ({ catalog }) => {
                                         const newEndDate = moment(currentDate).add(-1, viewMode);
                                         const oldEndDate = moment(filters.start);
                                         if (newEndDate.isBefore(oldEndDate)) {
-                                            // alert("generado");
                                             const updatedFilters = { start: moment(newEndDate).add(-2, 'months').format('YYYY-MM-DD'), end: moment(newEndDate).add(2, 'months').format('YYYY-MM-DD') };
                                             window.location.hash = queryString.stringify(updatedFilters);
                                             setCalendarFilters(updatedFilters);
