@@ -49,10 +49,10 @@ export const autoLogin = (token = '') => {
 };
 
 export const login = (email, password, keep, history) => new Promise((resolve, reject) => POST('login', {
-    username_or_email: email,
-    password: password,
-    exp_days: keep ? 30 : 1
-})
+        username_or_email: email,
+        password: password,
+        exp_days: keep ? 30 : 1
+    })
     .then(function (data) {
         if (!data.user.profile.employer) {
             Notify.error("Only employers are allowed to login into this application");
@@ -71,20 +71,6 @@ export const login = (email, password, keep, history) => new Promise((resolve, r
             history.push('/');
             resolve();
         }
-    })
-    .catch(function (error) {
-        reject(error.message || error);
-        Notify.error(error.message || error);
-        log.error(error);
-    })
-);
-
-export const addBankAccount = (token, metadata) => new Promise((resolve, reject) => POST('bank-accounts/',
-    normalizeToSnakeCase({ publicToken: token, institutionName: metadata.institution.name }))
-    .then(function (data) {
-        console.log('addBankAccount data: ', data);
-        resolve();
-        searchBankAccounts();
     })
     .catch(function (error) {
         reject(error.message || error);
@@ -148,6 +134,15 @@ export const logout = () => {
     Session.destroy();
     store = new _Store();
 };
+
+
+
+
+/**
+ * GENERIC ACTIONS, try to reuse them!!!!
+ */
+
+
 
 export const fetchAllIfNull = (entities) => {
     const _entities = entities.filter(e => !store.getState("entity"));
@@ -311,29 +306,22 @@ export const searchMe = (entity, queryString) => new Promise((accept, reject) =>
         })
 );
 
-export const searchBankAccounts = () => new Promise((accept, reject) =>
-    GET('bank-accounts/')
-        .then(function (list) {
-            console.log("bank-accounts list: ", list);
-            Flux.dispatchEvent('bank-accounts', list);
-            accept(list);
-        })
-        .catch(function (error) {
-            Notify.error(error.message || error);
-            log.error(error);
-            reject(error);
-        })
-);
-
-export const create = (entity, data, status = 'live') => new Promise((resolve, reject) => {
+export const create = (entity, data, status = WEngine.modes.LIVE) => new Promise((resolve, reject) => {
     POST('employers/me/' + (entity.url || entity), data)
         .then(function (incoming) {
+
+            if(typeof entity.url === 'string' && typeof entity.slug === 'undefined') throw Error('Missing entity slug on the create method');
+
+            //fisrt check if I have any of this on the store
             let entities = store.getState(entity.slug || entity);
             if (!entities || !Array.isArray(entities)) entities = [];
 
+            //if the response from the server is not a list 
             if (!Array.isArray(incoming)) {
+                // if the response is not a list, I will add the new object into that list
                 Flux.dispatchEvent(entity.slug || entity, entities.concat([{ ...data, id: incoming.id }]));
             }
+            //if it is an array
             else {
                 const newShifts = incoming.map(inc => Object.assign({ ...data, id: inc.id }));
                 Flux.dispatchEvent(entity.slug || entity, entities.concat(newShifts));
@@ -417,6 +405,19 @@ export const updateProfile = (data) => {
             const payload = Session.getPayload();
             const user = Object.assign(payload.user, { profile: incomingObject });
             Session.setPayload({ user });
+        })
+        .catch(function (error) {
+            Notify.error(error.message || error);
+            log.error(error);
+        });
+};
+
+export const createSubscription = (data) => {
+    const employer = store.getState('current_employer');
+    POST(`employers/me/subscription`, data)
+        .then(function (active_subscription) {
+            Flux.dispatchEvent('current_employer', { ...employer, active_subscription });
+            Notify.success("The subscription was changed successfully");
         })
         .catch(function (error) {
             Notify.error(error.message || error);
@@ -644,6 +645,34 @@ export const createPayment = async (payment, period) => {
     Flux.dispatchEvent('payroll-periods', store.replace("payroll-periods", period.id, _period));
     return period;
 };
+
+export const addBankAccount = (token, metadata) => new Promise((resolve, reject) => POST('bank-accounts/',
+    normalizeToSnakeCase({ publicToken: token, institutionName: metadata.institution.name }))
+    .then(function (data) {
+        console.log('addBankAccount data: ', data);
+        resolve();
+        searchBankAccounts();
+    })
+    .catch(function (error) {
+        reject(error.message || error);
+        Notify.error(error.message || error);
+        log.error(error);
+    })
+);
+
+export const searchBankAccounts = () => new Promise((accept, reject) =>
+    GET('bank-accounts/')
+        .then(function (list) {
+            console.log("bank-accounts list: ", list);
+            Flux.dispatchEvent('bank-accounts', list);
+            accept(list);
+        })
+        .catch(function (error) {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject(error);
+        })
+);
 
 // export const createPayrollPeriodRating = (entity, queryString) => new Promise((accept, reject) =>
 //     GET('employers/me/' + entity, queryString)

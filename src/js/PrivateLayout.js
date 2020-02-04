@@ -7,6 +7,7 @@ import ButtonBar from './views/ButtonBar';
 import { Session } from 'bc-react-session';
 import { Theme, SideBar, LoadBar } from './components/index';
 import { ShiftCalendar } from "./views/calendar.js";
+import { YourSubscription } from "./views/subscriptions.js";
 import {
     ShiftDetails, ManageShifts, FilterShifts, ShiftApplicants, Shift, getShiftInitialFilters, RateShift, ShiftInvites, ShiftEmployees,
     ShiftTalentClockins
@@ -28,6 +29,7 @@ import moment from 'moment';
 import { EngineComponent } from "./utils/write_engine";
 import EmployerBankAccounts from "../js/views/employerBankAccounts";
 import { CreateDeduction, Deduction, UpdateDeduction } from "./views/deductions";
+import { MakePayment, Payment } from "./views/payments";
 
 class PrivateLayout extends Flux.DashView {
 
@@ -41,6 +43,7 @@ class PrivateLayout extends Flux.DashView {
             loading: true,
             userStatus: null,
             sideBarLevels: [],
+            employer: null,
             catalog: {
                 positions: [],
                 venues: [],
@@ -64,6 +67,10 @@ class PrivateLayout extends Flux.DashView {
                     { label: 'Filled', value: 'FILLED' },
                     { label: 'Completed', value: 'EXPIRED' },
                     { label: 'Paid', value: 'COMPLETED' }
+                ],
+                deductionsTypes: [ 
+                    { value: 'PERCENTAGE', label: 'Percentage' },
+                    { value: 'AMOUNT', label: 'Amount' }
                 ]
             },
             bar: {
@@ -75,13 +82,17 @@ class PrivateLayout extends Flux.DashView {
                             this.showRightBar(ShiftDetails, option, { formData: Shift(option.data).defaults() });
                             break;
                         case 'create_deduction':
-                            option.title = "Create deduction";
-                            this.showRightBar(CreateDeduction, option, { formData: Deduction(option.data).defaults() });
-                            break;
-                        case 'update_deduction':
-                            option.title = "Update deduction";
-                            this.showRightBar(UpdateDeduction, option, { formData: Deduction(option.data).defaults() });
-                            break;
+                          option.title = "Create deduction";
+                          this.showRightBar(CreateDeduction, option, {formData: Deduction(option.data).defaults()});
+                        break;
+                       case 'update_deduction':
+                        option.title = "Update deduction";
+                        this.showRightBar(UpdateDeduction, option, {formData: Deduction(option.data).defaults()});
+                        break;
+                       case 'make_payment':
+                        option.title = "Make payment";
+                        this.showRightBar(MakePayment, option, {formData: Payment(option.data).defaults()});
+                        break;
                         case 'create_expired_shift': {
                             this.showRightBar(EditOrAddExpiredShift, option, { formData: Shift({ ...option.data }).defaults() });
                         } break;
@@ -269,6 +280,7 @@ class PrivateLayout extends Flux.DashView {
         });
 
 
+        this.subscribe(store, 'current_employer', (employer) => this.setState({ employer }));
         fetchTemporal('employers/me', 'current_employer');
         fetchAll([
             { slug: 'positions', url: 'catalog/' + 'positions' }, { slug: 'badges', url: 'catalog/' + 'badges' }, 'jobcore-invites']);
@@ -310,7 +322,6 @@ class PrivateLayout extends Flux.DashView {
             if (this.currentPath != e.pathname) this.closeRightBar('all');
             this.currentPath = e.pathname;
         });
-        //this.showRightBar(AddShift);
     }
 
     componentWillUnmount() {
@@ -379,11 +390,19 @@ class PrivateLayout extends Flux.DashView {
                         </ul>
                     </div>
                     <div className="right_pane bc-scrollbar">
-                        {this.state.userStatus === 'PENDING_EMAIL_VALIDATION' && <div className="alert alert-warning p-2 text-center" style={{ marginLeft: "-15px" }}>You need to validate your email to receive notifications
+                        {this.state.userStatus === 'PENDING_EMAIL_VALIDATION' && <div className="alert alert-warning p-2 text-center mb-0" style={{ marginLeft: "-15px" }}>You need to validate your email to receive notifications
                             <button className="btn btn-success btn-sm ml-2" onClick={() => resendValidationLink(this.state.user.email)}>
                                 Resend validation link
                             </button>
                         </div>
+                        }
+                        {
+                            this.state.employer && this.state.employer.active_subscription && this.state.employer.active_subscription.unique_name === "demo" && 
+                                <div className="alert alert-warning p-2 text-center mb-0" style={{ marginLeft: "-15px" }}>You are currently on a limited demo plan
+                                    <button className="btn btn-success btn-sm ml-2" onClick={() => this.props.history.push('/profile/subscription')}>
+                                        Upgrade my plan
+                                    </button>
+                                </div>
                         }
                         <Notifier />
                         <div className="row">
@@ -399,6 +418,7 @@ class PrivateLayout extends Flux.DashView {
                             <Route exact path='/favorites' component={ManageFavorites} />
                             <Route exact path='/payroll-settings' component={PayrollSettings} />
                             <Route exact path='/profile' component={Profile} />
+                            <Route exact path='/profile/subscription' component={YourSubscription} />
                             <Route exact path='/profile/locations' component={ManageLocations} />
                             <Route exact path='/profile/users' component={ManageUsers} />
                             <Route exact path='/profile/ratings' component={ManageRating} />
