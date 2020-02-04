@@ -356,125 +356,119 @@ export class PayrollSettings extends Flux.DashView {
         let nextDate = this.state.employer.payroll_period_starting_time.clone();
         while (nextDate.isBefore(NOW())) nextDate = nextDate.add(7, 'days');
 
-        return (<div className="p-1 listcontents company-payroll-settings">
-            <h1><span id="company_details">Your Payroll Settings</span></h1>
-            <div className="row mt-2">
-                <div className="col-12">
-                    <h4>Next payroll will run on {nextDate.format("dddd, MMMM Do YYYY, h:mm a")}</h4>
-                </div>
-            </div>
-            <form>
-                <div className="row mt-2">
-                    <div className="col-12">
-                        <label className="d-block">When do you want your payroll to run?</label>
-                        <span>Every </span>
-                        <select className="form-control" style={{ width: "100px", display: "inline-block" }}>
-                            <option>Week</option>
-                        </select>
-                        <span> starting </span>
-                        <select
-                            value={weekday || 1}
-                            className="form-control" style={{ width: "100px", display: "inline-block" }}
-                            onChange={(e) => {
-                                const diff = (e.target.value - weekday);
-                                let newDate = this.state.employer.payroll_period_starting_time.clone().add(diff, 'days');
-                                this.setEmployer({
-                                    payroll_period_starting_time: newDate
-                                });
-                            }}
-                        >
-                            <option value={1}>Monday{"'s"}</option>
-                            <option value={2}>Tuesday{"'s"}</option>
-                            <option value={3}>Wednesday{"'s"}</option>
-                            <option value={4}>Thursday{"'s"}</option>
-                            <option value={5}>Friday{"'s"}</option>
-                            <option value={6}>Saturday{"'s"}</option>
-                            <option value={7}>Sunday{"'s"}</option>
-                        </select>
-                        <span> at </span>
-                        <DateTime
-                            dateFormat={false}
-                            styles={{ width: "100px", display: "inline-block" }}
-                            timeFormat={DATETIME_FORMAT}
-                            timeConstraints={{ minutes: { step: 15 } }}
-                            value={this.state.employer.payroll_period_starting_time}
-                            renderInput={(properties) => {
-                                const { value, ...rest } = properties;
-                                return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
-                            }}
-                            onChange={(value) => {
-                                const starting = moment(this.state.employer.payroll_period_starting_time.format("MM-DD-YYYY") + " " + value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-                                this.setEmployer({ payroll_period_starting_time: starting });
-                            }}
-                        />
+        return (<Theme.Consumer>
+            {({ bar }) => 
+                <div className="p-1 listcontents company-payroll-settings">
+                    <h1><span id="company_details">Your Payroll Settings</span></h1>
+                    <div className="row mt-2">
+                        <div className="col-12">
+                            <h4>Next payroll will run on {nextDate.format("dddd, MMMM Do YYYY, h:mm a")}</h4>
+                        </div>
                     </div>
-                </div>
-                <div className="row">
-                    <div className="col-12">
-                        <label className="d-block">When can talents start clocking in?</label>
-                        <select
-                            value={this.state.employer.maximum_clockin_delta_minutes}
-                            className="form-control" style={{ width: "100px", display: "inline-block" }}
-                            onChange={(e) => this.setEmployer({ maximum_clockin_delta_minutes: isNaN(e.target.value) ? null : e.target.value, timeclock_warning: true })}
-                        >
-                            <option value={5}>5 min</option>
-                            <option value={10}>10 min</option>
-                            <option value={15}>15 min</option>
-                            <option value={30}>30 min</option>
-                            <option value={45}>45 min</option>
-                            <option value={60}>1 hour</option>
-                        </select>
-                        <span> before or after the starting time of the shift</span>
-                    </div>
-                </div>
-                <div className="row mt-2">
-                    <div className="col-12">
-                        <label className="d-block">Do you want automatic checkout?</label>
-                        <select value={autoClockout} className="form-control" style={{ width: "300px", display: "inline-block" }} onChange={(e) => {
-                            this.setEmployer({ maximum_clockout_delay_minutes: e.target.value == 'true' ? 10 : null, timeclock_warning: true });
-                        }}>
-                            <option value={true}>Only if the talent forgets to checkout</option>
-                            <option value={false}>No, leave the shift active until the talent checkouts</option>
-                        </select>
-                        {!autoClockout ? '' : (
-                            <span>
-                                , wait
-                                <input type="number" style={{ width: "60px" }} className="form-control d-inline-block ml-2 mr-2"
-                                    value={this.state.employer.maximum_clockout_delay_minutes}
-                                    onChange={(e) => this.setEmployer({ maximum_clockout_delay_minutes: e.target.value, timeclock_warning: true })}
+                    <form>
+                        <div className="row mt-2">
+                            <div className="col-12">
+                                <label className="d-block">When do you want your payroll to run?</label>
+                                <span>Every </span>
+                                <select className="form-control" style={{ width: "100px", display: "inline-block" }}>
+                                    <option>Week</option>
+                                </select>
+                                <span> starting </span>
+                                <select
+                                    value={weekday || 1}
+                                    className="form-control" style={{ width: "100px", display: "inline-block" }}
+                                    onChange={(e) => {
+                                        const diff = (e.target.value - weekday);
+                                        let newDate = this.state.employer.payroll_period_starting_time.clone().add(diff, 'days');
+                                        this.setEmployer({
+                                            payroll_period_starting_time: newDate
+                                        });
+                                    }}
+                                >
+                                    <option value={1}>Monday{"'s"}</option>
+                                    <option value={2}>Tuesday{"'s"}</option>
+                                    <option value={3}>Wednesday{"'s"}</option>
+                                    <option value={4}>Thursday{"'s"}</option>
+                                    <option value={5}>Friday{"'s"}</option>
+                                    <option value={6}>Saturday{"'s"}</option>
+                                    <option value={7}>Sunday{"'s"}</option>
+                                </select>
+                                <span> at </span>
+                                <DateTime
+                                    dateFormat={false}
+                                    styles={{ width: "100px", display: "inline-block" }}
+                                    timeFormat={DATETIME_FORMAT}
+                                    timeConstraints={{ minutes: { step: 15 } }}
+                                    value={this.state.employer.payroll_period_starting_time}
+                                    renderInput={(properties) => {
+                                        const { value, ...rest } = properties;
+                                        return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                                    }}
+                                    onChange={(value) => {
+                                        const starting = moment(this.state.employer.payroll_period_starting_time.format("MM-DD-YYYY") + " " + value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                                        this.setEmployer({ payroll_period_starting_time: starting });
+                                    }}
                                 />
-                                min to auto checkout
-                            </span>
+                            </div>
+                        </div>
+                        <div className="row">
+                            <div className="col-12">
+                                <label className="d-block">When can talents start clocking in?</label>
+                                <select
+                                    value={this.state.employer.maximum_clockin_delta_minutes}
+                                    className="form-control" style={{ width: "100px", display: "inline-block" }}
+                                    onChange={(e) => this.setEmployer({ maximum_clockin_delta_minutes: isNaN(e.target.value) ? null : e.target.value, timeclock_warning: true })}
+                                >
+                                    <option value={5}>5 min</option>
+                                    <option value={10}>10 min</option>
+                                    <option value={15}>15 min</option>
+                                    <option value={30}>30 min</option>
+                                    <option value={45}>45 min</option>
+                                    <option value={60}>1 hour</option>
+                                </select>
+                                <span> before or after the starting time of the shift</span>
+                            </div>
+                        </div>
+                        <div className="row mt-2">
+                            <div className="col-12">
+                                <label className="d-block">Do you want automatic checkout?</label>
+                                <select value={autoClockout} className="form-control" style={{ width: "300px", display: "inline-block" }} onChange={(e) => {
+                                    this.setEmployer({ maximum_clockout_delay_minutes: e.target.value == 'true' ? 10 : null, timeclock_warning: true });
+                                }}>
+                                    <option value={true}>Only if the talent forgets to checkout</option>
+                                    <option value={false}>No, leave the shift active until the talent checkouts</option>
+                                </select>
+                                {!autoClockout ? '' : (
+                                    <span>
+                                        , wait
+                                        <input type="number" style={{ width: "60px" }} className="form-control d-inline-block ml-2 mr-2"
+                                            value={this.state.employer.maximum_clockout_delay_minutes}
+                                            onChange={(e) => this.setEmployer({ maximum_clockout_delay_minutes: e.target.value, timeclock_warning: true })}
+                                        />
+                                        min to auto checkout
+                                    </span>
 
-                        )
+                                )
+                                }
+                            </div>
+                        </div>
+                        {this.state.employer.timeclock_warning &&
+                            <div className="alert alert-warning p-2 mt-3">
+                                Apply time clock settings to:
+                                <select
+                                    value={this.state.employer.retroactive}
+                                    className="form-control w-100" style={{ width: "100px", display: "inline-block" }}
+                                    onChange={(e) => this.setEmployer({ retroactive: e.target.value === "true" ? true : false })}
+                                >
+                                    <option value={false}>Only new shifts (from now on)</option>
+                                    <option value={true}>All shifts (including previously created)</option>
+                                </select>
+                            </div>
                         }
-                    </div>
-                </div>
-                {this.state.employer.timeclock_warning &&
-                    <div className="alert alert-warning p-2 mt-3">
-                        Apply time clock settings to:
-                        <select
-                            value={this.state.employer.retroactive}
-                            className="form-control w-100" style={{ width: "100px", display: "inline-block" }}
-                            onChange={(e) => this.setEmployer({ retroactive: e.target.value === "true" ? true : false })}
-                        >
-                            <option value={false}>Only new shifts (from now on)</option>
-                            <option value={true}>All shifts (including previously created)</option>
-                        </select>
-                    </div>
-                }
-                <div className="row mt-2">
-                    <div className="col-12">
-                        <label>Deductions</label>
-                        <div className="p-1 listcontents">
-                            <Theme.Consumer>
-                                {({ bar }) => (<span>
-                                    {/* <Wizard continuous
-                                        steps={this.state.steps}
-                                        run={this.state.runTutorial}
-                                        callback={callback}
-                                    /> */}
-                                    {/* <h1><span id="talent_search_header">Talent Search</span></h1> */}
+                        <div className="row mt-2">
+                            <div className="col-12">
+                                <label>Deductions</label>
+                                <div className="p-1 listcontents">
                                     {this.state.deductions.length > 0
                                         ? <table className="table table-striped payroll-summary">
                                             <thead>
@@ -506,16 +500,11 @@ export class PayrollSettings extends Flux.DashView {
                                                 ))}
                                             </tbody>
                                         </table>
-                                        : <p>No deductions yet</p>}
-                                </span>)}
-                            </Theme.Consumer>
-                        </div>
-                        <Theme.Consumer>
-                            {({ bar }) => (
-                                <button
-                                    type="button"
-                                    className="btn btn-primary"
-                                    style={{ marginTop: "10px" }}
+                                        : <p>No deductions yet</p>
+                                    }
+                                </div>
+                                <Button
+                                    size="small"
                                     onClick={() => bar.show({
                                         slug: "create_deduction",
                                         data: {
@@ -527,22 +516,21 @@ export class PayrollSettings extends Flux.DashView {
                                         }
                                     })}
                                 >
-                                    Create deduction
-                                </button>
-                            )}
-                        </Theme.Consumer>
-                    </div>
-                </div>
-                <div className="mt-4 text-right">
-                    <button
-                        type="button"
-                        className="btn btn-primary"
-                        onClick={() => update({ path: 'employers/me', event_name: 'current_employer' }, Employer(this.state.employer).validate().serialize())
-                            .catch(e => Notify.error(e.message || e))}
-                    >Save</button>
-                </div>
-            </form>
-        </div>);
+                                    Add Deduction
+                                </Button>
+                            </div>
+                        </div>
+                        <div className="mt-4 text-right">
+                            <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={() => update({ path: 'employers/me', event_name: 'current_employer' }, Employer(this.state.employer).validate().serialize())
+                                    .catch(e => Notify.error(e.message || e))}
+                            >Save Payroll Settings</button>
+                        </div>
+                    </form>
+                </div>}
+        </Theme.Consumer>);
     }
 }
 
@@ -958,8 +946,8 @@ export class ManagePayroll extends Flux.DashView {
                                         a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
                             ).map(pay => {
 
-                                const total_hours = pay.payments.reduce((total, { regular_hours, over_time }) => total + parseFloat(regular_hours) + parseFloat(over_time), 0);
-                                const total_amount = pay.payments.reduce((total, { regular_hours, over_time, hourly_rate }) => total + (parseFloat(regular_hours) + parseFloat(over_time)) * parseFloat(hourly_rate), 0);
+                                const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + parseFloat(regular_hours) + parseFloat(over_time), 0);
+                                const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + ((parseFloat(regular_hours) * parseFloat(hourly_rate)) + (parseFloat(over_time)  * parseFloat(hourly_rate) * 1.5)), 0);
                                 return <table key={pay.employee.id} className="table table-striped payroll-summary">
                                     <thead>
                                         <tr>
@@ -1103,6 +1091,11 @@ export class ManagePayroll extends Flux.DashView {
                                             </td>
                                             <td colSpan={3} className="text-right">
                                                 Total: {!isNaN(total_hours) ? Math.round(total_hours * 100) / 100 : 0} hr
+                                                { total_hours > 40 &&
+                                                    <Tooltip placement="bottom" trigger={['hover']} overlay={<small>This employee has overtime</small>}>
+                                                        <i className="fas fa-stopwatch text-danger fa-xs mr-2"></i>
+                                                    </Tooltip>
+                                                }
                                                 <small className="d-block">${!isNaN(total_amount) ? Math.round(total_amount * 100) / 100 : 0}</small>
                                             </td>
                                         </tr>
@@ -1159,9 +1152,11 @@ Marker.defaultProps = {
 };
 
 const LatLongClockin = ({ clockin, children, isIn }) => {
+    if(!clockin) return null;
     const lat = isIn ? clockin.latitude_in : clockin.latitude_out;
     const lng = isIn ? clockin.longitude_in : clockin.longitude_out;
     const distance = isIn ? clockin.distance_in_miles : clockin.distance_out_miles;
+    const time = isIn ? clockin.started_at.format('LT') : clockin.ended_at ? clockin.ended_at.format('LT') : "";
 
     return <Tooltip placement="right" trigger={['hover']} overlay={
         <div style={{ width: "200px", height: "200px" }} className="p-0 d-inline-block">
@@ -1181,7 +1176,7 @@ const LatLongClockin = ({ clockin, children, isIn }) => {
                 />
             </GoogleMapReact>
             <p className={`m-0 p-0 text-center ${distance > 0.2 ? "text-danger" : ""}`}>
-                {distance} miles away. <br />[ {lat}, {lng} ]
+                {distance} miles away @ {time}<br /><small>[ {lat}, {lng} ]</small>
             </p>
         </div>
     }>
@@ -1221,6 +1216,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
 
     const shiftStartTime = shift.starting_at.format('LT');
     const shiftEndTime = shift.ending_at.format('LT');
+    const shiftNextDay = shift.ending_at.isBefore(shift.starting_at);
 
     const shiftDuration = moment.duration(shift.ending_at.diff(shift.starting_at));
     const plannedHours = Math.round(shiftDuration.asHours() * 100) / 100;
@@ -1262,7 +1258,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                 if (_shift == 'new_shift') bar.show({
                                     slug: "create_expired_shift", data: {
                                         employeesToAdd: [{ label: employee.user.first_name + " " + employee.user.last_name, value: employee.id }],
-                                        // Dates are in utc so I decided to change it to local time 
+                                        // Dates are in utc so I decided to change it to local time
                                         starting_at: moment(period.starting_at),
                                         ending_at: moment(period.starting_at).add(2, "hours"),
                                         period_starting: moment(period.starting_at),
@@ -1370,10 +1366,17 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                     use12Hours
                 />
             }
-            <small>({shiftEndTime})</small>
+            <small>
+                ({shiftEndTime})
+            </small>
+            {shiftNextDay &&
+                <Tooltip placement="bottom" trigger={['hover']} overlay={<small>This shift ended on the next day</small>}>
+                    <i className="fas fa-exclamation-triangle fa-xs mr-2"></i>
+                </Tooltip>
+            }
             {clockin.automatically_closed &&
                 <Tooltip placement="bottom" trigger={['hover']} overlay={<small>Automatically clocked out</small>}>
-                    <i className="fas fa-exclamation-triangle text-danger fa-xs"></i>
+                    <i className="fas fa-stopwatch text-danger fa-xs mr-2"></i>
                 </Tooltip>
             }
         </td>
@@ -1709,12 +1712,8 @@ export class PayrollRating extends Flux.DashView {
                     let ratings = {};
                     singlePeriod.payments.forEach(pay => {
                         if (typeof ratings[pay.employee.id] === 'undefined') ratings[pay.employee.id] = { employee: pay.employee, shifts: [], rating: null, comments: '' };
-                        const hasPreviousShift = previousRatings.find(r => {
-                            if (r.shift && pay.shift) {
-                                if (r.shift.id === pay.shift.id) return true;
-                            } else return false;
-                        });
-                        if (!hasPreviousShift) ratings[pay.employee.id].shifts.push(pay.shift.id);
+                        const hasPreviousShift = previousRatings.find(r => (r.shift && pay.shift && r.shift.id === pay.shift.id && r.employee === pay.employee.id));
+                        if (!hasPreviousShift && pay.shift) ratings[pay.employee.id].shifts.push(pay.shift.id);
 
                     });
                     resolve(Object.values(ratings));
@@ -1756,15 +1755,19 @@ export class PayrollRating extends Flux.DashView {
                 <Button color="success" onClick={() => this.props.history.push("/payroll-settings")}>Setup Payroll Settings</Button>
             </div>;
         }
-        console.log(this.state.payments);
-        return (<div className="p-1 listcontents">
+
+        return (<div className="p-1 listcontents mx-auto">
+            {this.state.singlePayrollPeriod && this.state.singlePayrollPeriod.status == "FINALIZED" &&
+                <Redirect from={'/payroll/rating/' + this.state.singlePayrollPeriod.id} to={'/payroll/report/' + this.state.singlePayrollPeriod.id} />
+            }
             <Theme.Consumer>
                 {({ bar }) => (<span>
                     {(!this.state.singlePayrollPeriod) ? '' :
                         (this.state.singlePayrollPeriod.payments.length > 0) ?
                             <div>
-                                <p className="text-right">
-                                    <h2>Rating {this.state.singlePayrollPeriod.label}</h2>
+                                <p className="text-center">
+                                    <h2 className="mb-0">Please rate the talents for this period</h2>
+                                    <h4 className="mt-0">{this.state.singlePayrollPeriod.label}</h4>
                                 </p>
                             </div>
                             :
@@ -1810,7 +1813,7 @@ export class PayrollRating extends Flux.DashView {
                                         />
                                     </div>
                                     <div className="col-6 my-auto">
-                                        <TextareaAutosize style={{ width: '100%' }} placeholder="Comment..." value={list.comments} onChange={(e) => {
+                                        <TextareaAutosize style={{ width: '100%' }} placeholder="Any additional comments?" value={list.comments} onChange={(e) => {
 
                                             const allPayments = this.state.payments;
                                             allPayments[i].comments = e.target.value;
@@ -1827,17 +1830,10 @@ export class PayrollRating extends Flux.DashView {
 
                     }
 
-                    <div className="btn-bar text-right mt-3">
+                    <div className="btn-bar text-center mt-3">
 
                         <button type="button" className="btn btn-primary" onClick={() => {
                             const unrated = this.state.payments.find(p => p.rating == null && p.shifts.length > 0);
-                            // const rated = this.state.payments.map(p => ({
-                            //     employee: p.employee.id,
-                            //     shifts: p.shifts,
-                            //     rating: p.rating,
-                            //     comments: p.comments,
-                            //     payment: p.id
-                            // }));
                             const rated = [].concat.apply([], this.state.payments.filter(s => s.shifts.length > 0).map(p => {
                                 if (p.shifts.length > 1) {
                                     return p.shifts.map(s => ({
@@ -1883,7 +1879,7 @@ export class PayrollReport extends Flux.DashView {
             employer: store.getState('current_employer'),
             payrollPeriods: [],
             payments: [],
-            singlePayrollPeriod: null
+            singlePayrollPeriod: null,
         };
     }
 
@@ -1924,7 +1920,7 @@ export class PayrollReport extends Flux.DashView {
             if (typeof groupedPayments[pay.employee.id] === 'undefined') {
                 groupedPayments[pay.employee.id] = { employee: pay.employee, payments: [] };
             }
-            groupedPayments[pay.employee.id].payments.push(pay);
+            if(pay.status === "APPROVED") groupedPayments[pay.employee.id].payments.push(pay);
         });
 
         return Object.values(groupedPayments);
@@ -1954,6 +1950,8 @@ export class PayrollReport extends Flux.DashView {
 
 
     render() {
+
+        const taxesMagicNumber = 0;
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
@@ -1961,7 +1959,6 @@ export class PayrollReport extends Flux.DashView {
                 <Button color="success" onClick={() => this.props.history.push("/payroll/settings")}>Setup Payroll Settings</Button>
             </div>;
         }
-
         //const allowLevels = (window.location.search != '');
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
@@ -1972,7 +1969,6 @@ export class PayrollReport extends Flux.DashView {
                                 <p className="text-right">
                                     <h2>Payments for {this.state.singlePayrollPeriod.label}</h2>
                                 </p>
-
                                 <div className="row mb-4 text-right">
                                     <div className="col">
 
@@ -2034,6 +2030,7 @@ export class PayrollReport extends Flux.DashView {
                                                                 over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
                                                                 regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
                                                                 total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount),
+                                                                taxes: taxesMagicNumber,
                                                                 status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
                                                             };
                                                         }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
@@ -2082,8 +2079,6 @@ export class PayrollReport extends Flux.DashView {
 
                                 </div>
 
-                                {/* <Button className="btn btn-info" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button> */}
-
                                 {this.state.singlePayrollPeriod.status == "OPEN" &&
                                     <Redirect from={'/payroll/report/' + this.state.singlePayrollPeriod.id} to={'/payroll/rating/' + this.state.singlePayrollPeriod.id} />
                                 }
@@ -2092,13 +2087,11 @@ export class PayrollReport extends Flux.DashView {
                                         <tr>
                                             <th scope="col">Staff</th>
                                             <th scope="col">Regular Hrs</th>
-                                            <th scope="col">PTO</th>
-                                            <th scope="col">Holiday</th>
-                                            <th scope="col">Sick</th>
-                                            <th scope="col">OT</th>
-                                            <th scope="col">DBL</th>
-                                            <th scope="col">Total Hrs</th>
-                                            <th scope="col">Labor</th>
+                                            <th scope="col">Over Time</th>
+                                            <th scope="col">Total Hours</th>
+                                            <th scope="col">Total Earnings</th>
+                                            <th scope="col">Taxes</th>
+                                            <th scope="col">Check Amount</th>
                                             <th scope="col"></th>
                                         </tr>
                                     </thead>
@@ -2110,6 +2103,7 @@ export class PayrollReport extends Flux.DashView {
                                                 return {
                                                     over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
                                                     regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
+                                                    taxes: taxesMagicNumber,
                                                     total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount),
                                                     status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
                                                 };
@@ -2120,16 +2114,27 @@ export class PayrollReport extends Flux.DashView {
                                                     <p className="m-0 p-0"><span className="badge">{total.status.toLowerCase()}</span></p>
                                                 </td>
                                                 <td>{Math.round(total.regular_hours * 100) / 100}</td>
-                                                <td>-</td>
-                                                <td>-</td>
-                                                <td>-</td>
                                                 <td>{Math.round(total.over_time * 100) / 100}</td>
-                                                <td>-</td>
                                                 <td>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</td>
                                                 <td>${Math.round(total.total_amount * 100) / 100}</td>
+                                                <td>0</td>
+                                                <td>${Math.round((total.total_amount - taxesMagicNumber) * 100) / 100}</td>
                                                 <td>
-                                                    <Button color="success" size="small" onClick={() => null}>Create payment</Button>
+                                                    <Button 
+                                                    color="success" 
+                                                    size="small" 
+                                                    onClick={() => bar.show({ 
+                                                        slug: "make_payment", 
+                                                        data: {
+                                                            pay: pay, 
+                                                            total: total,
+                                                    } 
+                                                    })}>
+                                                        Make payment
+                                                    </Button>
                                                 </td>
+                                                {/* <td>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</td>
+                                                <td>${Math.round(total.total_amount * 100) / 100}</td> */}
                                             </tr>;
                                         })}
                                     </tbody>
