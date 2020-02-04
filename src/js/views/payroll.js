@@ -1484,11 +1484,9 @@ const filterClockins = (formChanges, formData, onChange) => {
 export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel, history }) => {
     const { bar } = useContext(Theme.Context);
     const employer = store.getState('current_employer');
-
-    const [periods, setPeriods] = useState(formData);
     const [periodMonth, setMonth] = useState(2.5);
     const [noMorePeriods, setNoMorePeriods] = useState(false);
-    console.log(noMorePeriods);
+
     if (!employer || !employer.payroll_configured || !moment.isMoment(employer.payroll_period_starting_time)) {
         return <div className="text-center">
             <p>Please setup your payroll settings first.</p>
@@ -1497,8 +1495,8 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
     }
 
     let note = null;
-    if (periods.periods.length > 0) {
-        const end = moment(periods.periods[0].ending_at);
+    if (formData.periods.length > 0) {
+        const end = moment(formData.periods[0].ending_at);
         end.add(7, 'days');
         if (end.isBefore(TODAY())) note = "Payroll was generated until " + end.format('M d');
     }
@@ -1506,7 +1504,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
         <div className="top-bar">
             <Button
                 icon="sync" color="primary" size="small" rounded={true}
-                onClick={() => processPendingPayrollPeriods().then(_periods => onChange({ periods: periods.periods.concat(_periods) }))}
+                onClick={() => processPendingPayrollPeriods().then(_periods => onChange({ periods: formData.periods.concat(_periods) }))}
                 note={note}
                 notePosition="left"
             />
@@ -1516,9 +1514,8 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
             <div className="col-12">
                 <h2 className="mt-1">Select a timesheet:</h2>
                 <ul className="scroll" style={{ maxHeight: "600px", overflowY: "auto", padding: "10px", margin: "-10px" }}>
-                    {periods.periods.length > 0 ?
-
-                        periods.periods.map(p =>
+                    <div>
+                        {formData.periods.map(p =>
                             <GenericCard key={p.id}
                                 hover={true} className="pr-2"
                                 onClick={() => history.push(`/payroll/period/${p.id}`)}
@@ -1532,30 +1529,28 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
                                 From {moment(p.starting_at).format('MMM DD, YYYY')} to {moment(p.ending_at).format('MMM DD, YYYY')}
                                 <p className="my-0"><small className={`badge ${p.payments.length > 0 ? 'badge-secondary' : 'badge-info'}`}>{p.payments.length} Payments</small></p>
                             </GenericCard>
-                        )
-                        :
-                        <div className="col-12 mt-3 text-center">No talents found for this period or shift</div>
-                    }
+                        )}
+                        {!noMorePeriods ? (
+                            <div className="row text-center w-100 mt-3">
+                                <div className="col">
+                                    <Button onClick={() => {
+                                        searchMe(`payroll-periods`, `?end=${moment().subtract(periodMonth, 'months').format('YYYY-MM-DD')}&start=${moment().subtract(periodMonth + 2.5, 'months').format('YYYY-MM-DD')}`, formData.periods)
+                                            .then((newPeriods) => {
+                                                if (newPeriods.length > 0) {
+                                                    setMonth(periodMonth + 2.5);
+                                                    onChange({ periods: formData.periods.concat(newPeriods) });
+                                                } else setNoMorePeriods(true);
+                                            });
+                                    }}>Load More</Button>
+                                </div>
+                            </div>
+                        ) : null}
+                    </div>
+
                 </ul>
             </div>
         </div>
-        {!noMorePeriods ? (
-            <div className="row text-center">
-                <div className="col">
-                    <Button onClick={() => {
-                        searchMe(`payroll-periods`, `?end=${moment().subtract(periodMonth, 'months').format('YYYY-MM-DD')}&start=${moment().subtract(periodMonth + 2.5, 'months').format('YYYY-MM-DD')}`).then((newPeriods) => {
-                            if (newPeriods.length > 0) {
-                                let newPayrollPeriods = periods.periods.concat(newPeriods);
-                                setPeriods({ periods: newPayrollPeriods });
-                                setMonth(periodMonth + 2.5);
 
-                            } else setNoMorePeriods(true);
-                        }
-                        );
-                    }}>Load More</Button>
-                </div>
-            </div>
-        ) : null}
 
     </div >);
 };
