@@ -61,7 +61,10 @@ const validateEvents = (events) => {
         const c = events[i];
         if(!moment(c.start).isValid()) throw new Error("Every event must have a 'start' property with the starting date of the event");
         if(!moment(c.end).isValid()) throw new Error("Every event must have a 'end' property with the ending date of the event");
-        if(typeof c.label !== "string" && typeof c.label !== "object" ) throw new Error("Every event must have a label (string)");
+        if(typeof c.label !== "string" && typeof c.label !== "object" ){
+            console.error(c);
+            throw new Error("Every event must have a label (string)");
+        } 
     }
     return true;
 };

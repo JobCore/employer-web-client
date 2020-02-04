@@ -77,14 +77,15 @@ export const ShiftCalendar = ({ catalog }) => {
         }
         else {
             _shifts = _.groupBy(sh, gf[l.value].grouping);
-            catalog[l.value].forEach(pos => {
-                if (Array.isArray(_shifts[pos.label])) _shifts[pos.label] = _shifts[pos.label].map(s => ({
+            const _keys = Object.keys(_shifts);
+            _keys.forEach(key => {
+                if (Array.isArray(_shifts[key])) _shifts[key] = _shifts[key].map(s => ({
                     start: moment(s.starting_at),
                     end: moment(s.ending_at),
                     label: gf[l.value].label(s),
                     data: s
                 }));
-                else _shifts[pos.label] = [];
+                else _shifts[key] = [];
             });
         }
         setGroupedShifts(_shifts);
@@ -133,46 +134,12 @@ export const ShiftCalendar = ({ catalog }) => {
                                     value={groupedLabel}
                                 />
                             </div>
-                            {/*<div className="col">
-                                <div className="row">
-                                     <DateTime
-                                        className='col'
-                                        timeFormat={false}
-                                        closeOnSelect={true}
-                                        value={filters.start}
-                                        isValidDate={( current ) => {
-                                            return current.isBefore( filters.end );
-                                        }}
-                                        renderInput={(properties) => {
-                                            const { value, ...rest } = properties;
-                                            return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
-                                        }}
-                                        onChange={(value)=> setCalendarFilters({ start: value })}
-                                    />
-                                    <DateTime
-                                        className='col'
-                                        timeFormat={false}
-                                        closeOnSelect={true}
-                                        value={filters.end}
-                                        isValidDate={( current ) => {
-                                            return current.isAfter( filters.start );
-                                        }}
-                                        renderInput={(properties) => {
-                                            const { value, ...rest } = properties;
-                                            return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
-                                        }}
-                                        onChange={(v)=> setCalendarFilters({ end: v })}
-                                    />
-                                </div>
-                            </div>*/}
                             <div className="col text-right pt-4">
                                 <Button size="small" color="light" icon="backward"
-                                    // onClick={() => setCurrentDate(moment(currentDate).add(-1, viewMode))}
                                     onClick={() => {
                                         const newEndDate = moment(currentDate).add(-1, viewMode);
                                         const oldEndDate = moment(filters.start);
                                         if (newEndDate.isBefore(oldEndDate)) {
-                                            // alert("generado");
                                             const updatedFilters = { start: moment(newEndDate).add(-2, 'months').format('YYYY-MM-DD'), end: moment(newEndDate).add(2, 'months').format('YYYY-MM-DD') };
                                             window.location.hash = queryString.stringify(updatedFilters);
                                             setCalendarFilters(updatedFilters);
