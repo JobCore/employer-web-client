@@ -575,8 +575,11 @@ ShiftInvites.propTypes = {
  * EditOrAddShift
  */
 const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar, oldShift }) => {
-    console.log(formData);
- 
+    useEffect(() => {
+        const venues = store.getState('venues');
+        const favlists = store.getState('favlists');
+        if (!venues || !favlists) fetchAllMe(['venues', 'favlists']);
+    }, []);
     const expired = moment(formData.starting_at).isBefore(NOW()) || moment(formData.ending_at).isBefore(NOW());
     return (
         <form>
