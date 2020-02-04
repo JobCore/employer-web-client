@@ -776,7 +776,6 @@ export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, for
                             }
                             return null;
                         };
-
                         const mainDate = getRealDate(value, formData.ending_at);
                         onChange({ ...mainDate, has_sensitive_updates: true });
                     }}
@@ -1074,7 +1073,6 @@ export class ManagePayroll extends Flux.DashView {
                                                                 })
                                                             });
                                                         } else {
-
                                                             this.setState({
                                                                 payments: this.state.payments.map(_pay => {
                                                                     return {
@@ -1204,13 +1202,13 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
 
     const [clockin, setClockin] = useState(Clockin(payment.clockin).defaults().unserialize());
     const [shift, setShift] = useState(Shift(payment.shift).defaults().unserialize());
-
     const [possibleShifts, setPossibleShifts] = useState(null);
     const [breaktime, setBreaktime] = useState(payment.breaktime_minutes);
 
     //only used on readonly shifts!!
     const approvedClockin = payment.approved_clockin_time ? moment(payment.approved_clockin_time) : clockin.started_at ? clockin.started_at : shift.starting_at;
     const approvedClockout = payment.approved_clockout_time ? moment(payment.approved_clockout_time) : clockin.ended_at ? clockin.ended_at : shift.ending_at;
+    console.log(approvedClockin);
 
     const clockInDuration = moment.duration(approvedClockout.diff(approvedClockin));
     // const clockinHours = !clockInDuration ? 0 : clockin.shift || !readOnly ? Math.round(clockInDuration.asHours() * 100) / 100 : "-";
@@ -1489,6 +1487,8 @@ const filterClockins = (formChanges, formData, onChange) => {
 export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel, history }) => {
     const { bar } = useContext(Theme.Context);
     const employer = store.getState('current_employer');
+    const [periodMonth, setMonth] = useState(2.5);
+    const [noMorePeriods, setNoMorePeriods] = useState(false);
 
     if (!employer || !employer.payroll_configured || !moment.isMoment(employer.payroll_period_starting_time)) {
         return <div className="text-center">
@@ -1513,13 +1513,12 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
             />
 
         </div>
-        <div className="row">
+        <div className="row mb-4">
             <div className="col-12">
                 <h2 className="mt-1">Select a timesheet:</h2>
                 <ul className="scroll" style={{ maxHeight: "600px", overflowY: "auto", padding: "10px", margin: "-10px" }}>
-                    {formData.periods.length > 0 ?
-
-                        formData.periods.map(p =>
+                    <div>
+                        {formData.periods.map(p =>
                             <GenericCard key={p.id}
                                 hover={true} className="pr-2"
                                 onClick={() => history.push(`/payroll/period/${p.id}`)}
@@ -1533,14 +1532,30 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
                                 From {moment(p.starting_at).format('MMM DD, YYYY')} to {moment(p.ending_at).format('MMM DD, YYYY')}
                                 <p className="my-0"><small className={`badge ${p.payments.length > 0 ? 'badge-secondary' : 'badge-info'}`}>{p.payments.length} Payments</small></p>
                             </GenericCard>
-                        )
-                        :
-                        <div className="col-12 mt-3 text-center">No talents found for this period or shift</div>
-                    }
+                        )}
+                        {!noMorePeriods ? (
+                            <div className="row text-center w-100 mt-3">
+                                <div className="col">
+                                    <Button onClick={() => {
+                                        searchMe(`payroll-periods`, `?end=${moment().subtract(periodMonth, 'months').format('YYYY-MM-DD')}&start=${moment().subtract(periodMonth + 2.5, 'months').format('YYYY-MM-DD')}`, formData.periods)
+                                            .then((newPeriods) => {
+                                                if (newPeriods.length > 0) {
+                                                    setMonth(periodMonth + 2.5);
+                                                    onChange({ periods: formData.periods.concat(newPeriods) });
+                                                } else setNoMorePeriods(true);
+                                            });
+                                    }}>Load More</Button>
+                                </div>
+                            </div>
+                        ) : null}
+                    </div>
+
                 </ul>
             </div>
         </div>
-    </div>);
+
+
+    </div >);
 };
 SelectTimesheet.propTypes = {
     onSave: PropTypes.func.isRequired,
