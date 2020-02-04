@@ -244,7 +244,7 @@ class PrivateLayout extends Flux.DashView {
                         case 'payroll_by_timesheet': {
 
                             const payrollPeriods = store.getState('payroll-periods');
-                            if (!payrollPeriods) searchMe('payroll-periods').then((periods) =>
+                            if (!payrollPeriods) searchMe(`payroll-periods`, `?end=${moment().format('YYYY-MM-DD')}&start=${moment().subtract(2.5, 'months').format('YYYY-MM-DD')}`).then((periods) =>
                                 this.showRightBar(SelectTimesheet, option, { formData: { periods } })
                             );
                             else this.showRightBar(SelectTimesheet, option, { formData: { periods: payrollPeriods } });
