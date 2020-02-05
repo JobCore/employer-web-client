@@ -808,39 +808,30 @@ EditOrAddExpiredShift.propTypes = {
 EditOrAddExpiredShift.defaultProps = {
     oldShift: null
 };
-export class ManagePayroll extends Flux.DashView {
+export const ManagePayroll = () => {
+    const { bar } = useContext(Theme.Context);
 
-    constructor() {
-        super();
-        this.state = {
-            employer: store.getState('current_employer'),
-            payrollPeriods: [],
-            payments: [],
-            singlePayrollPeriod: null
+    return (<div className="p-1 listcontents"> 
+        Pick a period
+    </div>);
+};
+
+export const PayrollPeriodDetails = ({ match }) => {
+    const [ employer, setEmployer ] = useState(store.getState('current_employer'));
+    const [ period, setPeriod ] = useState(null);
+    const [ payments, setPayments ] = useState([]);
+    const { bar } = useContext(Theme.Context);
+
+    useEffect(() =>{
+        const employerSub = store.subscribe('current_employer', (employer) => setEmployer(employer));
+        if(match.params.period_id !== undefined) fetchSingle("payroll-periods", match.params.period_id).then(_period => setPeriod(_period));
+
+        return () => {
+            employerSub.unsubscribe();
         };
-    }
+    }, []);
 
-    componentDidMount() {
-
-        this.subscribe(store, 'current_employer', (employer) => this.setState({ employer }));
-
-        const payrollPeriods = store.getState('payroll-periods');
-        this.subscribe(store, 'payroll-periods', (_payrollPeriods) => {
-            this.updatePayrollPeriod(_payrollPeriods);
-            if (this.props.match.params.period_id) this.getSinglePeriod(this.props.match.params.period_id, _payrollPeriods);
-        });
-        if (!payrollPeriods && this.props.match.params.period_id) searchMe('payroll-periods');
-
-        this.removeHistoryListener = this.props.history.listen((data) => {
-            const period = /\/payroll\/period\/(\d+)/gm;
-            const periodMatches = period.exec(data.pathname);
-            // const search = /\?talent_id=(\d+)/gm;
-            // const searchMatches = search.exec(data.search);
-            if (periodMatches) this.getSinglePeriod(periodMatches[1]);
-        });
-    }
-
-    groupPayments(singlePeriod) {
+    const groupPayments = (singlePeriod) => {
         if (!singlePeriod) return null;
 
         let groupedPayments = {};
@@ -852,277 +843,229 @@ export class ManagePayroll extends Flux.DashView {
         });
 
         return Object.values(groupedPayments);
+    };
+
+    if (!employer || !period) return "Loading...";
+    else if (!employer.payroll_configured || !moment.isMoment(employer.payroll_period_starting_time)) {
+        return <div className="p-1 listcontents text-center">
+            <h3>Please setup your payroll settings first.</h3>
+            <Button color="success" onClick={() => history.push("/payroll/settings")}>Setup Payroll Settings</Button>
+        </div>;
     }
 
-    getSinglePeriod(periodId, payrollPeriods) {
-        if (typeof periodId !== 'undefined') {
-            if (!payrollPeriods) fetchSingle("payroll-periods", periodId);
-            else {
-                const singlePayrollPeriod = payrollPeriods.find(pp => pp.id == periodId);
-                this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod) });
-            }
-        }
-    }
+    return <div className="p-1 listcontents">
+        <p className="text-right">
+            {period.status != "OPEN" ?
+                <Button className="btn btn-info" onClick={() => history.push('/payroll/report/' + period.id)}>Take me to the Payroll Report</Button>
+                :
+                <Button icon="plus" size="small" onClick={() => {
+                    const isOpen = period.payments.find(p => p.status === "NEW");
+                    const isOtherNew = payments.find(payment => payment.payments.some(item => item.status === 'NEW'));
 
-    updatePayrollPeriod(payrollPeriods) {
-
-        if (payrollPeriods == null) return;
-
-        let singlePayrollPeriod = null;
-        if (typeof this.props.match.params.period_id !== 'undefined') {
-            singlePayrollPeriod = payrollPeriods.find(pp => pp.id == this.props.match.params.period_id);
-        }
-
-        this.setState({ payrollPeriods, singlePayrollPeriod: singlePayrollPeriod || null, payments: this.groupPayments(singlePayrollPeriod) });
-    }
-
-
-    render() {
-
-        if (!this.state.employer) return "Loading...";
-        else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
-            return <div className="p-1 listcontents text-center">
-                <h3>Please setup your payroll settings first.</h3>
-                <Button color="success" onClick={() => this.props.history.push("/payroll/settings")}>Setup Payroll Settings</Button>
-            </div>;
-        }
-
-        //const allowLevels = (window.location.search != '');
-        return (<div className="p-1 listcontents">
-            <Theme.Consumer>
-                {({ bar }) => (<span>
-                    {(this.state.single_payroll_projection && typeof this.state.single_payroll_projection.employee !== 'undefined') ?
-                        <h1>
-                            <span id="payroll_header">Payroll for {this.state.single_payroll_projection.employee.user.last_name}, {this.state.single_payroll_projection.employee.user.first_name}</span> {' '}
-                            {
-                                (this.state.single_payroll_projection.paid) ?
-                                    <i className="fas fa-dollar-sign"></i>
-                                    : (this.state.single_payroll_projection.approved) ?
-                                        <i className="fas fa-check-circle mr-2"></i>
-                                        : ''
+                    if (isOpen) return;
+                    if (isOtherNew) setPayments(payments.map(_pay => {
+                            if (_pay.status !== 'NEW') return _pay;
+                            else {
+                                return {
+                                    ..._pay,
+                                    payments: _pay.payments.filter(p => p.status == 'NEW')
+                                };
                             }
-                        </h1>
-                        : this.state.singlePayrollPeriod ?
-                            <h2>Period {this.state.singlePayrollPeriod.label}</h2>
-                            :
-                            <p>Pick a timeframe and employe to review</p>
-                    }
-                    {this.state.singlePayrollPeriod && <div>
-                        <p className="text-right">
-                            {this.state.singlePayrollPeriod.status != "OPEN" ?
-                                <Button className="btn btn-info" onClick={() => this.props.history.push('/payroll/report/' + this.state.singlePayrollPeriod.id)}>Take me to the Payroll Report</Button>
-                                :
-                                <Button icon="plus" size="small" onClick={() => {
-                                    const isOpen = this.state.singlePayrollPeriod.payments.find(p => p.status === "NEW");
-                                    const isOtherNew = this.state.payments.find(payment => payment.payments.some(item => item.status === 'NEW'));
+                        })
+                    );
+                    setPeriod({
+                        ...period,
+                        payments: period.payments.concat([Payment({ status: "NEW", employee: { id: 'new' } }).defaults()])
+                    });
+                    setPayments(groupPayments(period));
+                    bar.close();
+                }}>Add employee to timesheet</Button>
+            }
+        </p>
+        {period.payments.length == 0 ?
+            <p>No clockins to review for this period</p>
+            :
+            payments.sort((a, b) =>
+                a.employee.id === "new" ? -1 :
+                    b.employee.id === "new" ? 1 :
+                        a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
+            ).map(pay => {
 
-                                    if (isOpen) return;
-                                    if (isOtherNew) this.setState({
-                                        payments: this.state.payments.map(_pay => {
-                                            if (_pay.status !== 'NEW') return _pay;
+                const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + parseFloat(regular_hours) + parseFloat(over_time), 0);
+                const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + ((parseFloat(regular_hours) * parseFloat(hourly_rate)) + (parseFloat(over_time)  * parseFloat(hourly_rate) * 1.5)), 0);
+                return <table key={pay.employee.id} className="table table-striped payroll-summary">
+                    <thead>
+                        <tr>
+                            <th>
+                                {!pay.employee || pay.employee.id === "new" ?
+                                    <SearchCatalogSelect
+                                        onChange={(selection) => {
+                                            const _alreadyExists = !Array.isArray(payments) ? false : payments.find(p => p.employee.id === selection.value);
+                                            if (_alreadyExists) Notify.error(`${selection.label} is already listed on this timesheet`);
+                                            else GET('employees/' + selection.value)
+                                                .then(emp => {
+                                                    const period = {
+                                                        ...period,
+                                                        payments: period.payments.map(p => {
+                                                            if (p.employee.id != "new") return p;
+                                                            else return Payment({ status: "NEW", employee: emp }).defaults();
+                                                        })
+                                                    };
+                                                    setPeriod(period);
+                                                    setPayments(groupPayments(period));
+                                                })
+                                                .catch(e => Notify.error(e.message || e));
+                                        }}
+                                        searchFunction={(search) => new Promise((resolve, reject) =>
+                                            GET('catalog/employees?full_name=' + search)
+                                                .then(talents => resolve([
+                                                    { label: `${(talents.length == 0) ? 'No one found: ' : ''}Invite "${search}" to jobcore`, value: 'invite_talent_to_jobcore' }
+                                                ].concat(talents)))
+                                                .catch(error => reject(error))
+                                        )}
+                                    />
+                                    :
+                                    <EmployeeExtendedCard
+                                        className="pr-2"
+                                        employee={pay.employee}
+                                        showFavlist={false}
+                                        hoverEffect={false}
+                                        showButtonsOnHover={false}
+                                        onClick={() => null}
+                                    />
+                                }
+                            </th>
+                            <th>In</th>
+                            <th>Out</th>
+                            <th>Total</th>
+                            <th>Break</th>
+                            <th>With <br /> Break</th>
+                            <th>Diff</th>
+                            <th style={{ minWidth: "80px" }}></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {pay.payments.map(p =>
+                            <PaymentRow key={p.id}
+                                payment={p}
+                                period={period}
+                                employee={pay.employee}
+                                readOnly={p.status !== 'PENDING' && p.status !== 'NEW'}
+                                onApprove={(payment) => {
+                                    p.status !== 'NEW' ?
+                                        updatePayments({
+                                            //serialization for updating the payment
+                                            ...payment,
+                                            status: "APPROVED",
+                                            id: p.id
+                                        }, period)
+                                        :
+                                        createPayment({
+                                            ...payment,
+                                            status: "APPROVED",
+                                            payroll_period: period.id
+                                        }, period).then(() => setPayments(payments.map(_pay => {
+                                                if (_pay.employee.id !== pay.employee.id) return _pay;
+                                                else {
+                                                    return {
+                                                        ..._pay,
+                                                        payments: _pay.payments.filter(p => p.id != undefined)
+                                                    };
+                                                }
+                                            })
+                                        ));
+
+
+                                }}
+                                onUndo={(payment) => updatePayments({
+                                    ...payment,
+                                    status: "PENDING",
+                                    approved_clockin_time: null,
+                                    approved_clockout_time: null,
+                                    id: p.id
+                                }, period)}
+                                onReject={(payment) => {
+                                    if (p.id === undefined) setPayments(payments.map(_pay => {
+                                            if (_pay.employee.id !== pay.employee.id) return _pay;
                                             else {
                                                 return {
                                                     ..._pay,
-                                                    payments: _pay.payments.filter(p => p.status == 'NEW')
+                                                    payments: _pay.payments.filter(p => p.id != undefined)
                                                 };
                                             }
                                         })
-                                    });
-                                    const period = {
-                                        ...this.state.singlePayrollPeriod,
-                                        payments: this.state.singlePayrollPeriod.payments.concat([Payment({ status: "NEW", employee: { id: 'new' } }).defaults()])
-                                    };
-                                    this.setState({ singlePayrollPeriod: period, payments: this.groupPayments(period) });
-                                    bar.close();
-                                }}>Add employee to timesheet</Button>
-                            }
-                        </p>
-                        {this.state.singlePayrollPeriod.payments.length == 0 ?
-                            <p>No clockins to review for this period</p>
-                            :
-                            this.state.payments.sort((a, b) =>
-                                a.employee.id === "new" ? -1 :
-                                    b.employee.id === "new" ? 1 :
-                                        a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
-                            ).map(pay => {
+                                    );
+                                    else updatePayments({ id: p.id, status: "REJECTED" }, period);
+                                }}
+                            />
+                        )}
+                        <tr>
+                            <td colSpan={5}>
+                                {period.status === 'OPEN' && pay.employee.id !== "new" &&
+                                    <Button icon="plus" size="small" onClick={() => {
 
-                                const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + parseFloat(regular_hours) + parseFloat(over_time), 0);
-                                const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + ((parseFloat(regular_hours) * parseFloat(hourly_rate)) + (parseFloat(over_time)  * parseFloat(hourly_rate) * 1.5)), 0);
-                                return <table key={pay.employee.id} className="table table-striped payroll-summary">
-                                    <thead>
-                                        <tr>
-                                            <th>
-                                                {!pay.employee || pay.employee.id === "new" ?
-                                                    <SearchCatalogSelect
-                                                        onChange={(selection) => {
-                                                            const _alreadyExists = !Array.isArray(this.state.payments) ? false : this.state.payments.find(p => p.employee.id === selection.value);
-                                                            if (_alreadyExists) Notify.error(`${selection.label} is already listed on this timesheet`);
-                                                            else GET('employees/' + selection.value)
-                                                                .then(emp => {
-                                                                    const period = {
-                                                                        ...this.state.singlePayrollPeriod,
-                                                                        payments: this.state.singlePayrollPeriod.payments.map(p => {
-                                                                            if (p.employee.id != "new") return p;
-                                                                            else return Payment({ status: "NEW", employee: emp }).defaults();
-                                                                        })
-                                                                    };
-                                                                    this.setState({ singlePayrollPeriod: period, payments: this.groupPayments(period) });
-                                                                })
-                                                                .catch(e => Notify.error(e.message || e));
-                                                        }}
-                                                        searchFunction={(search) => new Promise((resolve, reject) =>
-                                                            GET('catalog/employees?full_name=' + search)
-                                                                .then(talents => resolve([
-                                                                    { label: `${(talents.length == 0) ? 'No one found: ' : ''}Invite "${search}" to jobcore`, value: 'invite_talent_to_jobcore' }
-                                                                ].concat(talents)))
-                                                                .catch(error => reject(error))
-                                                        )}
-                                                    />
-                                                    :
-                                                    <EmployeeExtendedCard
-                                                        className="pr-2"
-                                                        employee={pay.employee}
-                                                        showFavlist={false}
-                                                        hoverEffect={false}
-                                                        showButtonsOnHover={false}
-                                                        onClick={() => null}
-                                                    />
-                                                }
-                                            </th>
-                                            <th>In</th>
-                                            <th>Out</th>
-                                            <th>Total</th>
-                                            <th>Break</th>
-                                            <th>With <br /> Break</th>
-                                            <th>Diff</th>
-                                            <th style={{ minWidth: "80px" }}></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {pay.payments.map(p =>
-                                            <PaymentRow key={p.id}
-                                                payment={p}
-                                                period={this.state.singlePayrollPeriod}
-                                                employee={pay.employee}
-                                                readOnly={p.status !== 'PENDING' && p.status !== 'NEW'}
-                                                onApprove={(payment) => {
-                                                    p.status !== 'NEW' ?
-                                                        updatePayments({
-                                                            //serialization for updating the payment
-                                                            ...payment,
-                                                            status: "APPROVED",
-                                                            id: p.id
-                                                        }, this.state.singlePayrollPeriod)
-                                                        :
-                                                        createPayment({
-                                                            ...payment,
-                                                            status: "APPROVED",
-                                                            payroll_period: this.state.singlePayrollPeriod.id
-                                                        }, this.state.singlePayrollPeriod).then(() => this.setState({
-                                                            payments: this.state.payments.map(_pay => {
-                                                                if (_pay.employee.id !== pay.employee.id) return _pay;
-                                                                else {
-                                                                    return {
-                                                                        ..._pay,
-                                                                        payments: _pay.payments.filter(p => p.id != undefined)
-                                                                    };
-                                                                }
-                                                            })
-                                                        }));
-
-
-                                                }}
-                                                onUndo={(payment) => updatePayments({
-                                                    ...payment,
-                                                    status: "PENDING",
-                                                    approved_clockin_time: null,
-                                                    approved_clockout_time: null,
-                                                    id: p.id
-                                                }, this.state.singlePayrollPeriod)}
-                                                onReject={(payment) => {
-                                                    if (p.id === undefined) this.setState({
-                                                        payments: this.state.payments.map(_pay => {
-                                                            if (_pay.employee.id !== pay.employee.id) return _pay;
-                                                            else {
-                                                                return {
-                                                                    ..._pay,
-                                                                    payments: _pay.payments.filter(p => p.id != undefined)
-                                                                };
-                                                            }
-                                                        })
-                                                    });
-                                                    else updatePayments({ id: p.id, status: "REJECTED" }, this.state.singlePayrollPeriod);
-                                                }}
-                                            />
-                                        )}
-                                        <tr>
-                                            <td colSpan={5}>
-                                                {this.state.singlePayrollPeriod.status === 'OPEN' && pay.employee.id !== "new" &&
-                                                    <Button icon="plus" size="small" onClick={() => {
-
-                                                        if (!this.state.payments.find(payment => payment.payments.some(item => item.status === 'NEW'))) {
-                                                            this.setState({
-                                                                payments: this.state.payments.map(_pay => {
-                                                                    if (_pay.employee.id !== pay.employee.id) return _pay;
-                                                                    else {
-                                                                        return {
-                                                                            ..._pay,
-                                                                            payments: _pay.payments.concat([Payment({ status: "NEW", regular_hours: "0.00", over_time: "0.00", hourly_rate: "0.00" }).defaults()])
-                                                                        };
-                                                                    }
-                                                                })
-                                                            });
-                                                        } else {
-                                                            this.setState({
-                                                                payments: this.state.payments.map(_pay => {
-                                                                    return {
-                                                                        ..._pay,
-                                                                        payments: _pay.payments.filter(p => p.status != 'NEW')
-
-                                                                    };
-
-                                                                })
-                                                            });
-                                                        }
-
+                                        if (!payments.find(payment => payment.payments.some(item => item.status === 'NEW'))) {
+                                            setPayments(payments.map(_pay => {
+                                                    if (_pay.employee.id !== pay.employee.id) return _pay;
+                                                    else {
+                                                        return {
+                                                            ..._pay,
+                                                            payments: _pay.payments.concat([Payment({ status: "NEW", regular_hours: "0.00", over_time: "0.00", hourly_rate: "0.00" }).defaults()])
+                                                        };
                                                     }
-                                                    }>Add new clockin</Button>
-                                                }
-                                            </td>
-                                            <td colSpan={3} className="text-right">
-                                                Total: {!isNaN(total_hours) ? Math.round(total_hours * 100) / 100 : 0} hr
-                                                { total_hours > 40 &&
-                                                    <Tooltip placement="bottom" trigger={['hover']} overlay={<small>This employee has overtime</small>}>
-                                                        <i className="fas fa-stopwatch text-danger fa-xs mr-2"></i>
-                                                    </Tooltip>
-                                                }
-                                                <small className="d-block">${!isNaN(total_amount) ? Math.round(total_amount * 100) / 100 : 0}</small>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>;
-                            })}
-                        <div className="btn-bar text-right">
-                            {this.state.singlePayrollPeriod.status === 'OPEN' ?
-                                <button type="button" className="btn btn-primary" onClick={() => {
-                                    const unapproved = [].concat.apply([], this.state.payments.map(p => p.payments)).find(p => p.status === "PENDING");
+                                                })
+                                            );
+                                        } else {
+                                            setPayments(payments.map(_pay => {
+                                                    return {
+                                                        ..._pay,
+                                                        payments: _pay.payments.filter(p => p.status != 'NEW')
 
-                                    if (unapproved) Notify.error("There are still some payments that need to be approved or rejected");
-                                    else if (Array.isArray(this.state.payments) && this.state.payments.length === 0) Notify.error("There are no clockins to review for this period");
-                                    else this.props.history.push('/payroll/rating/' + this.state.singlePayrollPeriod.id);
+                                                    };
 
-                                }}>Finalize Period</button>
-                                :
-                                <Button className="btn btn-success" onClick={() => this.props.history.push('/payroll/report/' + this.state.singlePayrollPeriod.id)}>Take me to the Payroll Report</Button>
-                            }
-                        </div>
-                    </div>
-                    }
-                </span>)}
-            </Theme.Consumer>
-        </div>);
-    }
-}
+                                                })
+                                            );
+                                        }
+
+                                    }
+                                    }>Add new clockin</Button>
+                                }
+                            </td>
+                            <td colSpan={3} className="text-right">
+                                Total: {!isNaN(total_hours) ? Math.round(total_hours * 100) / 100 : 0} hr
+                                { total_hours > 40 &&
+                                    <Tooltip placement="bottom" trigger={['hover']} overlay={<small>This employee has overtime</small>}>
+                                        <i className="fas fa-stopwatch text-danger fa-xs mr-2"></i>
+                                    </Tooltip>
+                                }
+                                <small className="d-block">${!isNaN(total_amount) ? Math.round(total_amount * 100) / 100 : 0}</small>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>;
+            })}
+        <div className="btn-bar text-right">
+            {period.status === 'OPEN' ?
+                <button type="button" className="btn btn-primary" onClick={() => {
+                    const unapproved = [].concat.apply([], payments.map(p => p.payments)).find(p => p.status === "PENDING");
+
+                    if (unapproved) Notify.error("There are still some payments that need to be approved or rejected");
+                    else if (Array.isArray(payments) && payments.length === 0) Notify.error("There are no clockins to review for this period");
+                    else history.push('/payroll/rating/' + period.id);
+
+                }}>Finalize Period</button>
+                :
+                <Button className="btn btn-success" onClick={() => history.push('/payroll/report/' + period.id)}>Take me to the Payroll Report</Button>
+            }
+        </div>
+    </div>;
+
+};
+
+PayrollPeriodDetails.propTypes = {
+    history: PropTypes.object.isRequired,
+    match: PropTypes.object.isRequired,
+};
 
 function createMapOptions(maps) {
     // next props are exposed at maps
@@ -1530,17 +1473,18 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
                                     }
                                 </div>
                                 From {moment(p.starting_at).format('MMM DD, YYYY')} to {moment(p.ending_at).format('MMM DD, YYYY')}
-                                <p className="my-0"><small className={`badge ${p.payments.length > 0 ? 'badge-secondary' : 'badge-info'}`}>{p.payments.length} Payments</small></p>
+                                <p className="my-0"><small className={`badge ${p.total_payments > 0 ? 'badge-secondary' : 'badge-info'}`}>{p.total_payments} Payments</small></p>
                             </GenericCard>
                         )}
                         {!noMorePeriods ? (
                             <div className="row text-center w-100 mt-3">
                                 <div className="col">
                                     <Button onClick={() => {
-                                        searchMe(`payroll-periods`, `?end=${moment().subtract(periodMonth, 'months').format('YYYY-MM-DD')}&start=${moment().subtract(periodMonth + 2.5, 'months').format('YYYY-MM-DD')}`, formData.periods)
+                                        const PAGINATION_MONTHS_LENGTH = 1;
+                                        searchMe(`payroll-periods`, `?end=${moment().subtract(periodMonth, 'months').format('YYYY-MM-DD')}&start=${moment().subtract(periodMonth + PAGINATION_MONTHS_LENGTH, 'months').format('YYYY-MM-DD')}`, formData.periods)
                                             .then((newPeriods) => {
                                                 if (newPeriods.length > 0) {
-                                                    setMonth(periodMonth + 2.5);
+                                                    setMonth(periodMonth + PAGINATION_MONTHS_LENGTH);
                                                     onChange({ periods: formData.periods.concat(newPeriods) });
                                                 } else setNoMorePeriods(true);
                                             });
