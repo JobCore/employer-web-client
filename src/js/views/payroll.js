@@ -822,15 +822,6 @@ export const PayrollPeriodDetails = ({ match }) => {
     const [ payments, setPayments ] = useState([]);
     const { bar } = useContext(Theme.Context);
 
-    useEffect(() =>{
-        const employerSub = store.subscribe('current_employer', (employer) => setEmployer(employer));
-        if(match.params.period_id !== undefined) fetchSingle("payroll-periods", match.params.period_id).then(_period => setPeriod(_period));
-
-        return () => {
-            employerSub.unsubscribe();
-        };
-    }, []);
-
     const groupPayments = (singlePeriod) => {
         if (!singlePeriod) return null;
 
@@ -845,8 +836,21 @@ export const PayrollPeriodDetails = ({ match }) => {
         return Object.values(groupedPayments);
     };
 
+    useEffect(() =>{
+        const employerSub = store.subscribe('current_employer', (employer) => setEmployer(employer));
+        if(match.params.period_id !== undefined) fetchSingle("payroll-periods", match.params.period_id).then(_period => {
+            setPeriod(_period);
+            setPayments(groupPayments(_period));
+        });
+
+        return () => {
+            employerSub.unsubscribe();
+        };
+    }, []);
+
+
     if (!employer || !period) return "Loading...";
-    else if (!employer.payroll_configured || !moment.isMoment(employer.payroll_period_starting_time)) {
+    if (!employer.payroll_configured || !moment.isMoment(employer.payroll_period_starting_time)) {
         return <div className="p-1 listcontents text-center">
             <h3>Please setup your payroll settings first.</h3>
             <Button color="success" onClick={() => history.push("/payroll/settings")}>Setup Payroll Settings</Button>
