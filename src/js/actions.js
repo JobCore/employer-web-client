@@ -298,7 +298,7 @@ export const searchMe = (entity, queryString, mergeResults=false) => new Promise
             if (typeof entity.callback == 'function') entity.callback();
             if(mergeResults){
                 const previous = store.getState(entity.slug || entity);
-                if(Array.isArray(previous)) list = previous.contact(list);
+                if(Array.isArray(previous)) list = previous.concat(list);
             } 
             Flux.dispatchEvent(entity.slug || entity, list);
             accept(list);
