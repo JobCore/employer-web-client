@@ -3,6 +3,10 @@ import { validator, ValidationError } from '../utils/validation';
 import PropTypes from 'prop-types';
 import Select from 'react-select';
 import { Button } from '../components/index';
+import Flux from "@4geeksacademy/react-flux-dash";
+import { GET, POST } from "../utils/api_wrapper";
+import { Notify } from 'bc-react-notifier';
+import { searchMe } from "../actions";
 export const Payment = (data = {}) => {
 
     const _defaults = {
@@ -35,27 +39,71 @@ export const Payment = (data = {}) => {
 /**
  * Make Payment
  */
-export const MakePayment = ({ 
-    onSave, 
-    onCancel, 
-    onChange, 
-    catalog, 
-    formData, 
-    bar, 
-    error
- }) => {
+export class MakePayment extends Flux.DashView {
+
+        state = {
+            paymentInfo: ""
+        };
+
+    componentDidMount(){
+        this.fetchPatmentInfo();
+    }
+
+    fetchPatmentInfo = async () => {
+        try {
+            const response = await GET(`employers/me/employee-payment-list/${this.props.formData.periodId}`);
+
+            this.setState({ paymentInfo: response });
+            console.log("response: ", response);
+        } catch(error) {
+            Notify.error(error.message || error);
+
+        }
+    }
+
+    makePayment = async (
+        employeePaymentId, 
+        paymentType, 
+        employer_bank_account_id, employee_bank_account_id
+        ) => {
+        const data = {
+            payment_type: paymentType,
+            payment_data: {
+                employer_bank_account_id: employer_bank_account_id,
+                employee_bank_account_id: employee_bank_account_id
+            }
+        };
+
+        try{
+            const response = await POST(`employers/me/employee-payment/${employeePaymentId}`, data);
+            console.log("makepayment response: ", response);
+            searchMe('payroll-periods')
+            Promise.resolve(response);
+        }catch(error){
+            Promise.reject(error);
+        }
+    }
+
+    render() {
+        const { 
+            onSave, 
+            onCancel, 
+            onChange, 
+            catalog, 
+            formData, 
+            bar, 
+            error
+         } = this.props;
+         const { paymentInfo } = this.state;
+         const employerBankAccounts = paymentInfo.employer ? paymentInfo.employer.bank_accounts : null;
         console.log('MakePayment formData: ', formData);
         console.log('MakePayment error: ', error);
+        console.log('MakePayment paymentInfo: ', paymentInfo);
         const taxesMagicNumber = 3.00;
-        const bankAccounts = [
-            {
-                name: "Bank of america"
-            },
-            {
-                name: "Wells fargo"
-            },
-        ];
-        return ( <form>
+        return (
+        <>
+            {paymentInfo
+        ? <form>
             <div className="row">
                 <div className="col-12">
                     <label>Employee:</label>{` ${formData.pay.employee.user.last_name}, ${formData.pay.employee.user.first_name}`}
@@ -81,32 +129,60 @@ export const MakePayment = ({
                 <div className="col-12">
                     <label>Payment methods</label>
                 </div>
-                <div className="col-12 payment-cell">
-                    <Button 
-                        style={{ width: '200px' }}
-                        color="success" 
-                        size="small" 
-                        onClick={() => null}>
-                            Check payment
-                    </Button>
-                </div>
-                {bankAccounts && bankAccounts.length > 0
-                ? bankAccounts.map((bankaccount, i) =>
-                    <div className="col-12 payment-cell" key={i}>
-                        <Button 
+                {paymentInfo.employee && paymentInfo.employee.bank_accounts
+                ? <>
+                    <div className="col-12 payment-cell">
+                        <Button
                             style={{ width: '200px' }}
-                            color="success" 
-                            size="small" 
+                            color="success"
+                            size="small"
                             onClick={() => null}>
-                            {bankaccount.name}
+                            Check payment
                         </Button>
                     </div>
-                    )
-            : null}
+                    {employerBankAccounts.length > 0
+                        ? employerBankAccounts.map((bankaccount, i) =>
+                            <div className="col-12 payment-cell" key={i}>
+                                <Button
+                                    style={{ width: '200px' }}
+                                    color="success"
+                                    size="small"
+                                    onClick={() => {
+                                        console.log("entrose");
+                                        const noti = Notify.info("Are you sure to pay ?", async (answer) => {
+                                            if(answer){
+                                                try{
+                                                    await this.makePayment(
+                                                        paymentInfo.employer.id, 
+                                                        "FAKE", 
+                                                        bankaccount.id, 
+                                                        paymentInfo.employee.bank_accounts[0].id
+                                                        );
+                                                    noti.remove();
+                                                }catch(error){
+                                                    Notify.error(error.message || error);
+                                                }
+                                            } else{
+                                                noti.remove();
+                                            }
+                            
+                                        });
+                                    }}
+                                    >
+                                    {`${bankaccount.institution_name} ${bankaccount.name}`}
+                                </Button>
+                            </div>
+                        )
+                    : <label>Employer dont have any bank accounts</label>}
+                </>
+                : <label>Employee dont have any bank accounts</label>}
             </div>
-            
-        </form>);
-};
+        </form>
+    : null}
+    </>
+        );
+    }
+}
 
 MakePayment.propTypes = {
     error: PropTypes.string,
