@@ -720,14 +720,21 @@ class _Store extends Flux.DashStore {
             });
         });
         this.addEvent('shifts', (shifts) => {
-
-            const newShifts = (!shifts || (Object.keys(shifts).length === 0 && shifts.constructor === Object)) ? [] : shifts.filter(s => s.status !== 'CANCELLED').map((shift) => {
+            shifts = shifts.count ? shifts.results : shifts;
+            let newShifts = (!shifts || (Object.keys(shifts).length === 0 && shifts.constructor === Object)) ? [] : shifts.filter(s => s.status !== 'CANCELLED').map((shift) => {
                 //already transformed
                 return Shift(shift).defaults().unserialize();
             });
 
             const applicants = this.getState('applications');
             if (!applicants && Session.get().isValid) fetchAllMe(['applications']);
+            if (shifts.count) {
+                newShifts = newShifts.map((el) => {
+                    var newShiftsCount = Object.assign({}, el);
+                    newShiftsCount.isActive = true;
+                    return newShiftsCount;
+                });
+            }
 
             // const _shift = newShifts.find(s => s.id == 1095);
             return newShifts;
