@@ -17,7 +17,7 @@ import { Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilt
 import { PendingInvites, PendingJobcoreInvites, SearchShiftToInviteTalent, InviteTalentToJobcore, SearchTalentToInviteToShift } from './views/invites.js';
 import { ManageFavorites, AddFavlistsToTalent, FavlistEmployees, AddTalentToFavlist, Favlist, AddorUpdateFavlist } from './views/favorites.js';
 import { ManageLocations, AddOrEditLocation, Location } from './views/locations.js';
-import { ManagePayroll, PayrollReport, SelectTimesheet, EditOrAddExpiredShift, PayrollSettings, PayrollRating } from './views/payroll.js';
+import { ManagePayroll, PayrollPeriodDetails, PayrollReport, SelectTimesheet, EditOrAddExpiredShift, PayrollSettings, PayrollRating } from './views/payroll.js';
 import { ManageRating, Rating, RatingDetails, ReviewTalent, ReviewTalentAndShift, RatingEmployees, UnratingEmployees } from './views/ratings.js';
 import { Profile, ManageUsers, InviteUserToCompanyJobcore } from './views/profile.js';
 import { NOW } from './components/utils.js';
@@ -244,7 +244,7 @@ class PrivateLayout extends Flux.DashView {
                         case 'payroll_by_timesheet': {
 
                             const payrollPeriods = store.getState('payroll-periods');
-                            if (!payrollPeriods) searchMe(`payroll-periods`, `?end=${moment().format('YYYY-MM-DD')}&start=${moment().subtract(2.5, 'months').format('YYYY-MM-DD')}`).then((periods) =>
+                            if (!payrollPeriods) searchMe(`payroll-periods`, `?end=${moment().format('YYYY-MM-DD')}&start=${moment().subtract(1, 'months').format('YYYY-MM-DD')}`).then((periods) =>
                                 this.showRightBar(SelectTimesheet, option, { formData: { periods } })
                             );
                             else this.showRightBar(SelectTimesheet, option, { formData: { periods: payrollPeriods } });
@@ -425,7 +425,7 @@ class PrivateLayout extends Flux.DashView {
                             <Route exact path='/profile/bank-accounts' component={EmployerBankAccounts} />
                             <Route exact path='/payroll' component={ManagePayroll} />
                             <Route exact path='/payroll/settings' component={PayrollSettings} />
-                            <Route exact path='/payroll/period/:period_id' component={ManagePayroll} />
+                            <Route exact path='/payroll/period/:period_id' component={PayrollPeriodDetails} />
                             <Route exact path='/payroll/report/:period_id' component={PayrollReport} />
                             <Route exact path='/payroll/rating/:period_id' component={PayrollRating} />
                             <Route exact path='/rate' component={RateShift} />
