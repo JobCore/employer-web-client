@@ -49,10 +49,10 @@ export const autoLogin = (token = '') => {
 };
 
 export const login = (email, password, keep, history) => new Promise((resolve, reject) => POST('login', {
-        username_or_email: email,
-        password: password,
-        exp_days: keep ? 30 : 1
-    })
+    username_or_email: email,
+    password: password,
+    exp_days: keep ? 30 : 1
+})
     .then(function (data) {
         if (!data.user.profile.employer) {
             Notify.error("Only employers are allowed to login into this application");
@@ -310,7 +310,7 @@ export const create = (entity, data, status = WEngine.modes.LIVE) => new Promise
     POST('employers/me/' + (entity.url || entity), data)
         .then(function (incoming) {
 
-            if(typeof entity.url === 'string' && typeof entity.slug === 'undefined') throw Error('Missing entity slug on the create method');
+            if (typeof entity.url === 'string' && typeof entity.slug === 'undefined') throw Error('Missing entity slug on the create method');
 
             //fisrt check if I have any of this on the store
             let entities = store.getState(entity.slug || entity);
