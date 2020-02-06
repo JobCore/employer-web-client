@@ -150,6 +150,8 @@ export class ManageShifts extends Flux.DashView {
         super();
         this.state = {
             shifts: [],
+            noMoreShifts: false,
+            offset: 5,
             runTutorial: hasTutorial(),
             steps: [
                 {
@@ -172,14 +174,14 @@ export class ManageShifts extends Flux.DashView {
     }
 
     componentDidMount() {
+        let status = queryString.parse(window.location.search, { arrayFormat: 'index' });
 
         // fetch if not loaded already
         let shifts = store.getState('shifts');
-        // if (!shifts) fetchAllMe(['shifts']);
-        // else this.filterShifts(shifts);
-        searchMe(`shifts`, `?envelope=true&limit=10&status=OPEN`);
+
+        searchMe(`shifts`, `?envelope=true&limit=5&status=${status.status}`);
         this.subscribe(store, 'shifts', (shifts) => {
-            console.log('this are the shifts', shifts);
+            this.setState({ shifts: shifts });
             this.filterShifts(shifts);
         });
 
@@ -188,7 +190,6 @@ export class ManageShifts extends Flux.DashView {
         });
         this.setState({ runTutorial: true });
 
-        console.log(shifts);
     }
 
     filterShifts(shifts = null) {
@@ -294,8 +295,11 @@ export class ManageShifts extends Flux.DashView {
     }
 
     render() {
-        const groupedShifts = _.groupBy(this.state.shifts, (s) => s.starting_at.format('MMMM YYYY'));
+        console.log('state shifts', this.state.shifts);
+        let status = queryString.parse(window.location.search, { arrayFormat: 'index' });
+        const groupedShifts = _.groupBy(this.state.shifts, (s) => moment(s.starting_at).format('MMMM YYYY'));
         const shiftsHTML = [];
+
         for (let date in groupedShifts) {
             shiftsHTML.push(<div key={date} className="date-group">
                 <p className="date-group-label">{date}</p>
@@ -314,6 +318,25 @@ export class ManageShifts extends Flux.DashView {
             <h1 className="float-left"><span id="shift-details-header">Shift Details</span></h1>
             {shiftsHTML.length == 0 && <div className="mt-5">No shifts have been found</div>}
             {shiftsHTML}
+            {!this.state.noMoreShifts && shiftsHTML.length != 0 ? (
+                <div className="row text-center w-100 mt-3">
+                    <div className="col">
+                        <Button onClick={() => {
+                            const PAGINATION_LENGTH = 5;
+                            searchMe(`shifts`, `?envelope=true&limit=5&offset=${this.state.offset + PAGINATION_LENGTH}&status=${status.status}`, this.state.shifts)
+                                .then((newShifts) => {
+                                    console.log(newShifts.length);
+                                    console.log(this.state.shifts.length);
+                                    if (newShifts.length === this.state.shifts.length) {
+                                        this.setState({ noMoreShifts: true });
+                                    }
+                                    else this.setState({ shifts: newShifts, offset: this.state.offset + PAGINATION_LENGTH });
+
+                                });
+                        }}>Load More</Button>
+                    </div>
+                </div>
+            ) : null}
         </div>);
     }
 }
