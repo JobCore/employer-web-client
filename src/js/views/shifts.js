@@ -175,10 +175,11 @@ export class ManageShifts extends Flux.DashView {
 
         // fetch if not loaded already
         let shifts = store.getState('shifts');
-        if (!shifts) fetchAllMe(['shifts']);
-        else this.filterShifts(shifts);
-
+        // if (!shifts) fetchAllMe(['shifts']);
+        // else this.filterShifts(shifts);
+        searchMe(`shifts`, `?envelope=true&limit=10&status=OPEN`);
         this.subscribe(store, 'shifts', (shifts) => {
+            console.log('this are the shifts', shifts);
             this.filterShifts(shifts);
         });
 
@@ -187,7 +188,7 @@ export class ManageShifts extends Flux.DashView {
         });
         this.setState({ runTutorial: true });
 
-
+        console.log(shifts);
     }
 
     filterShifts(shifts = null) {
