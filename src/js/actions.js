@@ -292,10 +292,14 @@ export const search = (entity, queryString = null) => new Promise((accept, rejec
             reject(error);
         })
 );
-export const searchMe = (entity, queryString) => new Promise((accept, reject) =>
+export const searchMe = (entity, queryString, mergeResults=false) => new Promise((accept, reject) =>
     GET('employers/me/' + entity, queryString)
         .then(function (list) {
             if (typeof entity.callback == 'function') entity.callback();
+            if(mergeResults){
+                const previous = store.getState(entity.slug || entity);
+                if(Array.isArray(previous)) list = previous.concat(list);
+            } 
             Flux.dispatchEvent(entity.slug || entity, list);
             accept(list);
         })
