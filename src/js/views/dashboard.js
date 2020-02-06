@@ -54,7 +54,6 @@ export default class Home extends Flux.DashView {
     componentDidMount() {
 
         this.subscribe(store, 'shifts', (shifts) => {
-
             if (Array.isArray(shifts)) this.setState({ shifts });
         });
 
