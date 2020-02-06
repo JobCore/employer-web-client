@@ -1528,7 +1528,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
                                     }
                                 </div>
                                 From {moment(p.starting_at).format('MMM DD, YYYY')} to {moment(p.ending_at).format('MMM DD, YYYY')}
-                                <p className="my-0"><small className={`badge ${p.payments.length > 0 ? 'badge-secondary' : 'badge-info'}`}>{p.payments.length} Payments</small></p>
+                                {p.payments ? <p className="my-0"><small className={`badge ${p.payments.length > 0 ? 'badge-secondary' : 'badge-info'}`}>{p.payments.length} {p.payments.length > 1 ? "Payments" : "Payment"}</small></p> : null}
                             </GenericCard>
                         )
                         :
@@ -1898,12 +1898,14 @@ export class PayrollReport extends Flux.DashView {
         if (!singlePeriod) return null;
 
         let groupedPayments = {};
-        singlePeriod.payments.forEach(pay => {
-            if (typeof groupedPayments[pay.employee.id] === 'undefined') {
-                groupedPayments[pay.employee.id] = { employee: pay.employee, payments: [] };
-            }
-            groupedPayments[pay.employee.id].payments.push(pay);
-        });
+        if(singlePeriod.payments){
+            singlePeriod.payments.forEach(pay => {
+                if (typeof groupedPayments[pay.employee.id] === 'undefined') {
+                    groupedPayments[pay.employee.id] = { employee: pay.employee, payments: [] };
+                }
+                groupedPayments[pay.employee.id].payments.push(pay);
+            });
+        }
 
         return Object.values(groupedPayments);
     }
@@ -1945,7 +1947,7 @@ export class PayrollReport extends Flux.DashView {
             <Theme.Consumer>
                 {({ bar }) => (<span>
                     {(!this.state.singlePayrollPeriod) ? '' :
-                        (this.state.singlePayrollPeriod.payments.length > 0) ?
+                        (this.state.singlePayrollPeriod.payments && this.state.singlePayrollPeriod.payments.length > 0) ?
                             <div>
                                 <p className="text-right">
                                     <h2>Payments for {this.state.singlePayrollPeriod.label}</h2>
@@ -2105,6 +2107,7 @@ export class PayrollReport extends Flux.DashView {
                                                         data: {
                                                             pay: pay, 
                                                             total: total,
+                                                            periodId: this.state.singlePayrollPeriod.id
                                                     } 
                                                     })}>
                                                         Make payment
