@@ -821,26 +821,12 @@ export const PayrollPeriodDetails = ({ match, history }) => {
     const [period, setPeriod] = useState(null);
     const [payments, setPayments] = useState([]);
     const { bar } = useContext(Theme.Context);
-
-    const groupPayments = (singlePeriod) => {
-        if (!singlePeriod) return null;
-
-        let groupedPayments = {};
-        singlePeriod.payments.forEach(pay => {
-            if (typeof groupedPayments[pay.employee.id] === 'undefined') {
-                groupedPayments[pay.employee.id] = { employee: pay.employee, payments: [] };
-            }
-            groupedPayments[pay.employee.id].payments.push(pay);
-        });
-
-        return Object.values(groupedPayments);
-    };
-
+    
     useEffect(() => {
         const employerSub = store.subscribe('current_employer', (employer) => setEmployer(employer));
         if(match.params.period_id !== undefined) fetchSingle("payroll-periods", match.params.period_id).then(_period => {
             setPeriod(_period);
-            setPayments(groupPayments(_period));
+            setPayments(_period.payments);
         });
 
         const removeHistoryListener = history.listen((data) => {
@@ -848,7 +834,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
             const periodMatches = period.exec(data.pathname);
             if (periodMatches) fetchSingle("payroll-periods", periodMatches[1]).then(_period => {
                 setPeriod(_period);
-                setPayments(groupPayments(_period));
+                setPayments(_period.payments);
             });
         });
 
@@ -867,6 +853,16 @@ export const PayrollPeriodDetails = ({ match, history }) => {
         </div>;
     }
 
+    let groupedPayments = {};
+    for(let i = 0; i < payments.length; i++){
+        const pay = payments[i];
+        if (typeof groupedPayments[pay.employee.id] === 'undefined') {
+            groupedPayments[pay.employee.id] = { employee: pay.employee, payments: [] };
+        }
+        groupedPayments[pay.employee.id].payments.push(pay);
+    }
+    groupedPayments = Object.keys(groupedPayments).map(id => groupedPayments[id]);
+
     return <div className="p-1 listcontents">
         <p className="text-right">
             {period.status != "OPEN" ?
@@ -874,10 +870,10 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                 :
                 <Button icon="plus" size="small" onClick={() => {
                     const isOpen = period.payments.find(p => p.status === "NEW");
-                    const isOtherNew = payments.find(payment => payment.payments.some(item => item.status === 'NEW'));
+                    const thereIsAnotherNew = payments.find(item => item.status === 'NEW');
 
                     if (isOpen) return;
-                    if (isOtherNew) setPayments(payments.map(_pay => {
+                    if (thereIsAnotherNew) setPayments(payments.map(_pay => {
                         if (_pay.status !== 'NEW') return _pay;
                         else {
                             return {
@@ -887,20 +883,15 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                         }
                     }));
 
-                    const newPeriod = {
-                        ...period,
-                        payments: period.payments.concat([Payment({ status: "NEW", employee: { id: 'new' } }).defaults()])
-                    };
-                    setPeriod(newPeriod);
-                    setPayments(groupPayments(newPeriod));
+                    setPayments(period.payments.concat([Payment({ status: "NEW", employee: { id: 'new' } }).defaults()]));
                     bar.close();
                 }}>Add employee to timesheet</Button>
             }
         </p>
-        {period.payments.length == 0 ?
+        {groupedPayments.length == 0 ?
             <p>No clockins to review for this period</p>
             :
-            payments.sort((a, b) =>
+            groupedPayments.sort((a, b) =>
                 a.employee.id === "new" ? -1 :
                     b.employee.id === "new" ? 1 :
                         a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
@@ -919,15 +910,10 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                             if (_alreadyExists) Notify.error(`${selection.label} is already listed on this timesheet`);
                                             else GET('employees/' + selection.value)
                                                 .then(emp => {
-                                                    const period = {
-                                                        ...period,
-                                                        payments: period.payments.map(p => {
-                                                            if (p.employee.id != "new") return p;
-                                                            else return Payment({ status: "NEW", employee: emp }).defaults();
-                                                        })
-                                                    };
-                                                    setPeriod(period);
-                                                    setPayments(groupPayments(period));
+                                                    setPayments(payments.map(p => {
+                                                        if (p.employee.id != "new") return p;
+                                                        else return Payment({ status: "NEW", employee: emp }).defaults();
+                                                    }));
                                                 })
                                                 .catch(e => Notify.error(e.message || e));
                                         }}
@@ -968,49 +954,32 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                 readOnly={p.status !== 'PENDING' && p.status !== 'NEW'}
                                 onApprove={(payment) => {
                                     p.status !== 'NEW' ?
-                                        updatePayments({
-                                            //serialization for updating the payment
+                                        update('payment', {
                                             ...payment,
                                             status: "APPROVED",
+                                            employee: payment.employee.id || payment.employee,
+                                            shift: payment.shift.id || payment.shift,
                                             id: p.id
-                                        }, period)
+                                        }).then(payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : payment)))
                                         :
-                                        createPayment({
+                                        create('payment',{
                                             ...payment,
                                             status: "APPROVED",
+                                            employee: payment.employee.id || payment.employee,
+                                            shift: payment.shift.id || payment.shift,
                                             payroll_period: period.id
-                                        }, period).then(() => setPayments(payments.map(_pay => {
-                                            if (_pay.employee.id !== pay.employee.id) return _pay;
-                                            else {
-                                                return {
-                                                    ..._pay,
-                                                    payments: _pay.payments.filter(p => p.id != undefined)
-                                                };
-                                            }
-                                        })
-                                        ));
-
-
+                                        }).then(payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : payment)));
                                 }}
-                                onUndo={(payment) => updatePayments({
+                                onUndo={(payment) => update('payment', {
                                     ...payment,
                                     status: "PENDING",
                                     approved_clockin_time: null,
                                     approved_clockout_time: null,
                                     id: p.id
-                                }, period)}
-                                onReject={(payment) => {
-                                    if (p.id === undefined) setPayments(payments.map(_pay => {
-                                        if (_pay.employee.id !== pay.employee.id) return _pay;
-                                        else {
-                                            return {
-                                                ..._pay,
-                                                payments: _pay.payments.filter(p => p.id != undefined)
-                                            };
-                                        }
-                                    })
-                                    );
-                                    else updatePayments({ id: p.id, status: "REJECTED" }, period);
+                                }).then(payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : payment)))}
+                                onReject={(p) => {
+                                    if (p.id === undefined) setPayments(payments.filter(_pay => _pay.id !== undefined && _pay.id));
+                                    else update({ id: p.id, status: "REJECTED" }, period).then(payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : payment)));
                                 }}
                             />
                         )}
@@ -1018,32 +987,8 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                             <td colSpan={5}>
                                 {period.status === 'OPEN' && pay.employee.id !== "new" &&
                                     <Button icon="plus" size="small" onClick={() => {
-
-                                        if (!payments.find(payment => payment.payments.some(item => item.status === 'NEW'))) {
-                                            setPayments(payments.map(_pay => {
-                                                if (_pay.employee.id !== pay.employee.id) return _pay;
-                                                else {
-                                                    return {
-                                                        ..._pay,
-                                                        payments: _pay.payments.concat([Payment({ status: "NEW", regular_hours: "0.00", over_time: "0.00", hourly_rate: "0.00" }).defaults()])
-                                                    };
-                                                }
-                                            })
-                                            );
-                                        } else {
-                                            setPayments(payments.map(_pay => {
-                                                return {
-                                                    ..._pay,
-                                                    payments: _pay.payments.filter(p => p.status != 'NEW')
-
-                                                };
-
-                                            })
-                                            );
-                                        }
-
-                                    }
-                                    }>Add new clockin</Button>
+                                        setPayments(payments.concat([Payment({ status: "NEW", employee: pay.employee, regular_hours: "0.00", over_time: "0.00", hourly_rate: "0.00" }).defaults()]));
+                                    }}>Add new clockin</Button>
                                 }
                             </td>
                             <td colSpan={3} className="text-right">

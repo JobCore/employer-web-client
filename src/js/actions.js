@@ -615,7 +615,7 @@ export const updateTalentList = (action, employee, listId) => {
 };
 
 export const updatePayments = async (payments, period) => {
-    console.log(payments);
+
     if (!Array.isArray(payments)) payments = [payments];
     for (let i = 0; i < payments.length; i++) {
         let data = { ...payments[i] };
