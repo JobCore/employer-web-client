@@ -955,17 +955,20 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                 onApprove={(payment) => {
                                     p.status !== 'NEW' ?
                                         update('payment', {
+                                            ...payment,
                                             status: "APPROVED",
+                                            employee: p.employee.id || p.employee,
+                                            shift: (payment.shift) ? payment.shift.id : p.shift.id,
                                             id: p.id
-                                        }).then(payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : { ..._pay, status: "APPROVED" })))
+                                        }).then(_payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : { ..._pay, status: "APPROVED" })))
                                         :
                                         create('payment',{
                                             ...payment,
                                             status: "APPROVED",
-                                            employee: payment.employee.id || payment.employee,
-                                            shift: payment.shift.id || payment.shift,
+                                            employee: p.employee.id || p.employee,
+                                            shift: (payment.shift) ? payment.shift.id : p.shift.id,
                                             payroll_period: period.id
-                                        }).then(payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : {
+                                        }).then(_payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : {
                                             ...payment,
                                             employee: _pay.employee,
                                             shift: _pay.shift
@@ -974,14 +977,14 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                 onUndo={(payment) => update('payment', {
                                     status: "PENDING",
                                     id: p.id
-                                }).then(payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : { ..._pay, status: "PENDING" })))}
+                                }).then(_payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : { ..._pay, status: "PENDING" })))}
                                 onReject={(p) => {
                                     if (p.id === undefined) setPayments(payments.filter(_pay => _pay.id !== undefined && _pay.id));
                                     else update('payment',{ 
                                         id: p.id, 
                                         status: "REJECTED"
                                     })
-                                    .then(payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : { ..._pay, status: "REJECTED" })));
+                                    .then(_payment => setPayments(payments.map(_pay => (_pay.id !== _payment.id) ? _pay : { ..._pay, status: "REJECTED" })));
                                 }}
                             />
                         )}
@@ -1109,13 +1112,12 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
     const [shift, setShift] = useState(Shift(payment.shift).defaults().unserialize());
     const [possibleShifts, setPossibleShifts] = useState(null);
     const [breaktime, setBreaktime] = useState(payment.breaktime_minutes);
-
-    //only used on readonly shifts!!
+    
     const approvedClockin = payment.approved_clockin_time ? moment(payment.approved_clockin_time) : clockin.started_at ? clockin.started_at : shift.starting_at;
     const approvedClockout = payment.approved_clockout_time ? moment(payment.approved_clockout_time) : clockin.ended_at ? clockin.ended_at : shift.ending_at;
-    console.log(approvedClockin);
+    const [approvedTimes, setApprovedTimes] = useState({ in: approvedClockin, out: approvedClockout });
 
-    const clockInDuration = moment.duration(approvedClockout.diff(approvedClockin));
+    const clockInDuration = moment.duration(approvedTimes.out.diff(approvedTimes.in));
     // const clockinHours = !clockInDuration ? 0 : clockin.shift || !readOnly ? Math.round(clockInDuration.asHours() * 100) / 100 : "-";
     const clockinHours = Math.round(clockInDuration.asHours() * 100) / 100;
 
@@ -1173,7 +1175,6 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                 });
                                 else {
                                     setShift(_shift);
-                                    setClockin({ ...clockin, started_at: approvedClockin, ended_at: approvedClockout });
                                     setBreaktime(0);
                                 }
                             }
@@ -1232,19 +1233,16 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
         }
         <td className="time">
             {readOnly ?
-                <p>{approvedClockin.format('LT')}</p>
+                <p>{approvedTimes.it.format('LT')}</p>
                 :
                 <TimePicker
                     showSecond={false}
-                    defaultValue={approvedClockin}
+                    defaultValue={approvedTimes.in}
                     format={TIME_FORMAT}
                     onChange={(value) => {
-                        if (value) {
-                            const _c = Object.assign({}, clockin, { started_at: value });
-                            setClockin(_c);
-                        }
+                        if (value) setApprovedTimes({ ...approvedTimes, in: value });
                     }}
-                    value={approvedClockin}
+                    value={approvedTimes.in}
                     use12Hours
                 />
             }
@@ -1252,22 +1250,22 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
         </td>
         <td className="time">
             {readOnly ?
-                <p>{approvedClockout.format('LT')}</p>
+                <p>{approvedTimes.out.format('LT')}</p>
                 :
                 <TimePicker
                     className={`${clockin.automatically_closed ? 'border border-danger' : ''}`}
                     showSecond={false}
-                    defaultValue={approvedClockout}
+                    defaultValue={approvedTimes.out}
                     format={TIME_FORMAT}
                     onChange={(d1) => {
                         if (d1) {
-                            const starting = clockin.started_at;
+                            const starting = approvedTimes.in;
                             let ended_at = moment(clockin.started_at).set({ hour: d1.get('hour'), minute: d1.get('minute'), second: d1.get('second') });
                             if (starting.isAfter(ended_at)) ended_at = moment(ended_at).add(1, 'days');
-                            setClockin(Object.assign({}, clockin, { ended_at }));
+                            setApprovedTimes({ ...approvedTimes, out: ended_at });
                         }
                     }}
-                    value={approvedClockout}
+                    value={approvedTimes.out}
                     use12Hours
                 />
             }
@@ -1330,8 +1328,8 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                 regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
                                 over_time: diff < 0 ? 0 : diff,
                                 //
-                                approved_clockin_time: clockin ? clockin.started_at : shift.starting_at,
-                                approved_clockout_time: clockin ? clockin.ended_at : shift.ending_at
+                                approved_clockin_time: approvedTimes.in,
+                                approved_clockout_time: approvedTimes.out
                             });
                         }
                         else onApprove({
@@ -1339,8 +1337,8 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                             regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
                             over_time: diff < 0 ? 0 : diff,
                             //
-                            approved_clockin_time: clockin ? clockin.started_at : shift.starting_at,
-                            approved_clockout_time: clockin ? clockin.ended_at : shift.ending_at
+                            approved_clockin_time: approvedTimes.in,
+                            approved_clockout_time: approvedTimes.out
                         });
                     }}
                 />
@@ -1407,8 +1405,6 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
         end.add(7, 'days');
         if (end.isBefore(TODAY())) note = "Payroll was generated until " + end.format('M d');
     }
-    console.log('el formdata', periods);
-    console.log('month');
     return (<div>
         <div className="top-bar">
             <Button
@@ -1417,7 +1413,6 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
                 note={note}
                 notePosition="left"
             />
-
         </div>
         <div className="row mb-4">
             <div className="col-12">
