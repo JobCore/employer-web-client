@@ -49,10 +49,10 @@ export const autoLogin = (token = '') => {
 };
 
 export const login = (email, password, keep, history) => new Promise((resolve, reject) => POST('login', {
-        username_or_email: email,
-        password: password,
-        exp_days: keep ? 30 : 1
-    })
+    username_or_email: email,
+    password: password,
+    exp_days: keep ? 30 : 1
+})
     .then(function (data) {
         if (!data.user.profile.employer) {
             Notify.error("Only employers are allowed to login into this application");
@@ -292,14 +292,14 @@ export const search = (entity, queryString = null) => new Promise((accept, rejec
             reject(error);
         })
 );
-export const searchMe = (entity, queryString, mergeResults=false) => new Promise((accept, reject) =>
+export const searchMe = (entity, queryString, mergeResults = false) => new Promise((accept, reject) =>
     GET('employers/me/' + entity, queryString)
         .then(function (list) {
             if (typeof entity.callback == 'function') entity.callback();
-            if(mergeResults){
+            if (mergeResults) {
                 const previous = store.getState(entity.slug || entity);
-                if(Array.isArray(previous)) list = previous.concat(list);
-            } 
+                if (Array.isArray(previous)) list = previous.concat(list.count ? list.results : list);
+            }
             Flux.dispatchEvent(entity.slug || entity, list);
             accept(list);
         })
@@ -314,7 +314,7 @@ export const create = (entity, data, status = WEngine.modes.LIVE) => new Promise
     POST('employers/me/' + (entity.url || entity), data)
         .then(function (incoming) {
 
-            if(typeof entity.url === 'string' && typeof entity.slug === 'undefined') throw Error('Missing entity slug on the create method');
+            if (typeof entity.url === 'string' && typeof entity.slug === 'undefined') throw Error('Missing entity slug on the create method');
 
             //fisrt check if I have any of this on the store
             let entities = store.getState(entity.slug || entity);
@@ -724,14 +724,21 @@ class _Store extends Flux.DashStore {
             });
         });
         this.addEvent('shifts', (shifts) => {
-
-            const newShifts = (!shifts || (Object.keys(shifts).length === 0 && shifts.constructor === Object)) ? [] : shifts.filter(s => s.status !== 'CANCELLED').map((shift) => {
+            shifts = shifts.count ? shifts.results : shifts;
+            let newShifts = (!shifts || (Object.keys(shifts).length === 0 && shifts.constructor === Object)) ? [] : shifts.filter(s => s.status !== 'CANCELLED').map((shift) => {
                 //already transformed
                 return Shift(shift).defaults().unserialize();
             });
 
             const applicants = this.getState('applications');
             if (!applicants && Session.get().isValid) fetchAllMe(['applications']);
+            if (shifts.count) {
+                newShifts = newShifts.map((el) => {
+                    var newShiftsCount = Object.assign({}, el);
+                    newShiftsCount.isActive = true;
+                    return newShiftsCount;
+                });
+            }
 
             // const _shift = newShifts.find(s => s.id == 1095);
             return newShifts;
