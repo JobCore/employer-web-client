@@ -816,7 +816,7 @@ export const ManagePayroll = () => {
     </div>);
 };
 
-export const PayrollPeriodDetails = ({ match }) => {
+export const PayrollPeriodDetails = ({ match, history }) => {
     const [employer, setEmployer] = useState(store.getState('current_employer'));
     const [period, setPeriod] = useState(null);
     const [payments, setPayments] = useState([]);
@@ -838,18 +838,23 @@ export const PayrollPeriodDetails = ({ match }) => {
 
     useEffect(() => {
         const employerSub = store.subscribe('current_employer', (employer) => setEmployer(employer));
-        const periodsSub = store.subscribe('payroll-periods', _periods => {
-            const _period = _periods.find(p => p.id == match.params.period_id);
-            if(_period){
+        if(match.params.period_id !== undefined) fetchSingle("payroll-periods", match.params.period_id).then(_period => {
+            setPeriod(_period);
+            setPayments(groupPayments(_period));
+        });
+
+        const removeHistoryListener = history.listen((data) => {
+            const period = /\/payroll\/period\/(\d+)/gm;
+            const periodMatches = period.exec(data.pathname);
+            if (periodMatches) fetchSingle("payroll-periods", periodMatches[1]).then(_period => {
                 setPeriod(_period);
                 setPayments(groupPayments(_period));
-            }
+            });
         });
-        if(match.params.period_id !== undefined) fetchSingle("payroll-periods", match.params.period_id);
 
         return () => {
             employerSub.unsubscribe();
-            periodsSub.unsubscribe();
+            removeHistoryListener();
         };
     }, []);
 
@@ -1447,9 +1452,9 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
             <Button color="success" onClick={() => history.push("/payroll/settings")}>Setup Payroll Settings</Button>
         </div>;
     }
-
+    if(!periods) return "Loading...";
     let note = null;
-    if (periods.length > 0) {
+    if (periods && periods.length > 0) {
         const end = moment(periods[0].ending_at);
         end.add(7, 'days');
         if (end.isBefore(TODAY())) note = "Payroll was generated until " + end.format('M d');
@@ -1471,6 +1476,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
                 <h2 className="mt-1">Select a timesheet:</h2>
                 <ul className="scroll" style={{ maxHeight: "600px", overflowY: "auto", padding: "10px", margin: "-10px" }}>
                     <div>
+                        {periods.length === 0 && <p>No previous payroll periods have been found</p>}
                         {periods.map(p =>
                             <GenericCard key={p.id}
                                 hover={true} className="pr-2"

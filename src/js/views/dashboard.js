@@ -57,9 +57,7 @@ export default class Home extends Flux.DashView {
             if (Array.isArray(shifts)) this.setState({ shifts });
         });
 
-        let shifts = store.getState('shifts');
-        if (!shifts) searchMe(`shifts`, `?end=${this.state.end.format('YYYY-MM-DD')}&start=${this.state.start.format('YYYY-MM-DD')}`);
-        else this.setState({ shifts });
+        searchMe(`shifts`, `?end=${this.state.end.format('YYYY-MM-DD')}&start=${this.state.start.format('YYYY-MM-DD')}`);
     }
 
     render() {

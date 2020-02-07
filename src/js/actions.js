@@ -748,6 +748,7 @@ class _Store extends Flux.DashStore {
         this.addEvent('payroll-periods', (period) => {
             return (!period || (Object.keys(period).length === 0 && period.constructor === Object)) ? [{ label: "Loading payment periods...", value: null }] : period.map(p => {
                 p.label = `From ${moment(p.starting_at).format('MM-D-YY h:mm A')} to ${moment(p.ending_at).format('MM-D-YY h:mm A')}`;
+                if(!Array.isArray(p.payments)) p.payments = [];
                 return p;
             });
         });
