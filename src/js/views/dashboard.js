@@ -53,13 +53,12 @@ export default class Home extends Flux.DashView {
     }
     componentDidMount() {
 
-        this.subscribe(store, 'shifts', (shifts) => {
-            if (Array.isArray(shifts)) this.setState({ shifts });
-        });
+        // this.subscribe(store, 'shifts', (shifts) => {
+        //     if (Array.isArray(shifts)) this.setState({ shifts });
+        // });
 
-        let shifts = store.getState('shifts');
-        if (!shifts) searchMe(`shifts`, `?end=${moment().format('YYYY-MM-DD')}&start=${moment().subtract(1, 'weeks').format('YYYY-MM-DD')}`);
-        else this.setState({ shifts });
+        // let shifts = store.getState('shifts');
+        searchMe(`shifts`, `?end=${moment().format('YYYY-MM-DD')}&start=${moment().subtract(1, 'weeks').format('YYYY-MM-DD')}`).then((shifts) => this.setState({ shifts }));
     }
 
     render() {
@@ -160,7 +159,7 @@ export default class Home extends Flux.DashView {
                                 <DashboardBox id="upcoming_shifts"
                                     title="Filled Shifts"
                                     status="FILLED"
-                                    fetchData={() => GET(`employers/me/shifts?status=FILLED&envelope=true&limit=10`)}
+                                    fetchData={() => GET(`employers/me/shifts?filled=true&upcoming=true&not_status=DRAFT&envelope=true&limit=10`)}
                                     defaultShifts={this.state.shifts.filter(s => s.status != 'DRAFT' && s.maximum_allowed_employees == s.employees.length && moment(s.ending_at).isAfter(NOW()))}
                                 />
                                 <DashboardBox id="expired_shifts"
