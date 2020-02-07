@@ -357,7 +357,7 @@ export class PayrollSettings extends Flux.DashView {
         while (nextDate.isBefore(NOW())) nextDate = nextDate.add(7, 'days');
 
         return (<Theme.Consumer>
-            {({ bar }) => 
+            {({ bar }) =>
                 <div className="p-1 listcontents company-payroll-settings">
                     <h1><span id="company_details">Your Payroll Settings</span></h1>
                     <div className="row mt-2">
@@ -811,15 +811,15 @@ EditOrAddExpiredShift.defaultProps = {
 export const ManagePayroll = () => {
     const { bar } = useContext(Theme.Context);
 
-    return (<div className="p-1 listcontents"> 
+    return (<div className="p-1 listcontents">
         Pick a period
     </div>);
 };
 
 export const PayrollPeriodDetails = ({ match }) => {
-    const [ employer, setEmployer ] = useState(store.getState('current_employer'));
-    const [ period, setPeriod ] = useState(null);
-    const [ payments, setPayments ] = useState([]);
+    const [employer, setEmployer] = useState(store.getState('current_employer'));
+    const [period, setPeriod] = useState(null);
+    const [payments, setPayments] = useState([]);
     const { bar } = useContext(Theme.Context);
 
     const groupPayments = (singlePeriod) => {
@@ -836,7 +836,7 @@ export const PayrollPeriodDetails = ({ match }) => {
         return Object.values(groupedPayments);
     };
 
-    useEffect(() =>{
+    useEffect(() => {
         const employerSub = store.subscribe('current_employer', (employer) => setEmployer(employer));
         const periodsSub = store.subscribe('payroll-periods', _periods => {
             const _period = _periods.find(p => p.id == match.params.period_id);
@@ -873,14 +873,14 @@ export const PayrollPeriodDetails = ({ match }) => {
 
                     if (isOpen) return;
                     if (isOtherNew) setPayments(payments.map(_pay => {
-                            if (_pay.status !== 'NEW') return _pay;
-                            else {
-                                return {
-                                    ..._pay,
-                                    payments: _pay.payments.filter(p => p.status == 'NEW')
-                                };
-                            }
-                        })
+                        if (_pay.status !== 'NEW') return _pay;
+                        else {
+                            return {
+                                ..._pay,
+                                payments: _pay.payments.filter(p => p.status == 'NEW')
+                            };
+                        }
+                    })
                     );
                     setPeriod({
                         ...period,
@@ -901,7 +901,7 @@ export const PayrollPeriodDetails = ({ match }) => {
             ).map(pay => {
 
                 const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + parseFloat(regular_hours) + parseFloat(over_time), 0);
-                const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + ((parseFloat(regular_hours) * parseFloat(hourly_rate)) + (parseFloat(over_time)  * parseFloat(hourly_rate) * 1.5)), 0);
+                const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + ((parseFloat(regular_hours) * parseFloat(hourly_rate)) + (parseFloat(over_time) * parseFloat(hourly_rate) * 1.5)), 0);
                 return <table key={pay.employee.id} className="table table-striped payroll-summary">
                     <thead>
                         <tr>
@@ -974,14 +974,14 @@ export const PayrollPeriodDetails = ({ match }) => {
                                             status: "APPROVED",
                                             payroll_period: period.id
                                         }, period).then(() => setPayments(payments.map(_pay => {
-                                                if (_pay.employee.id !== pay.employee.id) return _pay;
-                                                else {
-                                                    return {
-                                                        ..._pay,
-                                                        payments: _pay.payments.filter(p => p.id != undefined)
-                                                    };
-                                                }
-                                            })
+                                            if (_pay.employee.id !== pay.employee.id) return _pay;
+                                            else {
+                                                return {
+                                                    ..._pay,
+                                                    payments: _pay.payments.filter(p => p.id != undefined)
+                                                };
+                                            }
+                                        })
                                         ));
 
 
@@ -995,14 +995,14 @@ export const PayrollPeriodDetails = ({ match }) => {
                                 }, period)}
                                 onReject={(payment) => {
                                     if (p.id === undefined) setPayments(payments.map(_pay => {
-                                            if (_pay.employee.id !== pay.employee.id) return _pay;
-                                            else {
-                                                return {
-                                                    ..._pay,
-                                                    payments: _pay.payments.filter(p => p.id != undefined)
-                                                };
-                                            }
-                                        })
+                                        if (_pay.employee.id !== pay.employee.id) return _pay;
+                                        else {
+                                            return {
+                                                ..._pay,
+                                                payments: _pay.payments.filter(p => p.id != undefined)
+                                            };
+                                        }
+                                    })
                                     );
                                     else updatePayments({ id: p.id, status: "REJECTED" }, period);
                                 }}
@@ -1015,24 +1015,24 @@ export const PayrollPeriodDetails = ({ match }) => {
 
                                         if (!payments.find(payment => payment.payments.some(item => item.status === 'NEW'))) {
                                             setPayments(payments.map(_pay => {
-                                                    if (_pay.employee.id !== pay.employee.id) return _pay;
-                                                    else {
-                                                        return {
-                                                            ..._pay,
-                                                            payments: _pay.payments.concat([Payment({ status: "NEW", regular_hours: "0.00", over_time: "0.00", hourly_rate: "0.00" }).defaults()])
-                                                        };
-                                                    }
-                                                })
+                                                if (_pay.employee.id !== pay.employee.id) return _pay;
+                                                else {
+                                                    return {
+                                                        ..._pay,
+                                                        payments: _pay.payments.concat([Payment({ status: "NEW", regular_hours: "0.00", over_time: "0.00", hourly_rate: "0.00" }).defaults()])
+                                                    };
+                                                }
+                                            })
                                             );
                                         } else {
                                             setPayments(payments.map(_pay => {
-                                                    return {
-                                                        ..._pay,
-                                                        payments: _pay.payments.filter(p => p.status != 'NEW')
+                                                return {
+                                                    ..._pay,
+                                                    payments: _pay.payments.filter(p => p.status != 'NEW')
 
-                                                    };
+                                                };
 
-                                                })
+                                            })
                                             );
                                         }
 
@@ -1042,7 +1042,7 @@ export const PayrollPeriodDetails = ({ match }) => {
                             </td>
                             <td colSpan={3} className="text-right">
                                 Total: {!isNaN(total_hours) ? Math.round(total_hours * 100) / 100 : 0} hr
-                                { total_hours > 40 &&
+                                {total_hours > 40 &&
                                     <Tooltip placement="bottom" trigger={['hover']} overlay={<small>This employee has overtime</small>}>
                                         <i className="fas fa-stopwatch text-danger fa-xs mr-2"></i>
                                     </Tooltip>
@@ -1104,7 +1104,7 @@ Marker.defaultProps = {
 };
 
 const LatLongClockin = ({ clockin, children, isIn }) => {
-    if(!clockin) return null;
+    if (!clockin) return null;
     const lat = isIn ? clockin.latitude_in : clockin.latitude_out;
     const lng = isIn ? clockin.longitude_in : clockin.longitude_out;
     const distance = isIn ? clockin.distance_in_miles : clockin.distance_out_miles;
@@ -1439,9 +1439,8 @@ const filterClockins = (formChanges, formData, onChange) => {
 export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel, history }) => {
     const { bar } = useContext(Theme.Context);
     const employer = store.getState('current_employer');
-    const [periodMonth, setMonth] = useState(2.5);
     const [noMorePeriods, setNoMorePeriods] = useState(false);
-
+    const [periods, setPeriods] = useState(formData.periods);
     if (!employer || !employer.payroll_configured || !moment.isMoment(employer.payroll_period_starting_time)) {
         return <div className="text-center">
             <p>Please setup your payroll settings first.</p>
@@ -1450,16 +1449,18 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
     }
 
     let note = null;
-    if (formData.periods.length > 0) {
-        const end = moment(formData.periods[0].ending_at);
+    if (periods.length > 0) {
+        const end = moment(periods[0].ending_at);
         end.add(7, 'days');
         if (end.isBefore(TODAY())) note = "Payroll was generated until " + end.format('M d');
     }
+    console.log('el formdata', periods);
+    console.log('month');
     return (<div>
         <div className="top-bar">
             <Button
                 icon="sync" color="primary" size="small" rounded={true}
-                onClick={() => processPendingPayrollPeriods().then(_periods => onChange({ periods: formData.periods.concat(_periods) }))}
+                onClick={() => processPendingPayrollPeriods().then(_periods => onChange({ periods: periods.concat(_periods) }))}
                 note={note}
                 notePosition="left"
             />
@@ -1470,7 +1471,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
                 <h2 className="mt-1">Select a timesheet:</h2>
                 <ul className="scroll" style={{ maxHeight: "600px", overflowY: "auto", padding: "10px", margin: "-10px" }}>
                     <div>
-                        {formData.periods.map(p =>
+                        {periods.map(p =>
                             <GenericCard key={p.id}
                                 hover={true} className="pr-2"
                                 onClick={() => history.push(`/payroll/period/${p.id}`)}
@@ -1485,16 +1486,15 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
                                 <p className="my-0"><small className={`badge ${p.total_payments > 0 ? 'badge-secondary' : 'badge-info'}`}>{p.total_payments} Payments</small></p>
                             </GenericCard>
                         )}
-                        {!noMorePeriods ? (
+                        {!noMorePeriods && Array.isArray(periods) && periods.length > 0 ? (
                             <div className="row text-center w-100 mt-3">
                                 <div className="col">
                                     <Button onClick={() => {
                                         const PAGINATION_MONTHS_LENGTH = 1;
-                                        searchMe(`payroll-periods`, `?end=${moment().subtract(periodMonth, 'months').format('YYYY-MM-DD')}&start=${moment().subtract(periodMonth + PAGINATION_MONTHS_LENGTH, 'months').format('YYYY-MM-DD')}`, formData.periods)
+                                        searchMe(`payroll-periods`, `?end=${moment(periods[periods.length - 1]['ending_at']).format('YYYY-MM-DD')}&start=${moment(periods[periods.length - 1]['starting_at']).subtract(PAGINATION_MONTHS_LENGTH, 'months').format('YYYY-MM-DD')}`, formData.periods)
                                             .then((newPeriods) => {
-                                                if (newPeriods.length > 0) {
-                                                    setMonth(periodMonth + PAGINATION_MONTHS_LENGTH);
-                                                    onChange({ periods: formData.periods.concat(newPeriods) });
+                                                if (Array.isArray(newPeriods) && newPeriods.length > 0 && newPeriods.length > periods.length) {
+                                                    setPeriods(newPeriods);
                                                 } else setNoMorePeriods(true);
                                             });
                                     }}>Load More</Button>
@@ -1873,7 +1873,7 @@ export class PayrollReport extends Flux.DashView {
             if (typeof groupedPayments[pay.employee.id] === 'undefined') {
                 groupedPayments[pay.employee.id] = { employee: pay.employee, payments: [] };
             }
-            if(pay.status === "APPROVED") groupedPayments[pay.employee.id].payments.push(pay);
+            if (pay.status === "APPROVED") groupedPayments[pay.employee.id].payments.push(pay);
         });
 
         return Object.values(groupedPayments);
@@ -2073,16 +2073,16 @@ export class PayrollReport extends Flux.DashView {
                                                 <td>0</td>
                                                 <td>${Math.round((total.total_amount - taxesMagicNumber) * 100) / 100}</td>
                                                 <td>
-                                                    <Button 
-                                                    color="success" 
-                                                    size="small" 
-                                                    onClick={() => bar.show({ 
-                                                        slug: "make_payment", 
-                                                        data: {
-                                                            pay: pay, 
-                                                            total: total,
-                                                    } 
-                                                    })}>
+                                                    <Button
+                                                        color="success"
+                                                        size="small"
+                                                        onClick={() => bar.show({
+                                                            slug: "make_payment",
+                                                            data: {
+                                                                pay: pay,
+                                                                total: total,
+                                                            }
+                                                        })}>
                                                         Make payment
                                                     </Button>
                                                 </td>
