@@ -838,13 +838,18 @@ export const PayrollPeriodDetails = ({ match }) => {
 
     useEffect(() => {
         const employerSub = store.subscribe('current_employer', (employer) => setEmployer(employer));
-        if (match.params.period_id !== undefined) fetchSingle("payroll-periods", match.params.period_id).then(_period => {
-            setPeriod(_period);
-            setPayments(groupPayments(_period));
+        const periodsSub = store.subscribe('payroll-periods', _periods => {
+            const _period = _periods.find(p => p.id == match.params.period_id);
+            if(_period){
+                setPeriod(_period);
+                setPayments(groupPayments(_period));
+            }
         });
+        if(match.params.period_id !== undefined) fetchSingle("payroll-periods", match.params.period_id);
 
         return () => {
             employerSub.unsubscribe();
+            periodsSub.unsubscribe();
         };
     }, []);
 
