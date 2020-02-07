@@ -41,47 +41,32 @@ export const Payment = (data = {}) => {
  */
 export class MakePayment extends Flux.DashView {
 
-        state = {
-            paymentInfo: ""
-        };
-
-    componentDidMount(){
-        this.fetchPatmentInfo();
+    state = {
+        ispaid: false
     }
-
-    fetchPatmentInfo = async () => {
-        try {
-            const response = await GET(`employers/me/employee-payment-list/${this.props.formData.periodId}`);
-
-            this.setState({ paymentInfo: response });
-            console.log("response: ", response);
-        } catch(error) {
-            Notify.error(error.message || error);
-
-        }
-    }
-
     makePayment = async (
         employeePaymentId, 
         paymentType, 
-        employer_bank_account_id, employee_bank_account_id
+        employer_bank_account_id, 
+        employee_bank_account_id
         ) => {
-        const data = {
-            payment_type: paymentType,
-            payment_data: {
-                employer_bank_account_id: employer_bank_account_id,
-                employee_bank_account_id: employee_bank_account_id
-            }
-        };
+        // const data = {
+        //     payment_type: paymentType,
+        //     payment_data: paymentType === "CHECK" ? null : {
+        //         employer_bank_account_id: employer_bank_account_id,
+        //         employee_bank_account_id: employee_bank_account_id
+        //     }
+        // };
 
-        try{
-            const response = await POST(`employers/me/employee-payment/${employeePaymentId}`, data);
-            console.log("makepayment response: ", response);
-            searchMe('payroll-periods');
-            Promise.resolve(response);
-        }catch(error){
-            Promise.reject(error);
-        }
+        // try{
+        //     const response = await POST(`employers/me/employee-payment/${employeePaymentId}`, data);
+        //     console.log("makepayment response: ", response);
+        //     searchMe('payroll-periods');
+        //     Promise.resolve(response);
+        // }catch(error){
+        //     Promise.reject(error);
+        // }
+        this.setState({ ispaid: true });
     }
 
     render() {
@@ -94,54 +79,77 @@ export class MakePayment extends Flux.DashView {
             bar, 
             error
          } = this.props;
-         const { paymentInfo } = this.state;
-         const employerBankAccounts = paymentInfo.employer ? paymentInfo.employer.bank_accounts : null;
-        console.log('MakePayment formData: ', formData);
+         const { pay, paymentInfo } = formData;
+         const employerBankAccounts = paymentInfo && paymentInfo.employer ? paymentInfo.employer.bank_accounts : null;
+        console.log('MakePayment pay: ', pay);
         console.log('MakePayment error: ', error);
         console.log('MakePayment paymentInfo: ', paymentInfo);
-        const taxesMagicNumber = 3.00;
         return (
         <>
-            {paymentInfo
+            {paymentInfo && pay
         ? <form>
+            <div className="row mt-3">
+                <div className="col-12">
+                    <h4>{`Payment to `}{` ${pay.employee.last_name}, ${pay.employee.first_name}`}</h4>
+                </div>
+            </div>
             <div className="row">
                 <div className="col-12">
-                    <label>Employee:</label>{` ${formData.pay.employee.user.last_name}, ${formData.pay.employee.user.first_name}`}
+                    <label>Employee:</label>{` ${pay.employee.last_name}, ${pay.employee.first_name}`}
                     {/* <p className="m-0 p-0"><span className="badge">{formData.total.status.toLowerCase()}</span></p> */}
                 </div>
                 <div className="col-12">
-                    <label>Regular hours:</label>{` ${formData.total.regular_hours}`}
+                    <label>Regular hours:</label>{` ${pay.regular_hours}`}
                 </div>
                 <div className="col-12">
-                    <label>Over time:</label>{` ${formData.total.over_time}`}
+                    <label>Over time:</label>{` ${pay.over_time}`}
                 </div>
                 <div className="col-12">
-                    <label>Earnings:</label>{` ${formData.total.total_amount - taxesMagicNumber}`}
+                    <label>Earnings:</label>{` ${pay.earnings}`}
                 </div>
                 <div className="col-12">
-                    <label>Taxes:</label>{` ${taxesMagicNumber}`}
+                    <label>Taxes:</label>{` ${pay.deductions}`}
                 </div>
                 <div className="col-12">
-                    <label>Amount:</label>{` ${formData.total.total_amount}`}
+                    <label>Amount:</label>{` ${pay.amount}`}
                 </div>
             </div>
-            {formData.total.status === "UNPAID"
+            {!pay.paid && !this.state.ispaid
                     ? <div className="row">
                         <div className="col-12">
                             <label>Payment methods</label>
                         </div>
-                        {paymentInfo.employee && paymentInfo.employee.bank_accounts
+                        {paymentInfo.payments[0] && paymentInfo.payments[0].employee.bank_accounts
                             ? <>
                                 <div className="col-12 payment-cell">
                                     <Button
                                         style={{ width: '200px' }}
                                         color="success"
                                         size="small"
-                                        onClick={() => null}>
+                                        onClick={() => {
+                                            const noti = Notify.info("Are you sure to pay ?", async (answer) => {
+                                                if(answer){
+                                                    try{
+                                                        await this.makePayment(
+                                                            pay.id, 
+                                                            "CHECK", 
+                                                            "", 
+                                                            ""
+                                                            );
+                                                        noti.remove();
+                                                    }catch(error){
+                                                        Notify.error(error.message || error);
+                                                    }
+                                                } else{
+                                                    noti.remove();
+                                                }
+                                
+                                            });
+                                        }}>
                                         Check payment
                                     </Button>
                                 </div>
-                                {employerBankAccounts.length > 0
+                                {employerBankAccounts && employerBankAccounts.length > 0
                                     ? employerBankAccounts.map((bankaccount, i) =>
                                         <div className="col-12 payment-cell" key={i}>
                                             <Button
@@ -149,15 +157,14 @@ export class MakePayment extends Flux.DashView {
                                                 color="success"
                                                 size="small"
                                                 onClick={() => {
-                                                    console.log("entrose");
                                                     const noti = Notify.info("Are you sure to pay ?", async (answer) => {
                                                         if(answer){
                                                             try{
                                                                 await this.makePayment(
-                                                                    paymentInfo.employer.id, 
+                                                                    pay.id, 
                                                                     "FAKE", 
                                                                     bankaccount.id, 
-                                                                    paymentInfo.employee.bank_accounts[0].id
+                                                                    paymentInfo.payments[0].employee.bank_accounts[0].id
                                                                     );
                                                                 noti.remove();
                                                             }catch(error){
@@ -178,9 +185,12 @@ export class MakePayment extends Flux.DashView {
                         </>
                         : <div className="col-12"><label>Employee dont have any bank accounts</label></div>}
                     </div>
-        : <div className="col-12">
-            <label>Status:</label>{` Paid`}
-        </div>}
+        : <div className="row">
+            <div className="col-12">
+                <label>Status:</label>{` Paid`}
+            </div>
+        </div>
+        }
         </form>
     : null}
     </>

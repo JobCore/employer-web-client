@@ -1894,6 +1894,19 @@ export class PayrollReport extends Flux.DashView {
         });
     }
 
+    fetchPatmentInfo = async () => {
+        try {
+            console.log("this.state.singlePayrollPeriod.id: ", this.state.singlePayrollPeriod.id);
+            const response = await GET(`employers/me/employee-payment-list/${this.state.singlePayrollPeriod.id}`);
+
+            this.setState({ paymentInfo: response });
+            console.log("fetchPatmentInfo response: ", response);
+        } catch(error) {
+            Notify.error(error.message || error);
+
+        }
+    }
+
     groupPayments(singlePeriod) {
         if (!singlePeriod) return null;
 
@@ -1915,7 +1928,9 @@ export class PayrollReport extends Flux.DashView {
             if (!payrollPeriods) fetchSingle("payroll-periods", periodId);
             else {
                 const singlePayrollPeriod = payrollPeriods.find(pp => pp.id == periodId);
-                this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod) });
+                this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod) }, () => {
+                    this.fetchPatmentInfo();
+                });
             }
         }
     }
@@ -1934,7 +1949,6 @@ export class PayrollReport extends Flux.DashView {
 
 
     render() {
-        const taxesMagicNumber = 3.00;
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
@@ -1946,8 +1960,8 @@ export class PayrollReport extends Flux.DashView {
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({ bar }) => (<span>
-                    {(!this.state.singlePayrollPeriod) ? '' :
-                        (this.state.singlePayrollPeriod.payments && this.state.singlePayrollPeriod.payments.length > 0) ?
+                    {(!this.state.paymentInfo) ? '' :
+                        (this.state.paymentInfo.payments && this.state.paymentInfo.payments.length > 0) ?
                             <div>
                                 <p className="text-right">
                                     <h2>Payments for {this.state.singlePayrollPeriod.label}</h2>
@@ -1980,69 +1994,51 @@ export class PayrollReport extends Flux.DashView {
                                                             <Text style={styles.tableCellHeader}>STAFF</Text>
                                                         </View>
                                                         <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>REGULAR</Text>
+                                                            <Text style={styles.tableCellHeader}>REGULAR HOURS</Text>
                                                         </View>
                                                         <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>PTO</Text>
+                                                            <Text style={styles.tableCellHeader}>OVER TIME</Text>
                                                         </View>
                                                         <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>HOLIDAY</Text>
+                                                            <Text style={styles.tableCellHeader}>EARNINGS</Text>
                                                         </View>
                                                         <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>SICK</Text>
+                                                            <Text style={styles.tableCellHeader}>TAXES</Text>
                                                         </View>
                                                         <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>OT</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>DBL</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>TOTAL</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>LABOR</Text>
+                                                            <Text style={styles.tableCellHeader}>AMOUNT</Text>
                                                         </View>
                                                     </View>
 
-                                                    {this.state.payments.sort((a, b) =>
-                                                        a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
-                                                    ).map(pay => {
-                                                        const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
-                                                            return {
-                                                                over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
-                                                                regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
-                                                                total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount),
-                                                                status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
-                                                            };
-                                                        }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
-                                                        return <View key={pay.employee.id} style={styles.tableRow}>
+                                                    {this.state.paymentInfo.payments.sort((a, b) =>
+                                                        a.employee.last_name.toLowerCase() > b.employee.last_name.toLowerCase() ? 1 : -1
+                                                    ).map((pay, i) => {
+                                                        // const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
+                                                        //     return {
+                                                        //         over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
+                                                        //         regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
+                                                        //         total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount),
+                                                        //         status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
+                                                        //     };
+                                                        // }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
+                                                        return <View key={i} style={styles.tableRow}>
                                                             <View style={styles.tableCol1}>
-                                                                <Text style={styles.tableCell}>{pay.employee.user.last_name + " " + pay.employee.user.first_name + " - " + total.status.toLowerCase()}</Text>
+                                                                <Text style={styles.tableCell}>{pay.employee.last_name + " " + pay.employee.first_name + " - " + pay.paid ? "paid" : "unpaid"}</Text>
                                                             </View>
                                                             <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>{Math.round(total.regular_hours * 100) / 100}</Text>
+                                                                <Text style={styles.tableCell}>{pay.regular_hours}</Text>
                                                             </View>
                                                             <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>-</Text>
+                                                                <Text style={styles.tableCell}>{pay.over_time}</Text>
                                                             </View>
                                                             <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>-</Text>
+                                                                <Text style={styles.tableCell}>{pay.earnings}</Text>
                                                             </View>
                                                             <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>-</Text>
+                                                                <Text style={styles.tableCell}>{pay.deductions}</Text>
                                                             </View>
                                                             <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>{Math.round(total.over_time * 100) / 100}</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>-</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>{total.regular_hours > 40 ? total.regular_hours - 40 : 0}</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>${Math.round(total.total_amount * 100) / 100}</Text>
+                                                                <Text style={styles.tableCell}>{pay.amount}</Text>
                                                             </View>
                                                         </View>;
                                                     })}
@@ -2077,27 +2073,27 @@ export class PayrollReport extends Flux.DashView {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {this.state.payments.sort((a, b) =>
-                                            a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
+                                        {this.state.paymentInfo.payments.sort((a, b) =>
+                                            a.employee.last_name.toLowerCase() > b.employee.last_name.toLowerCase() ? 1 : -1
                                         ).map(pay => {
-                                            const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
-                                                return {
-                                                    over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
-                                                    regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
-                                                    total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount),
-                                                    status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
-                                                };
-                                            }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
+                                            // const total = pay.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
+                                            //     return {
+                                            //         over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
+                                            //         regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
+                                            //         total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount),
+                                            //         status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
+                                            //     };
+                                            // }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
                                             return <tr key={pay.employee.id}>
                                                 <td>
-                                                    {pay.employee.user.last_name}, {pay.employee.user.first_name}
-                                                    <p className="m-0 p-0"><span className="badge">{total.status.toLowerCase()}</span></p>
+                                                    {pay.employee.last_name}, {pay.employee.first_name}
+                                                    <p className="m-0 p-0"><span className="badge">{pay.paid ? "paid" : "unpaid"}</span></p>
                                                 </td>
-                                                <td>{Math.round(total.regular_hours * 100) / 100}</td>
-                                                <td>{Math.round(total.over_time * 100) / 100}</td>
-                                                <td>{total.total_amount - taxesMagicNumber}</td>
-                                                <td>{taxesMagicNumber}</td>
-                                                <td>{total.total_amount}</td>
+                                                <td>{pay.regular_hours}</td>
+                                                <td>{pay.over_time}</td>
+                                                <td>{pay.earnings}</td> 
+                                                <td>{pay.deductions}</td>
+                                                <td>{pay.amount}</td>
                                                 <td>
                                                     <Button 
                                                     color="success" 
@@ -2105,8 +2101,8 @@ export class PayrollReport extends Flux.DashView {
                                                     onClick={() => bar.show({ 
                                                         slug: "make_payment", 
                                                         data: {
-                                                            pay: pay, 
-                                                            total: total,
+                                                            pay: pay,
+                                                            paymentInfo: this.state.paymentInfo,
                                                             periodId: this.state.singlePayrollPeriod.id
                                                     } 
                                                     })}>
