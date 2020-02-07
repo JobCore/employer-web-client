@@ -133,8 +133,8 @@ export const Shift = (data) => {
                 ending_at: _shift.ending_at,
                 status: _shift.status,
                 allowedFavlists: _shift.allowedFavlists,
-                start_time: (moment.isMoment(_shift.starting_at)) ? _shift.starting_at : moment(_shift.starting_at.format("MM/DD/YYYY") + ' ' + _shift.starting_at),
-                finish_time: (moment.isMoment(_shift.starting_at)) ? _shift.ending_at : moment(_shift.ending_at.format("MM/DD/YYYY") + ' ' + _shift.ending_at),
+                start_time: (moment.isMoment(_shift.starting_at)) ? _shift.starting_at : moment(_shift.starting_at + ' ' + _shift.starting_at).format("MM/DD/YYYY"),
+                finish_time: (moment.isMoment(_shift.starting_at)) ? _shift.ending_at : moment(_shift.ending_at + ' ' + _shift.ending_at).format("MM/DD/YYYY"),
                 minimum_allowed_rating: _shift.minimum_allowed_rating.toString(),
                 venue: _shift.venue.id.toString() || _shift.venue.toString(),
                 employees: _shift.employees
@@ -150,8 +150,8 @@ export class ManageShifts extends Flux.DashView {
         super();
         this.state = {
             shifts: [],
-            noMoreShifts: false,
-            offset: 5,
+            showNextButton: true,
+            offset: 10,
             runTutorial: hasTutorial(),
             steps: [
                 {
@@ -179,7 +179,10 @@ export class ManageShifts extends Flux.DashView {
         // fetch if not loaded already
         let shifts = store.getState('shifts');
 
-        searchMe(`shifts`, `?envelope=true&limit=5&status=${status.status}`);
+        searchMe(`shifts`, `?envelope=true&limit=10&${status.status == "FILLED" ? "filled=true&upcoming=true&not_status=DRAFT" : "status=" + status.status}`).then(data => {
+            const showNextButton = (data.next !== null);
+            this.setState({ showNextButton });
+        });
         this.subscribe(store, 'shifts', (shifts) => {
             this.setState({ shifts: shifts });
             this.filterShifts(shifts);
@@ -195,7 +198,7 @@ export class ManageShifts extends Flux.DashView {
     filterShifts(shifts = null) {
         let filters = this.getFilters();
         if (!shifts) shifts = store.getState('shifts');
-        if (shifts) {
+        if (Array.isArray(shifts) && shifts.length > 0) {
             this.setState({
                 shifts: shifts.filter((shift) => {
                     if (shift.status == 'CANCELLED') return false;
@@ -295,7 +298,6 @@ export class ManageShifts extends Flux.DashView {
     }
 
     render() {
-        console.log('state shifts', this.state.shifts);
         let status = queryString.parse(window.location.search, { arrayFormat: 'index' });
         const groupedShifts = _.groupBy(this.state.shifts, (s) => moment(s.starting_at).format('MMMM YYYY'));
         const shiftsHTML = [];
@@ -318,20 +320,15 @@ export class ManageShifts extends Flux.DashView {
             <h1 className="float-left"><span id="shift-details-header">Shift Details</span></h1>
             {shiftsHTML.length == 0 && <div className="mt-5">No shifts have been found</div>}
             {shiftsHTML}
-            {!this.state.noMoreShifts && shiftsHTML.length != 0 ? (
+            {this.state.showNextButton && shiftsHTML.length != 0 ? (
                 <div className="row text-center w-100 mt-3">
                     <div className="col">
                         <Button onClick={() => {
-                            const PAGINATION_LENGTH = 5;
-                            searchMe(`shifts`, `?envelope=true&limit=5&offset=${this.state.offset + PAGINATION_LENGTH}&status=${status.status}`, this.state.shifts)
+                            const PAGINATION_LENGTH = 10;
+                            searchMe(`shifts`, `?envelope=true&limit=10&offset=${this.state.offset + PAGINATION_LENGTH}&status=${status.status}`, this.state.shifts)
                                 .then((newShifts) => {
-                                    console.log(newShifts.length);
-                                    console.log(this.state.shifts.length);
-                                    if (newShifts.length === this.state.shifts.length) {
-                                        this.setState({ noMoreShifts: true });
-                                    }
-                                    else this.setState({ shifts: newShifts, offset: this.state.offset + PAGINATION_LENGTH });
-
+                                    const showNextButton = (newShifts.next !== null);
+                                    this.setState({ shifts: newShifts, offset: this.state.offset + PAGINATION_LENGTH, showNextButton });
                                 });
                         }}>Load More</Button>
                     </div>
