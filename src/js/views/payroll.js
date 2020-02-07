@@ -955,12 +955,9 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                 onApprove={(payment) => {
                                     p.status !== 'NEW' ?
                                         update('payment', {
-                                            ...payment,
                                             status: "APPROVED",
-                                            employee: payment.employee.id || payment.employee,
-                                            shift: payment.shift.id || payment.shift,
                                             id: p.id
-                                        }).then(payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : payment)))
+                                        }).then(payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : { ..._pay, status: "APPROVED" })))
                                         :
                                         create('payment',{
                                             ...payment,
@@ -968,18 +965,23 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                             employee: payment.employee.id || payment.employee,
                                             shift: payment.shift.id || payment.shift,
                                             payroll_period: period.id
-                                        }).then(payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : payment)));
+                                        }).then(payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : {
+                                            ...payment,
+                                            employee: _pay.employee,
+                                            shift: _pay.shift
+                                        })));
                                 }}
                                 onUndo={(payment) => update('payment', {
-                                    ...payment,
                                     status: "PENDING",
-                                    approved_clockin_time: null,
-                                    approved_clockout_time: null,
                                     id: p.id
-                                }).then(payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : payment)))}
+                                }).then(payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : { ..._pay, status: "PENDING" })))}
                                 onReject={(p) => {
                                     if (p.id === undefined) setPayments(payments.filter(_pay => _pay.id !== undefined && _pay.id));
-                                    else update({ id: p.id, status: "REJECTED" }, period).then(payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : payment)));
+                                    else update('payment',{ 
+                                        id: p.id, 
+                                        status: "REJECTED"
+                                    })
+                                    .then(payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : { ..._pay, status: "REJECTED" })));
                                 }}
                             />
                         )}
