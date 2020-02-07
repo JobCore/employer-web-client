@@ -18,8 +18,8 @@ export default class Home extends Flux.DashView {
             shifts: [],
             session: Session.get(),
             runTutorial: hasTutorial(),
-            start: moment().subtract(1, 'weeks').format('YYYY-MM-DD'),
-            end: moment().add(1, 'weeks').format('YYYY-MM-DD'),
+            start: moment().subtract(1, 'weeks'),
+            end: moment().add(1, 'weeks'),
             steps: [
                 {
                     content: <h2>Welcome to the tour!</h2>,
@@ -58,7 +58,7 @@ export default class Home extends Flux.DashView {
         });
 
         let shifts = store.getState('shifts');
-        if (!shifts) searchMe(`shifts`, `?end=${moment().format('YYYY-MM-DD')}&start=${moment().subtract(1, 'weeks').format('YYYY-MM-DD')}`);
+        if (!shifts) searchMe(`shifts`, `?end=${this.state.end.format('YYYY-MM-DD')}&start=${this.state.start.format('YYYY-MM-DD')}`);
         else this.setState({ shifts });
     }
 
@@ -83,12 +83,11 @@ export default class Home extends Flux.DashView {
                                     ToolbarComponent={({ setCurrentDate, currentDate }) => <div className="text-right" style={{ position: "absolute", right: 0 }}>
                                         {<Button size="small" onClick={() => {
                                             const newEndDate = moment(currentDate).add(-1, 'days');
-                                            const oldEndDate = moment(this.state.start);
-                                            if (newEndDate.isBefore(oldEndDate)) {
-                                                searchMe(`shifts`, `?end=${moment(this.state.end).format('YYYY-MM-DD')}&start=${moment(this.state.start).subtract(1, 'weeks').format('YYYY-MM-DD')}`).then((newShifts) => {
+                                            if (newEndDate.isBefore(this.state.start)) {
+                                                searchMe(`shifts`, `?end=${this.state.end.format('YYYY-MM-DD')}&start=${moment(this.state.start).subtract(1, 'weeks').format('YYYY-MM-DD')}`).then((newShifts) => {
                                                     this.setState({
                                                         state: newShifts,
-                                                        start: moment(this.state.start).subtract(1, 'weeks').format('YYYY-MM-DD')
+                                                        start: moment(this.state.start).subtract(1, 'weeks')
                                                     });
                                                 }
 
@@ -98,12 +97,11 @@ export default class Home extends Flux.DashView {
                                         }}>{'<<'}</Button>}
                                         {<Button size="small" onClick={() => {
                                             const newEndDate = moment(currentDate).add(1, 'days');
-                                            const oldEndDate = moment(this.state.end);
-                                            if (oldEndDate.isBefore(newEndDate)) {
-                                                searchMe(`shifts`, `?end=${moment(this.state.end).add(1, 'weeks').format('YYYY-MM-DD')}&start=${moment(this.state.start).format('YYYY-MM-DD')}`).then((newShifts) => {
+                                            if (this.state.end.isBefore(newEndDate)) {
+                                                searchMe(`shifts`, `?end=${moment(this.state.end).add(1, 'weeks').format('YYYY-MM-DD')}&start=${this.state.start.format('YYYY-MM-DD')}`).then((newShifts) => {
                                                     this.setState({
                                                         state: newShifts,
-                                                        end: moment(this.state.end).add(1, 'weeks').format('YYYY-MM-DD')
+                                                        end: moment(this.state.end).add(1, 'weeks')
                                                     });
                                                 }
 
