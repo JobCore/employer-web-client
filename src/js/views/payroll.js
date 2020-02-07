@@ -885,13 +885,14 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                 payments: _pay.payments.filter(p => p.status == 'NEW')
                             };
                         }
-                    })
-                    );
-                    setPeriod({
+                    }));
+
+                    const newPeriod = {
                         ...period,
                         payments: period.payments.concat([Payment({ status: "NEW", employee: { id: 'new' } }).defaults()])
-                    });
-                    setPayments(groupPayments(period));
+                    };
+                    setPeriod(newPeriod);
+                    setPayments(groupPayments(newPeriod));
                     bar.close();
                 }}>Add employee to timesheet</Button>
             }
