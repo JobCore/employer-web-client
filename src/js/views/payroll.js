@@ -1113,9 +1113,9 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
     const [possibleShifts, setPossibleShifts] = useState(null);
     const [breaktime, setBreaktime] = useState(payment.breaktime_minutes);
     
-    const approvedClockin = payment.approved_clockin_time ? moment(payment.approved_clockin_time) : clockin.started_at ? clockin.started_at : shift.starting_at;
-    const approvedClockout = payment.approved_clockout_time ? moment(payment.approved_clockout_time) : clockin.ended_at ? clockin.ended_at : shift.ending_at;
-    const [approvedTimes, setApprovedTimes] = useState({ in: approvedClockin, out: approvedClockout });
+    const approvedClockin = payment.approved_clockin_time ? payment.approved_clockin_time : clockin.started_at ? clockin.started_at : shift.starting_at;
+    const approvedClockout = payment.approved_clockout_time ? payment.approved_clockout_time : clockin.ended_at ? clockin.ended_at : shift.ending_at;
+    const [approvedTimes, setApprovedTimes] = useState({ in: moment(approvedClockin), out: moment(approvedClockout) });
 
     const clockInDuration = moment.duration(approvedTimes.out.diff(approvedTimes.in));
     // const clockinHours = !clockInDuration ? 0 : clockin.shift || !readOnly ? Math.round(clockInDuration.asHours() * 100) / 100 : "-";
@@ -1233,14 +1233,14 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
         }
         <td className="time">
             {readOnly ?
-                <p>{approvedTimes.it.format('LT')}</p>
+                <p>{(approvedTimes.it !== undefined) && approvedTimes.it.format('LT')}</p>
                 :
                 <TimePicker
                     showSecond={false}
                     defaultValue={approvedTimes.in}
                     format={TIME_FORMAT}
                     onChange={(value) => {
-                        if (value) setApprovedTimes({ ...approvedTimes, in: value });
+                        if (value && value!==undefined) setApprovedTimes({ ...approvedTimes, in: value });
                     }}
                     value={approvedTimes.in}
                     use12Hours
@@ -1250,7 +1250,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
         </td>
         <td className="time">
             {readOnly ?
-                <p>{approvedTimes.out.format('LT')}</p>
+                <p>{(approvedTimes.out !== undefined) && approvedTimes.out.format('LT')}</p>
                 :
                 <TimePicker
                     className={`${clockin.automatically_closed ? 'border border-danger' : ''}`}
@@ -1262,7 +1262,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                             const starting = approvedTimes.in;
                             let ended_at = moment(clockin.started_at).set({ hour: d1.get('hour'), minute: d1.get('minute'), second: d1.get('second') });
                             if (starting.isAfter(ended_at)) ended_at = moment(ended_at).add(1, 'days');
-                            setApprovedTimes({ ...approvedTimes, out: ended_at });
+                            if(ended_at && ended_at !== undefined) setApprovedTimes({ ...approvedTimes, out: ended_at });
                         }
                     }}
                     value={approvedTimes.out}
