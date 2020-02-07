@@ -77,7 +77,7 @@ export class MakePayment extends Flux.DashView {
         try{
             const response = await POST(`employers/me/employee-payment/${employeePaymentId}`, data);
             console.log("makepayment response: ", response);
-            searchMe('payroll-periods')
+            searchMe('payroll-periods');
             Promise.resolve(response);
         }catch(error){
             Promise.reject(error);
@@ -125,58 +125,62 @@ export class MakePayment extends Flux.DashView {
                     <label>Amount:</label>{` ${formData.total.total_amount}`}
                 </div>
             </div>
-            <div className="row">
-                <div className="col-12">
-                    <label>Payment methods</label>
-                </div>
-                {paymentInfo.employee && paymentInfo.employee.bank_accounts
-                ? <>
-                    <div className="col-12 payment-cell">
-                        <Button
-                            style={{ width: '200px' }}
-                            color="success"
-                            size="small"
-                            onClick={() => null}>
-                            Check payment
-                        </Button>
+            {formData.total.status === "UNPAID"
+                    ? <div className="row">
+                        <div className="col-12">
+                            <label>Payment methods</label>
+                        </div>
+                        {paymentInfo.employee && paymentInfo.employee.bank_accounts
+                            ? <>
+                                <div className="col-12 payment-cell">
+                                    <Button
+                                        style={{ width: '200px' }}
+                                        color="success"
+                                        size="small"
+                                        onClick={() => null}>
+                                        Check payment
+                                    </Button>
+                                </div>
+                                {employerBankAccounts.length > 0
+                                    ? employerBankAccounts.map((bankaccount, i) =>
+                                        <div className="col-12 payment-cell" key={i}>
+                                            <Button
+                                                style={{ width: '200px' }}
+                                                color="success"
+                                                size="small"
+                                                onClick={() => {
+                                                    console.log("entrose");
+                                                    const noti = Notify.info("Are you sure to pay ?", async (answer) => {
+                                                        if(answer){
+                                                            try{
+                                                                await this.makePayment(
+                                                                    paymentInfo.employer.id, 
+                                                                    "FAKE", 
+                                                                    bankaccount.id, 
+                                                                    paymentInfo.employee.bank_accounts[0].id
+                                                                    );
+                                                                noti.remove();
+                                                            }catch(error){
+                                                                Notify.error(error.message || error);
+                                                            }
+                                                        } else{
+                                                            noti.remove();
+                                                        }
+                                        
+                                                    });
+                                                }}
+                                                >
+                                                {`${bankaccount.institution_name} ${bankaccount.name}`}
+                                            </Button>
+                                        </div>
+                                    )
+                                : <div className="col-12"><label>Employer dont have any bank accounts</label></div>}
+                        </>
+                        : <div className="col-12"><label>Employee dont have any bank accounts</label></div>}
                     </div>
-                    {employerBankAccounts.length > 0
-                        ? employerBankAccounts.map((bankaccount, i) =>
-                            <div className="col-12 payment-cell" key={i}>
-                                <Button
-                                    style={{ width: '200px' }}
-                                    color="success"
-                                    size="small"
-                                    onClick={() => {
-                                        console.log("entrose");
-                                        const noti = Notify.info("Are you sure to pay ?", async (answer) => {
-                                            if(answer){
-                                                try{
-                                                    await this.makePayment(
-                                                        paymentInfo.employer.id, 
-                                                        "FAKE", 
-                                                        bankaccount.id, 
-                                                        paymentInfo.employee.bank_accounts[0].id
-                                                        );
-                                                    noti.remove();
-                                                }catch(error){
-                                                    Notify.error(error.message || error);
-                                                }
-                                            } else{
-                                                noti.remove();
-                                            }
-                            
-                                        });
-                                    }}
-                                    >
-                                    {`${bankaccount.institution_name} ${bankaccount.name}`}
-                                </Button>
-                            </div>
-                        )
-                    : <label>Employer dont have any bank accounts</label>}
-                </>
-                : <label>Employee dont have any bank accounts</label>}
-            </div>
+        : <div className="col-12">
+            <label>Status:</label>{` Paid`}
+        </div>}
         </form>
     : null}
     </>
