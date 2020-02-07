@@ -1434,7 +1434,6 @@ const filterClockins = (formChanges, formData, onChange) => {
 export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel, history }) => {
     const { bar } = useContext(Theme.Context);
     const employer = store.getState('current_employer');
-    const [periodMonth, setMonth] = useState(2.5);
     const [noMorePeriods, setNoMorePeriods] = useState(false);
     const [periods, setPeriods] = useState(formData.periods);
     if (!employer || !employer.payroll_configured || !moment.isMoment(employer.payroll_period_starting_time)) {
@@ -1451,6 +1450,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
         if (end.isBefore(TODAY())) note = "Payroll was generated until " + end.format('M d');
     }
     console.log('el formdata', periods);
+    console.log('month');
     return (<div>
         <div className="top-bar">
             <Button
@@ -1481,15 +1481,14 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
                                 <p className="my-0"><small className={`badge ${p.total_payments > 0 ? 'badge-secondary' : 'badge-info'}`}>{p.total_payments} Payments</small></p>
                             </GenericCard>
                         )}
-                        {!noMorePeriods ? (
+                        {!noMorePeriods && Array.isArray(periods) && periods.length > 0 ? (
                             <div className="row text-center w-100 mt-3">
                                 <div className="col">
                                     <Button onClick={() => {
                                         const PAGINATION_MONTHS_LENGTH = 1;
-                                        searchMe(`payroll-periods`, `?end=${moment().subtract(periodMonth, 'months').format('YYYY-MM-DD')}&start=${moment().subtract(periodMonth + PAGINATION_MONTHS_LENGTH, 'months').format('YYYY-MM-DD')}`, formData.periods)
+                                        searchMe(`payroll-periods`, `?end=${moment(periods[periods.length - 1]['ending_at']).format('YYYY-MM-DD')}&start=${moment(periods[periods.length - 1]['starting_at']).subtract(PAGINATION_MONTHS_LENGTH, 'months').format('YYYY-MM-DD')}`, formData.periods)
                                             .then((newPeriods) => {
-                                                if (newPeriods.length > 0) {
-                                                    setMonth(periodMonth + PAGINATION_MONTHS_LENGTH);
+                                                if (Array.isArray(newPeriods) && newPeriods.length > 0 && newPeriods.length > periods.length) {
                                                     setPeriods(newPeriods);
                                                 } else setNoMorePeriods(true);
                                             });
