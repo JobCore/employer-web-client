@@ -41,32 +41,30 @@ export const Payment = (data = {}) => {
  */
 export class MakePayment extends Flux.DashView {
 
-    state = {
-        ispaid: false
-    }
     makePayment = async (
         employeePaymentId, 
         paymentType, 
         employer_bank_account_id, 
         employee_bank_account_id
         ) => {
-        // const data = {
-        //     payment_type: paymentType,
-        //     payment_data: paymentType === "CHECK" ? null : {
-        //         employer_bank_account_id: employer_bank_account_id,
-        //         employee_bank_account_id: employee_bank_account_id
-        //     }
-        // };
+        const data = {
+            payment_type: paymentType,
+            payment_data: paymentType === "CHECK" ? null : {
+                employer_bank_account_id: employer_bank_account_id,
+                employee_bank_account_id: employee_bank_account_id
+            }
+        };
 
-        // try{
-        //     const response = await POST(`employers/me/employee-payment/${employeePaymentId}`, data);
-        //     console.log("makepayment response: ", response);
-        //     searchMe('payroll-periods');
-        //     Promise.resolve(response);
-        // }catch(error){
-        //     Promise.reject(error);
-        // }
-        this.setState({ ispaid: true });
+        try{
+            const response = await POST(`employers/me/employee-payment/${employeePaymentId}`, data);
+            console.log("makepayment response: ", response);
+            searchMe('payroll-periods');
+            Promise.resolve(response);
+        }catch(error){
+            Notify.error(error.message || error);
+            Promise.reject(error);
+        }
+        // this.setState({ ispaid: true });
     }
 
     render() {
@@ -114,7 +112,7 @@ export class MakePayment extends Flux.DashView {
                     <label>Amount:</label>{` ${pay.amount}`}
                 </div>
             </div>
-            {!pay.paid && !this.state.ispaid
+            {!pay.paid
                     ? <div className="row">
                         <div className="col-12">
                             <label>Payment methods</label>
@@ -143,7 +141,6 @@ export class MakePayment extends Flux.DashView {
                                                 } else{
                                                     noti.remove();
                                                 }
-                                
                                             });
                                         }}>
                                         Check payment
