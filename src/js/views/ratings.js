@@ -59,7 +59,6 @@ export const Rating = (data) => {
     };
 
     let _entity = Object.assign(_defaults, data);
-    console.log('entidad ', _entity);
     return {
         validate: () => {
 
@@ -158,7 +157,7 @@ export class ManageRating extends Flux.DashView {
                     <div className="row">
                         <div className="col-12">
                             <h3>Recent Ratings</h3>
-                            {this.state.ratings.map((rate, i) => (
+                            {this.state.ratings.filter(emp => !emp.employee).map((rate, i) => (
                                 <GenericCard key={i} hover={true} onClick={() => bar.show({ slug: "show_single_rating", data: rate, allowLevels: false })}>
                                     <Avatar url={rate.sender.picture} />
                                     <Stars className="float-left" rating={Number(rate.rating)} />
@@ -181,7 +180,7 @@ export class ManageRating extends Flux.DashView {
 export const RatingDetails = (props) => {
     const { formData } = props;
     const { shift } = formData;
-
+    
     return (<Theme.Consumer>
         {({ bar }) =>
             (<li className="aplication-details">
@@ -351,7 +350,6 @@ RatingEmployees.propTypes = {
 };
 export const UnratingEmployees = (props) => {
 
-    console.log(props);
     const { onCancel, onSave, catalog, formData } = props;
     const unrated_employees = formData.employees.filter(e => !e.rating);
     return (<Theme.Consumer>

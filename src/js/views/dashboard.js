@@ -53,11 +53,12 @@ export default class Home extends Flux.DashView {
     }
     componentDidMount() {
 
-        this.subscribe(store, 'shifts', (shifts) => {
-            if (Array.isArray(shifts)) this.setState({ shifts });
-        });
+        // this.subscribe(store, 'shifts', (shifts) => {
+        //     if (Array.isArray(shifts)) this.setState({ shifts });
+        // });
 
-        searchMe(`shifts`, `?end=${this.state.end.format('YYYY-MM-DD')}&start=${this.state.start.format('YYYY-MM-DD')}`);
+        // let shifts = store.getState('shifts');
+        searchMe(`shifts`, `?end=${moment().format('YYYY-MM-DD')}&start=${moment().subtract(1, 'weeks').format('YYYY-MM-DD')}`).then((shifts) => this.setState({ shifts }));
     }
 
     render() {
@@ -83,8 +84,9 @@ export default class Home extends Flux.DashView {
                                             const newEndDate = moment(currentDate).add(-1, 'days');
                                             if (newEndDate.isBefore(this.state.start)) {
                                                 searchMe(`shifts`, `?end=${this.state.end.format('YYYY-MM-DD')}&start=${moment(this.state.start).subtract(1, 'weeks').format('YYYY-MM-DD')}`).then((newShifts) => {
+                                                    console.log(newShifts);
                                                     this.setState({
-                                                        state: newShifts,
+                                                        shifts: newShifts,
                                                         start: moment(this.state.start).subtract(1, 'weeks')
                                                     });
                                                 }
@@ -98,7 +100,7 @@ export default class Home extends Flux.DashView {
                                             if (this.state.end.isBefore(newEndDate)) {
                                                 searchMe(`shifts`, `?end=${moment(this.state.end).add(1, 'weeks').format('YYYY-MM-DD')}&start=${this.state.start.format('YYYY-MM-DD')}`).then((newShifts) => {
                                                     this.setState({
-                                                        state: newShifts,
+                                                        shifts: newShifts,
                                                         end: moment(this.state.end).add(1, 'weeks')
                                                     });
                                                 }
@@ -156,7 +158,7 @@ export default class Home extends Flux.DashView {
                                 <DashboardBox id="upcoming_shifts"
                                     title="Filled Shifts"
                                     status="FILLED"
-                                    fetchData={() => GET(`employers/me/shifts?status=FILLED&envelope=true&limit=10`)}
+                                    fetchData={() => GET(`employers/me/shifts?filled=true&upcoming=true&not_status=DRAFT&envelope=true&limit=10`)}
                                     defaultShifts={this.state.shifts.filter(s => s.status != 'DRAFT' && s.maximum_allowed_employees == s.employees.length && moment(s.ending_at).isAfter(NOW()))}
                                 />
                                 <DashboardBox id="expired_shifts"
