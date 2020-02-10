@@ -58,7 +58,7 @@ export default class Home extends Flux.DashView {
         // });
 
         // let shifts = store.getState('shifts');
-        searchMe(`shifts`, `?end=${moment().format('YYYY-MM-DD')}&start=${moment().subtract(1, 'weeks').format('YYYY-MM-DD')}`).then((shifts) => this.setState({ shifts }));
+        searchMe(`shifts`, `?end=${this.state.end.format('YYYY-MM-DD')}&start=${this.state.start.format('YYYY-MM-DD')}`).then((shifts) => this.setState({ shifts }));
     }
 
     render() {
