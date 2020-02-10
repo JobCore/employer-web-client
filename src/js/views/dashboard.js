@@ -84,8 +84,9 @@ export default class Home extends Flux.DashView {
                                             const newEndDate = moment(currentDate).add(-1, 'days');
                                             if (newEndDate.isBefore(this.state.start)) {
                                                 searchMe(`shifts`, `?end=${this.state.end.format('YYYY-MM-DD')}&start=${moment(this.state.start).subtract(1, 'weeks').format('YYYY-MM-DD')}`).then((newShifts) => {
+                                                    console.log(newShifts);
                                                     this.setState({
-                                                        state: newShifts,
+                                                        shifts: newShifts,
                                                         start: moment(this.state.start).subtract(1, 'weeks')
                                                     });
                                                 }
@@ -99,7 +100,7 @@ export default class Home extends Flux.DashView {
                                             if (this.state.end.isBefore(newEndDate)) {
                                                 searchMe(`shifts`, `?end=${moment(this.state.end).add(1, 'weeks').format('YYYY-MM-DD')}&start=${this.state.start.format('YYYY-MM-DD')}`).then((newShifts) => {
                                                     this.setState({
-                                                        state: newShifts,
+                                                        shifts: newShifts,
                                                         end: moment(this.state.end).add(1, 'weeks')
                                                     });
                                                 }
