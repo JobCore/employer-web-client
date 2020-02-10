@@ -40,7 +40,12 @@ const DashboardBox = ({ defaultShifts, title, status, id, fetchData }) => {
                         :
                         shiftsHTML
                     }
+                    {shifts.count > 10 && (
+                        <li className="text-center mt-3"style={{fontWeight: "bolder", textDecoration: "underline"}}><Link to={"/shifts?status="+status}>View More</Link></li>
+                    )}
+                   
                 </ul>
+                
             </div>
             <div className="col-2 text-center">
                 <p>{title}</p>
