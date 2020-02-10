@@ -957,8 +957,8 @@ EditOrAddShift.defaultProps = {
  */
 export const ShiftDetails = (props) => {
     const creationMode = isNaN(props.formData.id);
-
-    const shift = !props.catalog.shifts ? null : props.catalog.shifts.find(s => s.id == props.formData.id);
+    // const shift = !props.catalog.shifts ? null : props.catalog.shifts.find(s => s.id == props.formData.id);
+    const shift = props.formData;
     if (!creationMode && (!shift || typeof shift === 'undefined')) return <div>Loading shift...</div>;
     return (<Theme.Consumer>
         {({ bar }) => (
