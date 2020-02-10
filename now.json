@@ -1,7 +1,6 @@
 {
     "version": 2,
     "scope": "jobcore",
-    "name": "employer-web-client",
     "builds": [
         {
             "src": "package.json",
@@ -9,6 +8,16 @@
             "config": { "distDir": "public" }
         }
     ],
+    "build": {
+        "env": {
+            "API_HOST": "@api_host",
+            "GOOGLE_MAPS_WEB_KEY": "@google_maps_web_key",
+            "PLAID_PUBLIC_KEY": "@plaid_public_key",
+            "PLAID_ENVIRONMENT": "@plaid_environment",
+            "APPSTORE_APP_URL": "@appstore_app_url",
+            "ANDROID_APP_URL": "@android_app_url"
+        }
+    },
     "routes": [
         {
             "src":"/(.*).png",
