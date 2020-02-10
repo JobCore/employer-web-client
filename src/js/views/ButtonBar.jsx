@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withRouter} from 'react-router-dom';
+
 class ButtonBar extends React.Component {
 
     constructor(){
@@ -12,8 +13,8 @@ class ButtonBar extends React.Component {
                     { slug: "invite_talent_to_jobcore", title: 'Invite Talent to JobCore', to: 'talents'}
                 ],
                 "locations": [
-                    { slug: "profile", title: 'Back to company profile', to: 'profile'},
-                    { slug: "create_location", title: 'Create a location', to: 'locations'}
+                    { slug: "profile", title: 'Back to company profile', to: '/profile'},
+                    { slug: "create_location", title: 'Create a location', to: '/profile/locations'}
                 ],
                 "shifts": [
                     { slug: "create_shift", title: 'Create shifts', to: 'shifts'},
@@ -31,13 +32,14 @@ class ButtonBar extends React.Component {
                     { slug: "invite_talent_to_jobcore", title: 'Invite New Talent', to: 'favorites'}
                 ],
                 "payroll/*": [
-                    { slug: "payroll_by_timesheet", title: 'Search by Timesheet', to: 'payroll'},
-                    { slug: "payroll_settings", title: 'Payroll Settings', to: 'payroll/settings'},
+                    { slug: "payroll_by_timesheet", title: 'Search by Timesheet', to: '/payroll'},
+                    { slug: "payroll_settings", title: 'Payroll Settings', to: '/payroll/settings'},
                     //{ slug: "payroll_by_shift", title: 'Search by Shift', to: 'payroll'},
                 ],
                 "profile/*": [
-                    { slug: "manage_locations", title: 'Company Locations', to: 'locations'},
+                    { slug: "manage_locations", title: 'Company Locations', to: '/profile/locations'},
                     { slug: "my_ratings", title: 'Company Ratings', to: '/profile/ratings'},
+                  {slug: "employer_bank_accounts", title: 'Employer bank accounts', to: '/profile/bank-accounts'},
                     { slug: "company_users", title: 'Company Users', to: '/profile/users'}
                 ],
                 "calendar": [
@@ -84,6 +86,7 @@ class ButtonBar extends React.Component {
         </div>);
     }
 }
+
 export default withRouter(ButtonBar);
 
 ButtonBar.propTypes = {
