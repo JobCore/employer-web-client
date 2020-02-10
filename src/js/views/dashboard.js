@@ -2,8 +2,9 @@ import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 //include images into your bundle
 import { DashboardBox, Wizard, Theme, Button, ShiftBadge } from '../components/index';
-import { store, fetchAllMe } from '../actions.js';
+import { store, fetchAllMe, searchMe } from '../actions.js';
 import { callback, hasTutorial } from '../utils/tutorial';
+import { GET } from '../utils/api_wrapper.js';
 import { NOW } from '../components/utils.js';
 import { Session } from 'bc-react-session';
 import moment from 'moment';
@@ -17,6 +18,8 @@ export default class Home extends Flux.DashView {
             shifts: [],
             session: Session.get(),
             runTutorial: hasTutorial(),
+            start: moment().subtract(1, 'weeks'),
+            end: moment().add(1, 'weeks'),
             steps: [
                 {
                     content: <h2>Welcome to the tour!</h2>,
@@ -51,17 +54,13 @@ export default class Home extends Flux.DashView {
     componentDidMount() {
 
         this.subscribe(store, 'shifts', (shifts) => {
-
             if (Array.isArray(shifts)) this.setState({ shifts });
         });
 
-        let shifts = store.getState('shifts');
-        if (!shifts) fetchAllMe(['shifts']);
-        else this.setState({ shifts });
+        searchMe(`shifts`, `?end=${this.state.end.format('YYYY-MM-DD')}&start=${this.state.start.format('YYYY-MM-DD')}`);
     }
 
     render() {
-        console.log(this.state);
         return (
             <Theme.Consumer>
                 {({ bar }) =>
@@ -80,8 +79,34 @@ export default class Home extends Flux.DashView {
                                     yAxisWidth={0}
                                     blockHoverIcon={false}
                                     ToolbarComponent={({ setCurrentDate, currentDate }) => <div className="text-right" style={{ position: "absolute", right: 0 }}>
-                                        {<Button size="small" onClick={() => setCurrentDate(moment(currentDate).add(-1, 'day'))}>{'<<'}</Button>}
-                                        {<Button size="small" onClick={() => setCurrentDate(moment(currentDate).add(1, 'day'))}>{'>>'}</Button>}
+                                        {<Button size="small" onClick={() => {
+                                            const newEndDate = moment(currentDate).add(-1, 'days');
+                                            if (newEndDate.isBefore(this.state.start)) {
+                                                searchMe(`shifts`, `?end=${this.state.end.format('YYYY-MM-DD')}&start=${moment(this.state.start).subtract(1, 'weeks').format('YYYY-MM-DD')}`).then((newShifts) => {
+                                                    this.setState({
+                                                        state: newShifts,
+                                                        start: moment(this.state.start).subtract(1, 'weeks')
+                                                    });
+                                                }
+
+                                                );
+                                            }
+                                            setCurrentDate(moment(currentDate).add(-1, 'day'));
+                                        }}>{'<<'}</Button>}
+                                        {<Button size="small" onClick={() => {
+                                            const newEndDate = moment(currentDate).add(1, 'days');
+                                            if (this.state.end.isBefore(newEndDate)) {
+                                                searchMe(`shifts`, `?end=${moment(this.state.end).add(1, 'weeks').format('YYYY-MM-DD')}&start=${this.state.start.format('YYYY-MM-DD')}`).then((newShifts) => {
+                                                    this.setState({
+                                                        state: newShifts,
+                                                        end: moment(this.state.end).add(1, 'weeks')
+                                                    });
+                                                }
+
+                                                );
+                                            }
+                                            setCurrentDate(moment(currentDate).add(1, 'day'));
+                                        }}>{'>>'}</Button>}
                                         <Button size="small" onClick={() => this.props.history.push('./calendar#start=' + moment(currentDate).add(-1, 'month').format('YYYY-MM-DD') + '&end=' + moment(currentDate).add(2, 'month').format('YYYY-MM-DD'))}>Go to calendar</Button>
                                     </div>
                                     }
@@ -91,7 +116,7 @@ export default class Home extends Flux.DashView {
                                     dayBlockStyles={{
                                         backgroundColor: "rgba(255,255,255,0.3)",
                                         borderRight: "1px solid #e3e3e3",
-                                        borderBottom: "1px solid #e3e3e3",
+                                        borderBottom: "1px solid #e3e3e3"
                                     }}
                                     onClick={e => e.data &&
                                         bar.show({
@@ -119,27 +144,32 @@ export default class Home extends Flux.DashView {
                                 <DashboardBox id="draft_shifts"
                                     status="DRAFT"
                                     title="Draft Shifts"
-                                    shifts={this.state.shifts.filter(s => s.status == 'DRAFT')}
+                                    fetchData={() => GET(`employers/me/shifts?status=DRAFT&envelope=true&limit=10`)}
+                                    defaultShifts={this.state.shifts.filter(s => s.status == 'DRAFT')}
                                 />
                                 <DashboardBox id="open_shifts"
                                     status="OPEN"
                                     title="Open Shifts"
-                                    shifts={this.state.shifts.filter(s => s.status != 'DRAFT' && s.maximum_allowed_employees > s.employees.length && moment(s.ending_at).isAfter(NOW()))}
+                                    fetchData={() => GET(`employers/me/shifts?status=OPEN&envelope=true&limit=10`)}
+                                    defaultShifts={this.state.shifts.filter(s => s.status == 'OPEN')}
                                 />
                                 <DashboardBox id="upcoming_shifts"
                                     title="Filled Shifts"
                                     status="FILLED"
-                                    shifts={this.state.shifts.filter(s => s.status != 'DRAFT' && s.maximum_allowed_employees == s.employees.length && moment(s.ending_at).isAfter(NOW()))}
+                                    fetchData={() => GET(`employers/me/shifts?status=FILLED&envelope=true&limit=10`)}
+                                    defaultShifts={this.state.shifts.filter(s => s.status != 'DRAFT' && s.maximum_allowed_employees == s.employees.length && moment(s.ending_at).isAfter(NOW()))}
                                 />
                                 <DashboardBox id="expired_shifts"
                                     status="EXPIRED"
                                     title="Completed Shifts"
-                                    shifts={this.state.shifts.filter(s => !['DRAFT', 'COMPLETED', 'CANCELLED'].includes(s.status) && moment(s.ending_at).isBefore(NOW()))}
+                                    fetchData={() => GET(`employers/me/shifts?status=EXPIRED&envelope=true&limit=10`)}
+                                    defaultShifts={this.state.shifts.filter(s => !['DRAFT', 'COMPLETED', 'CANCELLED'].includes(s.status) && moment(s.ending_at).isBefore(NOW()))}
                                 />
                                 <DashboardBox id="completed_shifts"
                                     status="COMPLETED"
                                     title="Paid Shifts"
-                                    shifts={this.state.shifts.filter(s => s.status == 'COMPLETED' && moment(s.ending_at).isBefore(NOW()))}
+                                    fetchData={() => GET(`employers/me/shifts?status=COMPLETED&envelope=true&limit=10`)}
+                                    defaultShifts={this.state.shifts.filter(s => s.status == 'COMPLETED' && moment(s.ending_at).isBefore(NOW()))}
                                 />
                             </div>
                         </div>

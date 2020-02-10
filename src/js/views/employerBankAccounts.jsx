@@ -10,7 +10,7 @@ class EmployerBankAccounts extends Flux.DashView {
     constructor() {
         super();
         this.state = {
-            bankAccounts: [],
+            bankAccounts: []
         };
     }
 
@@ -28,8 +28,6 @@ class EmployerBankAccounts extends Flux.DashView {
     }
 
     handleOnSuccess(token, metadata) {
-        console.log('token: ', token);
-        console.log('metadata: ', metadata);
         addBankAccount(token, metadata);
     }
 
@@ -39,7 +37,6 @@ class EmployerBankAccounts extends Flux.DashView {
 
     render() {
         const { bankAccounts } = this.state;
-        console.log('bankAccounts: ', bankAccounts);
         return (
             <div>
                 <div className="row mt-2">
