@@ -136,7 +136,8 @@ export const Shift = (data) => {
                 start_time: (moment.isMoment(_shift.starting_at)) ? _shift.starting_at : moment(_shift.starting_at.format("MM/DD/YYYY") + ' ' + _shift.starting_at),
                 finish_time: (moment.isMoment(_shift.starting_at)) ? _shift.ending_at : moment(_shift.ending_at.format("MM/DD/YYYY") + ' ' + _shift.ending_at),
                 minimum_allowed_rating: _shift.minimum_allowed_rating.toString(),
-                venue: _shift.venue.id.toString() || _shift.venue.toString()
+                venue: _shift.venue.id.toString() || _shift.venue.toString(),
+                employees: _shift.employees
             };
             return _formShift;
         }
@@ -149,6 +150,8 @@ export class ManageShifts extends Flux.DashView {
         super();
         this.state = {
             shifts: [],
+            noMoreShifts: false,
+            offset: 5,
             runTutorial: hasTutorial(),
             steps: [
                 {
@@ -171,13 +174,14 @@ export class ManageShifts extends Flux.DashView {
     }
 
     componentDidMount() {
+        let status = queryString.parse(window.location.search, { arrayFormat: 'index' });
 
         // fetch if not loaded already
         let shifts = store.getState('shifts');
-        if (!shifts) fetchAllMe(['shifts']);
-        else this.filterShifts(shifts);
 
+        searchMe(`shifts`, `?envelope=true&limit=5&status=${status.status}`);
         this.subscribe(store, 'shifts', (shifts) => {
+            this.setState({ shifts: shifts });
             this.filterShifts(shifts);
         });
 
@@ -185,7 +189,6 @@ export class ManageShifts extends Flux.DashView {
             this.filterShifts();
         });
         this.setState({ runTutorial: true });
-
 
     }
 
@@ -292,8 +295,11 @@ export class ManageShifts extends Flux.DashView {
     }
 
     render() {
-        const groupedShifts = _.groupBy(this.state.shifts, (s) => s.starting_at.format('MMMM YYYY'));
+        console.log('state shifts', this.state.shifts);
+        let status = queryString.parse(window.location.search, { arrayFormat: 'index' });
+        const groupedShifts = _.groupBy(this.state.shifts, (s) => moment(s.starting_at).format('MMMM YYYY'));
         const shiftsHTML = [];
+
         for (let date in groupedShifts) {
             shiftsHTML.push(<div key={date} className="date-group">
                 <p className="date-group-label">{date}</p>
@@ -312,6 +318,25 @@ export class ManageShifts extends Flux.DashView {
             <h1 className="float-left"><span id="shift-details-header">Shift Details</span></h1>
             {shiftsHTML.length == 0 && <div className="mt-5">No shifts have been found</div>}
             {shiftsHTML}
+            {!this.state.noMoreShifts && shiftsHTML.length != 0 ? (
+                <div className="row text-center w-100 mt-3">
+                    <div className="col">
+                        <Button onClick={() => {
+                            const PAGINATION_LENGTH = 5;
+                            searchMe(`shifts`, `?envelope=true&limit=5&offset=${this.state.offset + PAGINATION_LENGTH}&status=${status.status}`, this.state.shifts)
+                                .then((newShifts) => {
+                                    console.log(newShifts.length);
+                                    console.log(this.state.shifts.length);
+                                    if (newShifts.length === this.state.shifts.length) {
+                                        this.setState({ noMoreShifts: true });
+                                    }
+                                    else this.setState({ shifts: newShifts, offset: this.state.offset + PAGINATION_LENGTH });
+
+                                });
+                        }}>Load More</Button>
+                    </div>
+                </div>
+            ) : null}
         </div>);
     }
 }
@@ -395,6 +420,7 @@ FilterShifts.propTypes = {
  */
 export const ShiftApplicants = (props) => {
     const { onCancel, onSave, catalog } = props;
+    console.log(props);
     return (<Theme.Consumer>
         {({ bar }) => (<div className="sidebar-applicants">
             {catalog.shift.expired ?
@@ -462,6 +488,7 @@ ShiftApplicants.propTypes = {
  */
 export const ShiftEmployees = (props) => {
     const { onCancel, onSave, catalog } = props;
+    console.log(props);
     return (<Theme.Consumer>
         {({ bar }) => (<div className="sidebar-applicants">
             {catalog.shift.expired ?
@@ -572,7 +599,6 @@ ShiftInvites.propTypes = {
  * EditOrAddShift
  */
 const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar, oldShift }) => {
-
     useEffect(() => {
         const venues = store.getState('venues');
         const favlists = store.getState('favlists');
@@ -933,7 +959,6 @@ EditOrAddShift.defaultProps = {
  * ShiftDetails
  */
 export const ShiftDetails = (props) => {
-
     const creationMode = isNaN(props.formData.id);
 
     const shift = !props.catalog.shifts ? null : props.catalog.shifts.find(s => s.id == props.formData.id);
@@ -974,6 +999,16 @@ export const ShiftDetails = (props) => {
                             </div>
                         }
                         {props.formData.status === 'DRAFT' ? <EditOrAddShift bar={bar} {...props} oldShift={shift} /> : <ShowShift bar={bar} shift={shift} />}
+
+                        {moment(props.formData.ending_at).isBefore(NOW()) &&
+                            <div className="row text-center mt-4">
+                                <div className="col">
+                                    <Button color="primary" onClick={() => bar.show({ slug: "show_employees_rating", data: shift, allowLevels: true })}>Rate Employees</Button>
+                                </div>
+                            </div>
+                        }
+
+
                     </div>
                 }
             </div>
