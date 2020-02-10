@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {create, update, remove, acceptCandidate, rejectCandidate, deleteShiftEmployee} from '../actions';
 import {withRouter} from 'react-router-dom';
 import queryString from 'query-string';
+import {Deduction} from '../views/deductions';
 import {Shift} from '../views/shifts.js';
 import {Invite} from '../views/invites.js';
 import {Location} from '../views/locations.js';
@@ -156,6 +157,14 @@ class RightBar extends React.Component {
                             noti.remove();
                         });
                     }
+                break;
+                case 'create_deduction':
+                        create('deduction', Deduction(this.state.formData).validate().serialize());
+                        this.props.onClose();
+                break;
+                case 'update_deduction':
+                        update(`deduction`, Deduction(this.state.formData).validate().serialize());
+                        this.props.onClose();
                 break;
                 default: throw new Error("Missing logic onSave() for "+this.props.option.slug);
             }
