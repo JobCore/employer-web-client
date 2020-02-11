@@ -658,6 +658,52 @@ export const createPayment = async (payment, period) => {
     return period;
 };
 
+    /**
+ * Make employee payment
+ * @param  {string}  employeePaymentId employee payment id
+ * @param  {string}  paymentType payment type could be: CHECK, FAKE or ELECTRONIC TRANSFERENCE
+ * @param  {string}  employer_bank_account_id employer bank account id
+ * @param  {string}  employee_bank_account_id employee bank account id
+ * @param  {string}  payroll_period_id payroll period id
+ */
+export const makeEmployeePayment = async (
+    employeePaymentId, 
+    paymentType, 
+    employer_bank_account_id, 
+    employee_bank_account_id,
+    payroll_period_id
+    ) => {
+    const data = {
+        payment_type: paymentType,
+        payment_data: paymentType === "CHECK" ? {} : {
+            employer_bank_account_id: employer_bank_account_id,
+            employee_bank_account_id: employee_bank_account_id
+        }
+    };
+
+    try{
+        const response = await POST(`employers/me/employee-payment/${employeePaymentId}`, data);
+        console.log("makepayment response: ", response);
+        fetchPeyrollPeriodPayments(payroll_period_id);
+        Promise.resolve(response);
+    }catch(error){
+        Notify.error(error.message || error);
+        Promise.reject(error);
+    }
+};
+
+    /**
+ * fetch payroll period payments
+ * @param  {string}  payrollPeriodId employee payment id
+ */
+export const fetchPeyrollPeriodPayments = async (payrollPeriodId) => {
+    try {
+        const response = await GET(`employers/me/employee-payment-list/${payrollPeriodId}`);
+        Flux.dispatchEvent('payroll-period-payments', response);
+    } catch(error) {
+        Notify.error(error.message || error);
+    }
+};
 // export const createPayrollPeriodRating = (entity, queryString) => new Promise((accept, reject) =>
 //     GET('employers/me/' + entity, queryString)
 //         .then(function (list) {
@@ -695,6 +741,7 @@ class _Store extends Flux.DashStore {
         });
         this.addEvent('favlists');
         this.addEvent('deduction');
+        this.addEvent('payroll-period-payments');
         this.addEvent('badges');
 
         this.addEvent('applications', (applicants) => {

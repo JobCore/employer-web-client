@@ -1,12 +1,9 @@
 import React from "react";
-import { validator, ValidationError } from '../utils/validation';
 import PropTypes from 'prop-types';
-import Select from 'react-select';
 import { Button } from '../components/index';
 import Flux from "@4geeksacademy/react-flux-dash";
-import { GET, POST } from "../utils/api_wrapper";
 import { Notify } from 'bc-react-notifier';
-import { searchMe } from "../actions";
+import { makeEmployeePayment } from "../actions";
 export const Payment = (data = {}) => {
 
     const _defaults = {
@@ -40,32 +37,6 @@ export const Payment = (data = {}) => {
  * Make Payment
  */
 export class MakePayment extends Flux.DashView {
-
-    makePayment = async (
-        employeePaymentId, 
-        paymentType, 
-        employer_bank_account_id, 
-        employee_bank_account_id
-        ) => {
-        const data = {
-            payment_type: paymentType,
-            payment_data: paymentType === "CHECK" ? null : {
-                employer_bank_account_id: employer_bank_account_id,
-                employee_bank_account_id: employee_bank_account_id
-            }
-        };
-
-        try{
-            const response = await POST(`employers/me/employee-payment/${employeePaymentId}`, data);
-            console.log("makepayment response: ", response);
-            searchMe('payroll-periods');
-            Promise.resolve(response);
-        }catch(error){
-            Notify.error(error.message || error);
-            Promise.reject(error);
-        }
-        // this.setState({ ispaid: true });
-    }
 
     render() {
         const { 
@@ -128,11 +99,12 @@ export class MakePayment extends Flux.DashView {
                                             const noti = Notify.info("Are you sure to pay ?", async (answer) => {
                                                 if(answer){
                                                     try{
-                                                        await this.makePayment(
+                                                        await makeEmployeePayment(
                                                             pay.id, 
                                                             "CHECK", 
                                                             "", 
-                                                            ""
+                                                            "",
+                                                            this.props.formData.pay.payroll_period_id
                                                             );
                                                         noti.remove();
                                                     }catch(error){
@@ -157,13 +129,15 @@ export class MakePayment extends Flux.DashView {
                                                     const noti = Notify.info("Are you sure to pay ?", async (answer) => {
                                                         if(answer){
                                                             try{
-                                                                await this.makePayment(
+                                                                await makeEmployeePayment(
                                                                     pay.id, 
                                                                     "FAKE", 
                                                                     bankaccount.id, 
-                                                                    paymentInfo.payments[0].employee.bank_accounts[0].id
+                                                                    paymentInfo.payments[0].employee.bank_accounts[0].id,
+                                                                    this.props.formData.pay.payroll_period_id
                                                                     );
                                                                 noti.remove();
+                                                                bar.close()
                                                             }catch(error){
                                                                 Notify.error(error.message || error);
                                                             }
