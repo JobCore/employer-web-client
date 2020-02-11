@@ -39,6 +39,6 @@ fontawesome.config = {
 fontawesome.library.add(
     faStar, faStarHalf, faEmptyStar, faTimesCircle, faCheckCircle, faAngleDoubleRight, faUserCheck, faClock,
     faTrashAlt, faQuestion, faPencilAlt, faPlus, faUsers, faExclamationTriangle, faDollarSign, faClipboardList,
-    faForward, faBackward, faSync, faEnvelope, faStopwatch, faCircle, faMapMarkerAlt, faUndo, faUserCog, faUserEdit,
-    faPlusCircle
+    faForward, faBackward, faSync, faEnvelope, faCircle, faMapMarkerAlt, faUndo, faUserCog, faUserEdit,
+    faPlusCircle, faStopwatch
 );

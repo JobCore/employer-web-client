@@ -137,7 +137,7 @@ export class MakePayment extends Flux.DashView {
                                                                     this.props.formData.pay.payroll_period_id
                                                                     );
                                                                 noti.remove();
-                                                                bar.close()
+                                                                bar.close();
                                                             }catch(error){
                                                                 Notify.error(error.message || error);
                                                             }

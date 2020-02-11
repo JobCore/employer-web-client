@@ -79,20 +79,6 @@ export const login = (email, password, keep, history) => new Promise((resolve, r
     })
 );
 
-export const addBankAccount = (token, metadata) => new Promise((resolve, reject) => POST('bank-accounts/',
-    normalizeToSnakeCase({ publicToken: token, institutionName: metadata.institution.name }))
-    .then(function (data) {
-        console.log('addBankAccount data: ', data);
-        resolve();
-        searchBankAccounts();
-    })
-    .catch(function (error) {
-        reject(error.message || error);
-        Notify.error(error.message || error);
-        log.error(error);
-    })
-);
-
 export const signup = (formData, history) => new Promise((resolve, reject) => POST('user/register', {
     email: formData.email,
     account_type: formData.account_type,
@@ -148,6 +134,15 @@ export const logout = () => {
     Session.destroy();
     store = new _Store();
 };
+
+
+
+
+/**
+ * GENERIC ACTIONS, try to reuse them!!!!
+ */
+
+
 
 export const fetchAllIfNull = (entities) => {
     const _entities = entities.filter(e => !store.getState("entity"));
@@ -297,10 +292,14 @@ export const search = (entity, queryString = null) => new Promise((accept, rejec
             reject(error);
         })
 );
-export const searchMe = (entity, queryString) => new Promise((accept, reject) =>
+export const searchMe = (entity, queryString, mergeResults = false) => new Promise((accept, reject) =>
     GET('employers/me/' + entity, queryString)
         .then(function (list) {
             if (typeof entity.callback == 'function') entity.callback();
+            if (mergeResults) {
+                const previous = store.getState(entity.slug || entity);
+                if (Array.isArray(previous)) list = previous.concat(list.results || list);
+            }
             Flux.dispatchEvent(entity.slug || entity, list);
             accept(list);
         })
@@ -311,29 +310,22 @@ export const searchMe = (entity, queryString) => new Promise((accept, reject) =>
         })
 );
 
-export const searchBankAccounts = () => new Promise((accept, reject) =>
-    GET('bank-accounts/')
-        .then(function (list) {
-            console.log("bank-accounts list: ", list);
-            Flux.dispatchEvent('bank-accounts', list);
-            accept(list);
-        })
-        .catch(function (error) {
-            Notify.error(error.message || error);
-            log.error(error);
-            reject(error);
-        })
-);
-
-export const create = (entity, data, status = 'live') => new Promise((resolve, reject) => {
+export const create = (entity, data, status = WEngine.modes.LIVE) => new Promise((resolve, reject) => {
     POST('employers/me/' + (entity.url || entity), data)
         .then(function (incoming) {
+
+            if (typeof entity.url === 'string' && typeof entity.slug === 'undefined') throw Error('Missing entity slug on the create method');
+
+            //fisrt check if I have any of this on the store
             let entities = store.getState(entity.slug || entity);
             if (!entities || !Array.isArray(entities)) entities = [];
 
+            //if the response from the server is not a list 
             if (!Array.isArray(incoming)) {
+                // if the response is not a list, I will add the new object into that list
                 Flux.dispatchEvent(entity.slug || entity, entities.concat([{ ...data, id: incoming.id }]));
             }
+            //if it is an array
             else {
                 const newShifts = incoming.map(inc => Object.assign({ ...data, id: inc.id }));
                 Flux.dispatchEvent(entity.slug || entity, entities.concat(newShifts));
@@ -623,7 +615,7 @@ export const updateTalentList = (action, employee, listId) => {
 };
 
 export const updatePayments = async (payments, period) => {
-    console.log(payments);
+
     if (!Array.isArray(payments)) payments = [payments];
     for (let i = 0; i < payments.length; i++) {
         let data = { ...payments[i] };
@@ -704,6 +696,35 @@ export const fetchPeyrollPeriodPayments = async (payrollPeriodId) => {
         Notify.error(error.message || error);
     }
 };
+
+export const addBankAccount = (token, metadata) => new Promise((resolve, reject) => POST('bank-accounts/',
+    normalizeToSnakeCase({ publicToken: token, institutionName: metadata.institution.name }))
+    .then(function (data) {
+        console.log('addBankAccount data: ', data);
+        resolve();
+        searchBankAccounts();
+    })
+    .catch(function (error) {
+        reject(error.message || error);
+        Notify.error(error.message || error);
+        log.error(error);
+    })
+);
+
+export const searchBankAccounts = () => new Promise((accept, reject) =>
+    GET('bank-accounts/')
+        .then(function (list) {
+            console.log("bank-accounts list: ", list);
+            Flux.dispatchEvent('bank-accounts', list);
+            accept(list);
+        })
+        .catch(function (error) {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject(error);
+        })
+);
+
 // export const createPayrollPeriodRating = (entity, queryString) => new Promise((accept, reject) =>
 //     GET('employers/me/' + entity, queryString)
 //         .then(function (list) {
@@ -751,8 +772,8 @@ class _Store extends Flux.DashStore {
             });
         });
         this.addEvent('shifts', (shifts) => {
-
-            const newShifts = (!shifts || (Object.keys(shifts).length === 0 && shifts.constructor === Object)) ? [] : shifts.filter(s => s.status !== 'CANCELLED').map((shift) => {
+            shifts = Array.isArray(shifts.results) ? shifts.results : Array.isArray(shifts) ? shifts : null;
+            let newShifts = (!shifts || (Object.keys(shifts).length === 0 && shifts.constructor === Object)) ? [] : shifts.filter(s => s.status !== 'CANCELLED').map((shift) => {
                 //already transformed
                 return Shift(shift).defaults().unserialize();
             });
@@ -768,6 +789,7 @@ class _Store extends Flux.DashStore {
         this.addEvent('payroll-periods', (period) => {
             return (!period || (Object.keys(period).length === 0 && period.constructor === Object)) ? [{ label: "Loading payment periods...", value: null }] : period.map(p => {
                 p.label = `From ${moment(p.starting_at).format('MM-D-YY h:mm A')} to ${moment(p.ending_at).format('MM-D-YY h:mm A')}`;
+                if(!Array.isArray(p.payments)) p.payments = [];
                 return p;
             });
         });
