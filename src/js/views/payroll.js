@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import { store, search, update, fetchSingle, searchMe, processPendingPayrollPeriods, updatePayments, createPayment, fetchAllMe, fetchTemporal, remove, create } from '../actions.js';
+import { store, search, update, fetchSingle, searchMe, processPendingPayrollPeriods, updatePayments, createPayment, fetchAllMe, fetchTemporal, remove, create, fetchPeyrollPeriodPayments } from '../actions.js';
 import { GET } from '../utils/api_wrapper';
 
 
@@ -1861,6 +1861,7 @@ export class PayrollReport extends Flux.DashView {
             employer: store.getState('current_employer'),
             payrollPeriods: [],
             payments: [],
+            paymentInfo: [],
             singlePayrollPeriod: null,
         };
     }
@@ -1869,6 +1870,9 @@ export class PayrollReport extends Flux.DashView {
 
         this.subscribe(store, 'current_employer', (employer) => {
             this.setState({ employer });
+        });
+        this.subscribe(store, 'payroll-period-payments', (paymentInfo) => {
+            this.setState({ paymentInfo });
         });
 
         const payrollPeriods = store.getState('payroll-periods');
@@ -1894,19 +1898,6 @@ export class PayrollReport extends Flux.DashView {
         });
     }
 
-    fetchPatmentInfo = async () => {
-        try {
-            console.log("this.state.singlePayrollPeriod.id: ", this.state.singlePayrollPeriod.id);
-            const response = await GET(`employers/me/employee-payment-list/${this.state.singlePayrollPeriod.id}`);
-
-            this.setState({ paymentInfo: response });
-            console.log("fetchPatmentInfo response: ", response);
-        } catch(error) {
-            Notify.error(error.message || error);
-
-        }
-    }
-
     groupPayments(singlePeriod) {
         if (!singlePeriod) return null;
 
@@ -1929,7 +1920,7 @@ export class PayrollReport extends Flux.DashView {
             else {
                 const singlePayrollPeriod = payrollPeriods.find(pp => pp.id == periodId);
                 this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod) }, () => {
-                    this.fetchPatmentInfo();
+                    fetchPeyrollPeriodPayments(this.state.singlePayrollPeriod.id);
                 });
             }
         }
