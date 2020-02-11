@@ -330,17 +330,18 @@ export class ManageShifts extends Flux.DashView {
  * FilterShifts
  */
 export const FilterShifts = ({ onSave, onCancel, onChange, catalog }) => {
-const [position, setPosition] = useState("");
-const [date, setDate] = useState("");
-const [price, setPrice] = useState("");
-const [location, setLocation] = useState("");
-const [status, setStatus] = useState("");
+    const [position, setPosition] = useState("");
+    const [date, setDate] = useState("");
+    const [price, setPrice] = useState("");
+    const [employees, setEmployees] = useState("");
+    const [location, setLocation] = useState("");
+    const [status, setStatus] = useState("");
 
-useEffect(() => {
-    const venues = store.getState('venues');
-    if (!venues) fetchAllMe(['venues']);
-}, []);
-console.log(position, date,price,location,status);
+    useEffect(() => {
+        const venues = store.getState('venues');
+        if (!venues) fetchAllMe(['venues']);
+    }, []);
+ 
 return(<form>
     <div className="row">
         <div className="col">
@@ -380,15 +381,25 @@ return(<form>
             />
         </div>
     </div>
-    {/* <div className="row">
+    <div className="row">
         <div className="col">
             <label>Worked by a talent:</label>
-            <Select
-                onChange={(selection) => onChange({ talent: selection.value.toString() })}
-                options={[].concat.apply([], catalog.shifts.map(s => s.employees))}
+            <SearchCatalogSelect
+                isMulti={true}
+                value={employees}
+                onChange={(selections) => {
+                   setEmployees(selections);
+                }}
+                searchFunction={(search) => new Promise((resolve, reject) =>
+                    GET('catalog/employees?full_name=' + search)
+                        .then(talents => resolve([
+                            { label: `${(talents.length == 0) ? 'No one found: ' : ''}`, value: 'invite_talent_to_jobcore' }
+                        ].concat(talents)))
+                        .catch(error => reject(error))
+                )}
             />
         </div>
-    </div> */}
+    </div>
     <div className="row">
         <div className="col">
             <label>Status</label>
@@ -400,7 +411,7 @@ return(<form>
     </div>
     <div className="btn-bar">
         <button type="button" className="btn btn-primary" onClick={() => {
-            searchMe(`shifts`, `?${status == "FILLED" ? "filled=true&upcoming=true&not_status=DRAFT" : "status=" + status}&position=${position}&start=${date}`);
+            searchMe(`shifts`, `?${status == "FILLED" ? "filled=true&upcoming=true&not_status=DRAFT" : "status=" + status}&position=${position}&start=${date}&employee=${employees.map(e => e.value)}`);
         }}>Apply Filters</button>
         <button type="button" className="btn btn-secondary" onClick={() => onSave(false)}>Clear Filters</button>
     </div>
