@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { Link } from 'react-router-dom';
 import Flux from "@4geeksacademy/react-flux-dash";
 import { store, create, searchMe, fetchAllMe } from '../actions.js';
@@ -184,7 +184,6 @@ export class ManageShifts extends Flux.DashView {
             this.setState({ showNextButton });
         });
         this.subscribe(store, 'shifts', (shifts) => {
-            this.setState({ shifts: shifts });
             this.filterShifts(shifts);
         });
 
@@ -198,20 +197,8 @@ export class ManageShifts extends Flux.DashView {
     filterShifts(shifts = null) {
         let filters = this.getFilters();
         if (!shifts) shifts = store.getState('shifts');
-        if (Array.isArray(shifts) && shifts.length > 0) {
-            this.setState({
-                shifts: shifts.filter((shift) => {
-                    if (shift.status == 'CANCELLED') return false;
-
-                    for (let f in filters) {
-                        const matches = filters[f].matches(shift);
-                        if (!matches) return false;
-                    }
-
-                    return true;
-                }).sort((shift) => moment().diff(shift.start_time, 'minutes'))
-            });
-        }
+        if (Array.isArray(shifts) && shifts.length > 0)
+            this.setState({  shifts: shifts });
         else this.setState({ shifts: [] });
     }
 
@@ -342,12 +329,24 @@ export class ManageShifts extends Flux.DashView {
 /**
  * FilterShifts
  */
-export const FilterShifts = ({ onSave, onCancel, onChange, catalog }) => (<form>
+export const FilterShifts = ({ onSave, onCancel, onChange, catalog }) => {
+const [position, setPosition] = useState("");
+const [date, setDate] = useState("");
+const [price, setPrice] = useState("");
+const [location, setLocation] = useState("");
+const [status, setStatus] = useState("");
+
+useEffect(() => {
+    const venues = store.getState('venues');
+    if (!venues) fetchAllMe(['venues']);
+}, []);
+console.log(position, date,price,location,status);
+return(<form>
     <div className="row">
         <div className="col">
             <label>Looking for</label>
             <Select
-                onChange={(selection) => onChange({ position: selection.value.toString() })}
+                onChange={(selection) => setPosition(selection.value)}
                 options={catalog.positions}
             />
         </div>
@@ -363,26 +362,25 @@ export const FilterShifts = ({ onSave, onCancel, onChange, catalog }) => (<form>
                     const { value, ...rest } = properties;
                     return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
                 }}
-                onChange={(value) => onChange({
-                    date: value.format("MM-DD-YYYY")
-                })}
+                onChange={(value) =>  setDate(value.format("YYYY-MM-DD"))
+                }
             />
         </div>
         <div className="col-4">
             <label>Price / hour</label>
-            <input type="number" className="form-control" onChange={(e) => onChange({ minimum_hourly_rate: e.target.value })} />
+            <input type="number" className="form-control" onChange={(e) =>  setPrice(e.target.value) } />
         </div>
     </div>
     <div className="row">
         <div className="col">
             <label>Location</label>
             <Select
-                onChange={(selection) => onChange({ venue: selection.value.toString() })}
+                onChange={(selection) => setLocation(selection.value.toString())}
                 options={catalog.venues}
             />
         </div>
     </div>
-    <div className="row">
+    {/* <div className="row">
         <div className="col">
             <label>Worked by a talent:</label>
             <Select
@@ -390,24 +388,28 @@ export const FilterShifts = ({ onSave, onCancel, onChange, catalog }) => (<form>
                 options={[].concat.apply([], catalog.shifts.map(s => s.employees))}
             />
         </div>
-    </div>
+    </div> */}
     <div className="row">
         <div className="col">
             <label>Status</label>
             <Select
-                onChange={(selection) => onChange({ status: selection.value.toString() })}
+                onChange={(selection) => setStatus(selection.value.toString())}
                 options={catalog.shiftStatus}
             />
         </div>
     </div>
     <div className="btn-bar">
-        <button type="button" className="btn btn-primary" onClick={() => onSave()}>Apply Filters</button>
+        <button type="button" className="btn btn-primary" onClick={() => {
+            searchMe(`shifts`, `?${status == "FILLED" ? "filled=true&upcoming=true&not_status=DRAFT" : "status=" + status}&position=${position}&start=${date}`);
+        }}>Apply Filters</button>
         <button type="button" className="btn btn-secondary" onClick={() => onSave(false)}>Clear Filters</button>
     </div>
 </form>);
+};
 FilterShifts.propTypes = {
     onSave: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
+    formData: PropTypes.object, //contains the data needed for the form to load
     onChange: PropTypes.func.isRequired,
     catalog: PropTypes.object //contains the data needed for the form to load
 };
@@ -957,8 +959,8 @@ EditOrAddShift.defaultProps = {
  */
 export const ShiftDetails = (props) => {
     const creationMode = isNaN(props.formData.id);
-
-    const shift = !props.catalog.shifts ? null : props.catalog.shifts.find(s => s.id == props.formData.id);
+    // const shift = !props.catalog.shifts ? null : props.catalog.shifts.find(s => s.id == props.formData.id);
+    const shift = props.formData;
     if (!creationMode && (!shift || typeof shift === 'undefined')) return <div>Loading shift...</div>;
     return (<Theme.Consumer>
         {({ bar }) => (
