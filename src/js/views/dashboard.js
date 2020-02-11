@@ -52,13 +52,8 @@ export default class Home extends Flux.DashView {
         };
     }
     componentDidMount() {
-
-        // this.subscribe(store, 'shifts', (shifts) => {
-        //     if (Array.isArray(shifts)) this.setState({ shifts });
-        // });
-
-        // let shifts = store.getState('shifts');
-        searchMe(`shifts`, `?serializer=big&end=${this.state.end.format('YYYY-MM-DD')}&start=${this.state.start.format('YYYY-MM-DD')}`).then((shifts) => this.setState({ shifts }));
+        //cambiar el limit 
+        searchMe(`shifts`, `?limit=10000&end=${this.state.end.format('YYYY-MM-DD')}&start=${this.state.start.format('YYYY-MM-DD')}`).then((shifts) => this.setState({ shifts }));
     }
 
     render() {
@@ -83,7 +78,7 @@ export default class Home extends Flux.DashView {
                                         {<Button size="small" onClick={() => {
                                             const newEndDate = moment(currentDate).add(-1, 'days');
                                             if (newEndDate.isBefore(this.state.start)) {
-                                                searchMe(`shifts`, `?serializer=big&end=${this.state.end.format('YYYY-MM-DD')}&start=${moment(this.state.start).subtract(1, 'weeks').format('YYYY-MM-DD')}`).then((newShifts) => {
+                                                searchMe(`shifts`, `?limit=10000&end=${this.state.end.format('YYYY-MM-DD')}&start=${moment(this.state.start).subtract(1, 'weeks').format('YYYY-MM-DD')}`).then((newShifts) => {
                                                     console.log(newShifts);
                                                     this.setState({
                                                         shifts: newShifts,
@@ -98,7 +93,7 @@ export default class Home extends Flux.DashView {
                                         {<Button size="small" onClick={() => {
                                             const newEndDate = moment(currentDate).add(1, 'days');
                                             if (this.state.end.isBefore(newEndDate)) {
-                                                searchMe(`shifts`, `?serializer=big&end=${moment(this.state.end).add(1, 'weeks').format('YYYY-MM-DD')}&start=${this.state.start.format('YYYY-MM-DD')}`).then((newShifts) => {
+                                                searchMe(`shifts`, `?limit=10000&end=${moment(this.state.end).add(1, 'weeks').format('YYYY-MM-DD')}&start=${this.state.start.format('YYYY-MM-DD')}`).then((newShifts) => {
                                                     this.setState({
                                                         shifts: newShifts,
                                                         end: moment(this.state.end).add(1, 'weeks')
