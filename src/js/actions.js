@@ -678,6 +678,7 @@ export const makeEmployeePayment = async (
         console.log("makepayment response: ", response);
         fetchPeyrollPeriodPayments(payroll_period_id);
         Promise.resolve(response);
+        Notify.success("Payment was successful");
     }catch(error){
         Notify.error(error.message || error);
         Promise.reject(error);
