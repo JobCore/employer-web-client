@@ -133,7 +133,7 @@ export class MakePayment extends Flux.DashView {
                                                                     pay.id, 
                                                                     "FAKE", 
                                                                     bankaccount.id, 
-                                                                    paymentInfo.payments[0].employee.bank_accounts[0].id,
+                                                                    pay.employee.bank_accounts[0].id,
                                                                     this.props.formData.pay.payroll_period_id
                                                                     );
                                                                 noti.remove();
