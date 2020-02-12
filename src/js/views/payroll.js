@@ -2014,7 +2014,8 @@ export class PayrollReport extends Flux.DashView {
                                                         data: {
                                                             pay: pay,
                                                             paymentInfo: this.state.paymentInfo,
-                                                            periodId: this.state.singlePayrollPeriod.id
+                                                            periodId: this.state.singlePayrollPeriod.id,
+                                                            bar: bar
                                                     } 
                                                     })}>
                                                         Make payment
