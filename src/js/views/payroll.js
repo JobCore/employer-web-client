@@ -820,8 +820,8 @@ export const PayrollPeriodDetails = ({ match, history }) => {
     const [employer, setEmployer] = useState(store.getState('current_employer'));
     const [period, setPeriod] = useState(null);
     const [payments, setPayments] = useState([]);
+    console.log('PAYMENTS', payments);
     const { bar } = useContext(Theme.Context);
-    
     useEffect(() => {
         const employerSub = store.subscribe('current_employer', (employer) => setEmployer(employer));
         if(match.params.period_id !== undefined) fetchSingle("payroll-periods", match.params.period_id).then(_period => {
@@ -896,7 +896,6 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                     b.employee.id === "new" ? 1 :
                         a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
             ).map(pay => {
-
                 const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + parseFloat(regular_hours) + parseFloat(over_time), 0);
                 const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + ((parseFloat(regular_hours) * parseFloat(hourly_rate)) + (parseFloat(over_time) * parseFloat(hourly_rate) * 1.5)), 0);
                 return <table key={pay.employee.id} className="table table-striped payroll-summary">
@@ -960,25 +959,29 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                             employee: p.employee.id || p.employee,
                                             shift: (payment.shift) ? payment.shift.id : p.shift.id,
                                             id: p.id
-                                        }).then(_payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : { ..._pay, status: "APPROVED" })))
+                                        }).then(_payment => setPayments(payments.map(_pay => (_pay.id !== p.id) ? _pay : { ..._pay, status: "APPROVED", over_time: payment.over_time, breaktime_minutes: payment.breaktime_minutes })))
                                         :
                                         create('payment',{
                                             ...payment,
                                             status: "APPROVED",
                                             employee: p.employee.id || p.employee,
                                             shift: (payment.shift) ? payment.shift.id : p.shift.id,
-                                            payroll_period: period.id
+                                            payroll_period: period.id,
+                                            id: p.id
                                         }).then(_payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : {
                                             ...payment,
+                                            status: "APPROVED",
                                             employee: _pay.employee,
-                                            shift: _pay.shift
+                                            over_time: payment.over_time, breaktime_minutes: payment.breaktime_minutes, hourly_rate: payment.shift.minimum_hourly_rate,
+                                            shift: payment.shift,
+                                            id: p.id || _pay.id || _payment.id
                                         })));
                                 }}
                                 onUndo={(payment) => update('payment', {
                                     status: "PENDING",
                                     id: p.id
                                 }).then(_payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : { ..._pay, status: "PENDING" })))}
-                                onReject={(p) => {
+                                onReject={(payment) => {
                                     if (p.id === undefined) setPayments(payments.filter(_pay => _pay.id !== undefined && _pay.id));
                                     else update('payment',{ 
                                         id: p.id, 
@@ -1003,7 +1006,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                         <i className="fas fa-stopwatch text-danger fa-xs mr-2"></i>
                                     </Tooltip>
                                 }
-                                <small className="d-block">${!isNaN(total_amount) ? Math.round(total_amount * 100) / 100 : 0}</small>
+                                <small className="d-block">${!isNaN(total_amount) ? Math.round(total_amount * 100) / 100 : total_amount}</small>
                             </td>
                         </tr>
                     </tbody>
@@ -1012,14 +1015,18 @@ export const PayrollPeriodDetails = ({ match, history }) => {
         <div className="btn-bar text-right">
             {period.status === 'OPEN' ?
                 <button type="button" className="btn btn-primary" onClick={() => {
-                    const unapproved = [].concat.apply([], payments.map(p => p.payments)).find(p => p.status === "PENDING");
+                    const unapproved = [].concat.apply([], payments.find(p => p.status === "PENDING"));
+                    console.log(unapproved);
+                    // const unapproved = [].concat.apply([], payments.map(p => p.payments)).find(p => p.status === "PENDING");
 
-                    if (unapproved) Notify.error("There are still some payments that need to be approved or rejected");
+                    // if (unapproved) Notify.error("There are still some payments that need to be approved or rejected");
+                    if (Array.isArray(unapproved) && unapproved.length > 0) Notify.error("There are still some payments that need to be approved or rejected");
                     else if (Array.isArray(payments) && payments.length === 0) Notify.error("There are no clockins to review for this period");
-                    else history.push('/payroll/rating/' + period.id);
-
-                }}>Finalize Period</button>
-                :
+                    // else {history.push('/payroll/rating/' + period.id);}
+                   else update('payroll-periods', Object.assign(period, { status: 'FINALIZED' })).then(res => history.push('/payroll/report/' + period.id))
+                                .catch(e => Notify.error(e.message || e));
+                                }}>Finalize Period</button>
+                                :
                 <Button className="btn btn-success" onClick={() => history.push('/payroll/report/' + period.id)}>Take me to the Payroll Report</Button>
             }
         </div>
@@ -1105,19 +1112,19 @@ LatLongClockin.defaultProps = {
 
 const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, period, onChange, selection }) => {
     const { bar } = useContext(Theme.Context);
-
     if (!employee || employee.id === "new") return <p className="px-3 py-1">⬆ Search an employee from the list above...</p>;
 
     const [clockin, setClockin] = useState(Clockin(payment.clockin).defaults().unserialize());
     const [shift, setShift] = useState(Shift(payment.shift).defaults().unserialize());
     const [possibleShifts, setPossibleShifts] = useState(null);
+
     const [breaktime, setBreaktime] = useState(payment.breaktime_minutes);
     
     const approvedClockin = payment.approved_clockin_time ? payment.approved_clockin_time : clockin.started_at ? clockin.started_at : shift.starting_at;
     const approvedClockout = payment.approved_clockout_time ? payment.approved_clockout_time : clockin.ended_at ? clockin.ended_at : shift.ending_at;
-    const [approvedTimes, setApprovedTimes] = useState({ in: moment(approvedClockin), out: moment(approvedClockout) });
-
+    const [approvedTimes, setApprovedTimes] = useState({ in: moment(approvedClockin, "YYYY-MM-DDTHH:mm"), out: moment(approvedClockout, 'YYYY-MM-DDTHH:mm') });
     const clockInDuration = moment.duration(approvedTimes.out.diff(approvedTimes.in));
+
     // const clockinHours = !clockInDuration ? 0 : clockin.shift || !readOnly ? Math.round(clockInDuration.asHours() * 100) / 100 : "-";
     const clockinHours = Math.round(clockInDuration.asHours() * 100) / 100;
 
@@ -1130,9 +1137,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
 
     const clockInDurationAfterBreak = clockInDuration.subtract(breaktime, "minute");
     const clockInTotalHoursAfterBreak = !clockInDurationAfterBreak ? 0 : Math.round(clockInDurationAfterBreak.asHours() * 100) / 100;
-
     const diff = Math.round((clockInTotalHoursAfterBreak - plannedHours) * 100) / 100;
-
     useEffect(() => {
         let subs = null;
         if (payment.status === "NEW") {
@@ -1143,6 +1148,13 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                 });
             subs = store.subscribe('employee-expired-shifts', (_shifts) => {
                 const _posibleShifts = _shifts.map(s => ({ label: '', value: Shift(s).defaults().unserialize() }));
+                    const possible = _posibleShifts.map(item => {
+                    const obj = Object.assign({}, item);
+                    obj['value']['starting_at'] = moment(item.value.starting_at, "YYYY-MM-DDTHH:mm").local();
+                    obj['value']['ending_at'] = moment(item.value.ending_at, "YYYY-MM-DDTHH:mm").local();
+                    obj['value']['position'] = item.value.position.label ? {title: item.value.position.label, id: item.value.position.id} : item.value.position;
+                    return obj;
+                    });
                 setPossibleShifts(_posibleShifts);
             });
         }
@@ -1170,9 +1182,11 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                         ending_at: moment(period.starting_at).add(2, "hours"),
                                         period_starting: moment(period.starting_at),
                                         period_ending: moment(period.ending_at),
+                                        shift: _shift,
                                         application_restriction: 'SPECIFIC_PEOPLE'
                                     }
                                 });
+                                
                                 else {
                                     setShift(_shift);
                                     setBreaktime(0);
@@ -1190,7 +1204,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                         <p className="p-o m-0">
                             <strong className="shift-date">{shift.starting_at.format('ddd, ll')}</strong>
                         </p>
-                        <small className="shift-position text-success">{shift.position.title}</small> @
+                        <small className="shift-position text-success">{shift.position.title || shift.position.label}</small> @
                         <small className="shift-location text-primary"> {shift.venue.title}</small>
                     </div>
                     {<div>
@@ -1198,7 +1212,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                             (typeof shift.price == 'string') ?
                                 (shift.price === '0.0') ? '' : <small className="shift-price"> ${shift.price}</small>
                                 :
-                                <small className="shift-price"> {shift.price.currencySymbol}{shift.price.amount}</small>
+                                <small className="shift-price"> {shift.price.currencySymbol || '$'}{shift.price.amount || shift.minimum_hourly_rate}</small>
                         }{" "}
                         {clockin && <div className="d-inline-block">
                             {clockin.latitude_in > 0 &&
@@ -1233,13 +1247,14 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
         }
         <td className="time">
             {readOnly ?
-                <p>{(approvedTimes.it !== undefined) && approvedTimes.it.format('LT')}</p>
+                <p>{(approvedTimes.in !== undefined) && approvedTimes.in.format('LT')}</p>
                 :
                 <TimePicker
                     showSecond={false}
                     defaultValue={approvedTimes.in}
                     format={TIME_FORMAT}
                     onChange={(value) => {
+                        console.log(value);
                         if (value && value!==undefined) setApprovedTimes({ ...approvedTimes, in: value });
                     }}
                     value={approvedTimes.in}
@@ -1299,13 +1314,13 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                 <small>minutes</small>
             </td>
         }
-        <td>{!readOnly ? clockInTotalHoursAfterBreak : parseFloat(payment.regular_hours) + parseFloat(payment.over_time)}</td>
+        <td>{clockInTotalHoursAfterBreak}</td>
         <td>{clockin.shift || !readOnly ? diff : "-"}</td>
         {readOnly ?
             <td className="text-center">
                 {payment.status === "APPROVED" ? <span><i className="fas fa-check-circle"></i></span>
                     : payment.status === "REJECTED" ? <span><i className="fas fa-times-circle"></i></span>
-                        : ''
+                        : `${payment.status}<${readOnly ? "true" : "false"}`
                 }
                 {period.status === "OPEN" && (payment.status === "APPROVED" || payment.status === "REJECTED") &&
                     <i onClick={() => onUndo(payment)} className="fas fa-undo ml-2 pointer"></i>
@@ -1336,7 +1351,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                             breaktime_minutes: breaktime,
                             regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
                             over_time: diff < 0 ? 0 : diff,
-                            //
+                            shift:shift,
                             approved_clockin_time: approvedTimes.in,
                             approved_clockout_time: approvedTimes.out
                         });
@@ -1440,7 +1455,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
                                 <div className="col">
                                     <Button onClick={() => {
                                         const PAGINATION_MONTHS_LENGTH = 1;
-                                        searchMe(`payroll-periods`, `?end=${moment(periods[periods.length - 1]['ending_at']).format('YYYY-MM-DD')}&start=${moment(periods[periods.length - 1]['starting_at']).subtract(PAGINATION_MONTHS_LENGTH, 'months').format('YYYY-MM-DD')}`, formData.periods)
+                                        searchMe(`payroll-periods`, `?end=${moment(periods[periods.length - 1]['ending_at']).subtract(1, 'weeks').format('YYYY-MM-DD')}&start=${moment(periods[periods.length - 1]['starting_at']).subtract(PAGINATION_MONTHS_LENGTH, 'months').format('YYYY-MM-DD')}`, formData.periods)
                                             .then((newPeriods) => {
                                                 if (Array.isArray(newPeriods) && newPeriods.length > 0 && newPeriods.length > periods.length) {
                                                     setPeriods(newPeriods);
