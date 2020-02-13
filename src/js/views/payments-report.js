@@ -1,53 +1,24 @@
-import React, { useState, useEffect, useContext } from "react";
+import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
-import PropTypes from 'prop-types';
-import { store, search, update, fetchSingle, searchMe, processPendingPayrollPeriods, updatePayments, createPayment, fetchAllMe, fetchTemporal, remove, create } from '../actions.js';
-import { GET } from '../utils/api_wrapper';
-
-
-import DateTime from 'react-datetime';
 import moment from 'moment';
-import { DATETIME_FORMAT, TIME_FORMAT, NOW, TODAY, haversineDistance } from '../components/utils.js';
 import Select from 'react-select';
-
-import { Notify } from 'bc-react-notifier';
-
-import { Shift, EditOrAddShift } from './shifts.js';
-import { Employer } from './profile.js';
-import { ManageLocations, AddOrEditLocation, Location } from './locations.js';
-import { EmployeeExtendedCard, ShiftOption, ShiftCard, DeductionExtendedCard, Theme, Button, ShiftOptionSelected, GenericCard, SearchCatalogSelect, Avatar, Toggle, Wizard, StarRating, ListCard } from '../components/index';
-import queryString from 'query-string';
-
-import TimePicker from 'rc-time-picker';
-import 'rc-time-picker/assets/index.css';
-
-import Tooltip from 'rc-tooltip';
-import 'rc-tooltip/assets/bootstrap_white.css';
-
-import GoogleMapReact from 'google-map-react';
-import markerURL from '../../img/marker.png';
-
-import JobCoreLogo from '../../img/logo.png';
-import { Page, Image, Text, View, Document, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
-
-import TextareaAutosize from 'react-textarea-autosize';
-
-import { Redirect } from 'react-router-dom';
-
+import { Theme, Button } from '../components/index';
+import { StyleSheet } from '@react-pdf/renderer';
 export class PaymentsReport extends Flux.DashView {
 
     constructor() {
         super();
         this.state = {
-            employer: {
-                picture: "",
-            },
+            period: 1,
+            periods: [
+                { label: "period 1", value: 1 },
+                { label: "period 2", value: 2 },
+                { label: "period 3", value: 3 },
+            ],
+            date: moment(),
             paymentReport: {
                 id: 1,
                 period: 1,
-                status: "OPEN",
-                starting_at: new Date(),
-                ending_at: new Date(),
                     payments: [
                         {
                             employee: {
@@ -58,7 +29,7 @@ export class PaymentsReport extends Flux.DashView {
                             amount: 3435,
                             deductions: 22,
                             paymentMethod: "Wells fargo",
-                            date: new Date(),
+                            date: moment().format('YYYY-MM-DD'),
                         },
                         {
                             employee: {
@@ -69,7 +40,7 @@ export class PaymentsReport extends Flux.DashView {
                             amount: 3435,
                             deductions: 22,
                             paymentMethod: "Wells fargo",
-                            date: new Date(),
+                            date: moment().format('YYYY-MM-DD'),
                         }
                     ],
             }
@@ -77,7 +48,6 @@ export class PaymentsReport extends Flux.DashView {
     }
 
     render() {
-
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({ bar }) => (<span>
@@ -85,12 +55,22 @@ export class PaymentsReport extends Flux.DashView {
                         (this.state.paymentReport.payments.length > 0) ?
                             <div>
                                 <p className="text-right">
-                                    <h2>Payments for period {this.state.paymentReport.period}</h2>
+                                    <h2>Payments report for period {this.state.paymentReport.period}</h2>
                                 </p>
                                 <div className="row mb-4 text-right">
+                                    <div className="col" style={{alignItems: 'flex-end', display: 'flex', flexDirection: 'column'}}>
+                                        <label>Filter by date</label>
+                                        <input style={{width: 200}} type="date" className="form-control" onChange={(e) => this.setState({ date: e.target.value })} />
+                                    </div>
+                                </div>
+                                <div className="row mb-4">
                                     <div className="col">
-
-                                        <Button size="small" onClick={() => this.props.history.push('/payroll/period/' + this.state.paymentReport.period)}>Review Timesheet</Button>
+                                        <label>Periods</label>
+                                        <Select isMulti
+                                            value={this.state.period}
+                                            options={this.state.periods}
+                                            onChange={(selection) => this.setState({ period: selection })}
+                                        />
                                     </div>
                                 </div>
                                 {/* {this.state.paymentReport.status == "OPEN" &&
@@ -113,7 +93,7 @@ export class PaymentsReport extends Flux.DashView {
                                                     {pay.employee.last_name}, {pay.employee.first_name}
                                                     {/* <p className="m-0 p-0"><span className="badge">{pay.status.toLowerCase()}</span></p> */}
                                                 </td>
-                                                <td>{Math.round(pay.date * 100) / 100}</td>
+                                                <td>{pay.date}</td>
                                                 <td>{pay.amount}</td>
                                                 <td>{pay.deductions}</td>
                                                 <td>{pay.paymentMethod}</td>
