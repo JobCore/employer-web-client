@@ -37,7 +37,7 @@ export const Payment = (data = {}) => {
  * Make Payment
  */
 export class MakePayment extends Flux.DashView {
-
+    
     render() {
         const { 
             onSave, 
@@ -103,7 +103,6 @@ export class MakePayment extends Flux.DashView {
                                                             "CHECK", 
                                                             "", 
                                                             "",
-                                                            this.props.formData.pay.payroll_period_id
                                                             );
                                                         noti.remove();
                                                         bar.close();
@@ -131,10 +130,9 @@ export class MakePayment extends Flux.DashView {
                                                             try{
                                                                 await makeEmployeePayment(
                                                                     pay.id, 
-                                                                    "FAKE", 
+                                                                    "FAKE",
                                                                     bankaccount.id, 
                                                                     pay.employee.bank_accounts[0].id,
-                                                                    this.props.formData.pay.payroll_period_id
                                                                     );
                                                                 noti.remove();
                                                                 bar.close();
@@ -144,7 +142,6 @@ export class MakePayment extends Flux.DashView {
                                                         } else{
                                                             noti.remove();
                                                         }
-                                        
                                                     });
                                                 }}
                                                 >
