@@ -58,7 +58,7 @@ export class PaymentsReport extends Flux.DashView {
                                     <h2>Payments report for period {this.state.paymentReport.period}</h2>
                                 </p>
                                 <div className="row mb-4">
-                                    <div className="col-7">
+                                    <div className="col-4">
                                         <label>Periods</label>
                                         <Select isMulti
                                             value={this.state.period}
@@ -67,7 +67,11 @@ export class PaymentsReport extends Flux.DashView {
                                         />
                                     </div>
                                     <div className="col-3">
-                                        <label>Filter periods by date</label>
+                                        <label>From</label>
+                                        <input style={{width: 200}} type="date" className="form-control" onChange={(e) => this.setState({ date: e.target.value })} />
+                                    </div>
+                                    <div className="col-3">
+                                        <label>To</label>
                                         <input style={{width: 200}} type="date" className="form-control" onChange={(e) => this.setState({ date: e.target.value })} />
                                     </div>
                                 </div>
