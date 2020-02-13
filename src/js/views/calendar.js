@@ -140,7 +140,7 @@ export const ShiftCalendar = ({ catalog }) => {
                                         const newEndDate = moment(currentDate).add(-1, viewMode);
                                         const oldEndDate = moment(filters.start);
                                         if (newEndDate.isBefore(oldEndDate)) {
-                                            const updatedFilters = { start: moment(newEndDate).add(-2, 'months').format('YYYY-MM-DD'), end: moment(newEndDate).add(2, 'months').format('YYYY-MM-DD') };
+                                            const updatedFilters = { start: moment(newEndDate).add(-2, 'weeks').format('YYYY-MM-DD'), end: moment(newEndDate).add(2, 'weeks').format('YYYY-MM-DD') };
                                             window.location.hash = queryString.stringify(updatedFilters);
                                             setCalendarFilters(updatedFilters);
                                         }
@@ -154,7 +154,7 @@ export const ShiftCalendar = ({ catalog }) => {
                                     const newEndDate = moment(currentDate).add(1, viewMode);
                                     const oldEndDate = moment(filters.end);
                                     if (oldEndDate.isBefore(newEndDate)) {
-                                        const updatedFilters = { start: moment(newEndDate).add(-2, 'months').format('YYYY-MM-DD'), end: moment(newEndDate).add(2, 'months').format('YYYY-MM-DD') };
+                                        const updatedFilters = { start: moment(newEndDate).add(-2, 'weeks').format('YYYY-MM-DD'), end: moment(newEndDate).add(2, 'weeks').format('YYYY-MM-DD') };
                                         window.location.hash = queryString.stringify(updatedFilters);
                                         setCalendarFilters(updatedFilters);
                                     }
