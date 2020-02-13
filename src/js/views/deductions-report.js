@@ -59,7 +59,7 @@ export class DeductionsReport extends Flux.DashView {
                                     <h2>Deductions report for period {this.state.paymentReport.period}</h2>
                                 </p>
                                 <div className="row mb-4">
-                                    <div className="col-7">
+                                    <div className="col-4">
                                         <label>Periods</label>
                                         <Select isMulti
                                             value={this.state.period}
@@ -68,7 +68,11 @@ export class DeductionsReport extends Flux.DashView {
                                         />
                                     </div>
                                     <div className="col-3">
-                                        <label>Filter periods by date</label>
+                                        <label>From</label>
+                                        <input style={{width: 200}} type="date" className="form-control" onChange={(e) => this.setState({ date: e.target.value })} />
+                                    </div>
+                                    <div className="col-3">
+                                        <label>To</label>
                                         <input style={{width: 200}} type="date" className="form-control" onChange={(e) => this.setState({ date: e.target.value })} />
                                     </div>
                                 </div>
@@ -92,7 +96,7 @@ export class DeductionsReport extends Flux.DashView {
                                                     {pay.employee.last_name}, {pay.employee.first_name}
                                                     {/* <p className="m-0 p-0"><span className="badge">{pay.status.toLowerCase()}</span></p> */}
                                                 </td>
-                                                <td>{Math.round(pay.date * 100) / 100}</td>
+                                                <td>{pay.date}</td>
                                                 <td>{pay.amount}</td>
                                                 <td>{pay.deductions}</td>
                                                 <td>{pay.paymentMethod}</td>
