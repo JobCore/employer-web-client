@@ -1794,7 +1794,9 @@ export class PayrollReport extends Flux.DashView {
         this.subscribe(store, 'payroll-period-payments', (paymentInfo) => {
             this.setState({ paymentInfo });
         });
-
+        this.subscribe(store, 'employee-payment', () => {
+            fetchPeyrollPeriodPayments(this.state.singlePayrollPeriod.id);
+        });
         const payrollPeriods = store.getState('payroll-periods');
         this.subscribe(store, 'payroll-periods', (_payrollPeriods) => {
             this.updatePayrollPeriod(_payrollPeriods);
@@ -2014,7 +2016,8 @@ export class PayrollReport extends Flux.DashView {
                                                         data: {
                                                             pay: pay,
                                                             paymentInfo: this.state.paymentInfo,
-                                                            periodId: this.state.singlePayrollPeriod.id
+                                                            periodId: this.state.singlePayrollPeriod.id,
+                                                            bar: bar
                                                     } 
                                                     })}>
                                                         Make payment

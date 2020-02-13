@@ -656,33 +656,33 @@ export const createPayment = async (payment, period) => {
  * @param  {string}  paymentType payment type could be: CHECK, FAKE or ELECTRONIC TRANSFERENCE
  * @param  {string}  employer_bank_account_id employer bank account id
  * @param  {string}  employee_bank_account_id employee bank account id
- * @param  {string}  payroll_period_id payroll period id
  */
-export const makeEmployeePayment = async (
+export const makeEmployeePayment = (
     employeePaymentId, 
     paymentType, 
     employer_bank_account_id, 
-    employee_bank_account_id,
-    payroll_period_id
-    ) => {
-    const data = {
-        payment_type: paymentType,
-        payment_data: paymentType === "CHECK" ? {} : {
-            employer_bank_account_id: employer_bank_account_id,
-            employee_bank_account_id: employee_bank_account_id
-        }
-    };
+    employee_bank_account_id
+    ) => new Promise((resolve, reject) => {
+        const data = {
+            payment_type: paymentType,
+            payment_data: paymentType === "CHECK" ? {} : {
+                employer_bank_account_id: employer_bank_account_id,
+                employee_bank_account_id: employee_bank_account_id
+            }
+        };
 
-    try{
-        const response = await POST(`employers/me/employee-payment/${employeePaymentId}`, data);
-        console.log("makepayment response: ", response);
-        fetchPeyrollPeriodPayments(payroll_period_id);
-        Promise.resolve(response);
-    }catch(error){
-        Notify.error(error.message || error);
-        Promise.reject(error);
-    }
-};
+        POST(`employers/me/employee-payment/${employeePaymentId}`, data)
+        .then(resp => {
+            Flux.dispatchEvent('employee-payment',resp);
+            Notify.success("Payment was successful");
+            resolve(resp);
+        })
+        .catch(error => {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject(error);
+        });
+});
 
     /**
  * fetch payroll period payments
@@ -752,6 +752,7 @@ class _Store extends Flux.DashStore {
             return invites.map(inv => Invite(inv).defaults().unserialize());
         });
         this.addEvent('payment');
+        this.addEvent('employee-payment');
         this.addEvent('clockins', clockins => !Array.isArray(clockins) ? [] : clockins.map(c => ({ ...c, started_at: moment(c.starting_at), ended_at: moment(c.ended_at) })));
         this.addEvent('jobcore-invites');
         this.addEvent('ratings', (_ratings) => (!Array.isArray(_ratings)) ? [] : _ratings.map(ra => Rating(ra).defaults().unserialize()));
