@@ -37,18 +37,17 @@ export const Payment = (data = {}) => {
  * Make Payment
  */
 export class MakePayment extends Flux.DashView {
-
+    
     render() {
         const { 
             onSave, 
             onCancel, 
             onChange, 
             catalog, 
-            formData, 
-            bar, 
+            formData,
             error
          } = this.props;
-         const { pay, paymentInfo } = formData;
+         const { pay, paymentInfo, bar } = formData;
          const employerBankAccounts = paymentInfo && paymentInfo.employer ? paymentInfo.employer.bank_accounts : null;
         console.log('MakePayment pay: ', pay);
         console.log('MakePayment error: ', error);
@@ -104,9 +103,9 @@ export class MakePayment extends Flux.DashView {
                                                             "CHECK", 
                                                             "", 
                                                             "",
-                                                            this.props.formData.pay.payroll_period_id
                                                             );
                                                         noti.remove();
+                                                        bar.close();
                                                     }catch(error){
                                                         Notify.error(error.message || error);
                                                     }
@@ -131,10 +130,9 @@ export class MakePayment extends Flux.DashView {
                                                             try{
                                                                 await makeEmployeePayment(
                                                                     pay.id, 
-                                                                    "FAKE", 
+                                                                    "FAKE",
                                                                     bankaccount.id, 
-                                                                    paymentInfo.payments[0].employee.bank_accounts[0].id,
-                                                                    this.props.formData.pay.payroll_period_id
+                                                                    pay.employee.bank_accounts[0].id,
                                                                     );
                                                                 noti.remove();
                                                                 bar.close();
@@ -144,7 +142,6 @@ export class MakePayment extends Flux.DashView {
                                                         } else{
                                                             noti.remove();
                                                         }
-                                        
                                                     });
                                                 }}
                                                 >
