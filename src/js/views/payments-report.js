@@ -57,20 +57,18 @@ export class PaymentsReport extends Flux.DashView {
                                 <p className="text-right">
                                     <h2>Payments report for period {this.state.paymentReport.period}</h2>
                                 </p>
-                                <div className="row mb-4 text-right">
-                                    <div className="col" style={{alignItems: 'flex-end', display: 'flex', flexDirection: 'column'}}>
-                                        <label>Filter by date</label>
-                                        <input style={{width: 200}} type="date" className="form-control" onChange={(e) => this.setState({ date: e.target.value })} />
-                                    </div>
-                                </div>
                                 <div className="row mb-4">
-                                    <div className="col">
+                                    <div className="col-7">
                                         <label>Periods</label>
                                         <Select isMulti
                                             value={this.state.period}
                                             options={this.state.periods}
                                             onChange={(selection) => this.setState({ period: selection })}
                                         />
+                                    </div>
+                                    <div className="col-3">
+                                        <label>Filter periods by date</label>
+                                        <input style={{width: 200}} type="date" className="form-control" onChange={(e) => this.setState({ date: e.target.value })} />
                                     </div>
                                 </div>
                                 {/* {this.state.paymentReport.status == "OPEN" &&
