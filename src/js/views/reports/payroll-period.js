@@ -114,28 +114,22 @@ const PayrollPeriodReport = ({ period, employer, payments }) => {
                         <Text style={styles.tableCellHeader}>STAFF</Text>
                     </View>
                     <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>REGULAR</Text>
+                        <Text style={styles.tableCellHeader}>REGULAR HRS</Text>
                     </View>
                     <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>PTO</Text>
+                        <Text style={styles.tableCellHeader}>OVER TIME</Text>
                     </View>
                     <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>HOLIDAY</Text>
+                        <Text style={styles.tableCellHeader}>TOTAL HOURS</Text>
                     </View>
                     <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>SICK</Text>
+                        <Text style={styles.tableCellHeader}>TOTAL EARNINGS</Text>
                     </View>
                     <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>OT</Text>
+                        <Text style={styles.tableCellHeader}>TAXES</Text>
                     </View>
                     <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>DBL</Text>
-                    </View>
-                    <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>TOTAL</Text>
-                    </View>
-                    <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>LABOR</Text>
+                        <Text style={styles.tableCellHeader}>CHECK AMOUNT</Text>
                     </View>
                 </View>
 
