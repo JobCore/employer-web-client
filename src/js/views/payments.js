@@ -3,6 +3,10 @@ import { validator, ValidationError } from '../utils/validation';
 import PropTypes from 'prop-types';
 import Select from 'react-select';
 import { Button } from '../components/index';
+import Flux from "@4geeksacademy/react-flux-dash";
+import { GET, POST } from "../utils/api_wrapper";
+import { Notify } from 'bc-react-notifier';
+import { searchMe } from "../actions";
 export const Payment = (data = {}) => {
 
     const _defaults = {
@@ -35,78 +39,164 @@ export const Payment = (data = {}) => {
 /**
  * Make Payment
  */
-export const MakePayment = ({ 
-    onSave, 
-    onCancel, 
-    onChange, 
-    catalog, 
-    formData, 
-    bar, 
-    error
- }) => {
-        console.log('MakePayment formData: ', formData);
+export class MakePayment extends Flux.DashView {
+
+    state = {
+        ispaid: false
+    }
+    makePayment = async (
+        employeePaymentId, 
+        paymentType, 
+        employer_bank_account_id, 
+        employee_bank_account_id
+        ) => {
+        // const data = {
+        //     payment_type: paymentType,
+        //     payment_data: paymentType === "CHECK" ? null : {
+        //         employer_bank_account_id: employer_bank_account_id,
+        //         employee_bank_account_id: employee_bank_account_id
+        //     }
+        // };
+
+        // try{
+        //     const response = await POST(`employers/me/employee-payment/${employeePaymentId}`, data);
+        //     console.log("makepayment response: ", response);
+        //     searchMe('payroll-periods');
+        //     Promise.resolve(response);
+        // }catch(error){
+        //     Promise.reject(error);
+        // }
+        this.setState({ ispaid: true });
+    }
+
+    render() {
+        const { 
+            onSave, 
+            onCancel, 
+            onChange, 
+            catalog, 
+            formData, 
+            bar, 
+            error
+         } = this.props;
+         const { pay, paymentInfo } = formData;
+         const employerBankAccounts = paymentInfo && paymentInfo.employer ? paymentInfo.employer.bank_accounts : null;
+        console.log('MakePayment pay: ', pay);
         console.log('MakePayment error: ', error);
-        const taxesMagicNumber = 3.00;
-        const bankAccounts = [
-            {
-                name: "Bank of america"
-            },
-            {
-                name: "Wells fargo"
-            },
-        ];
-        return ( <form>
+        console.log('MakePayment paymentInfo: ', paymentInfo);
+        return (
+        <>
+            {paymentInfo && pay
+        ? <form>
+            <div className="row mt-3">
+                <div className="col-12">
+                    <h4>{`Payment to `}{` ${pay.employee.last_name}, ${pay.employee.first_name}`}</h4>
+                </div>
+            </div>
             <div className="row">
                 <div className="col-12">
-                    <label>Employee:</label>{` ${formData.pay.employee.user.last_name}, ${formData.pay.employee.user.first_name}`}
+                    <label>Employee:</label>{` ${pay.employee.last_name}, ${pay.employee.first_name}`}
                     {/* <p className="m-0 p-0"><span className="badge">{formData.total.status.toLowerCase()}</span></p> */}
                 </div>
                 <div className="col-12">
-                    <label>Regular hours:</label>{` ${formData.total.regular_hours}`}
+                    <label>Regular hours:</label>{` ${pay.regular_hours}`}
                 </div>
                 <div className="col-12">
-                    <label>Over time:</label>{` ${formData.total.over_time}`}
+                    <label>Over time:</label>{` ${pay.over_time}`}
                 </div>
                 <div className="col-12">
-                    <label>Earnings:</label>{` ${formData.total.total_amount - taxesMagicNumber}`}
+                    <label>Earnings:</label>{` ${pay.earnings}`}
                 </div>
                 <div className="col-12">
-                    <label>Taxes:</label>{` ${taxesMagicNumber}`}
+                    <label>Taxes:</label>{` ${pay.deductions}`}
                 </div>
                 <div className="col-12">
-                    <label>Amount:</label>{` ${formData.total.total_amount}`}
+                    <label>Amount:</label>{` ${pay.amount}`}
                 </div>
             </div>
-            <div className="row">
-                <div className="col-12">
-                    <label>Payment methods</label>
-                </div>
-                <div className="col-12 payment-cell">
-                    <Button 
-                        style={{ width: '200px' }}
-                        color="success" 
-                        size="small" 
-                        onClick={() => null}>
-                            Check payment
-                    </Button>
-                </div>
-                {bankAccounts && bankAccounts.length > 0
-                ? bankAccounts.map((bankaccount, i) =>
-                    <div className="col-12 payment-cell" key={i}>
-                        <Button 
-                            style={{ width: '200px' }}
-                            color="success" 
-                            size="small" 
-                            onClick={() => null}>
-                            {bankaccount.name}
-                        </Button>
+            {!pay.paid && !this.state.ispaid
+                    ? <div className="row">
+                        <div className="col-12">
+                            <label>Payment methods</label>
+                        </div>
+                        {paymentInfo.payments[0] && paymentInfo.payments[0].employee.bank_accounts
+                            ? <>
+                                <div className="col-12 payment-cell">
+                                    <Button
+                                        style={{ width: '200px' }}
+                                        color="success"
+                                        size="small"
+                                        onClick={() => {
+                                            const noti = Notify.info("Are you sure to pay ?", async (answer) => {
+                                                if(answer){
+                                                    try{
+                                                        await this.makePayment(
+                                                            pay.id, 
+                                                            "CHECK", 
+                                                            "", 
+                                                            ""
+                                                            );
+                                                        noti.remove();
+                                                    }catch(error){
+                                                        Notify.error(error.message || error);
+                                                    }
+                                                } else{
+                                                    noti.remove();
+                                                }
+                                
+                                            });
+                                        }}>
+                                        Check payment
+                                    </Button>
+                                </div>
+                                {employerBankAccounts && employerBankAccounts.length > 0
+                                    ? employerBankAccounts.map((bankaccount, i) =>
+                                        <div className="col-12 payment-cell" key={i}>
+                                            <Button
+                                                style={{ width: '200px' }}
+                                                color="success"
+                                                size="small"
+                                                onClick={() => {
+                                                    const noti = Notify.info("Are you sure to pay ?", async (answer) => {
+                                                        if(answer){
+                                                            try{
+                                                                await this.makePayment(
+                                                                    pay.id, 
+                                                                    "FAKE", 
+                                                                    bankaccount.id, 
+                                                                    paymentInfo.payments[0].employee.bank_accounts[0].id
+                                                                    );
+                                                                noti.remove();
+                                                            }catch(error){
+                                                                Notify.error(error.message || error);
+                                                            }
+                                                        } else{
+                                                            noti.remove();
+                                                        }
+                                        
+                                                    });
+                                                }}
+                                                >
+                                                {`${bankaccount.institution_name} ${bankaccount.name}`}
+                                            </Button>
+                                        </div>
+                                    )
+                                : <div className="col-12"><label>Employer dont have any bank accounts</label></div>}
+                        </>
+                        : <div className="col-12"><label>Employee dont have any bank accounts</label></div>}
                     </div>
-                    )
-            : null}
+        : <div className="row">
+            <div className="col-12">
+                <label>Status:</label>{` Paid`}
             </div>
-            
-        </form>);
-};
+        </div>
+        }
+        </form>
+    : null}
+    </>
+        );
+    }
+}
 
 MakePayment.propTypes = {
     error: PropTypes.string,
