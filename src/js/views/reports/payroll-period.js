@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     }
 });
 
-const PayrollPeriodReport = ({ period }) => {
+const PayrollPeriodReport = ({ period, employer, payments }) => {
     const taxesMagicNumber = 0;
     return <Document>
         {/* <Page style={styles.page}> */}
@@ -95,9 +95,9 @@ const PayrollPeriodReport = ({ period }) => {
             <View style={styles.section}>
                 <Image source={JobCoreLogo} style={styles.image} />
             </View>
-            {this.state.employer.picture ? (
+            {employer.picture ? (
                 <View style={styles.section}>
-                    <Image src={this.state.employer.picture} style={styles.image_company} />
+                    <Image src={employer.picture} style={styles.image_company} />
                 </View>
             ) : null}
 
@@ -136,7 +136,7 @@ const PayrollPeriodReport = ({ period }) => {
                     </View>
                 </View>
 
-                {this.state.payments.sort((a, b) =>
+                {payments.sort((a, b) =>
                     a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
                 ).map(pay => {
                     const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
@@ -183,7 +183,9 @@ const PayrollPeriodReport = ({ period }) => {
     </Document>;
 };
 PayrollPeriodReport.propTypes = {
-    period: PropTypes.object
+    period: PropTypes.object,
+    employer: PropTypes.object,
+    payments: PropTypes.array
 };
 
 
