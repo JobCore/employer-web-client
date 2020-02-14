@@ -783,14 +783,6 @@ export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, for
                         executed_action: 'create_expired_shift',
                         status: 'OPEN'
                     })}>Save and publish</button>
-                {(formData.status != 'UNDEFINED') ?
-                    <button type="button" className="btn btn-danger" onClick={() => {
-                        const noti = Notify.info("Are you sure you want to cancel this shift?", (answer) => {
-                            if (answer) onSave({ executed_action: 'update_shift', status: 'CANCELLED' });
-                            noti.remove();
-                        });
-                    }}>Delete</button> : ''
-                }
             </div>
         </form>
     );
