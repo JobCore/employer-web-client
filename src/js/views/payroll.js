@@ -806,7 +806,8 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                         a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
             ).map(pay => {
                 const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + parseFloat(regular_hours) + parseFloat(over_time), 0);
-                const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + ((parseFloat(regular_hours) * parseFloat(hourly_rate)) + (parseFloat(over_time) * parseFloat(hourly_rate) * 1.5)), 0);
+                const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + (parseFloat(regular_hours) * parseFloat(hourly_rate)), 0);
+                const total_overtime = pay.payments.filter(p => p.status === "APPROVED").reduce((total, {over_time, hourly_rate }) => total + (parseFloat(over_time) * parseFloat(hourly_rate) * 1.5), 0);
                 return <table key={pay.employee.id} className="table table-striped payroll-summary">
                     <thead>
                         <tr>
@@ -910,8 +911,8 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                             </td>
                             <td colSpan={3} className="text-right">
                                 Total: {!isNaN(total_hours) ? Math.round(total_hours * 100) / 100 : 0} hr
-                                {total_hours > 40 &&
-                                    <Tooltip placement="bottom" trigger={['hover']} overlay={<small>This employee has overtime</small>}>
+                                {total_overtime > 0 &&
+                                    <Tooltip placement="bottom" trigger={['hover']} overlay={<small>This employee has {total_overtime}hr overtime</small>}>
                                         <i className="fas fa-stopwatch text-danger fa-xs mr-2"></i>
                                     </Tooltip>
                                 }
@@ -925,6 +926,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
             {period.status === 'OPEN' ?
                 <button type="button" className="btn btn-primary" onClick={() => {
                     const unapproved = [].concat.apply([], payments.find(p => p.status === "PENDING"));
+
                     // const unapproved = [].concat.apply([], payments.map(p => p.payments)).find(p => p.status === "PENDING");
 
                     // if (unapproved) Notify.error("There are still some payments that need to be approved or rejected");
@@ -1047,6 +1049,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
     const clockInDurationAfterBreak = clockInDuration.subtract(breaktime, "minute");
     const clockInTotalHoursAfterBreak = !clockInDurationAfterBreak ? 0 : Math.round(clockInDurationAfterBreak.asHours() * 100) / 100;
     const diff = Math.round((clockInTotalHoursAfterBreak - plannedHours) * 100) / 100;
+    const overtime = clockInTotalHoursAfterBreak > 40 ? clockInTotalHoursAfterBreak - 40 : 0;
     useEffect(() => {
         let subs = null;
         if (payment.status === "NEW") {
@@ -1254,7 +1257,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                 clockin: null,
                                 breaktime_minutes: breaktime,
                                 regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
-                                over_time: diff < 0 ? 0 : diff,
+                                over_time: overtime,
                                 //
                                 approved_clockin_time: approvedTimes.in,
                                 approved_clockout_time: approvedTimes.out
@@ -1263,7 +1266,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                         else onApprove({
                             breaktime_minutes: breaktime,
                             regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
-                            over_time: diff < 0 ? 0 : diff,
+                            over_time: overtime,
                             shift:shift,
                             approved_clockin_time: approvedTimes.in,
                             approved_clockout_time: approvedTimes.out
@@ -1799,14 +1802,14 @@ export class PayrollReport extends Flux.DashView {
                         (this.state.singlePayrollPeriod.payments.length > 0) ?
                             <div>
                                 <p className="text-right">
-                                    <h2>Payments for {this.state.singlePayrollPeriod.label}</h2>
+                                    <h2>Payments for {this.state.singlePayrollPeriod.label ? this.state.singlePayrollPeriod.label : `From ${moment(this.state.singlePayrollPeriod.starting_at).format('MM-D-YY h:mm A')} to ${moment(this.state.singlePayrollPeriod.ending_at).format('MM-D-YY h:mm A')}`}</h2>
                                 </p>
                                 <div className="row mb-4 text-right">
                                     <div className="col">
 
                                         <Button size="small" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button>
                                     </div>
-                                    <PDFDownloadLink document={() => <PayrollPeriodReport employer={this.state.empoyer} payments={this.state.payments} period={this.state.singlePayrollPeriod}/>} fileName={"JobCore " + this.state.singlePayrollPeriod.label + ".pdf"}>
+                                    <PDFDownloadLink document={<PayrollPeriodReport employer={this.state.employer} payments={this.state.payments} period={this.state.singlePayrollPeriod}/>} fileName={"JobCore " + this.state.singlePayrollPeriod.label + ".pdf"}>
                                         {({ blob, url, loading, error }) => (loading ? 'Loading...' : (
                                             <div className="col">
                                                 <Button color="success" size="small" >Export to PDF</Button>
@@ -1840,6 +1843,7 @@ export class PayrollReport extends Flux.DashView {
                                         ).map(pay => {
                                             const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
                                                 return {
+                                                    overtime: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) > 40 ? parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) - 40 : 0,
                                                     over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
                                                     regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
                                                     taxes: taxesMagicNumber,
@@ -1853,7 +1857,7 @@ export class PayrollReport extends Flux.DashView {
                                                     <p className="m-0 p-0"><span className="badge">{total.status.toLowerCase()}</span></p>
                                                 </td>
                                                 <td>{Math.round(total.regular_hours * 100) / 100}</td>
-                                                <td>{Math.round(total.over_time * 100) / 100}</td>
+                                                <td>{Number(total.overtime).toFixed(2)}</td>
                                                 <td>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</td>
                                                 <td>${Math.round(total.total_amount * 100) / 100}</td>
                                                 <td>0</td>
