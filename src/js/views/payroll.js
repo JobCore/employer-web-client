@@ -1802,7 +1802,7 @@ export class PayrollReport extends Flux.DashView {
 
                                         <Button size="small" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button>
                                     </div>
-                                    <PDFDownloadLink document={() => <PayrollPeriodReport period={this.state.singlePayrollPeriod}/>} fileName={"JobCore " + this.state.singlePayrollPeriod.label + ".pdf"}>
+                                    <PDFDownloadLink document={() => <PayrollPeriodReport employer={this.state.empoyer} payments={this.state.payments} period={this.state.singlePayrollPeriod}/>} fileName={"JobCore " + this.state.singlePayrollPeriod.label + ".pdf"}>
                                         {({ blob, url, loading, error }) => (loading ? 'Loading...' : (
                                             <div className="col">
                                                 <Button color="success" size="small" >Export to PDF</Button>
