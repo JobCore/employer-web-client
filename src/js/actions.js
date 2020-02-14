@@ -12,7 +12,7 @@ import { POST, GET, PUT, DELETE, PUTFiles } from './utils/api_wrapper';
 import log from './utils/log';
 import WEngine from "./utils/write_engine.js";
 import qs from "query-string";
-import { normalizeToSnakeCase } from "./utils/validation";
+import { normalizeToSnakeCase } from "./utils/snakeCase";
 const Models = {
     "shifts": Shift,
     "ratings": Rating,
