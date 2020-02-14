@@ -1165,7 +1165,11 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                     format={TIME_FORMAT}
                     onChange={(value) => {
                         console.log(value);
-                        if (value && value!==undefined) setApprovedTimes({ ...approvedTimes, in: value });
+                        if (value && value!==undefined) {
+                            let ended_at = approvedTimes.out;
+                            if (value.isAfter(ended_at)) ended_at = moment(ended_at).add(1, 'days');
+                            if(value && value !== undefined) setApprovedTimes({ ...approvedTimes, in: value, out: ended_at });
+                        }
                     }}
                     value={approvedTimes.in}
                     use12Hours
