@@ -821,6 +821,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
     const [period, setPeriod] = useState(null);
     const [payments, setPayments] = useState([]);
     console.log('PAYMENTS', payments);
+    console.log('PAYMENTS', payments);
     const { bar } = useContext(Theme.Context);
     useEffect(() => {
         const employerSub = store.subscribe('current_employer', (employer) => setEmployer(employer));
@@ -1022,7 +1023,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                     // if (unapproved) Notify.error("There are still some payments that need to be approved or rejected");
                     if (Array.isArray(unapproved) && unapproved.length > 0) Notify.error("There are still some payments that need to be approved or rejected");
                     else if (Array.isArray(payments) && payments.length === 0) Notify.error("There are no clockins to review for this period");
-                    // else {history.push('/payroll/rating/' + period.id);}
+                    // else {history.push('/payroll/rating/' + period.id);} 
                    else update('payroll-periods', Object.assign(period, { status: 'FINALIZED' })).then(res => history.push('/payroll/report/' + period.id))
                                 .catch(e => Notify.error(e.message || e));
                                 }}>Finalize Period</button>
