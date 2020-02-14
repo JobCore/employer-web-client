@@ -59,8 +59,8 @@ export const Shift = (data) => {
                 status: (this.status == 'UNDEFINED') ? 'DRAFT' : this.status,
                 // starting_at: (moment.isMoment(this.starting_at)) ? this.starting_at.format(DATETIME_FORMAT) : this.starting_at,
                 // ending_at: (moment.isMoment(this.ending_at)) ? this.ending_at.format(DATETIME_FORMAT) : this.ending_at,
-                starting_at: moment(this.starting_at).utc(),
-                ending_at: moment(this.ending_at).utc(),
+                starting_at: moment(this.starting_at),
+                ending_at: moment(this.ending_at),
                 allowed_from_list: this.allowedFavlists.map(f => f.value),
                 multiple_dates: Array.isArray(this.multiple_dates) && this.multiple_dates.length > 0 ? this.multiple_dates : undefined
             };
