@@ -1121,11 +1121,12 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
 
     const [breaktime, setBreaktime] = useState(payment.breaktime_minutes);
     
-    const approvedClockin = payment.approved_clockin_time ? payment.approved_clockin_time : clockin.started_at ? clockin.started_at : shift.starting_at;
-    const approvedClockout = payment.approved_clockout_time ? payment.approved_clockout_time : clockin.ended_at ? clockin.ended_at : shift.ending_at;
-    const [approvedTimes, setApprovedTimes] = useState({ in: moment(approvedClockin, "YYYY-MM-DDTHH:mm"), out: moment(approvedClockout, 'YYYY-MM-DDTHH:mm') });
+    const approvedClockin = payment.approved_clockin_time ? moment(payment.approved_clockin_time).format("YYYY-MM-DDTHH:mm") : clockin.started_at ? clockin.started_at : shift.starting_at;
+    const approvedClockout = payment.approved_clockout_time ? moment(payment.approved_clockout_time).format("YYYY-MM-DDTHH:mm")  : clockin.ended_at ? clockin.ended_at : shift.ending_at;
+    const [approvedTimes, setApprovedTimes] = useState({ in: moment(approvedClockin, "YYYY-MM-DDTHH:mm").local(), out: moment(approvedClockout, 'YYYY-MM-DDTHH:mm').local() });
     const clockInDuration = moment.duration(approvedTimes.out.diff(approvedTimes.in));
-
+    
+    console.log('approved times',approvedTimes);
     // const clockinHours = !clockInDuration ? 0 : clockin.shift || !readOnly ? Math.round(clockInDuration.asHours() * 100) / 100 : "-";
     const clockinHours = Math.round(clockInDuration.asHours() * 100) / 100;
 
@@ -1616,7 +1617,9 @@ export class PayrollRating extends Flux.DashView {
             // const searchMatches = search.exec(data.search);
             if (periodMatches) this.getSinglePeriod(periodMatches[1]);
         });
-
+        return () => {
+            payrollPeriods.unsubscribe();
+        };
     }
 
     defaultRatings(singlePeriod) {
@@ -1868,7 +1871,7 @@ export class PayrollReport extends Flux.DashView {
 
 
     render() {
-
+        console.log(this.state);
         const taxesMagicNumber = 0;
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
