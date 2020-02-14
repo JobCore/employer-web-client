@@ -25,99 +25,15 @@ import Tooltip from 'rc-tooltip';
 import 'rc-tooltip/assets/bootstrap_white.css';
 
 import GoogleMapReact from 'google-map-react';
-import markerURL from '../../img/marker.png';
 
-import JobCoreLogo from '../../img/logo.png';
-import { Page, Image, Text, View, Document, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
+import { PDFDownloadLink } from '@react-pdf/renderer';
 
 import TextareaAutosize from 'react-textarea-autosize';
+import {PayrollPeriodReport} from "./reports/index.js";
 
 import { Redirect } from 'react-router-dom';
 
-
 const ENTITIY_NAME = 'payroll';
-
-const BORDER_COLOR = '#000000';
-const BORDER_STYLE = 'solid';
-const COL1_WIDTH = 20;
-const COLN_WIDTH = (100 - COL1_WIDTH) / 8;
-const styles = StyleSheet.create({
-    body: {
-        padding: 10
-    },
-
-    image: {
-        width: "100px",
-        height: "20px",
-        float: "right"
-    },
-    image_company: {
-        width: "40px",
-        height: "25px",
-        marginTop: 20
-    },
-    header: {
-        fontSize: "30px",
-        fontWeight: "bold"
-    },
-    table: {
-        display: "table",
-        width: "auto",
-        borderStyle: BORDER_STYLE,
-        borderColor: BORDER_COLOR,
-        borderWidth: 1,
-        borderRightWidth: 0,
-        borderBottomWidth: 0
-    },
-    tableRow: {
-        margin: "auto",
-        flexDirection: "row"
-    },
-    tableCol1Header: {
-        width: COL1_WIDTH + '%',
-        borderStyle: BORDER_STYLE,
-        borderColor: BORDER_COLOR,
-        borderBottomColor: '#000',
-        borderWidth: 1,
-        borderLeftWidth: 0,
-        borderTopWidth: 0
-    },
-    tableColHeader: {
-        width: COLN_WIDTH + "%",
-        borderStyle: BORDER_STYLE,
-        fontWeight: 'bold',
-        borderColor: BORDER_COLOR,
-        borderBottomColor: '#000',
-        borderWidth: 1,
-        borderLeftWidth: 0,
-        borderTopWidth: 0
-    },
-    tableCol1: {
-        width: COL1_WIDTH + '%',
-        borderStyle: BORDER_STYLE,
-        borderColor: BORDER_COLOR,
-        borderWidth: 1,
-        borderLeftWidth: 0,
-        borderTopWidth: 0
-    },
-    tableCol: {
-        width: COLN_WIDTH + "%",
-        borderStyle: BORDER_STYLE,
-        borderColor: BORDER_COLOR,
-        borderWidth: 1,
-        borderLeftWidth: 0,
-        borderTopWidth: 0
-    },
-    tableCellHeader: {
-        margin: 5,
-        fontSize: 9,
-        fontWeight: 'bold'
-    },
-    tableCell: {
-        margin: 5,
-        fontSize: 9
-    }
-});
 
 //gets the querystring and creats a formData object to be used when opening the rightbar
 export const getPayrollInitialFilters = (catalog) => {
@@ -783,14 +699,6 @@ export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, for
                         executed_action: 'create_expired_shift',
                         status: 'OPEN'
                     })}>Save and publish</button>
-                {(formData.status != 'UNDEFINED') ?
-                    <button type="button" className="btn btn-danger" onClick={() => {
-                        const noti = Notify.info("Are you sure you want to cancel this shift?", (answer) => {
-                            if (answer) onSave({ executed_action: 'update_shift', status: 'CANCELLED' });
-                            noti.remove();
-                        });
-                    }}>Delete</button> : ''
-                }
             </div>
         </form>
     );
@@ -1017,7 +925,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
             {period.status === 'OPEN' ?
                 <button type="button" className="btn btn-primary" onClick={() => {
                     const unapproved = [].concat.apply([], payments.find(p => p.status === "PENDING"));
-                    console.log(unapproved);
+
                     // const unapproved = [].concat.apply([], payments.map(p => p.payments)).find(p => p.status === "PENDING");
 
                     // if (unapproved) Notify.error("There are still some payments that need to be approved or rejected");
@@ -1121,11 +1029,12 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
 
     const [breaktime, setBreaktime] = useState(payment.breaktime_minutes);
     
-    const approvedClockin = payment.approved_clockin_time ? payment.approved_clockin_time : clockin.started_at ? clockin.started_at : shift.starting_at;
-    const approvedClockout = payment.approved_clockout_time ? payment.approved_clockout_time : clockin.ended_at ? clockin.ended_at : shift.ending_at;
-    const [approvedTimes, setApprovedTimes] = useState({ in: moment(approvedClockin, "YYYY-MM-DDTHH:mm"), out: moment(approvedClockout, 'YYYY-MM-DDTHH:mm') });
+    const approvedClockin = payment.approved_clockin_time ? moment(payment.approved_clockin_time) : clockin.started_at ? clockin.started_at : shift.starting_at;
+    const approvedClockout = payment.approved_clockout_time ? moment(payment.approved_clockout_time) : clockin.ended_at ? clockin.ended_at : shift.ending_at;
+    const [approvedTimes, setApprovedTimes] = useState({ in: approvedClockin, out: approvedClockout });
     const clockInDuration = moment.duration(approvedTimes.out.diff(approvedTimes.in));
-
+    
+    console.log('approved times',approvedTimes);
     // const clockinHours = !clockInDuration ? 0 : clockin.shift || !readOnly ? Math.round(clockInDuration.asHours() * 100) / 100 : "-";
     const clockinHours = Math.round(clockInDuration.asHours() * 100) / 100;
 
@@ -1616,7 +1525,9 @@ export class PayrollRating extends Flux.DashView {
             // const searchMatches = search.exec(data.search);
             if (periodMatches) this.getSinglePeriod(periodMatches[1]);
         });
-
+        return () => {
+            payrollPeriods.unsubscribe();
+        };
     }
 
     defaultRatings(singlePeriod) {
@@ -1868,7 +1779,7 @@ export class PayrollReport extends Flux.DashView {
 
 
     render() {
-
+        console.log(this.state);
         const taxesMagicNumber = 0;
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
@@ -1892,100 +1803,7 @@ export class PayrollReport extends Flux.DashView {
 
                                         <Button size="small" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button>
                                     </div>
-                                    <PDFDownloadLink document={
-                                        <Document>
-                                            {/* <Page style={styles.page}> */}
-                                            <Page style={styles.body}>
-                                                <View style={styles.section}>
-                                                    <Image source={JobCoreLogo} style={styles.image} />
-                                                </View>
-                                                {this.state.employer.picture ? (
-                                                    <View style={styles.section}>
-                                                        <Image src={this.state.employer.picture} style={styles.image_company} />
-                                                    </View>
-                                                ) : null}
-
-
-                                                <View style={{ color: 'black', marginTop: 15, marginBottom: 15, fontSize: 15 }}>
-                                                    <Text>{moment(this.state.singlePayrollPeriod.starting_at).format('MMMM D') + " - " + moment(this.state.singlePayrollPeriod.ending_at).format('LL')}</Text>
-                                                </View>
-                                                <View style={styles.table}>
-                                                    <View style={styles.tableRow}>
-                                                        <View style={styles.tableCol1Header}>
-                                                            <Text style={styles.tableCellHeader}>STAFF</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>REGULAR</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>PTO</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>HOLIDAY</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>SICK</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>OT</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>DBL</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>TOTAL</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>LABOR</Text>
-                                                        </View>
-                                                    </View>
-
-                                                    {this.state.payments.sort((a, b) =>
-                                                        a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
-                                                    ).map(pay => {
-                                                        const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
-                                                            return {
-                                                                over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
-                                                                regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
-                                                                total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount),
-                                                                taxes: taxesMagicNumber,
-                                                                status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
-                                                            };
-                                                        }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
-                                                        return <View key={pay.employee.id} style={styles.tableRow}>
-                                                            <View style={styles.tableCol1}>
-                                                                <Text style={styles.tableCell}>{pay.employee.user.last_name + " " + pay.employee.user.first_name + " - " + total.status.toLowerCase()}</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>{Math.round(total.regular_hours * 100) / 100}</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>-</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>-</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>-</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>{Math.round(total.over_time * 100) / 100}</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>-</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>{total.regular_hours > 40 ? total.regular_hours - 40 : 0}</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>${Math.round(total.total_amount * 100) / 100}</Text>
-                                                            </View>
-                                                        </View>;
-                                                    })}
-                                                </View>
-                                            </Page>
-                                        </Document>
-                                    } fileName={"JobCore " + this.state.singlePayrollPeriod.label + ".pdf"}>
+                                    <PDFDownloadLink document={() => <PayrollPeriodReport period={this.state.singlePayrollPeriod}/>} fileName={"JobCore " + this.state.singlePayrollPeriod.label + ".pdf"}>
                                         {({ blob, url, loading, error }) => (loading ? 'Loading...' : (
                                             <div className="col">
                                                 <Button color="success" size="small" >Export to PDF</Button>
