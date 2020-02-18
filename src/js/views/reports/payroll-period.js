@@ -88,7 +88,6 @@ const styles = StyleSheet.create({
 });
 
 const PayrollPeriodReport = ({ period, employer, payments }) => {
-   
     const taxesMagicNumber = 0;
     return <Document>
         {/* <Page style={styles.page}> */}
@@ -130,54 +129,52 @@ const PayrollPeriodReport = ({ period, employer, payments }) => {
                         <Text style={styles.tableCellHeader}>CHECK AMOUNT</Text>
                     </View>
                 </View>
-                {this.state.payments.sort((a, b) =>
-                                            a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
-                                        ).map(pay => {
-                                            const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
-                                                return {
-                                                    overtime: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) > 40 ? parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) - 40 : 0,
-                                                    over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
-                                                    regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
-                                                    taxes: taxesMagicNumber,
-                                                    total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount),
-                                                    status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
-                                                };
-                                            }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
-                                            return <View key={pay.employee.id} style={styles.tableRow}>
-                                            <View style={styles.tableCol1}>
-                                                <Text style={styles.tableCell}>{pay.employee.user.last_name + " " + pay.employee.user.first_name + " - " + total.status.toLowerCase()}</Text>
-                                            </View>
-                                            <View style={styles.tableCol}>
-                                                <Text style={styles.tableCell}>{Math.round(total.regular_hours * 100) / 100}</Text>
-                                            </View>
-                                            <View style={styles.tableCol}>
-                                                <Text style={styles.tableCell}>{Number(total.overtime).toFixed(2)}</Text>
-                                            </View>
-                                            <View style={styles.tableCol}>
-                                                <Text style={styles.tableCell}>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</Text>
-                                            </View>
-                                            <View style={styles.tableCol}>
-                                                <Text style={styles.tableCell}>${Math.round(total.total_amount * 100) / 100}</Text>
-                                            </View>
-                                            <View style={styles.tableCol}>
-                                                <Text style={styles.tableCell}>{Math.round(total.over_time * 100) / 100}</Text>
-                                            </View>
-                                            <View style={styles.tableCol}>
-                                                <Text style={styles.tableCell}>-</Text>
-                                            </View>
-                                            <View style={styles.tableCol}>
-                                                <Text style={styles.tableCell}>{total.regular_hours > 40 ? total.regular_hours - 40 : 0}</Text>
-                                            </View>
-                                            <View style={styles.tableCol}>
-                                                <Text style={styles.tableCell}>$${Math.round((total.total_amount - taxesMagicNumber) * 100) / 100</Text>
-                                            </View>
-                                        </View>;
-                                    })}
-                                </View>
-                            </Page>
-                        </Document>;
-                       
-                
+
+                {payments.sort((a, b) =>
+                    a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
+                ).map(pay => {
+                    const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
+                        return {
+                            over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
+                            regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
+                            total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount),
+                            taxes: taxesMagicNumber,
+                            status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
+                        };
+                    }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
+                    return <View key={pay.employee.id} style={styles.tableRow}>
+                        <View style={styles.tableCol1}>
+                            <Text style={styles.tableCell}>{pay.employee.user.last_name + " " + pay.employee.user.first_name + " - " + total.status.toLowerCase()}</Text>
+                        </View>
+                        <View style={styles.tableCol}>
+                            <Text style={styles.tableCell}>{Math.round(total.regular_hours * 100) / 100}</Text>
+                        </View>
+                        <View style={styles.tableCol}>
+                            <Text style={styles.tableCell}>-</Text>
+                        </View>
+                        <View style={styles.tableCol}>
+                            <Text style={styles.tableCell}>-</Text>
+                        </View>
+                        <View style={styles.tableCol}>
+                            <Text style={styles.tableCell}>-</Text>
+                        </View>
+                        <View style={styles.tableCol}>
+                            <Text style={styles.tableCell}>{Math.round(total.over_time * 100) / 100}</Text>
+                        </View>
+                        <View style={styles.tableCol}>
+                            <Text style={styles.tableCell}>-</Text>
+                        </View>
+                        <View style={styles.tableCol}>
+                            <Text style={styles.tableCell}>{total.regular_hours > 40 ? total.regular_hours - 40 : 0}</Text>
+                        </View>
+                        <View style={styles.tableCol}>
+                            <Text style={styles.tableCell}>${Math.round(total.total_amount * 100) / 100}</Text>
+                        </View>
+                    </View>;
+                })}
+            </View>
+        </Page>
+    </Document>;
 };
 PayrollPeriodReport.propTypes = {
     period: PropTypes.object,
