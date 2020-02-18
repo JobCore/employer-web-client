@@ -52,8 +52,14 @@ export default class Home extends Flux.DashView {
         };
     }
     componentDidMount() {
-        //cambiar el limit 
-        searchMe(`shifts`, `?limit=10000&end=${this.state.end.format('YYYY-MM-DD')}&start=${this.state.start.format('YYYY-MM-DD')}`).then((shifts) => this.setState({ shifts }));
+        const shifts = store.getState('shifts');
+        this.subscribe(store, 'shifts', (_shifts) => {
+            console.log('store.shifts',_shifts);
+            this.setState({ shifts: _shifts});
+        });
+        if (shifts) this.setState({ shifts: shifts});
+        else searchMe(`shifts`, `?limit=10000&end=${this.state.end.format('YYYY-MM-DD')}&start=${this.state.start.format('YYYY-MM-DD')}`).then((shifts) => this.setState({ shifts }));
+
     }
 
     render() {
