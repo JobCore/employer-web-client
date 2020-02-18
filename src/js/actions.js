@@ -725,6 +725,40 @@ export const searchBankAccounts = () => new Promise((accept, reject) =>
         })
 );
 
+export const getPaymentsReport = (periodId, startDate, endDate) => new Promise((accept, reject) => {
+    const route = periodId && startDate && endDate 
+    ? `employers/me/employee-payment/report?start_date=${startDate}&end_date=${endDate}&period_id=${periodId}`
+    : `employers/me/employee-payment/report`;
+    GET(route)
+        .then(function (list) {
+            Flux.dispatchEvent('payments-reports', list);
+            accept(list);
+        })
+        .catch(function (error) {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject(error);
+        });
+}
+);
+
+export const getDeductionsReport = (periodId, startDate, endDate) => new Promise((accept, reject) => {
+    const route = periodId && startDate && endDate 
+    ? `employers/me/employee-payment/deduction-report?start_date=${startDate}&end_date=${endDate}&period_id=${periodId}`
+    : `employers/me/employee-payment/deduction-report`;
+    GET(route)
+        .then(function (list) {
+            Flux.dispatchEvent('deductions-reports', list);
+            accept(list);
+        })
+        .catch(function (error) {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject(error);
+        });
+}
+);
+
 // export const createPayrollPeriodRating = (entity, queryString) => new Promise((accept, reject) =>
 //     GET('employers/me/' + entity, queryString)
 //         .then(function (list) {
@@ -764,6 +798,8 @@ class _Store extends Flux.DashStore {
         this.addEvent('favlists');
         this.addEvent('deduction');
         this.addEvent('payroll-period-payments');
+        this.addEvent('payments-reports');
+        this.addEvent('deductions-reports');
         this.addEvent('badges');
 
         this.addEvent('applications', (applicants) => {

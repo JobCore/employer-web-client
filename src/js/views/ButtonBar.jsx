@@ -34,8 +34,8 @@ class ButtonBar extends React.Component {
                 "payroll/*": [
                     { slug: "payroll_by_timesheet", title: 'Search by Timesheet', to: '/payroll'},
                     { slug: "payroll_settings", title: 'Payroll Settings', to: '/payroll/settings'},
-                    { slug: "payroll_payments_report", title: 'Payments Report', to: '/payroll/payments-report/30'},
-                    { slug: "payroll_deductions_report", title: 'Deductions Report', to: '/payroll/deductions-report/30'},
+                    { slug: "payroll_payments_report", title: 'Payments Report', to: '/payroll/payments-report'},
+                    { slug: "payroll_deductions_report", title: 'Deductions Report', to: '/payroll/deductions-report'},
                     // { slug: "payroll_by_shift", title: 'Search by Shift', to: 'payroll'},
                 ],
                 "profile/*": [
