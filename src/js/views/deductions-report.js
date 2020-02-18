@@ -4,109 +4,126 @@ import moment from 'moment';
 import Select from 'react-select';
 import { Theme, Button } from '../components/index';
 import { StyleSheet } from '@react-pdf/renderer';
+import { store, getDeductionsReport, searchMe } from "../actions";
+import arrowDown from "../../img/icons/arrow_down.svg";
+import arrowUp from "../../img/icons/arrow_up.svg";
+import SVG from 'react-svg-inline';
 export class DeductionsReport extends Flux.DashView {
 
     constructor() {
         super();
         this.state = {
-            period: 1,
-            periods: [
-                { label: "period 1", value: 1 },
-                { label: "period 2", value: 2 },
-                { label: "period 3", value: 3 },
-            ],
-            date: moment(),
-            paymentReport: {
-                id: 1,
-                period: 1,
-                    payments: [
-                        {
-                            employee: {
-                                id: 1,
-                                first_name: "esteban",
-                                last_name: "contreras"
-                            },
-                            amount: 3435,
-                            deductions: 22,
-                            paymentMethod: "Wells fargo",
-                            date: moment().format('YYYY-MM-DD'),
-                        },
-                        {
-                            employee: {
-                                id: 2,
-                                first_name: "esteban",
-                                last_name: "contreras"
-                            },
-                            amount: 3435,
-                            deductions: 22,
-                            paymentMethod: "Wells fargo",
-                            date: moment().format('YYYY-MM-DD'),
-                        }
-                    ],
-            }
+            period: null,
+            start_date: null,
+            end_date: null,
+            payrollPeriods: store.getState('payroll-periods'),
+            deductionsReport: []
         };
     }
 
-    render() {
+    componentDidMount = () => {
+        this.subscribe(store, 'deductions-reports', (deductionsReport) => {
+            this.setState({ deductionsReport });
+        });
+        this.subscribe(store, 'payroll-periods', (payrollPeriods) => {
+            this.setState({ payrollPeriods });
+        });
+        this.getDeductions();
+        searchMe(`payroll-periods`);
+    }
+    
+    getDeductions = () => {
+        const endDate = this.state.end_date ? moment(this.state.end_date).format('YYYY-MM-DD') : null;
+        const startDate = this.state.start_date ? moment(this.state.start_date).format('YYYY-MM-DD') : null;
+        return getDeductionsReport(this.state.period, startDate, endDate);
+    };
 
+    render() {
+        const { payrollPeriods, deductionsReport, period } = this.state;
+        console.log("deductionsReport: ", deductionsReport);
+        console.log("payrollPeriods: ", payrollPeriods);
+        console.log("period: ", period);
+        const options = payrollPeriods && payrollPeriods.length > 0
+        ? payrollPeriods.map((period) => {
+        return {label: period.label, value: period.id};
+            })
+        : [];
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({ bar }) => (<span>
-                    {(!this.state.paymentReport) ? '' :
-                        (this.state.paymentReport.payments.length > 0) ?
-                            <div>
-                                <p className="text-right">
-                                    <h2>Deductions report for period {this.state.paymentReport.period}</h2>
-                                </p>
-                                <div className="row mb-4">
-                                    <div className="col-4">
-                                        <label>Periods</label>
-                                        <Select isMulti
-                                            value={this.state.period}
-                                            options={this.state.periods}
-                                            onChange={(selection) => this.setState({ period: selection })}
-                                        />
-                                    </div>
-                                    <div className="col-3">
-                                        <label>From</label>
-                                        <input style={{width: 200}} type="date" className="form-control" onChange={(e) => this.setState({ date: e.target.value })} />
-                                    </div>
-                                    <div className="col-3">
-                                        <label>To</label>
-                                        <input style={{width: 200}} type="date" className="form-control" onChange={(e) => this.setState({ date: e.target.value })} />
-                                    </div>
-                                </div>
-                                {/* {this.state.paymentReport.status == "OPEN" &&
-                                    <Redirect from={'/payroll/report/' + this.state.paymentReport.id} to={'/payroll/rating/' + this.state.paymentReport.period} />
-                                } */}
-                                <table className="table table-striped payroll-summary">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">Employee</th>
-                                            <th scope="col">Payment date</th>
-                                            <th scope="col">Amount</th>
-                                            <th scope="col">deductions</th>
-                                            <th scope="col">Payment method</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {this.state.paymentReport.payments.map(pay => {
-                                            return <tr key={pay.employee.id}>
-                                                <td>
-                                                    {pay.employee.last_name}, {pay.employee.first_name}
-                                                    {/* <p className="m-0 p-0"><span className="badge">{pay.status.toLowerCase()}</span></p> */}
-                                                </td>
-                                                <td>{pay.date}</td>
-                                                <td>{pay.amount}</td>
-                                                <td>{pay.deductions}</td>
-                                                <td>{pay.paymentMethod}</td>
-                                            </tr>;
-                                        })}
-                                    </tbody>
-                                </table>
+                    <div>
+                        <p className="text-right">
+                            <h2>Deductions reports {deductionsReport && deductionsReport.length > 0 ? deductionsReport[0].payroll_period : ""}</h2>
+                        </p>
+                        <div className="row mb-4">
+                            <div className="col-6">
+                                <label>Periods</label>
+                                <Select
+                                    value={period}
+                                    options={options}
+                                    onChange={(selection) => this.setState({ period: selection.value }, () => this.getDeductions())}
+                                />
                             </div>
-                            :
-                            <p>No payments to review for this period</p>
+                            <div className="col-3">
+                                <label>From</label>
+                                <input style={{width: 200}} type="date" className="form-control" onChange={(e) => this.setState({ start_date: e.target.value }, () => this.getDeductions())} />
+                            </div>
+                            <div className="col-3">
+                                <label>To</label>
+                                <input style={{width: 200}} type="date" className="form-control" onChange={(e) => this.setState({ end_date: e.target.value }, () => this.getDeductions())} />
+                            </div>
+                        </div>
+                    </div>
+                    {deductionsReport && 
+                    payrollPeriods && 
+                    deductionsReport.length > 0 && 
+                    payrollPeriods.length > 0
+                        ? <div>
+                            <table className="table table-striped payroll-summary">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Employee</th>
+                                        <th scope="col">Payment date</th>
+                                        <th scope="col">deductions</th>
+                                        <th scope="col">Deductions Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {deductionsReport.map((deduction, i) => {
+                                        const array = !this.state[`deduction${i}`] 
+                                        ? deduction.deduction_list.slice(0, 2) 
+                                        : deduction.deduction_list;
+                                        const icon = !this.state[`deduction${i}`] 
+                                        ? arrowDown
+                                        : arrowUp;
+                                        return <tr key={i}>
+                                            <td>
+                                                {deduction.employee}
+                                                {/* <p className="m-0 p-0"><span className="badge">{deduction.status.toLowerCase()}</span></p> */}
+                                            </td>
+                                            <td>{deduction.payment_date}</td>
+                                            <td>
+                                                <div>
+                                                    {deduction.deduction_list && deduction.deduction_list.length > 0 
+                                                ? array.map((deduction, i) => {
+                                                    return (
+                                                        <p key={i}>{deduction.name}:{` ${deduction.amount}`}</p>
+                                                    );
+                                                }
+                                                )
+                                            : 'No deductions'}
+                                                    <div style={{ textAlign: 'center' }}>
+                                                        <SVG className="deduction-svg" width="24px" svg={icon} onClick={() => this.setState({ [`deduction${i}`]: !this.state[`deduction${i}`] })} />
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{deduction.deduction_amount}</td>
+                                        </tr>;
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                            : <p>No payments to review for this period</p>
                     }
                 </span>)}
             </Theme.Consumer>

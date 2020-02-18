@@ -4,108 +4,105 @@ import moment from 'moment';
 import Select from 'react-select';
 import { Theme, Button } from '../components/index';
 import { StyleSheet } from '@react-pdf/renderer';
+import { store, getPaymentsReport, searchMe } from "../actions";
 export class PaymentsReport extends Flux.DashView {
 
     constructor() {
         super();
         this.state = {
-            period: 1,
-            periods: [
-                { label: "period 1", value: 1 },
-                { label: "period 2", value: 2 },
-                { label: "period 3", value: 3 },
-            ],
-            date: moment(),
-            paymentReport: {
-                id: 1,
-                period: 1,
-                    payments: [
-                        {
-                            employee: {
-                                id: 1,
-                                first_name: "esteban",
-                                last_name: "contreras"
-                            },
-                            amount: 3435,
-                            deductions: 22,
-                            paymentMethod: "Wells fargo",
-                            date: moment().format('YYYY-MM-DD'),
-                        },
-                        {
-                            employee: {
-                                id: 2,
-                                first_name: "esteban",
-                                last_name: "contreras"
-                            },
-                            amount: 3435,
-                            deductions: 22,
-                            paymentMethod: "Wells fargo",
-                            date: moment().format('YYYY-MM-DD'),
-                        }
-                    ],
-            }
+            period: null,
+            start_date: null,
+            end_date: null,
+            payrollPeriods: store.getState('payroll-periods'),
+            paymentReport: []
         };
     }
 
+    componentDidMount = () => {
+        this.subscribe(store, 'payments-reports', (paymentReport) => {
+            this.setState({ paymentReport });
+        });
+        this.subscribe(store, 'payroll-periods', (payrollPeriods) => {
+            this.setState({ payrollPeriods });
+        });
+        this.getPayments();
+        searchMe(`payroll-periods`);
+    }
+    
+    getPayments = () => {
+        const endDate = this.state.end_date ? moment(this.state.end_date).format('YYYY-MM-DD') : null;
+        const startDate = this.state.start_date ? moment(this.state.start_date).format('YYYY-MM-DD') : null;
+        console.log("getPayments this.state.period: ", this.state.period);
+        return getPaymentsReport(this.state.period, startDate, endDate);
+    };
+
     render() {
+        const { payrollPeriods, paymentReport, period } = this.state;
+        console.log("payrollPeriods: ", payrollPeriods);
+        console.log("paymentReport: ", paymentReport);
+        const options = payrollPeriods && payrollPeriods.length > 0
+        ? payrollPeriods.map((period) => {
+        return {label: period.label, value: period.id};
+            })
+        : [];
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({ bar }) => (<span>
-                    {(!this.state.paymentReport) ? '' :
-                        (this.state.paymentReport.payments.length > 0) ?
-                            <div>
-                                <p className="text-right">
-                                    <h2>Payments report for period {this.state.paymentReport.period}</h2>
-                                </p>
-                                <div className="row mb-4">
-                                    <div className="col-4">
-                                        <label>Periods</label>
-                                        <Select isMulti
-                                            value={this.state.period}
-                                            options={this.state.periods}
-                                            onChange={(selection) => this.setState({ period: selection })}
-                                        />
-                                    </div>
-                                    <div className="col-3">
-                                        <label>From</label>
-                                        <input style={{width: 200}} type="date" className="form-control" onChange={(e) => this.setState({ date: e.target.value })} />
-                                    </div>
-                                    <div className="col-3">
-                                        <label>To</label>
-                                        <input style={{width: 200}} type="date" className="form-control" onChange={(e) => this.setState({ date: e.target.value })} />
-                                    </div>
-                                </div>
-                                {/* {this.state.paymentReport.status == "OPEN" &&
-                                    <Redirect from={'/payroll/report/' + this.state.paymentReport.id} to={'/payroll/rating/' + this.state.paymentReport.period} />
-                                } */}
-                                <table className="table table-striped payroll-summary">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">Employee</th>
-                                            <th scope="col">Payment date</th>
-                                            <th scope="col">Amount</th>
-                                            <th scope="col">deductions</th>
-                                            <th scope="col">Payment method</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {this.state.paymentReport.payments.map(pay => {
-                                            return <tr key={pay.employee.id}>
-                                                <td>
-                                                    {pay.employee.last_name}, {pay.employee.first_name}
-                                                    {/* <p className="m-0 p-0"><span className="badge">{pay.status.toLowerCase()}</span></p> */}
-                                                </td>
-                                                <td>{pay.date}</td>
-                                                <td>{pay.amount}</td>
-                                                <td>{pay.deductions}</td>
-                                                <td>{pay.paymentMethod}</td>
-                                            </tr>;
-                                        })}
-                                    </tbody>
-                                </table>
+                    <div>
+                        <p className="text-right">
+                            <h2>Payments reports {paymentReport && paymentReport.length > 0 ? paymentReport[0].payroll_period : ""}</h2>
+                        </p>
+                        <div className="row mb-4">
+                            <div className="col-6">
+                                <label>Periods</label>
+                                <Select
+                                    value={period}
+                                    options={options}
+                                    onChange={(selection) => this.setState({ period: selection.value }, () => this.getPayments())}
+                                />
                             </div>
-                            :
-                            <p>No payments to review for this period</p>
+                            <div className="col-3">
+                                <label>From</label>
+                                <input style={{width: 200}} type="date" className="form-control" onChange={(e) => this.setState({ start_date: e.target.value }, () => this.getPayments())} />
+                            </div>
+                            <div className="col-3">
+                                <label>To</label>
+                                <input style={{width: 200}} type="date" className="form-control" onChange={(e) => this.setState({ end_date: e.target.value }, () => this.getPayments())} />
+                            </div>
+                        </div>
+                    </div>
+                    {paymentReport && 
+                    payrollPeriods &&
+                    paymentReport.length > 0 &&
+                    payrollPeriods.length > 0
+                        ? <div>
+                            <table className="table table-striped payroll-summary">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Employee</th>
+                                        <th scope="col">Payment date</th>
+                                        <th scope="col">Amount</th>
+                                        <th scope="col">deductions</th>
+                                        <th scope="col">Payment method</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {paymentReport.map((pay, i) => {
+                                        return <tr key={i}>
+                                            <td>
+                                                {pay.employee}
+                                                {/* <p className="m-0 p-0"><span className="badge">{pay.status.toLowerCase()}</span></p> */}
+                                            </td>
+                                            <td>{pay.payment_date}</td>
+                                            <td>{pay.amount}</td>
+                                            <td>{pay.deductions}</td>
+                                            <td>{pay.payment_source}</td>
+                                        </tr>;
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                            : <p>No payments to review for this period</p>
                     }
                 </span>)}
             </Theme.Consumer>
