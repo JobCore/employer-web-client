@@ -122,8 +122,10 @@ class PrivateLayout extends Flux.DashView {
                             this.showRightBar(ApplicationDetails, option, { applicant: option.data });
                             break;
                         case 'shift_details':
-                            fetchSingle('shifts', option.data.id);
-                            this.showRightBar(ShiftDetails, option, { formData: Shift(option.data).getFormData() });
+                            fetchSingle({ url: 'employers/me/shifts/' + option.data.id, slug: 'shifts' }, option.data.id)
+                            .then(shift => this.showRightBar(ShiftDetails, option, { formData: Shift(shift).defaults().unserialize() }));
+                            // fetchSingle('shifts', option.data.id);
+                            // this.showRightBar(ShiftDetails, option, { formData: Shift(option.data).getFormData() });
                             break;
                         case 'review_shift_invites':
                             searchMe('invites', '?shift=' + option.data.id).then((data) =>
