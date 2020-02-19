@@ -25,99 +25,15 @@ import Tooltip from 'rc-tooltip';
 import 'rc-tooltip/assets/bootstrap_white.css';
 
 import GoogleMapReact from 'google-map-react';
-import markerURL from '../../img/marker.png';
 
-import JobCoreLogo from '../../img/logo.png';
-import { Page, Image, Text, View, Document, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
+import { PDFDownloadLink } from '@react-pdf/renderer';
 
 import TextareaAutosize from 'react-textarea-autosize';
+import {PayrollPeriodReport} from "./reports/index.js";
 
 import { Redirect } from 'react-router-dom';
 
-
 const ENTITIY_NAME = 'payroll';
-
-const BORDER_COLOR = '#000000';
-const BORDER_STYLE = 'solid';
-const COL1_WIDTH = 20;
-const COLN_WIDTH = (100 - COL1_WIDTH) / 8;
-const styles = StyleSheet.create({
-    body: {
-        padding: 10
-    },
-
-    image: {
-        width: "100px",
-        height: "20px",
-        float: "right"
-    },
-    image_company: {
-        width: "40px",
-        height: "25px",
-        marginTop: 20
-    },
-    header: {
-        fontSize: "30px",
-        fontWeight: "bold"
-    },
-    table: {
-        display: "table",
-        width: "auto",
-        borderStyle: BORDER_STYLE,
-        borderColor: BORDER_COLOR,
-        borderWidth: 1,
-        borderRightWidth: 0,
-        borderBottomWidth: 0
-    },
-    tableRow: {
-        margin: "auto",
-        flexDirection: "row"
-    },
-    tableCol1Header: {
-        width: COL1_WIDTH + '%',
-        borderStyle: BORDER_STYLE,
-        borderColor: BORDER_COLOR,
-        borderBottomColor: '#000',
-        borderWidth: 1,
-        borderLeftWidth: 0,
-        borderTopWidth: 0
-    },
-    tableColHeader: {
-        width: COLN_WIDTH + "%",
-        borderStyle: BORDER_STYLE,
-        fontWeight: 'bold',
-        borderColor: BORDER_COLOR,
-        borderBottomColor: '#000',
-        borderWidth: 1,
-        borderLeftWidth: 0,
-        borderTopWidth: 0
-    },
-    tableCol1: {
-        width: COL1_WIDTH + '%',
-        borderStyle: BORDER_STYLE,
-        borderColor: BORDER_COLOR,
-        borderWidth: 1,
-        borderLeftWidth: 0,
-        borderTopWidth: 0
-    },
-    tableCol: {
-        width: COLN_WIDTH + "%",
-        borderStyle: BORDER_STYLE,
-        borderColor: BORDER_COLOR,
-        borderWidth: 1,
-        borderLeftWidth: 0,
-        borderTopWidth: 0
-    },
-    tableCellHeader: {
-        margin: 5,
-        fontSize: 9,
-        fontWeight: 'bold'
-    },
-    tableCell: {
-        margin: 5,
-        fontSize: 9
-    }
-});
 
 //gets the querystring and creats a formData object to be used when opening the rightbar
 export const getPayrollInitialFilters = (catalog) => {
@@ -783,14 +699,6 @@ export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, for
                         executed_action: 'create_expired_shift',
                         status: 'OPEN'
                     })}>Save and publish</button>
-                {(formData.status != 'UNDEFINED') ?
-                    <button type="button" className="btn btn-danger" onClick={() => {
-                        const noti = Notify.info("Are you sure you want to cancel this shift?", (answer) => {
-                            if (answer) onSave({ executed_action: 'update_shift', status: 'CANCELLED' });
-                            noti.remove();
-                        });
-                    }}>Delete</button> : ''
-                }
             </div>
         </form>
     );
@@ -820,8 +728,9 @@ export const PayrollPeriodDetails = ({ match, history }) => {
     const [employer, setEmployer] = useState(store.getState('current_employer'));
     const [period, setPeriod] = useState(null);
     const [payments, setPayments] = useState([]);
+    console.log('PAYMENTS', payments);
+    console.log('PAYMENTS', payments);
     const { bar } = useContext(Theme.Context);
-    
     useEffect(() => {
         const employerSub = store.subscribe('current_employer', (employer) => setEmployer(employer));
         if(match.params.period_id !== undefined) fetchSingle("payroll-periods", match.params.period_id).then(_period => {
@@ -896,7 +805,6 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                     b.employee.id === "new" ? 1 :
                         a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
             ).map(pay => {
-
                 const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + parseFloat(regular_hours) + parseFloat(over_time), 0);
                 const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + ((parseFloat(regular_hours) * parseFloat(hourly_rate)) + (parseFloat(over_time) * parseFloat(hourly_rate) * 1.5)), 0);
                 return <table key={pay.employee.id} className="table table-striped payroll-summary">
@@ -960,25 +868,29 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                             employee: p.employee.id || p.employee,
                                             shift: (payment.shift) ? payment.shift.id : p.shift.id,
                                             id: p.id
-                                        }).then(_payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : { ..._pay, status: "APPROVED" })))
+                                        }).then(_payment => setPayments(payments.map(_pay => (_pay.id !== p.id) ? _pay : { ..._pay, status: "APPROVED", over_time: payment.over_time, breaktime_minutes: payment.breaktime_minutes })))
                                         :
                                         create('payment',{
                                             ...payment,
                                             status: "APPROVED",
                                             employee: p.employee.id || p.employee,
                                             shift: (payment.shift) ? payment.shift.id : p.shift.id,
-                                            payroll_period: period.id
+                                            payroll_period: period.id,
+                                            id: p.id
                                         }).then(_payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : {
                                             ...payment,
+                                            status: "APPROVED",
                                             employee: _pay.employee,
-                                            shift: _pay.shift
+                                            over_time: payment.over_time, breaktime_minutes: payment.breaktime_minutes, hourly_rate: payment.shift.minimum_hourly_rate,
+                                            shift: payment.shift,
+                                            id: p.id || _pay.id || _payment.id
                                         })));
                                 }}
                                 onUndo={(payment) => update('payment', {
                                     status: "PENDING",
                                     id: p.id
                                 }).then(_payment => setPayments(payments.map(_pay => (_pay.id !== payment.id) ? _pay : { ..._pay, status: "PENDING" })))}
-                                onReject={(p) => {
+                                onReject={(payment) => {
                                     if (p.id === undefined) setPayments(payments.filter(_pay => _pay.id !== undefined && _pay.id));
                                     else update('payment',{ 
                                         id: p.id, 
@@ -1003,7 +915,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                         <i className="fas fa-stopwatch text-danger fa-xs mr-2"></i>
                                     </Tooltip>
                                 }
-                                <small className="d-block">${!isNaN(total_amount) ? Math.round(total_amount * 100) / 100 : 0}</small>
+                                <small className="d-block">${!isNaN(total_amount) ? Math.round(total_amount * 100) / 100 : total_amount}</small>
                             </td>
                         </tr>
                     </tbody>
@@ -1012,14 +924,17 @@ export const PayrollPeriodDetails = ({ match, history }) => {
         <div className="btn-bar text-right">
             {period.status === 'OPEN' ?
                 <button type="button" className="btn btn-primary" onClick={() => {
-                    const unapproved = [].concat.apply([], payments.map(p => p.payments)).find(p => p.status === "PENDING");
+                    const unapproved = [].concat.apply([], payments.find(p => p.status === "PENDING"));
+                    // const unapproved = [].concat.apply([], payments.map(p => p.payments)).find(p => p.status === "PENDING");
 
-                    if (unapproved) Notify.error("There are still some payments that need to be approved or rejected");
+                    // if (unapproved) Notify.error("There are still some payments that need to be approved or rejected");
+                    if (Array.isArray(unapproved) && unapproved.length > 0) Notify.error("There are still some payments that need to be approved or rejected");
                     else if (Array.isArray(payments) && payments.length === 0) Notify.error("There are no clockins to review for this period");
-                    else history.push('/payroll/rating/' + period.id);
-
-                }}>Finalize Period</button>
-                :
+                    // else {history.push('/payroll/rating/' + period.id);} 
+                   else update('payroll-periods', Object.assign(period, { status: 'FINALIZED' })).then(res => history.push('/payroll/report/' + period.id))
+                                .catch(e => Notify.error(e.message || e));
+                                }}>Finalize Period</button>
+                                :
                 <Button className="btn btn-success" onClick={() => history.push('/payroll/report/' + period.id)}>Take me to the Payroll Report</Button>
             }
         </div>
@@ -1105,19 +1020,20 @@ LatLongClockin.defaultProps = {
 
 const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, period, onChange, selection }) => {
     const { bar } = useContext(Theme.Context);
-
     if (!employee || employee.id === "new") return <p className="px-3 py-1">⬆ Search an employee from the list above...</p>;
 
     const [clockin, setClockin] = useState(Clockin(payment.clockin).defaults().unserialize());
     const [shift, setShift] = useState(Shift(payment.shift).defaults().unserialize());
     const [possibleShifts, setPossibleShifts] = useState(null);
+
     const [breaktime, setBreaktime] = useState(payment.breaktime_minutes);
     
-    const approvedClockin = payment.approved_clockin_time ? payment.approved_clockin_time : clockin.started_at ? clockin.started_at : shift.starting_at;
-    const approvedClockout = payment.approved_clockout_time ? payment.approved_clockout_time : clockin.ended_at ? clockin.ended_at : shift.ending_at;
-    const [approvedTimes, setApprovedTimes] = useState({ in: moment(approvedClockin), out: moment(approvedClockout) });
-
+    const approvedClockin = payment.approved_clockin_time ? moment(payment.approved_clockin_time) : clockin.started_at ? clockin.started_at : shift.starting_at;
+    const approvedClockout = payment.approved_clockout_time ? moment(payment.approved_clockout_time) : clockin.ended_at ? clockin.ended_at : shift.ending_at;
+    const [approvedTimes, setApprovedTimes] = useState({ in: approvedClockin, out: approvedClockout });
     const clockInDuration = moment.duration(approvedTimes.out.diff(approvedTimes.in));
+    
+    console.log('approved times',approvedTimes);
     // const clockinHours = !clockInDuration ? 0 : clockin.shift || !readOnly ? Math.round(clockInDuration.asHours() * 100) / 100 : "-";
     const clockinHours = Math.round(clockInDuration.asHours() * 100) / 100;
 
@@ -1130,9 +1046,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
 
     const clockInDurationAfterBreak = clockInDuration.subtract(breaktime, "minute");
     const clockInTotalHoursAfterBreak = !clockInDurationAfterBreak ? 0 : Math.round(clockInDurationAfterBreak.asHours() * 100) / 100;
-
     const diff = Math.round((clockInTotalHoursAfterBreak - plannedHours) * 100) / 100;
-
     useEffect(() => {
         let subs = null;
         if (payment.status === "NEW") {
@@ -1143,6 +1057,13 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                 });
             subs = store.subscribe('employee-expired-shifts', (_shifts) => {
                 const _posibleShifts = _shifts.map(s => ({ label: '', value: Shift(s).defaults().unserialize() }));
+                    const possible = _posibleShifts.map(item => {
+                    const obj = Object.assign({}, item);
+                    obj['value']['starting_at'] = moment(item.value.starting_at, "YYYY-MM-DDTHH:mm").local();
+                    obj['value']['ending_at'] = moment(item.value.ending_at, "YYYY-MM-DDTHH:mm").local();
+                    obj['value']['position'] = item.value.position.label ? {title: item.value.position.label, id: item.value.position.id} : item.value.position;
+                    return obj;
+                    });
                 setPossibleShifts(_posibleShifts);
             });
         }
@@ -1170,9 +1091,11 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                         ending_at: moment(period.starting_at).add(2, "hours"),
                                         period_starting: moment(period.starting_at),
                                         period_ending: moment(period.ending_at),
+                                        shift: _shift,
                                         application_restriction: 'SPECIFIC_PEOPLE'
                                     }
                                 });
+                                
                                 else {
                                     setShift(_shift);
                                     setBreaktime(0);
@@ -1190,7 +1113,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                         <p className="p-o m-0">
                             <strong className="shift-date">{shift.starting_at.format('ddd, ll')}</strong>
                         </p>
-                        <small className="shift-position text-success">{shift.position.title}</small> @
+                        <small className="shift-position text-success">{shift.position.title || shift.position.label}</small> @
                         <small className="shift-location text-primary"> {shift.venue.title}</small>
                     </div>
                     {<div>
@@ -1198,7 +1121,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                             (typeof shift.price == 'string') ?
                                 (shift.price === '0.0') ? '' : <small className="shift-price"> ${shift.price}</small>
                                 :
-                                <small className="shift-price"> {shift.price.currencySymbol}{shift.price.amount}</small>
+                                <small className="shift-price"> {shift.price.currencySymbol || '$'}{shift.price.amount || shift.minimum_hourly_rate}</small>
                         }{" "}
                         {clockin && <div className="d-inline-block">
                             {clockin.latitude_in > 0 &&
@@ -1233,14 +1156,19 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
         }
         <td className="time">
             {readOnly ?
-                <p>{(approvedTimes.it !== undefined) && approvedTimes.it.format('LT')}</p>
+                <p>{(approvedTimes.in !== undefined) && approvedTimes.in.format('LT')}</p>
                 :
                 <TimePicker
                     showSecond={false}
                     defaultValue={approvedTimes.in}
                     format={TIME_FORMAT}
                     onChange={(value) => {
-                        if (value && value!==undefined) setApprovedTimes({ ...approvedTimes, in: value });
+                        console.log(value);
+                        if (value && value!==undefined) {
+                            let ended_at = approvedTimes.out;
+                            if (value.isAfter(ended_at)) ended_at = moment(ended_at).add(1, 'days');
+                            if(value && value !== undefined) setApprovedTimes({ ...approvedTimes, in: value, out: ended_at });
+                        }
                     }}
                     value={approvedTimes.in}
                     use12Hours
@@ -1299,13 +1227,13 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                 <small>minutes</small>
             </td>
         }
-        <td>{!readOnly ? clockInTotalHoursAfterBreak : parseFloat(payment.regular_hours) + parseFloat(payment.over_time)}</td>
+        <td>{clockInTotalHoursAfterBreak}</td>
         <td>{clockin.shift || !readOnly ? diff : "-"}</td>
         {readOnly ?
             <td className="text-center">
                 {payment.status === "APPROVED" ? <span><i className="fas fa-check-circle"></i></span>
                     : payment.status === "REJECTED" ? <span><i className="fas fa-times-circle"></i></span>
-                        : ''
+                        : `${payment.status}<${readOnly ? "true" : "false"}`
                 }
                 {period.status === "OPEN" && (payment.status === "APPROVED" || payment.status === "REJECTED") &&
                     <i onClick={() => onUndo(payment)} className="fas fa-undo ml-2 pointer"></i>
@@ -1336,7 +1264,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                             breaktime_minutes: breaktime,
                             regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
                             over_time: diff < 0 ? 0 : diff,
-                            //
+                            shift:shift,
                             approved_clockin_time: approvedTimes.in,
                             approved_clockout_time: approvedTimes.out
                         });
@@ -1432,7 +1360,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
                                     }
                                 </div>
                                 From {moment(p.starting_at).format('MMM DD, YYYY')} to {moment(p.ending_at).format('MMM DD, YYYY')}
-                                {p.payments ? <p className="my-0"><small className={`badge ${p.payments.length > 0 ? 'badge-secondary' : 'badge-info'}`}>{p.payments.length} {p.payments.length > 1 ? "Payments" : "Payment"}</small></p> : null}
+                                <p className="my-0"><small className={`badge ${p.total_payments > 0 ? 'badge-secondary' : 'badge-info'}`}>{p.total_payments} Payments</small></p>
                             </GenericCard>
                         )}
                         {!noMorePeriods && Array.isArray(periods) && periods.length > 0 ? (
@@ -1440,7 +1368,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
                                 <div className="col">
                                     <Button onClick={() => {
                                         const PAGINATION_MONTHS_LENGTH = 1;
-                                        searchMe(`payroll-periods`, `?end=${moment(periods[periods.length - 1]['ending_at']).format('YYYY-MM-DD')}&start=${moment(periods[periods.length - 1]['starting_at']).subtract(PAGINATION_MONTHS_LENGTH, 'months').format('YYYY-MM-DD')}`, formData.periods)
+                                        searchMe(`payroll-periods`, `?end=${moment(periods[periods.length - 1]['ending_at']).subtract(1, 'weeks').format('YYYY-MM-DD')}&start=${moment(periods[periods.length - 1]['starting_at']).subtract(PAGINATION_MONTHS_LENGTH, 'months').format('YYYY-MM-DD')}`, formData.periods)
                                             .then((newPeriods) => {
                                                 if (Array.isArray(newPeriods) && newPeriods.length > 0 && newPeriods.length > periods.length) {
                                                     setPeriods(newPeriods);
@@ -1600,7 +1528,9 @@ export class PayrollRating extends Flux.DashView {
             // const searchMatches = search.exec(data.search);
             if (periodMatches) this.getSinglePeriod(periodMatches[1]);
         });
-
+        return () => {
+            payrollPeriods.unsubscribe();
+        };
     }
 
     defaultRatings(singlePeriod) {
@@ -1884,81 +1814,7 @@ export class PayrollReport extends Flux.DashView {
 
                                         <Button size="small" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button>
                                     </div>
-                                    <PDFDownloadLink document={
-                                        <Document>
-                                            {/* <Page style={styles.page}> */}
-                                            <Page style={styles.body}>
-                                                <View style={styles.section}>
-                                                    <Image source={JobCoreLogo} style={styles.image} />
-                                                </View>
-                                                {this.state.employer.picture ? (
-                                                    <View style={styles.section}>
-                                                        <Image src={this.state.employer.picture} style={styles.image_company} />
-                                                    </View>
-                                                ) : null}
-
-
-                                                <View style={{ color: 'black', marginTop: 15, marginBottom: 15, fontSize: 15 }}>
-                                                    <Text>{moment(this.state.singlePayrollPeriod.starting_at).format('MMMM D') + " - " + moment(this.state.singlePayrollPeriod.ending_at).format('LL')}</Text>
-                                                </View>
-                                                <View style={styles.table}>
-                                                    <View style={styles.tableRow}>
-                                                        <View style={styles.tableCol1Header}>
-                                                            <Text style={styles.tableCellHeader}>STAFF</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>REGULAR HOURS</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>OVER TIME</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>EARNINGS</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>TAXES</Text>
-                                                        </View>
-                                                        <View style={styles.tableColHeader}>
-                                                            <Text style={styles.tableCellHeader}>AMOUNT</Text>
-                                                        </View>
-                                                    </View>
-
-                                                    {this.state.paymentInfo.payments.sort((a, b) =>
-                                                        a.employee.last_name.toLowerCase() > b.employee.last_name.toLowerCase() ? 1 : -1
-                                                    ).map((pay, i) => {
-                                                        // const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
-                                                        //     return {
-                                                        //         over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
-                                                        //         regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
-                                                        //         total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount),
-                                                        //         status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
-                                                        //     };
-                                                        // }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
-                                                        return <View key={i} style={styles.tableRow}>
-                                                            <View style={styles.tableCol1}>
-                                                                <Text style={styles.tableCell}>{pay.employee.last_name + " " + pay.employee.first_name + " - " + pay.paid ? "paid" : "unpaid"}</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>{pay.regular_hours}</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>{pay.over_time}</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>{pay.earnings}</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>{pay.deductions}</Text>
-                                                            </View>
-                                                            <View style={styles.tableCol}>
-                                                                <Text style={styles.tableCell}>{pay.amount}</Text>
-                                                            </View>
-                                                        </View>;
-                                                    })}
-                                                </View>
-                                            </Page>
-                                        </Document>
-                                    } fileName={"JobCore " + this.state.singlePayrollPeriod.label + ".pdf"}>
+                                    <PDFDownloadLink document={() => <PayrollPeriodReport employer={this.state.empoyer} payments={this.state.payments} period={this.state.singlePayrollPeriod}/>} fileName={"JobCore " + this.state.singlePayrollPeriod.label + ".pdf"}>
                                         {({ blob, url, loading, error }) => (loading ? 'Loading...' : (
                                             <div className="col">
                                                 <Button color="success" size="small" >Export to PDF</Button>

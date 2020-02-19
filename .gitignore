@@ -14,7 +14,6 @@ php_errorlog
 !package.json
 !webpack.production.js
 !webpack.development.js
-!.env.*
 !.env.example
 !.github/
 

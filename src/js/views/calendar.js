@@ -58,7 +58,7 @@ export const ShiftCalendar = ({ catalog }) => {
         console.log(queryString.stringify(_filters));
         if (moment.isMoment(_filters.start)) _filters.start = _filters.start.format('YYYY-MM-DD');
         if (moment.isMoment(_filters.end)) _filters.end = _filters.end.format('YYYY-MM-DD');
-        searchMe('shifts', '?serializer=big&' + queryString.stringify(_filters));
+        searchMe('shifts', '?serializer=big&limit=10000&' + queryString.stringify(_filters));
     };
 
     const groupShifts = (sh, l = null) => {
@@ -140,7 +140,7 @@ export const ShiftCalendar = ({ catalog }) => {
                                         const newEndDate = moment(currentDate).add(-1, viewMode);
                                         const oldEndDate = moment(filters.start);
                                         if (newEndDate.isBefore(oldEndDate)) {
-                                            const updatedFilters = { start: moment(newEndDate).add(-2, 'months').format('YYYY-MM-DD'), end: moment(newEndDate).add(2, 'months').format('YYYY-MM-DD') };
+                                            const updatedFilters = { start: moment(newEndDate).add(-2, 'weeks').format('YYYY-MM-DD'), end: moment(newEndDate).add(2, 'weeks').format('YYYY-MM-DD') };
                                             window.location.hash = queryString.stringify(updatedFilters);
                                             setCalendarFilters(updatedFilters);
                                         }
@@ -154,7 +154,7 @@ export const ShiftCalendar = ({ catalog }) => {
                                     const newEndDate = moment(currentDate).add(1, viewMode);
                                     const oldEndDate = moment(filters.end);
                                     if (oldEndDate.isBefore(newEndDate)) {
-                                        const updatedFilters = { start: moment(newEndDate).add(-2, 'months').format('YYYY-MM-DD'), end: moment(newEndDate).add(2, 'months').format('YYYY-MM-DD') };
+                                        const updatedFilters = { start: moment(newEndDate).add(-2, 'weeks').format('YYYY-MM-DD'), end: moment(newEndDate).add(2, 'weeks').format('YYYY-MM-DD') };
                                         window.location.hash = queryString.stringify(updatedFilters);
                                         setCalendarFilters(updatedFilters);
                                     }
