@@ -726,9 +726,7 @@ export const searchBankAccounts = () => new Promise((accept, reject) =>
 );
 
 export const getPaymentsReport = (periodId, startDate, endDate) => new Promise((accept, reject) => {
-    const route = periodId && startDate && endDate 
-    ? `employers/me/employee-payment/report?start_date=${startDate}&end_date=${endDate}&period_id=${periodId}`
-    : `employers/me/employee-payment/report`;
+    const route = `employers/me/employee-payment/report?start_date=${startDate}&end_date=${endDate}&period_id=${periodId}`;
     GET(route)
         .then(function (list) {
             Flux.dispatchEvent('payments-reports', list);
@@ -743,9 +741,7 @@ export const getPaymentsReport = (periodId, startDate, endDate) => new Promise((
 );
 
 export const getDeductionsReport = (periodId, startDate, endDate) => new Promise((accept, reject) => {
-    const route = periodId && startDate && endDate 
-    ? `employers/me/employee-payment/deduction-report?start_date=${startDate}&end_date=${endDate}&period_id=${periodId}`
-    : `employers/me/employee-payment/deduction-report`;
+    const route = `employers/me/employee-payment/deduction-report?start_date=${startDate}&end_date=${endDate}&period_id=${periodId}`;
     GET(route)
         .then(function (list) {
             Flux.dispatchEvent('deductions-reports', list);

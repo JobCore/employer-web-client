@@ -41,22 +41,24 @@ export class PaymentsReport extends Flux.DashView {
         console.log("payrollPeriods: ", payrollPeriods);
         console.log("paymentReport: ", paymentReport);
         const options = payrollPeriods && payrollPeriods.length > 0
-        ? payrollPeriods.map((period) => {
-        return {label: period.label, value: period.id};
+        ? [
+            { label: "All", value: null },
+            ...payrollPeriods.map((period) => {
+                return { label: period.label, value: period.id };
             })
+        ] 
         : [];
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({ bar }) => (<span>
                     <div>
                         <p className="text-right">
-                            <h2>Payments reports {paymentReport && paymentReport.length > 0 ? paymentReport[0].payroll_period : ""}</h2>
+                            <h2>Payments reports</h2>
                         </p>
                         <div className="row mb-4">
                             <div className="col-6">
                                 <label>Periods</label>
                                 <Select
-                                    value={period}
                                     options={options}
                                     onChange={(selection) => this.setState({ period: selection.value }, () => this.getPayments())}
                                 />
@@ -102,7 +104,7 @@ export class PaymentsReport extends Flux.DashView {
                                 </tbody>
                             </table>
                         </div>
-                            : <p>No payments to review for this period</p>
+                            : <p>No payments reports to review for this period</p>
                     }
                 </span>)}
             </Theme.Consumer>
