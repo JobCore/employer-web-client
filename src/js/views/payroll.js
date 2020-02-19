@@ -804,11 +804,8 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                     b.employee.id === "new" ? 1 :
                         a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
             ).map(pay => {
-                const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + parseFloat(regular_hours) + parseFloat(over_time), 0);
+                const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + Number(regular_hours) + Number(over_time), 0);
                 const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + (Number(regular_hours) + Number(over_time))*Number(hourly_rate) , 0);
-                const total_amountz = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => console.log(regular_hours + "-" + over_time + "-" + hourly_rate),0);
-                const total_amountzz = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => console.log((Number(regular_hours) + Number(over_time))*Number(hourly_rate)),0);
-                const total_overtime = pay.payments.filter(p => p.status === "APPROVED").reduce((total, {over_time, hourly_rate }) => total + (parseFloat(over_time) * parseFloat(hourly_rate) * 1.5), 0);
                 return <table key={pay.employee.id} className="table table-striped payroll-summary">
                     <thead>
                         <tr>
@@ -918,11 +915,15 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                     </Tooltip>
                                 )
                                 : null}
-                                <small className="d-block">${!isNaN(total_amount) ? Math.round(total_amount * 100) / 100 : total_amount}</small>
+                                <small className="d-block">{!isNaN(total_amount) && !isNaN(total_hours) && Math.round(total_hours * 100) / 100 < 40 ? '$'+Math.round(total_amount * 100) / 100 : null}</small>
                                 {!isNaN(total_hours) && Math.round(total_hours * 100) / 100 > 40 ? (
-                                    <small className="d-block" style={{color: "red"}}>Total overtime amount $
-                                        {((((Math.round(total_amount * 100) / 100)/(Math.round(total_hours * 100) / 100))*0.5)*Math.round((total_hours - 40) * 100) / 100 + Math.round(total_amount * 100) / 100).toFixed(2)}
-                                    </small>
+                                    <div>
+                                        <small className="d-block">Reg: ${!isNaN(total_amount) ? Math.round(total_amount * 100) / 100 : total_amount}</small>
+                                        <small className="d-block">OT: ${((((Math.round(total_amount * 100) / 100)/(Math.round(total_hours * 100) / 100))*0.5)*Math.round((total_hours - 40) * 100) / 100).toFixed(2)}</small>
+                                        <small className="d-block">Total: $
+                                            {((((Math.round(total_amount * 100) / 100)/(Math.round(total_hours * 100) / 100))*0.5)*Math.round((total_hours - 40) * 100) / 100 + Math.round(total_amount * 100) / 100).toFixed(2)}
+                                        </small>
+                                    </div>
                                     )
                                 : null}
                                 
@@ -1056,8 +1057,9 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
 
     const clockInDurationAfterBreak = clockInDuration.subtract(breaktime, "minute");
     const clockInTotalHoursAfterBreak = !clockInDurationAfterBreak ? 0 : Math.round(clockInDurationAfterBreak.asHours() * 100) / 100;
-    const diff = Math.round((clockInTotalHoursAfterBreak - plannedHours) * 100) / 100;
-    const overtime = clockInTotalHoursAfterBreak > 40 ? clockInTotalHoursAfterBreak - 40 : 0;
+
+    const diff = Math.round((Number(clockInTotalHoursAfterBreak) - Number(plannedHours)) * 100) / 100;
+    // const overtime = clockInTotalHoursAfterBreak > 40 ? clockInTotalHoursAfterBreak - 40 : 0;
     useEffect(() => {
         let subs = null;
         if (payment.status === "NEW") {
@@ -1264,7 +1266,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                 clockin: null,
                                 breaktime_minutes: breaktime,
                                 regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
-                                over_time: overtime,
+                                over_time: diff < 0 ? 0 : diff,
                                 //
                                 approved_clockin_time: approvedTimes.in,
                                 approved_clockout_time: approvedTimes.out
@@ -1273,7 +1275,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                         else onApprove({
                             breaktime_minutes: breaktime,
                             regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
-                            over_time: overtime,
+                            over_time: diff < 0 ? 0 : diff,
                             shift:shift,
                             approved_clockin_time: approvedTimes.in,
                             approved_clockout_time: approvedTimes.out
@@ -1772,8 +1774,8 @@ export class PayrollReport extends Flux.DashView {
         if (typeof periodId !== 'undefined') {
             if (!payrollPeriods) fetchSingle("payroll-periods", periodId);
             else {
-                const singlePayrollPeriod = payrollPeriods.find(pp => pp.id == periodId).filter(p => p.payments.length != 0);
-                this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod) });
+                const singlePayrollPeriod = payrollPeriods.find(pp => pp.id == periodId);
+                this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod).filter(p => p.payments.length != 0) });
             }
         }
     }
@@ -1792,7 +1794,6 @@ export class PayrollReport extends Flux.DashView {
 
 
     render() {
-        console.log(this.state);
         const taxesMagicNumber = 0;
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
