@@ -1,12 +1,9 @@
 import React from "react";
-import { validator, ValidationError } from '../utils/validation';
 import PropTypes from 'prop-types';
-import Select from 'react-select';
 import { Button } from '../components/index';
 import Flux from "@4geeksacademy/react-flux-dash";
-import { GET, POST } from "../utils/api_wrapper";
 import { Notify } from 'bc-react-notifier';
-import { searchMe } from "../actions";
+import { makeEmployeePayment } from "../actions";
 export const Payment = (data = {}) => {
 
     const _defaults = {
@@ -40,46 +37,17 @@ export const Payment = (data = {}) => {
  * Make Payment
  */
 export class MakePayment extends Flux.DashView {
-
-    state = {
-        ispaid: false
-    }
-    makePayment = async (
-        employeePaymentId, 
-        paymentType, 
-        employer_bank_account_id, 
-        employee_bank_account_id
-        ) => {
-        // const data = {
-        //     payment_type: paymentType,
-        //     payment_data: paymentType === "CHECK" ? null : {
-        //         employer_bank_account_id: employer_bank_account_id,
-        //         employee_bank_account_id: employee_bank_account_id
-        //     }
-        // };
-
-        // try{
-        //     const response = await POST(`employers/me/employee-payment/${employeePaymentId}`, data);
-        //     console.log("makepayment response: ", response);
-        //     searchMe('payroll-periods');
-        //     Promise.resolve(response);
-        // }catch(error){
-        //     Promise.reject(error);
-        // }
-        this.setState({ ispaid: true });
-    }
-
+    
     render() {
         const { 
             onSave, 
             onCancel, 
             onChange, 
             catalog, 
-            formData, 
-            bar, 
+            formData,
             error
          } = this.props;
-         const { pay, paymentInfo } = formData;
+         const { pay, paymentInfo, bar } = formData;
          const employerBankAccounts = paymentInfo && paymentInfo.employer ? paymentInfo.employer.bank_accounts : null;
         console.log('MakePayment pay: ', pay);
         console.log('MakePayment error: ', error);
@@ -114,7 +82,7 @@ export class MakePayment extends Flux.DashView {
                     <label>Amount:</label>{` ${pay.amount}`}
                 </div>
             </div>
-            {!pay.paid && !this.state.ispaid
+            {!pay.paid
                     ? <div className="row">
                         <div className="col-12">
                             <label>Payment methods</label>
@@ -130,20 +98,20 @@ export class MakePayment extends Flux.DashView {
                                             const noti = Notify.info("Are you sure to pay ?", async (answer) => {
                                                 if(answer){
                                                     try{
-                                                        await this.makePayment(
+                                                        await makeEmployeePayment(
                                                             pay.id, 
                                                             "CHECK", 
                                                             "", 
-                                                            ""
+                                                            "",
                                                             );
                                                         noti.remove();
+                                                        bar.close();
                                                     }catch(error){
                                                         Notify.error(error.message || error);
                                                     }
                                                 } else{
                                                     noti.remove();
                                                 }
-                                
                                             });
                                         }}>
                                         Check payment
@@ -160,20 +128,20 @@ export class MakePayment extends Flux.DashView {
                                                     const noti = Notify.info("Are you sure to pay ?", async (answer) => {
                                                         if(answer){
                                                             try{
-                                                                await this.makePayment(
+                                                                await makeEmployeePayment(
                                                                     pay.id, 
-                                                                    "FAKE", 
+                                                                    "FAKE",
                                                                     bankaccount.id, 
-                                                                    paymentInfo.payments[0].employee.bank_accounts[0].id
+                                                                    pay.employee.bank_accounts[0].id,
                                                                     );
                                                                 noti.remove();
+                                                                bar.close();
                                                             }catch(error){
                                                                 Notify.error(error.message || error);
                                                             }
                                                         } else{
                                                             noti.remove();
                                                         }
-                                        
                                                     });
                                                 }}
                                                 >
