@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import { store, search, update, fetchSingle, searchMe, processPendingPayrollPeriods, updatePayments, createPayment, fetchAllMe, fetchTemporal, remove, create, fetchPeyrollPeriodPayments } from '../actions.js';
+import { store, search, update, fetchSingle, searchMe, processPendingPayrollPeriods, updatePayments, createPayment, fetchAllMe, fetchTemporal, remove, create } from '../actions.js';
 import { GET } from '../utils/api_wrapper';
 
 
@@ -804,11 +804,8 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                     b.employee.id === "new" ? 1 :
                         a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
             ).map(pay => {
-                const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + parseFloat(regular_hours) + parseFloat(over_time), 0);
+                const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + Number(regular_hours) + Number(over_time), 0);
                 const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + (Number(regular_hours) + Number(over_time))*Number(hourly_rate) , 0);
-                const total_amountz = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => console.log(regular_hours + "-" + over_time + "-" + hourly_rate),0);
-                const total_amountzz = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => console.log((Number(regular_hours) + Number(over_time))*Number(hourly_rate)),0);
-                const total_overtime = pay.payments.filter(p => p.status === "APPROVED").reduce((total, {over_time, hourly_rate }) => total + (parseFloat(over_time) * parseFloat(hourly_rate) * 1.5), 0);
                 return <table key={pay.employee.id} className="table table-striped payroll-summary">
                     <thead>
                         <tr>
@@ -918,11 +915,15 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                     </Tooltip>
                                 )
                                 : null}
-                                <small className="d-block">${!isNaN(total_amount) ? Math.round(total_amount * 100) / 100 : total_amount}</small>
+                                <small className="d-block">{!isNaN(total_amount) && !isNaN(total_hours) && Math.round(total_hours * 100) / 100 < 40 ? '$'+Math.round(total_amount * 100) / 100 : null}</small>
                                 {!isNaN(total_hours) && Math.round(total_hours * 100) / 100 > 40 ? (
-                                    <small className="d-block" style={{color: "red"}}>Total overtime amount $
-                                        {((((Math.round(total_amount * 100) / 100)/(Math.round(total_hours * 100) / 100))*0.5)*Math.round((total_hours - 40) * 100) / 100 + Math.round(total_amount * 100) / 100).toFixed(2)}
-                                    </small>
+                                    <div>
+                                        <small className="d-block">Reg: ${!isNaN(total_amount) ? Math.round(total_amount * 100) / 100 : total_amount}</small>
+                                        <small className="d-block">OT: ${((((Math.round(total_amount * 100) / 100)/(Math.round(total_hours * 100) / 100))*0.5)*Math.round((total_hours - 40) * 100) / 100).toFixed(2)}</small>
+                                        <small className="d-block">Total: $
+                                            {((((Math.round(total_amount * 100) / 100)/(Math.round(total_hours * 100) / 100))*0.5)*Math.round((total_hours - 40) * 100) / 100 + Math.round(total_amount * 100) / 100).toFixed(2)}
+                                        </small>
+                                    </div>
                                     )
                                 : null}
                                 
@@ -1056,8 +1057,9 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
 
     const clockInDurationAfterBreak = clockInDuration.subtract(breaktime, "minute");
     const clockInTotalHoursAfterBreak = !clockInDurationAfterBreak ? 0 : Math.round(clockInDurationAfterBreak.asHours() * 100) / 100;
-    const diff = Math.round((clockInTotalHoursAfterBreak - plannedHours) * 100) / 100;
-    const overtime = clockInTotalHoursAfterBreak > 40 ? clockInTotalHoursAfterBreak - 40 : 0;
+
+    const diff = Math.round((Number(clockInTotalHoursAfterBreak) - Number(plannedHours)) * 100) / 100;
+    // const overtime = clockInTotalHoursAfterBreak > 40 ? clockInTotalHoursAfterBreak - 40 : 0;
     useEffect(() => {
         let subs = null;
         if (payment.status === "NEW") {
@@ -1264,7 +1266,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                                 clockin: null,
                                 breaktime_minutes: breaktime,
                                 regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
-                                over_time: overtime,
+                                over_time: diff < 0 ? 0 : diff,
                                 //
                                 approved_clockin_time: approvedTimes.in,
                                 approved_clockout_time: approvedTimes.out
@@ -1273,7 +1275,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                         else onApprove({
                             breaktime_minutes: breaktime,
                             regular_hours: (plannedHours > clockInTotalHoursAfterBreak || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours,
-                            over_time: overtime,
+                            over_time: diff < 0 ? 0 : diff,
                             shift:shift,
                             approved_clockin_time: approvedTimes.in,
                             approved_clockout_time: approvedTimes.out
@@ -1720,7 +1722,6 @@ export class PayrollReport extends Flux.DashView {
             employer: store.getState('current_employer'),
             payrollPeriods: [],
             payments: [],
-            paymentInfo: [],
             singlePayrollPeriod: null,
         };
     }
@@ -1730,12 +1731,7 @@ export class PayrollReport extends Flux.DashView {
         this.subscribe(store, 'current_employer', (employer) => {
             this.setState({ employer });
         });
-        this.subscribe(store, 'payroll-period-payments', (paymentInfo) => {
-            this.setState({ paymentInfo });
-        });
-        this.subscribe(store, 'employee-payment', () => {
-            fetchPeyrollPeriodPayments(this.state.singlePayrollPeriod.id);
-        });
+
         const payrollPeriods = store.getState('payroll-periods');
         this.subscribe(store, 'payroll-periods', (_payrollPeriods) => {
             this.updatePayrollPeriod(_payrollPeriods);
@@ -1764,14 +1760,12 @@ export class PayrollReport extends Flux.DashView {
         if (!singlePeriod) return null;
 
         let groupedPayments = {};
-        if(singlePeriod.payments){
-            singlePeriod.payments.forEach(pay => {
-                if (typeof groupedPayments[pay.employee.id] === 'undefined') {
-                    groupedPayments[pay.employee.id] = { employee: pay.employee, payments: [] };
-                }
-                groupedPayments[pay.employee.id].payments.push(pay);
-            });
-        }
+        singlePeriod.payments.forEach(pay => {
+            if (typeof groupedPayments[pay.employee.id] === 'undefined') {
+                groupedPayments[pay.employee.id] = { employee: pay.employee, payments: [] };
+            }
+            if (pay.status === "APPROVED") groupedPayments[pay.employee.id].payments.push(pay);
+        });
 
         return Object.values(groupedPayments);
     }
@@ -1780,8 +1774,8 @@ export class PayrollReport extends Flux.DashView {
         if (typeof periodId !== 'undefined') {
             if (!payrollPeriods) fetchSingle("payroll-periods", periodId);
             else {
-                const singlePayrollPeriod = payrollPeriods.find(pp => pp.id == periodId).filter(p => p.payments.length != 0);
-                this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod) });
+                const singlePayrollPeriod = payrollPeriods.find(pp => pp.id == periodId);
+                this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod).filter(p => p.payments.length != 0) });
             }
         }
     }
@@ -1800,6 +1794,7 @@ export class PayrollReport extends Flux.DashView {
 
 
     render() {
+        const taxesMagicNumber = 0;
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
@@ -1811,8 +1806,8 @@ export class PayrollReport extends Flux.DashView {
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({ bar }) => (<span>
-                    {(!this.state.paymentInfo) ? '' :
-                        (this.state.paymentInfo.payments && this.state.paymentInfo.payments.length > 0) ?
+                    {(!this.state.singlePayrollPeriod) ? '' :
+                        (this.state.singlePayrollPeriod.payments.length > 0) ?
                             <div>
                                 <p className="text-right">
                                     <h2>Payments for {this.state.singlePayrollPeriod.label ? this.state.singlePayrollPeriod.label : `From ${moment(this.state.singlePayrollPeriod.starting_at).format('MM-D-YY h:mm A')} to ${moment(this.state.singlePayrollPeriod.ending_at).format('MM-D-YY h:mm A')}`}</h2>
@@ -1843,30 +1838,37 @@ export class PayrollReport extends Flux.DashView {
                                             <th scope="col">Staff</th>
                                             <th scope="col">Regular Hrs</th>
                                             <th scope="col">Over Time</th>
-                                            <th scope="col">Earnings</th>
+                                            <th scope="col">Total Hours</th>
+                                            <th scope="col">Total Earnings</th>
                                             <th scope="col">Taxes</th>
-                                            <th scope="col">Amount</th>
+                                            <th scope="col">Check Amount</th>
                                             <th scope="col"></th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {this.state.paymentInfo.payments.sort((a, b) =>
-                                            a.employee.last_name.toLowerCase() > b.employee.last_name.toLowerCase() ? 1 : -1
+                                        {this.state.payments.sort((a, b) =>
+                                            a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
                                         ).map(pay => {
+                                            const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + Number(regular_hours) + Number(over_time), 0);
+                                            
+                                            const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + (Number(regular_hours) + Number(over_time))*Number(hourly_rate) , 0);
+                                           
                                             const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
                                                 return {
                                                     overtime: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) > 40 ? parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) - 40 : 0,
                                                     over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
                                                     regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
                                                     taxes: taxesMagicNumber,
-                                                    total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount),
+                                                    total_amount: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) > 40 ?(
+                                                        ((((Math.round(total_amount * 100) / 100)/(Math.round(total_hours * 100) / 100))*0.5)*Math.round((total_hours - 40) * 100) / 100 + Math.round(total_amount * 100) / 100).toFixed(2)
+                                                    ): (Math.round(total_amount * 100) / 100),
                                                     status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
                                                 };
                                             }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
                                             return <tr key={pay.employee.id}>
                                                 <td>
-                                                    {pay.employee.last_name}, {pay.employee.first_name}
-                                                    <p className="m-0 p-0"><span className="badge">{pay.paid ? "paid" : "unpaid"}</span></p>
+                                                    {pay.employee.user.last_name}, {pay.employee.user.first_name}
+                                                    <p className="m-0 p-0"><span className="badge">{total.status.toLowerCase()}</span></p>
                                                 </td>
                                                 <td>{Math.round(total.regular_hours * 100) / 100}</td>
                                                 <td>{Number(total.overtime).toFixed(2)}</td>
@@ -1875,19 +1877,17 @@ export class PayrollReport extends Flux.DashView {
                                                 <td>0</td>
                                                 <td>${Math.round((total.total_amount - taxesMagicNumber) * 100) / 100}</td>
                                                 <td>
-                                                    <Button 
-                                                    color="success" 
-                                                    size="small" 
-                                                    onClick={() => bar.show({ 
-                                                        slug: "make_payment", 
-                                                        data: {
-                                                            pay: pay,
-                                                            paymentInfo: this.state.paymentInfo,
-                                                            periodId: this.state.singlePayrollPeriod.id,
-                                                            bar: bar
-                                                    } 
-                                                    })}>
-                                                        {pay.paid ? "Payment details" : "Make payment"}
+                                                    <Button
+                                                        color="success"
+                                                        size="small"
+                                                        onClick={() => bar.show({
+                                                            slug: "make_payment",
+                                                            data: {
+                                                                pay: pay,
+                                                                total: total,
+                                                            }
+                                                        })}>
+                                                        Make payment
                                                     </Button>
                                                 </td>
                                                 {/* <td>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</td>
@@ -1905,4 +1905,3 @@ export class PayrollReport extends Flux.DashView {
         </div >);
     }
 }
-
