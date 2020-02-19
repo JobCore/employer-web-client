@@ -1876,7 +1876,7 @@ export class PayrollReport extends Flux.DashView {
                                                             bar: bar
                                                     } 
                                                     })}>
-                                                        Make payment
+                                                        {pay.paid ? "Payment details" : "Make payment"}
                                                     </Button>
                                                 </td>
                                                 {/* <td>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</td>
