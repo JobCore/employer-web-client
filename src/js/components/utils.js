@@ -3,8 +3,8 @@ import moment from 'moment';
 export const TIME_FORMAT = 'h:mm a';
 export const DATE_FORMAT = 'YYYY-MM-DD';
 export const DATETIME_FORMAT = DATE_FORMAT + ' ' + TIME_FORMAT;
-export const NOW = () => moment().utc();
-export const TODAY = () => moment().utc().hour(0).minute(0);
+export const NOW = () => moment();
+export const TODAY = () => moment().hour(0).minute(0);
 export const YESTERDAY = moment().subtract(1, 'day').hour(0).minute(0);
 
 export function haversineDistance(coords1, coords2, isMiles) {
