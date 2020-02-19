@@ -59,12 +59,14 @@ export const Shift = (data) => {
                 status: (this.status == 'UNDEFINED') ? 'DRAFT' : this.status,
                 // starting_at: (moment.isMoment(this.starting_at)) ? this.starting_at.format(DATETIME_FORMAT) : this.starting_at,
                 // ending_at: (moment.isMoment(this.ending_at)) ? this.ending_at.format(DATETIME_FORMAT) : this.ending_at,
-                starting_at: moment(this.starting_at).utc(),
-                ending_at: moment(this.ending_at).utc(),
+                starting_at: moment(this.starting_at),
+                ending_at: moment(this.ending_at),
                 allowed_from_list: this.allowedFavlists.map(f => f.value),
                 multiple_dates: Array.isArray(this.multiple_dates) && this.multiple_dates.length > 0 ? this.multiple_dates : undefined
             };
 
+            // this is not ready yet
+            delete newShift.required_badges;
             //this is a special property used on the form for creating an expried (past) shift and adding the employess right away
             if (Array.isArray(this.employeesToAdd)) newShift.employees = this.employeesToAdd.map(e => e.value || e.id);
 
@@ -609,12 +611,19 @@ ShiftInvites.propTypes = {
  * EditOrAddShift
  */
 const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar, oldShift }) => {
+    console.log('catalog', catalog);
+    console.log('formdata', formData);
     useEffect(() => {
         const venues = store.getState('venues');
         const favlists = store.getState('favlists');
         if (!venues || !favlists) fetchAllMe(['venues', 'favlists']);
     }, []);
     const expired = moment(formData.starting_at).isBefore(NOW()) || moment(formData.ending_at).isBefore(NOW());
+    if(catalog.positions.find((pos) => pos.value == formData.position.id || pos.value == formData.position))formData['position'] = catalog.positions.find((pos) => pos.value == formData.position.id || pos.value == formData.position).value.toString();
+    if(catalog.positions.find((pos) => pos.value == formData.venue.id || pos.value == formData.venue))formData['venue'] = catalog.positions.find((pos) => pos.value == formData.venue.id || pos.value == formData.venue).value.toString();
+    if(formData.employer && isNaN(formData.employer )) formData.employer = formData.employer.id;
+    if(!formData.shift && !isNaN(formData.id)) formData.shift = formData.id;
+    if(formData.required_badges) delete formData.required_badges;
     return (
         <form>
             <div className="row">
@@ -632,7 +641,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                     <label>Looking for</label>
                     <Select
                         placeholder="Select a position"
-                        value={catalog.positions.find((pos) => pos.value == formData.position)}
+                        value={catalog.positions.find((pos) => pos.value == formData.position.id || pos.value == formData.position)}
                         onChange={(selection) => onChange({ position: selection.value.toString(), has_sensitive_updates: true })}
                         options={catalog.positions}
                     />
@@ -816,7 +825,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                 <div className="col-12">
                     <label>Location</label>
                     <Select
-                        value={catalog.venues.find((ven) => ven.value == formData.venue)}
+                        value={catalog.venues.find((ven) => ven.value == formData.venue.id || ven.value == formData.venue)}
                         options={[{ label: "Add a location", value: 'new_venue', component: AddOrEditLocation }].concat(catalog.venues)}
                         onChange={(selection) => {
                             if (selection.value == 'new_venue') bar.show({ slug: "create_location", allowLevels: true });
