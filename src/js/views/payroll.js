@@ -1780,15 +1780,8 @@ export class PayrollReport extends Flux.DashView {
         if (typeof periodId !== 'undefined') {
             if (!payrollPeriods) fetchSingle("payroll-periods", periodId);
             else {
-<<<<<<< HEAD
                 const singlePayrollPeriod = payrollPeriods.find(pp => pp.id == periodId).filter(p => p.payments.length != 0);
                 this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod) });
-=======
-                const singlePayrollPeriod = payrollPeriods.find(pp => pp.id == periodId);
-                this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod) }, () => {
-                    fetchPeyrollPeriodPayments(this.state.singlePayrollPeriod.id);
-                });
->>>>>>> 5130d80d1c1f879f8a0e416f0d2d9282af975ddf
             }
         }
     }
@@ -1860,7 +1853,6 @@ export class PayrollReport extends Flux.DashView {
                                         {this.state.paymentInfo.payments.sort((a, b) =>
                                             a.employee.last_name.toLowerCase() > b.employee.last_name.toLowerCase() ? 1 : -1
                                         ).map(pay => {
-<<<<<<< HEAD
                                             const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
                                                 return {
                                                     overtime: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) > 40 ? parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) - 40 : 0,
@@ -1871,35 +1863,17 @@ export class PayrollReport extends Flux.DashView {
                                                     status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
                                                 };
                                             }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
-=======
-                                            // const total = pay.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
-                                            //     return {
-                                            //         over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
-                                            //         regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
-                                            //         total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount),
-                                            //         status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
-                                            //     };
-                                            // }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
->>>>>>> 5130d80d1c1f879f8a0e416f0d2d9282af975ddf
                                             return <tr key={pay.employee.id}>
                                                 <td>
                                                     {pay.employee.last_name}, {pay.employee.first_name}
                                                     <p className="m-0 p-0"><span className="badge">{pay.paid ? "paid" : "unpaid"}</span></p>
                                                 </td>
-<<<<<<< HEAD
                                                 <td>{Math.round(total.regular_hours * 100) / 100}</td>
                                                 <td>{Number(total.overtime).toFixed(2)}</td>
                                                 <td>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</td>
                                                 <td>${Math.round(total.total_amount * 100) / 100}</td>
                                                 <td>0</td>
                                                 <td>${Math.round((total.total_amount - taxesMagicNumber) * 100) / 100}</td>
-=======
-                                                <td>{pay.regular_hours}</td>
-                                                <td>{pay.over_time}</td>
-                                                <td>{pay.earnings}</td> 
-                                                <td>{pay.deductions}</td>
-                                                <td>{pay.amount}</td>
->>>>>>> 5130d80d1c1f879f8a0e416f0d2d9282af975ddf
                                                 <td>
                                                     <Button 
                                                     color="success" 
