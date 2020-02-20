@@ -1737,7 +1737,7 @@ export class PayrollReport extends Flux.DashView {
             this.updatePayrollPeriod(_payrollPeriods);
             //if(!this.state.singlePayrollPeriod) this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
         });
-        if (!payrollPeriods) {
+        if (!payrollPeriods || payrollPeriods.length == 0 ) {
             if(this.props.match.params.period_id !== undefined) fetchSingle("payroll-periods", this.props.match.params.period_id).then(_period => {
             this.setState({singlePayrollPeriod:_period, payments: this.groupPayments(_period).filter(p => p.payments.length != 0)});
         });
@@ -1775,7 +1775,7 @@ export class PayrollReport extends Flux.DashView {
             if (!payrollPeriods) fetchSingle("payroll-periods", periodId);
             else {
                 const singlePayrollPeriod = payrollPeriods.find(pp => pp.id == periodId);
-                this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod).filter(p => p.payments.length != 0) });
+                this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod) });
             }
         }
     }
