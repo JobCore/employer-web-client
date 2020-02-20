@@ -2,7 +2,7 @@ import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import moment from 'moment';
 import Select from 'react-select';
-import { Theme, Button } from '../components/index';
+import { Theme } from '../components/index';
 import { StyleSheet } from '@react-pdf/renderer';
 import { store, getPaymentsReport, searchMe } from "../actions";
 export class PaymentsReport extends Flux.DashView {
@@ -32,14 +32,11 @@ export class PaymentsReport extends Flux.DashView {
     getPayments = () => {
         const endDate = this.state.end_date ? moment(this.state.end_date).format('YYYY-MM-DD') : null;
         const startDate = this.state.start_date ? moment(this.state.start_date).format('YYYY-MM-DD') : null;
-        console.log("getPayments this.state.period: ", this.state.period);
         return getPaymentsReport(this.state.period, startDate, endDate);
     };
 
     render() {
-        const { payrollPeriods, paymentReport, period } = this.state;
-        console.log("payrollPeriods: ", payrollPeriods);
-        console.log("paymentReport: ", paymentReport);
+        const { payrollPeriods, paymentReport } = this.state;
         const options = payrollPeriods && payrollPeriods.length > 0
         ? [
             { label: "All", value: null },
