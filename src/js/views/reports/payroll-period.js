@@ -7,7 +7,7 @@ import { Page, Image, Text, View, Document, StyleSheet, PDFDownloadLink } from '
 const BORDER_COLOR = '#000000';
 const BORDER_STYLE = 'solid';
 const COL1_WIDTH = 20;
-const COLN_WIDTH = (100 - COL1_WIDTH) / 6;
+const COLN_WIDTH = (100 - COL1_WIDTH) / 8;
 
 const styles = StyleSheet.create({
     body: {
@@ -114,13 +114,19 @@ const PayrollPeriodReport = ({ period, employer, payments }) => {
                         <Text style={styles.tableCellHeader}>REGULAR HRS</Text>
                     </View>
                     <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>OVER TIME</Text>
+                        <Text style={styles.tableCellHeader}>OT HRS</Text>
                     </View>
                     <View style={styles.tableColHeader}>
                         <Text style={styles.tableCellHeader}>TOTAL HRS</Text>
                     </View>
                     <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>TOTAL EARNINGS</Text>
+                        <Text style={styles.tableCellHeader}>REG</Text>
+                    </View>
+                    <View style={styles.tableColHeader}>
+                        <Text style={styles.tableCellHeader}>OT</Text>
+                    </View>
+                    <View style={styles.tableColHeader}>
+                        <Text style={styles.tableCellHeader}>TOTAL</Text>
                     </View>
                     <View style={styles.tableColHeader}>
                         <Text style={styles.tableCellHeader}>TAXES</Text>
@@ -136,13 +142,17 @@ const PayrollPeriodReport = ({ period, employer, payments }) => {
                     const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + Number(regular_hours) + Number(over_time), 0);
                                             
                     const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + (Number(regular_hours) + Number(over_time))*Number(hourly_rate) , 0);
-                                           
+                    const total_reg = total_hours > 40 ? 40 * Number(pay.payments[0]['hourly_rate']) : 0;
+                    const total_ot = total_hours > 40 ? (total_hours - 40) * (Number(pay.payments[0]['hourly_rate'])*1.5): 0;
+                     
                     const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
                         return {
                                 overtime: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) > 40 ? parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) - 40 : 0,
                                 over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
                                 regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
                                 taxes: taxesMagicNumber,
+                                total_ot: total_ot,
+                                total_reg: total_reg,
                                 total_amount: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) > 40 ?(
                                     ((((Math.round(total_amount * 100) / 100)/(Math.round(total_hours * 100) / 100))*0.5)*Math.round((total_hours - 40) * 100) / 100 + Math.round(total_amount * 100) / 100).toFixed(2)
                                 ): (Math.round(total_amount * 100) / 100),
@@ -164,13 +174,19 @@ const PayrollPeriodReport = ({ period, employer, payments }) => {
                             <Text style={styles.tableCell}>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</Text>
                         </View>
                         <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>${Math.round(total.total_amount * 100) / 100}</Text>
+                            <Text style={styles.tableCell}>${Math.round((total.regular_hours + total.over_time) * 100) / 100 > 40 ? Math.round(total.total_reg * 100) / 100 : Math.round(total.total_amount * 100) / 100 }</Text>
+                        </View>
+                        <View style={styles.tableCol}>
+                            <Text style={styles.tableCell}>${Math.floor(total.total_ot * 100) / 100}</Text>
+                        </View>
+                        <View style={styles.tableCol}>
+                            <Text style={styles.tableCell}>${Math.round((total.regular_hours + total.over_time) * 100) / 100 > 40 ? Math.round(total.total_reg * 100)/100 + Math.floor(total.total_ot * 100)/100: Math.round(total.total_amount * 100) / 100}</Text>
                         </View>
                         <View style={styles.tableCol}>
                             <Text style={styles.tableCell}>0</Text>
                         </View>
                         <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>${Math.round((total.total_amount - taxesMagicNumber) * 100) / 100}</Text>
+                            <Text style={styles.tableCell}>${Math.round((total.regular_hours + total.over_time) * 100) / 100 > 40 ? Math.round(total.total_reg * 100)/100 + Math.floor(total.total_ot * 100)/100: Math.round(total.total_amount * 100) / 100}</Text>
                         </View>
                     </View>;
                 })}
