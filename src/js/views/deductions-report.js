@@ -2,7 +2,7 @@ import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import moment from 'moment';
 import Select from 'react-select';
-import { Theme, Button } from '../components/index';
+import { Theme } from '../components/index';
 import { StyleSheet } from '@react-pdf/renderer';
 import { store, getDeductionsReport, searchMe } from "../actions";
 import arrowDown from "../../img/icons/arrow_down.svg";
@@ -39,10 +39,7 @@ export class DeductionsReport extends Flux.DashView {
     };
 
     render() {
-        const { payrollPeriods, deductionsReport, period } = this.state;
-        console.log("deductionsReport: ", deductionsReport);
-        console.log("payrollPeriods: ", payrollPeriods);
-        console.log("period: ", period);
+        const { payrollPeriods, deductionsReport } = this.state;
         const options = payrollPeriods && payrollPeriods.length > 0
         ? [
             {label: "All", value: null},
