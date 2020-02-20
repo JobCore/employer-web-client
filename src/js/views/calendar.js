@@ -55,12 +55,11 @@ export const ShiftCalendar = ({ catalog }) => {
         setFilters(r);
 
         const _filters = Object.assign({}, r);
-        console.log(queryString.stringify(_filters));
+    
         if (moment.isMoment(_filters.start)) _filters.start = _filters.start.format('YYYY-MM-DD');
         if (moment.isMoment(_filters.end)) _filters.end = _filters.end.format('YYYY-MM-DD');
         searchMe('shifts', '?serializer=big&limit=10000&' + queryString.stringify(_filters));
     };
-
     const groupShifts = (sh, l = null) => {
         let _shifts = {};
 
@@ -90,7 +89,7 @@ export const ShiftCalendar = ({ catalog }) => {
         }
         setGroupedShifts(_shifts);
         if (l) setGroupedLabel(l);
-        else if (groupedLabel === null) setGroupedLabel({ label: "Group shifts by...", value: "employees" });
+        else if (groupedLabel === null) setGroupedLabel({ label: "Employees", value: "employees" });
     };
 
     const previousLabel = useRef(groupedLabel);
@@ -104,6 +103,7 @@ export const ShiftCalendar = ({ catalog }) => {
             setShifts(sh);
             groupShifts(sh, groupedLabel);
         });
+        let positions = store.getState('positions');
         const unsubscribeVenues = store.subscribe('venues', (venues) => setVenues(venues));
         const unsubscribePositions = store.subscribe('positions', (positions) => setPositions(positions));
 
@@ -118,7 +118,8 @@ export const ShiftCalendar = ({ catalog }) => {
         };
 
     }, [groupedLabel]);
-
+    console.log(shifts);
+    console.log(groupedShifts);
     return <Theme.Consumer>
         {({ bar }) => <div className="row">
             <div className="col-10">
@@ -189,7 +190,8 @@ export const ShiftCalendar = ({ catalog }) => {
                         }}
                         onClick={e => {
                             const venue = groupedLabel.value === 'venues' ? venues.find(v => v.title == e.yAxis) : undefined;
-                            const position = groupedLabel.value === 'positions' ? positions.find(p => p.title == e.yAxis) : undefined;
+                            const position = groupedLabel.value === 'positions' ? positions.find(p => p.label == e.yAxis || p.title == e.yAxis) : undefined;
+                            const employee = shifts.filter(emp => emp.employees.length > 0).map(_emp => _emp.employees).flat().find(employee => employee.user.first_name + " " + employee.user.last_name == e.yAxis);
                             if (e.data) {
                                 bar.show({
                                     slug: "shift_details", data: {
@@ -204,8 +206,11 @@ export const ShiftCalendar = ({ catalog }) => {
                                     slug: "create_shift", data: {
                                         starting_at: e.start,
                                         ending_at: e.end,
-                                        venue: venue ? venue.id : null,
-                                        position: position ? position.id : null
+                                        venue: venue ? venue.id : '',
+                                        position: position && position.id ? position.id : position && position.value ? position.value : '',
+                                        application_restriction: employee ? 'SPECIFIC_PEOPLE' : 'ANYONE',
+                                        pending_invites: employee ? [{label: employee.user.first_name + " " + employee.user.last_name , value: employee.id }] : []
+
                                     }
                                 });
                             }
