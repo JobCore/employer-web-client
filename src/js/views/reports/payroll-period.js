@@ -88,6 +88,7 @@ const styles = StyleSheet.create({
 });
 
 const PayrollPeriodReport = ({ period, employer, payments }) => {
+    console.log(period);
     const taxesMagicNumber = 0;
     return <Document>
         {/* <Page style={styles.page}> */}
