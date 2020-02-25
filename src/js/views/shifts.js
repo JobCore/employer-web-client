@@ -83,7 +83,7 @@ export const Shift = (data) => {
                 ending_at: (!moment.isMoment(this.ending_at)) ? moment(this.ending_at) : this.ending_at,
                 allowedFavlists: this.allowed_from_list.map(fav => {
                     const list = store.get('favlists', fav.id || fav);
-                    return (list) ? { value: list.id, label: list.title } : null;
+                    return (list) ? { value: list.id, label: list.title, title: list.title} : null;
                 }),
                 expired: moment(this.ending_at).isBefore(NOW()),
                 price: {
@@ -181,10 +181,17 @@ export class ManageShifts extends Flux.DashView {
         // fetch if not loaded already
         let shifts = store.getState('shifts');
 
-        searchMe(`shifts`, `?envelope=true&limit=10&${status.status == "FILLED" ? "filled=true&upcoming=true&not_status=DRAFT" : "status=" + status.status}`).then(data => {
-            const showNextButton = (data.next !== null);
-            this.setState({ showNextButton });
-        });
+        if(status.status){
+            searchMe(`shifts`, `?envelope=true&limit=10&${status.status == "FILLED" ? "filled=true&upcoming=true&not_status=DRAFT" : "status=" + status.status}`).then(data => {
+                const showNextButton = (data.next !== null);
+                this.setState({ showNextButton });
+            });
+        }else{
+            searchMe(`shifts`, `?envelope=true&limit=10`).then(data => {
+                const showNextButton = (data.next !== null);
+                this.setState({ showNextButton });
+            }); 
+        }
         this.subscribe(store, 'shifts', (shifts) => {
             this.filterShifts(shifts);
         });
@@ -288,6 +295,7 @@ export class ManageShifts extends Flux.DashView {
 
     render() {
         let status = queryString.parse(window.location.search, { arrayFormat: 'index' });
+        console.log('status', status);
         const groupedShifts = _.groupBy(this.state.shifts, (s) => moment(s.starting_at).format('MMMM YYYY'));
         const shiftsHTML = [];
 
@@ -314,11 +322,21 @@ export class ManageShifts extends Flux.DashView {
                     <div className="col">
                         <Button onClick={() => {
                             const PAGINATION_LENGTH = 10;
-                            searchMe(`shifts`, `?envelope=true&limit=10&offset=${this.state.offset + PAGINATION_LENGTH}&status=${status.status}`, this.state.shifts)
+                            const NOT_FILLED_SHIFT = `&status=${status.status}`;
+                            const FILLED_SHIFT = '&filled=true&upcoming=true&not_status=DRAFT&envelope=true';
+                            if(status.status){
+                                searchMe(`shifts`, `?envelope=true&limit=10&offset=${this.state.offset + PAGINATION_LENGTH}${status.status == "FILLED" ? FILLED_SHIFT:NOT_FILLED_SHIFT}`, this.state.shifts)
+                                    .then((newShifts) => {
+                                        const showNextButton = (newShifts.next !== null);
+                                        this.setState({ shifts: newShifts, offset: this.state.offset + PAGINATION_LENGTH, showNextButton });
+                                    });
+                            }else{
+                                searchMe(`shifts`, `?envelope=true&limit=10&offset=${this.state.offset + PAGINATION_LENGTH}`, this.state.shifts)
                                 .then((newShifts) => {
                                     const showNextButton = (newShifts.next !== null);
                                     this.setState({ shifts: newShifts, offset: this.state.offset + PAGINATION_LENGTH, showNextButton });
                                 });
+                            }
                         }}>Load More</Button>
                     </div>
                 </div>
@@ -338,7 +356,7 @@ export const FilterShifts = ({ onSave, onCancel, onChange, catalog }) => {
     const [employees, setEmployees] = useState("");
     const [location, setLocation] = useState("");
     const [status, setStatus] = useState("");
-
+    console.log(employees);
     useEffect(() => {
         const venues = store.getState('venues');
         if (!venues) fetchAllMe(['venues']);
@@ -413,7 +431,8 @@ return(<form>
     </div>
     <div className="btn-bar">
         <button type="button" className="btn btn-primary" onClick={() => {
-            searchMe(`shifts`, `?${status == "FILLED" ? "filled=true&upcoming=true&not_status=DRAFT" : "status=" + status}&position=${position}&start=${date}&employee=${employees.map(e => e.value)}`);
+            const employeesList = employees != "" ? `&employee=${employees.map(e => e.value)}` : '';
+            searchMe(`shifts`, `?${status == "FILLED" ? "filled=true&upcoming=true&not_status=DRAFT" : "status=" + status}&envelope=true&limit=10&position=${position}&venue=${location}&start=${date}${employeesList}`);
         }}>Apply Filters</button>
         <button type="button" className="btn btn-secondary" onClick={() => onSave(false)}>Clear Filters</button>
     </div>
@@ -479,7 +498,7 @@ export const ShiftApplicants = (props) => {
                         )
                         :
                         <li>No applicants were found for this shift, <span className="anchor"
-                            onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift", allowLevels: true })}
+                            onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift",data: { shifts: [catalog.shift], employees: [] },  allowLevels: true })}
                         >invite more talents</span> or  <span className="anchor"
                             onClick={() => bar.show({ slug: "review_shift_invites", allowLevels: true, data: catalog.shift })}
                         >review previous invites</span></li>
@@ -500,7 +519,6 @@ ShiftApplicants.propTypes = {
  */
 export const ShiftEmployees = (props) => {
     const { onCancel, onSave, catalog } = props;
-    console.log(props);
     return (<Theme.Consumer>
         {({ bar }) => (<div className="sidebar-applicants">
             {catalog.shift.expired ?
@@ -551,7 +569,7 @@ export const ShiftEmployees = (props) => {
                         <p>No talents have been accepted for this shift yet, <span className="anchor"
                             onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift", allowLevels: true })}
                         >invite more talents</span> or  <span className="anchor"
-                            onClick={() => bar.show({ slug: "review_shift_invites", allowLevels: true, data: catalog.shift })}
+                            onClick={() => bar.show({ slug: "review_shift_invites", allowLevels: true, data: [catalog.shift] })}
                         >review previous invites</span></p>
             }
         </div>)}
@@ -611,8 +629,7 @@ ShiftInvites.propTypes = {
  * EditOrAddShift
  */
 const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar, oldShift }) => {
-    console.log('catalog', catalog);
-    console.log('formdata', formData);
+
     useEffect(() => {
         const venues = store.getState('venues');
         const favlists = store.getState('favlists');
@@ -1069,6 +1086,12 @@ const ShowShift = ({ shift, bar }) => {
                 :
                 <span className="shift-price"> {shift.price.currencySymbol}{shift.price.amount}</span>
         }
+        <hr/>
+        <div> 
+            <ShiftEmployees catalog={{shift: shift}}/>
+        </div>
+        <hr/>
+        <ShiftApplicants catalog={{shift: shift, applicants: []}}/>
     </div>);
 };
 ShowShift.propTypes = {

@@ -25,15 +25,15 @@ export const getURLFilters = () => {
 
 const gf = {
     positions: {
-        grouping: (s) => s.position.title,
-        label: (s) => <span><ShiftBadge {...s} /> {s.venue.title}</span>
+        grouping: (s) => s.position.title || s.position.label,
+        label: (s) => <span><ShiftBadge {...s} /> {s.venue.title || s.position.label}</span>
     },
     venues: {
         grouping: (s) => s.venue.title,
-        label: (s) => <span><ShiftBadge {...s} /> {s.position.title}</span>
+        label: (s) => <span><ShiftBadge {...s} /> {s.position.title || s.position.label}</span>
     },
     employees: {
-        label: (s) => <span><ShiftBadge {...s} /> {s.position.title}</span>
+        label: (s) => <span><ShiftBadge {...s} /> {s.position.title || s.position.label}</span>
     }
 };
 
