@@ -12,7 +12,7 @@ import { POST, GET, PUT, DELETE, PUTFiles } from './utils/api_wrapper';
 import log from './utils/log';
 import WEngine from "./utils/write_engine.js";
 import qs from "query-string";
-import { normalizeToSnakeCase } from "./utils/validation";
+import { normalizeToSnakeCase } from "./utils/snakeCase";
 const Models = {
     "shifts": Shift,
     "ratings": Rating,
@@ -299,6 +299,7 @@ export const searchMe = (entity, queryString, mergeResults = false) => new Promi
             if (mergeResults) {
                 const previous = store.getState(entity.slug || entity);
                 if (Array.isArray(previous)) list = previous.concat(list.results || list);
+                
             }
             Flux.dispatchEvent(entity.slug || entity, list);
             accept(list);
@@ -650,53 +651,6 @@ export const createPayment = async (payment, period) => {
     return period;
 };
 
-    /**
- * Make employee payment
- * @param  {string}  employeePaymentId employee payment id
- * @param  {string}  paymentType payment type could be: CHECK, FAKE or ELECTRONIC TRANSFERENCE
- * @param  {string}  employer_bank_account_id employer bank account id
- * @param  {string}  employee_bank_account_id employee bank account id
- */
-export const makeEmployeePayment = (
-    employeePaymentId, 
-    paymentType, 
-    employer_bank_account_id, 
-    employee_bank_account_id
-    ) => new Promise((resolve, reject) => {
-        const data = {
-            payment_type: paymentType,
-            payment_data: paymentType === "CHECK" ? {} : {
-                employer_bank_account_id: employer_bank_account_id,
-                employee_bank_account_id: employee_bank_account_id
-            }
-        };
-
-        POST(`employers/me/employee-payment/${employeePaymentId}`, data)
-        .then(resp => {
-            Flux.dispatchEvent('employee-payment',resp);
-            Notify.success("Payment was successful");
-            resolve(resp);
-        })
-        .catch(error => {
-            Notify.error(error.message || error);
-            log.error(error);
-            reject(error);
-        });
-});
-
-    /**
- * fetch payroll period payments
- * @param  {string}  payrollPeriodId employee payment id
- */
-export const fetchPeyrollPeriodPayments = async (payrollPeriodId) => {
-    try {
-        const response = await GET(`employers/me/employee-payment-list/${payrollPeriodId}`);
-        Flux.dispatchEvent('payroll-period-payments', response);
-    } catch(error) {
-        Notify.error(error.message || error);
-    }
-};
-
 export const addBankAccount = (token, metadata) => new Promise((resolve, reject) => POST('bank-accounts/',
     normalizeToSnakeCase({ publicToken: token, institutionName: metadata.institution.name }))
     .then(function (data) {
@@ -752,7 +706,6 @@ class _Store extends Flux.DashStore {
             return invites.map(inv => Invite(inv).defaults().unserialize());
         });
         this.addEvent('payment');
-        this.addEvent('employee-payment');
         this.addEvent('clockins', clockins => !Array.isArray(clockins) ? [] : clockins.map(c => ({ ...c, started_at: moment(c.starting_at), ended_at: moment(c.ended_at) })));
         this.addEvent('jobcore-invites');
         this.addEvent('ratings', (_ratings) => (!Array.isArray(_ratings)) ? [] : _ratings.map(ra => Rating(ra).defaults().unserialize()));
@@ -763,7 +716,6 @@ class _Store extends Flux.DashStore {
         });
         this.addEvent('favlists');
         this.addEvent('deduction');
-        this.addEvent('payroll-period-payments');
         this.addEvent('badges');
 
         this.addEvent('applications', (applicants) => {
@@ -787,13 +739,14 @@ class _Store extends Flux.DashStore {
         });
 
         // Payroll related data
-        this.addEvent('payroll-periods', (period) => {
-            return (!period || (Object.keys(period).length === 0 && period.constructor === Object)) ? [{ label: "Loading payment periods...", value: null }] : period.map(p => {
-                p.label = `From ${moment(p.starting_at).format('MM-D-YY h:mm A')} to ${moment(p.ending_at).format('MM-D-YY h:mm A')}`;
-                if(!Array.isArray(p.payments)) p.payments = [];
-                return p;
-            });
-        });
+        // this.addEvent('payroll-periods', (period) => {
+        //     return (!period || (Object.keys(period).length === 0 && period.constructor === Object)) ? [{ label: "Loading payment periods...", value: null }] : period.map(p => {
+        //         p.label = `From ${moment(p.starting_at).format('MM-D-YY h:mm A')} to ${moment(p.ending_at).format('MM-D-YY h:mm A')}`;
+        //         if(!Array.isArray(p.payments)) p.payments = [];
+        //         return p;
+        //     });
+        // });
+        this.addEvent('payroll-periods');
         this.addEvent("employee-expired-shifts"); //temporal, just used on the payroll report
 
         //temporal storage (for temporal views, information that is read only)

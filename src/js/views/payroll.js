@@ -1814,6 +1814,16 @@ export class PayrollReport extends Flux.DashView {
                                     <h2>Payments for {this.state.singlePayrollPeriod.label ? this.state.singlePayrollPeriod.label : `From ${moment(this.state.singlePayrollPeriod.starting_at).format('MM-D-YY h:mm A')} to ${moment(this.state.singlePayrollPeriod.ending_at).format('MM-D-YY h:mm A')}`}</h2>
                                 </p>
                                 <div className="row mb-4 text-right">
+                                    <div className="col text-left">
+                                        <Button size="small" onClick={() => {
+                                            // res => this.props.history.push('/payroll/period/' + period.id
+                                        const period =this.state.singlePayrollPeriod;
+                                        update('payroll-periods', Object.assign(period, { status: 'OPEN' })).then(res => console.log(res))
+                                        .catch(e => Notify.error(e.message || e));
+                                        }}>Undo Period
+                                        </Button>
+                                    </div>
+
                                     <div className="col">
 
                                         <Button size="small" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button>
@@ -1826,7 +1836,7 @@ export class PayrollReport extends Flux.DashView {
                                         )
                                         )}
                                     </PDFDownloadLink>
-
+                                    
 
                                 </div>
 
