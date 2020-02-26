@@ -1,21 +1,21 @@
 import React, { useState, useEffect, useContext } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import { store, search, update, fetchSingle, searchMe, processPendingPayrollPeriods, updatePayments, createPayment, fetchAllMe, fetchTemporal, remove, create } from '../actions.js';
-import { GET } from '../utils/api_wrapper';
+import { store, search, update, fetchSingle, searchMe, processPendingPayrollPeriods, updatePayments, createPayment, fetchAllMe, fetchTemporal, remove, create } from '../../actions.js';
+import { GET } from '../../utils/api_wrapper';
 
 
 import DateTime from 'react-datetime';
 import moment from 'moment';
-import { DATETIME_FORMAT, TIME_FORMAT, NOW, TODAY, haversineDistance } from '../components/utils.js';
+import { DATETIME_FORMAT, TIME_FORMAT, NOW, TODAY, haversineDistance } from '../../components/utils.js';
 import Select from 'react-select';
 
 import { Notify } from 'bc-react-notifier';
 
-import { Shift, EditOrAddShift } from './shifts.js';
-import { Employer } from './profile.js';
-import { ManageLocations, AddOrEditLocation, Location } from './locations.js';
-import { EmployeeExtendedCard, ShiftOption, ShiftCard, DeductionExtendedCard, Theme, Button, ShiftOptionSelected, GenericCard, SearchCatalogSelect, Avatar, Toggle, Wizard, StarRating, ListCard } from '../components/index';
+import { Shift, EditOrAddShift } from '../shifts.js';
+import { Employer } from '../profile.js';
+import { ManageLocations, AddOrEditLocation, Location } from '../locations.js';
+import { EmployeeExtendedCard, ShiftOption, ShiftCard, DeductionExtendedCard, Theme, Button, ShiftOptionSelected, GenericCard, SearchCatalogSelect, Avatar, Toggle, Wizard, StarRating, ListCard } from '../../components/index';
 import queryString from 'query-string';
 
 import TimePicker from 'rc-time-picker';
@@ -29,7 +29,7 @@ import GoogleMapReact from 'google-map-react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 
 import TextareaAutosize from 'react-textarea-autosize';
-import {PayrollPeriodReport} from "./reports/index.js";
+import {PayrollPeriodReport} from "../reports/index.js";
 
 import { Redirect } from 'react-router-dom';
 
