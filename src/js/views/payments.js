@@ -130,7 +130,7 @@ export class MakePayment extends Flux.DashView {
                                                             try{
                                                                 await makeEmployeePayment(
                                                                     pay.id, 
-                                                                    "FAKE",
+                                                                    "ELECTRONIC TRANSFERENCE",
                                                                     bankaccount.id, 
                                                                     pay.employee.bank_accounts[0].id,
                                                                     );
