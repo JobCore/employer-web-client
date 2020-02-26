@@ -48,6 +48,7 @@ export const ShiftCalendar = ({ catalog }) => {
     const [shiftChanges, setShiftChanges] = useState([]);
     const [groupedShifts, setGroupedShifts] = useState(null);
     const [groupedLabel, setGroupedLabel] = useState(null);
+    const [calendarLoading, setCalendarLoading] = useState(true);
     const [viewMode, setViewMode] = useState('day');
     const setCalendarFilters = (incoming = {}) => {
         const urlFilters = getURLFilters();
@@ -58,7 +59,7 @@ export const ShiftCalendar = ({ catalog }) => {
     
         if (moment.isMoment(_filters.start)) _filters.start = _filters.start.format('YYYY-MM-DD');
         if (moment.isMoment(_filters.end)) _filters.end = _filters.end.format('YYYY-MM-DD');
-        searchMe('shifts', '?serializer=big&limit=10000&' + queryString.stringify(_filters));
+        searchMe('shifts', '?serializer=big&limit=10000&' + queryString.stringify(_filters)).then(()=> setCalendarLoading(false));
     };
     const groupShifts = (sh, l = null) => {
         let _shifts = {};
@@ -118,8 +119,7 @@ export const ShiftCalendar = ({ catalog }) => {
         };
 
     }, [groupedLabel]);
-    console.log(shifts);
-    console.log(groupedShifts);
+    console.log(calendarLoading);
     return <Theme.Consumer>
         {({ bar }) => <div className="row">
             <div className="col-10">
@@ -136,11 +136,12 @@ export const ShiftCalendar = ({ catalog }) => {
                                 />
                             </div>
                             <div className="col text-right pt-4">
-                                <Button size="small" color="light" icon="backward"
+                                <Button size="small" disable={calendarLoading} color="light" icon="backward"
                                     onClick={() => {
                                         const newEndDate = moment(currentDate).add(-1, viewMode);
                                         const oldEndDate = moment(filters.start);
                                         if (newEndDate.isBefore(oldEndDate)) {
+                                            setCalendarLoading(true);
                                             const updatedFilters = { start: moment(newEndDate).add(-2, 'weeks').format('YYYY-MM-DD'), end: moment(newEndDate).add(2, 'weeks').format('YYYY-MM-DD') };
                                             window.location.hash = queryString.stringify(updatedFilters);
                                             setCalendarFilters(updatedFilters);
@@ -148,13 +149,14 @@ export const ShiftCalendar = ({ catalog }) => {
                                         setCurrentDate(moment(currentDate).add(-1, viewMode));
                                     }}
                                 />
-                                <Button size="small" onClick={() => setViewMode('day')}>Day</Button>
-                                <Button size="small" onClick={() => setViewMode('week')}>Week</Button>
-                                <Button size="small" onClick={() => setViewMode('month')}>Month</Button>
-                                <Button size="small" color="light" icon="forward" onClick={() => {
+                                <Button size="small" disable={calendarLoading} onClick={() => setViewMode('day')}>Day</Button>
+                                <Button size="small" disable={calendarLoading} onClick={() => setViewMode('week')}>Week</Button>
+                                <Button size="small" disable={calendarLoading} onClick={() => setViewMode('month')}>Month</Button>
+                                <Button size="small" disable={calendarLoading} color="light" icon="forward" onClick={() => {
                                     const newEndDate = moment(currentDate).add(1, viewMode);
                                     const oldEndDate = moment(filters.end);
                                     if (oldEndDate.isBefore(newEndDate)) {
+                                        setCalendarLoading(true);
                                         const updatedFilters = { start: moment(newEndDate).add(-2, 'weeks').format('YYYY-MM-DD'), end: moment(newEndDate).add(2, 'weeks').format('YYYY-MM-DD') };
                                         window.location.hash = queryString.stringify(updatedFilters);
                                         setCalendarFilters(updatedFilters);

@@ -770,30 +770,43 @@ export const PayrollPeriodDetails = ({ match, history }) => {
         groupedPayments[pay.employee.id].payments.push(pay);
     }
     groupedPayments = Object.keys(groupedPayments).map(id => groupedPayments[id]);
-
+    console.log(payments);
     return <div className="p-1 listcontents">
         <p className="text-right">
             {period.status != "OPEN" ?
-                <Button className="btn btn-info" onClick={() => history.push('/payroll/report/' + period.id)}>Take me to the Payroll Report</Button>
+
+                (
+                    <div>
+                        <Button className="btn btn-info text-left mr-4"  onClick={() => {
+                                    update('payroll-periods', Object.assign(period, { status: 'OPEN' })).then(_payment => setPayments(payments.map(_pay => {return {
+                                        ..._pay, status: "APPROVED" };
+                                    }
+                                    )))
+                                    .catch(e => Notify.error(e.message || e));
+                                    }}>Undo Period
+                        </Button>
+                        <Button className="btn btn-info" onClick={() => history.push('/payroll/report/' + period.id)}>Take me to the Payroll Report</Button>
+                    </div>
+                )
                 :
-                <Button icon="plus" size="small" onClick={() => {
-                    const isOpen = period.payments.find(p => p.status === "NEW");
-                    const thereIsAnotherNew = payments.find(item => item.status === 'NEW');
+                    <Button icon="plus" size="small" onClick={() => {
+                        const isOpen = period.payments.find(p => p.status === "NEW");
+                        const thereIsAnotherNew = payments.find(item => item.status === 'NEW');
 
-                    if (isOpen) return;
-                    if (thereIsAnotherNew) setPayments(payments.map(_pay => {
-                        if (_pay.status !== 'NEW') return _pay;
-                        else {
-                            return {
-                                ..._pay,
-                                payments: _pay.payments.filter(p => p.status == 'NEW')
-                            };
-                        }
-                    }));
+                        if (isOpen) return;
+                        if (thereIsAnotherNew) setPayments(payments.map(_pay => {
+                            if (_pay.status !== 'NEW') return _pay;
+                            else {
+                                return {
+                                    ..._pay,
+                                    payments: _pay.payments.filter(p => p.status == 'NEW')
+                                };
+                            }
+                        }));
 
-                    setPayments(period.payments.concat([Payment({ status: "NEW", employee: { id: 'new' } }).defaults()]));
-                    bar.close();
-                }}>Add employee to timesheet</Button>
+                        setPayments(period.payments.concat([Payment({ status: "NEW", employee: { id: 'new' } }).defaults()]));
+                        bar.close();
+                    }}>Add employee to timesheet</Button>
             }
         </p>
         {groupedPayments.length == 0 ?
@@ -1600,9 +1613,9 @@ export class PayrollRating extends Flux.DashView {
         }
 
         return (<div className="p-1 listcontents mx-auto">
-            {this.state.singlePayrollPeriod && this.state.singlePayrollPeriod.status == "FINALIZED" &&
+            {/* {this.state.singlePayrollPeriod && this.state.singlePayrollPeriod.status == "FINALIZED" &&
                 <Redirect from={'/payroll/rating/' + this.state.singlePayrollPeriod.id} to={'/payroll/report/' + this.state.singlePayrollPeriod.id} />
-            }
+            } */}
             <Theme.Consumer>
                 {({ bar }) => (<span>
                     {(!this.state.singlePayrollPeriod) ? '' :
@@ -1734,8 +1747,7 @@ export class PayrollReport extends Flux.DashView {
 
         const payrollPeriods = store.getState('payroll-periods');
         this.subscribe(store, 'payroll-periods', (_payrollPeriods) => {
-            this.updatePayrollPeriod(_payrollPeriods);
-            //if(!this.state.singlePayrollPeriod) this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
+            //Updated payroll.
         });
         if (!payrollPeriods || payrollPeriods.length == 0 ) {
             if(this.props.match.params.period_id !== undefined) fetchSingle("payroll-periods", this.props.match.params.period_id).then(_period => {
@@ -1760,6 +1772,7 @@ export class PayrollReport extends Flux.DashView {
         if (!singlePeriod) return null;
 
         let groupedPayments = {};
+
         singlePeriod.payments.forEach(pay => {
             if (typeof groupedPayments[pay.employee.id] === 'undefined') {
                 groupedPayments[pay.employee.id] = { employee: pay.employee, payments: [] };
@@ -1794,7 +1807,7 @@ export class PayrollReport extends Flux.DashView {
 
 
     render() {
-        console.log(this.state.singlePayrollPeriod);
+        console.log(this.state);
         const taxesMagicNumber = 0;
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
@@ -1818,7 +1831,7 @@ export class PayrollReport extends Flux.DashView {
                                         <Button size="small" onClick={() => {
                                             // res => this.props.history.push('/payroll/period/' + period.id
                                         const period =this.state.singlePayrollPeriod;
-                                        update('payroll-periods', Object.assign(period, { status: 'OPEN' })).then(res => console.log(res))
+                                        update('payroll-periods', Object.assign(period, { status: 'OPEN' })).then(res => this.props.history.push('/payroll/period/' + period.id))
                                         .catch(e => Notify.error(e.message || e));
                                         }}>Undo Period
                                         </Button>
@@ -1840,9 +1853,9 @@ export class PayrollReport extends Flux.DashView {
 
                                 </div>
 
-                                {this.state.singlePayrollPeriod.status == "OPEN" &&
+                                {/* {this.state.singlePayrollPeriod.status == "OPEN" &&
                                     <Redirect from={'/payroll/report/' + this.state.singlePayrollPeriod.id} to={'/payroll/rating/' + this.state.singlePayrollPeriod.id} />
-                                }
+                                } */}
                                 <table className="table table-striped payroll-summary">
                                     <thead>
                                         <tr>
