@@ -1777,15 +1777,6 @@ export class PayrollReport extends Flux.DashView {
         if (!singlePeriod) return null;
 
         let groupedPayments = {};
-<<<<<<< HEAD
-
-        singlePeriod.payments.forEach(pay => {
-            if (typeof groupedPayments[pay.employee.id] === 'undefined') {
-                groupedPayments[pay.employee.id] = { employee: pay.employee, payments: [] };
-            }
-            if (pay.status === "APPROVED") groupedPayments[pay.employee.id].payments.push(pay);
-        });
-=======
         if(singlePeriod.payments){
             singlePeriod.payments.forEach(pay => {
                 if (typeof groupedPayments[pay.employee.id] === 'undefined') {
@@ -1794,7 +1785,6 @@ export class PayrollReport extends Flux.DashView {
                 groupedPayments[pay.employee.id].payments.push(pay);
             });
         }
->>>>>>> 721630c6fc2a9b9c0d20f6b3de35efb2a4c6e752
 
         return Object.values(groupedPayments);
     }
@@ -1825,11 +1815,6 @@ export class PayrollReport extends Flux.DashView {
 
 
     render() {
-<<<<<<< HEAD
-        console.log(this.state);
-        const taxesMagicNumber = 0;
-=======
->>>>>>> 721630c6fc2a9b9c0d20f6b3de35efb2a4c6e752
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
@@ -1848,7 +1833,6 @@ export class PayrollReport extends Flux.DashView {
                                     <h2>Payments for {this.state.singlePayrollPeriod.label}</h2>
                                 </p>
                                 <div className="row mb-4 text-right">
-<<<<<<< HEAD
                                     <div className="col text-left">
                                         <Button size="small" onClick={() => {
                                             // res => this.props.history.push('/payroll/period/' + period.id
@@ -1859,8 +1843,6 @@ export class PayrollReport extends Flux.DashView {
                                         </Button>
                                     </div>
 
-=======
->>>>>>> 721630c6fc2a9b9c0d20f6b3de35efb2a4c6e752
                                     <div className="col">
 
                                         <Button size="small" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button>
