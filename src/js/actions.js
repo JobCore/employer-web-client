@@ -299,6 +299,7 @@ export const searchMe = (entity, queryString, mergeResults = false) => new Promi
             if (mergeResults) {
                 const previous = store.getState(entity.slug || entity);
                 if (Array.isArray(previous)) list = previous.concat(list.results || list);
+
             }
             Flux.dispatchEvent(entity.slug || entity, list);
             accept(list);
@@ -320,7 +321,7 @@ export const create = (entity, data, status = WEngine.modes.LIVE) => new Promise
             let entities = store.getState(entity.slug || entity);
             if (!entities || !Array.isArray(entities)) entities = [];
 
-            //if the response from the server is not a list 
+            //if the response from the server is not a list
             if (!Array.isArray(incoming)) {
                 // if the response is not a list, I will add the new object into that list
                 Flux.dispatchEvent(entity.slug || entity, entities.concat([{ ...data, id: incoming.id }]));
@@ -658,9 +659,9 @@ export const createPayment = async (payment, period) => {
  * @param  {string}  employee_bank_account_id employee bank account id
  */
 export const makeEmployeePayment = (
-    employeePaymentId, 
-    paymentType, 
-    employer_bank_account_id, 
+    employeePaymentId,
+    paymentType,
+    employer_bank_account_id,
     employee_bank_account_id
     ) => new Promise((resolve, reject) => {
         const data = {
@@ -831,13 +832,14 @@ class _Store extends Flux.DashStore {
         });
 
         // Payroll related data
-        this.addEvent('payroll-periods', (period) => {
-            return (!period || (Object.keys(period).length === 0 && period.constructor === Object)) ? [{ label: "Loading payment periods...", value: null }] : period.map(p => {
-                p.label = `From ${moment(p.starting_at).format('MM-D-YY h:mm A')} to ${moment(p.ending_at).format('MM-D-YY h:mm A')}`;
-                if(!Array.isArray(p.payments)) p.payments = [];
-                return p;
-            });
-        });
+        // this.addEvent('payroll-periods', (period) => {
+        //     return (!period || (Object.keys(period).length === 0 && period.constructor === Object)) ? [{ label: "Loading payment periods...", value: null }] : period.map(p => {
+        //         p.label = `From ${moment(p.starting_at).format('MM-D-YY h:mm A')} to ${moment(p.ending_at).format('MM-D-YY h:mm A')}`;
+        //         if(!Array.isArray(p.payments)) p.payments = [];
+        //         return p;
+        //     });
+        // });
+        this.addEvent('payroll-periods');
         this.addEvent("employee-expired-shifts"); //temporal, just used on the payroll report
 
         //temporal storage (for temporal views, information that is read only)
