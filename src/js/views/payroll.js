@@ -1818,14 +1818,13 @@ export class PayrollReport extends Flux.DashView {
                         (this.state.paymentInfo.payments && this.state.paymentInfo.payments.length > 0) ?
                             <div>
                                 <p className="text-right">
-                                    <h2>Payments for {this.state.singlePayrollPeriod.label}</h2>
+                                    <h2>{`Payments From ${moment(this.state.singlePayrollPeriod.starting_at).format('MM-D-YY h:mm A')} to ${moment(this.state.singlePayrollPeriod.ending_at).format('MM-D-YY h:mm A')}`}</h2>
                                 </p>
                                 <div className="row mb-4 text-right">
                                     <div className="col">
-
                                         <Button size="small" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button>
                                     </div>
-                                    <PDFDownloadLink document={() => <PayrollPeriodReport employer={this.state.empoyer} payments={this.state.payments} period={this.state.singlePayrollPeriod}/>} fileName={"JobCore " + this.state.singlePayrollPeriod.label + ".pdf"}>
+                                    <PDFDownloadLink document={() => <PayrollPeriodReport employer={this.state.employer} payments={this.state.payments} period={this.state.singlePayrollPeriod}/>} fileName={"JobCore " + this.state.singlePayrollPeriod.label + ".pdf"}>
                                         {({ blob, url, loading, error }) => (loading ? 'Loading...' : (
                                             <div className="col">
                                                 <Button color="success" size="small" >Export to PDF</Button>
@@ -1833,10 +1832,7 @@ export class PayrollReport extends Flux.DashView {
                                         )
                                         )}
                                     </PDFDownloadLink>
-
-
                                 </div>
-
                                 {this.state.singlePayrollPeriod.status == "OPEN" &&
                                     <Redirect from={'/payroll/report/' + this.state.singlePayrollPeriod.id} to={'/payroll/rating/' + this.state.singlePayrollPeriod.id} />
                                 }
