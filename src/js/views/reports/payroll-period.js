@@ -141,11 +141,11 @@ const PayrollPeriodReport = ({ period, employer, payments }) => {
                     a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
                 ).map(pay => {
                     const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + Number(regular_hours) + Number(over_time), 0);
-                                            
+
                     const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + (Number(regular_hours) + Number(over_time))*Number(hourly_rate) , 0);
                     const total_reg = total_hours > 40 ? 40 * Number(pay.payments[0]['hourly_rate']) : 0;
                     const total_ot = total_hours > 40 ? (total_hours - 40) * (Number(pay.payments[0]['hourly_rate'])*1.5): 0;
-                     
+
                     const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
                         return {
                                 overtime: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) > 40 ? parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) - 40 : 0,
@@ -164,7 +164,7 @@ const PayrollPeriodReport = ({ period, employer, payments }) => {
                         <View style={styles.tableCol1}>
                             <Text style={styles.tableCell}>{pay.employee.user.last_name + " " + pay.employee.user.first_name + " - " + total.status.toLowerCase()}</Text>
                         </View>
-                       
+
                         <View style={styles.tableCol}>
                             <Text style={styles.tableCell}>{Math.round((total.regular_hours + total.over_time) * 100) / 100 > 40 ? 40 : Math.round((total.regular_hours + total.over_time) * 100) / 100 }</Text>
                         </View>
