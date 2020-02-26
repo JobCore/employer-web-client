@@ -1737,7 +1737,7 @@ export class PayrollReport extends Flux.DashView {
             this.updatePayrollPeriod(_payrollPeriods);
             //if(!this.state.singlePayrollPeriod) this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
         });
-        if (!payrollPeriods) {
+        if (!payrollPeriods || payrollPeriods.length == 0 ) {
             if(this.props.match.params.period_id !== undefined) fetchSingle("payroll-periods", this.props.match.params.period_id).then(_period => {
             this.setState({singlePayrollPeriod:_period, payments: this.groupPayments(_period).filter(p => p.payments.length != 0)});
         });
@@ -1775,7 +1775,7 @@ export class PayrollReport extends Flux.DashView {
             if (!payrollPeriods) fetchSingle("payroll-periods", periodId);
             else {
                 const singlePayrollPeriod = payrollPeriods.find(pp => pp.id == periodId);
-                this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod).filter(p => p.payments.length != 0) });
+                this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod) });
             }
         }
     }
@@ -1794,6 +1794,7 @@ export class PayrollReport extends Flux.DashView {
 
 
     render() {
+        console.log(this.state.singlePayrollPeriod);
         const taxesMagicNumber = 0;
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
@@ -1813,11 +1814,21 @@ export class PayrollReport extends Flux.DashView {
                                     <h2>Payments for {this.state.singlePayrollPeriod.label ? this.state.singlePayrollPeriod.label : `From ${moment(this.state.singlePayrollPeriod.starting_at).format('MM-D-YY h:mm A')} to ${moment(this.state.singlePayrollPeriod.ending_at).format('MM-D-YY h:mm A')}`}</h2>
                                 </p>
                                 <div className="row mb-4 text-right">
+                                    <div className="col text-left">
+                                        <Button size="small" onClick={() => {
+                                            // res => this.props.history.push('/payroll/period/' + period.id
+                                        const period =this.state.singlePayrollPeriod;
+                                        update('payroll-periods', Object.assign(period, { status: 'OPEN' })).then(res => console.log(res))
+                                        .catch(e => Notify.error(e.message || e));
+                                        }}>Undo Period
+                                        </Button>
+                                    </div>
+
                                     <div className="col">
 
                                         <Button size="small" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button>
                                     </div>
-                                    <PDFDownloadLink document={<PayrollPeriodReport employer={this.state.employer} payments={this.state.payments} period={this.state.singlePayrollPeriod}/>} fileName={"JobCore " + this.state.singlePayrollPeriod.label + ".pdf"}>
+                                    <PDFDownloadLink document={<PayrollPeriodReport employer={this.state.employer} payments={this.state.payments} period={this.state.singlePayrollPeriod}/>} fileName={"JobCore" + ".pdf"}>
                                         {({ blob, url, loading, error }) => (loading ? 'Loading...' : (
                                             <div className="col">
                                                 <Button color="success" size="small" >Export to PDF</Button>
@@ -1825,7 +1836,7 @@ export class PayrollReport extends Flux.DashView {
                                         )
                                         )}
                                     </PDFDownloadLink>
-
+                                    
 
                                 </div>
 
@@ -1852,7 +1863,8 @@ export class PayrollReport extends Flux.DashView {
                                             const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + Number(regular_hours) + Number(over_time), 0);
                                             
                                             const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + (Number(regular_hours) + Number(over_time))*Number(hourly_rate) , 0);
-                                           
+                                            const total_reg = total_hours > 40 ? 40 * Number(pay.payments[0]['hourly_rate']) : 0;
+                                            const total_ot = total_hours > 40 ? (total_hours - 40) * Number(pay.payments[0]['hourly_rate']*1.5) : 0;
                                             const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
                                                 return {
                                                     overtime: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) > 40 ? parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) - 40 : 0,
