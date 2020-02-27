@@ -149,9 +149,9 @@ export class MakePayment extends Flux.DashView {
                                             </Button>
                                         </div>
                                     )
-                                : <div className="col-12"><label>Employer dont have any bank accounts</label></div>}
+                                : <div className="col-12"><label>Employer doesn{`'`}t have any bank accounts</label></div>}
                         </>
-                        : <div className="col-12"><label>Employee dont have any bank accounts</label></div>}
+                        : <div className="col-12"><label>Employee doesn{`'`}t have any bank accounts</label></div>}
                     </div>
         : <div className="row">
             <div className="col-12">
