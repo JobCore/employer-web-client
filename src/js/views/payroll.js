@@ -1721,7 +1721,6 @@ export class PayrollReport extends Flux.DashView {
         this.state = {
             employer: store.getState('current_employer'),
             payrollPeriods: [],
-            payments: [],
             paymentInfo: [],
             singlePayrollPeriod: null,
         };
@@ -1810,6 +1809,7 @@ export class PayrollReport extends Flux.DashView {
                 <Button color="success" onClick={() => this.props.history.push("/payroll/settings")}>Setup Payroll Settings</Button>
             </div>;
         }
+        const payrollPeriodLabel = this.state.singlePayrollPeriod ? `Payments From ${moment(this.state.singlePayrollPeriod.starting_at).format('MM-D-YY h:mm A')} to ${moment(this.state.singlePayrollPeriod.ending_at).format('MM-D-YY h:mm A')}` : '';
         //const allowLevels = (window.location.search != '');
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
@@ -1818,13 +1818,13 @@ export class PayrollReport extends Flux.DashView {
                         (this.state.paymentInfo.payments && this.state.paymentInfo.payments.length > 0) ?
                             <div>
                                 <p className="text-right">
-                                    <h2>{`Payments From ${moment(this.state.singlePayrollPeriod.starting_at).format('MM-D-YY h:mm A')} to ${moment(this.state.singlePayrollPeriod.ending_at).format('MM-D-YY h:mm A')}`}</h2>
+                                    <h2>{payrollPeriodLabel}</h2>
                                 </p>
                                 <div className="row mb-4 text-right">
                                     <div className="col">
                                         <Button size="small" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button>
                                     </div>
-                                    <PDFDownloadLink document={() => <PayrollPeriodReport employer={this.state.employer} payments={this.state.payments} period={this.state.singlePayrollPeriod}/>} fileName={"JobCore " + this.state.singlePayrollPeriod.label + ".pdf"}>
+                                    <PDFDownloadLink document={<PayrollPeriodReport employer={this.state.employer} payments={this.state.paymentInfo.payments} period={this.state.singlePayrollPeriod}/>} fileName={"JobCore payments" + payrollPeriodLabel + ".pdf"}>
                                         {({ blob, url, loading, error }) => (loading ? 'Loading...' : (
                                             <div className="col">
                                                 <Button color="success" size="small" >Export to PDF</Button>
@@ -1852,14 +1852,6 @@ export class PayrollReport extends Flux.DashView {
                                         {this.state.paymentInfo.payments.sort((a, b) =>
                                             a.employee.last_name.toLowerCase() > b.employee.last_name.toLowerCase() ? 1 : -1
                                         ).map(pay => {
-                                            // const total = pay.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
-                                            //     return {
-                                            //         over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
-                                            //         regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
-                                            //         total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount),
-                                            //         status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
-                                            //     };
-                                            // }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
                                             return <tr key={pay.employee.id}>
                                                 <td>
                                                     {pay.employee.last_name}, {pay.employee.first_name}
@@ -1886,8 +1878,6 @@ export class PayrollReport extends Flux.DashView {
                                                         {pay.paid ? "Payment details" : "Make payment"}
                                                     </Button>
                                                 </td>
-                                                {/* <td>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</td>
-                                                <td>${Math.round(total.total_amount * 100) / 100}</td> */}
                                             </tr>;
                                         })}
                                     </tbody>
