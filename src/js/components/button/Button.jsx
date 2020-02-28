@@ -26,24 +26,25 @@ const sizes = {
   small: { btn: 'btn-sm', icon: 'icon-xs' }
 };
 
-const Button = ({ color, onClick, propagate, icon, children, className, note, rounded, size, onMouseEnter, onMouseLeave, onFocus, notePosition, withAlert, style }) => {
-  return (
-      <button
-        style={style}
-        type="button"
-        className={"jc-button btn btn-"+color+" "+notePosition+" "+sizes[size].btn+(withAlert ? ' with-note':'')+(rounded ? ' rounded':'')+" "+className}
-        onMouseEnter={(e) => (onMouseEnter) ? onMouseEnter(e):null}
-        onMouseLeave={(e) => (onMouseLeave) ? onMouseLeave(e):null}
-        onFocus={(e) => (onFocus) ? onFocus(e):null}
-        onClick={(e) => {
-          if(!propagate) e.stopPropagation();
-          onClick(e);
-        }}
-      >
-          { (typeof icons[icon] != 'undefined') ? <i className={`${icons[icon]} ${sizes[size].icon}`}></i>:'' }
-          { (children) ? children:'' }
-          { note ? <span className={"btn-tooltip "+notePosition}>{note}</span> : '' }
-      </button>);
+const Button = ({ color, onClick, propagate, icon, children, className, note, rounded, size, onMouseEnter, onMouseLeave, onFocus, notePosition, withAlert, style, disable}) => {
+    return (
+        <button
+            style={style}
+            type="button"
+            disabled={disable}
+            className={"jc-button btn btn-"+color+" "+notePosition+" "+sizes[size].btn+(withAlert ? ' with-note':'')+(rounded ? ' rounded':'')+" "+className}
+            onMouseEnter={(e) => (onMouseEnter) ? onMouseEnter(e):null}
+            onMouseLeave={(e) => (onMouseLeave) ? onMouseLeave(e):null}
+            onFocus={(e) => (onFocus) ? onFocus(e):null}
+            onClick={(e) => {
+            if(!propagate) e.stopPropagation();
+            onClick(e);
+            }}
+        >
+            { (typeof icons[icon] != 'undefined') ? <i className={`${icons[icon]} ${sizes[size].icon}`}></i>:'' }
+            { (children) ? children:'' }
+            { note ? <span className={"btn-tooltip "+notePosition}>{note}</span> : '' }
+        </button>);
 };
 Button.propTypes = {
   onClick: PropTypes.func.isRequired,
@@ -63,11 +64,13 @@ Button.propTypes = {
   withAlert: PropTypes.bool,
   size: PropTypes.string,
   rounded: PropTypes.bool,
+  disable: PropTypes.bool,
   style: PropTypes.object
 };
 Button.defaultProps = {
   propagate: false,
   rounded: false,
+  disable: false,
   children: null,
   onMouseEnter: null,
   onMouseLeave: null,
