@@ -264,7 +264,7 @@ export const FavlistEmployees = ({ formData, onChange, onSave, catalog }) => {
                 {(favlist && favlist.employees.length > 0) ?
                     <div className="row">
                         <div className="col-12">
-                            <ul>
+                            <ul className="scroll" style={{ maxHeight: "600px", overflowY: "auto", padding: "10px", margin: "-10px" }}>
                                 {favlist.employees.map((em, i) => (
                                     <EmployeeExtendedCard
                                         key={i}
