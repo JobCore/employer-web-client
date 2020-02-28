@@ -55,14 +55,14 @@ export default class Home extends Flux.DashView {
     componentDidMount() {
         const shifts = store.getState('shifts');
         this.subscribe(store, 'shifts', (_shifts) => {
-            this.setState({ shifts: _shifts});
+           
+            this.setState({ shifts: _shifts, calendarLoading: false});
         });
    
-        searchMe(`shifts`, `?limit=10000&end=${this.state.end.format('YYYY-MM-DD')}&start=${this.state.start.format('YYYY-MM-DD')}`).then(()=> this.setState({calendarLoading: false}));
+        searchMe(`shifts`, `?limit=10000&end=${this.state.end.format('YYYY-MM-DD')}&start=${this.state.start.format('YYYY-MM-DD')}`);
     }
 
     render() {
-        console.log('calendarloading',this.state.calendarLoading);
         return (
             <Theme.Consumer>
                 {({ bar }) =>

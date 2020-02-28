@@ -59,7 +59,7 @@ export const ShiftCalendar = ({ catalog }) => {
     
         if (moment.isMoment(_filters.start)) _filters.start = _filters.start.format('YYYY-MM-DD');
         if (moment.isMoment(_filters.end)) _filters.end = _filters.end.format('YYYY-MM-DD');
-        searchMe('shifts', '?serializer=big&limit=10000&' + queryString.stringify(_filters)).then(()=> setCalendarLoading(false));
+        searchMe('shifts', '?serializer=big&limit=10000&' + queryString.stringify(_filters));
     };
     const groupShifts = (sh, l = null) => {
         let _shifts = {};
@@ -103,6 +103,7 @@ export const ShiftCalendar = ({ catalog }) => {
         const unsubscribeShifts = store.subscribe('shifts', (sh) => {
             setShifts(sh);
             groupShifts(sh, groupedLabel);
+            setCalendarLoading(false);
         });
         let positions = store.getState('positions');
         const unsubscribeVenues = store.subscribe('venues', (venues) => setVenues(venues));
@@ -119,7 +120,6 @@ export const ShiftCalendar = ({ catalog }) => {
         };
 
     }, [groupedLabel]);
-    console.log(calendarLoading);
     return <Theme.Consumer>
         {({ bar }) => <div className="row">
             <div className="col-10">
@@ -166,7 +166,6 @@ export const ShiftCalendar = ({ catalog }) => {
                             </div>
                         </div>}
                         onChange={(evt) => {
-                            //console.log("Event Updatedd", evt);
                             let shift = {
                                 id: evt.data.id,
                                 starting_at: moment(evt.start),
