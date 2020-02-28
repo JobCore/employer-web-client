@@ -81,7 +81,8 @@ export class PaymentsReport extends Flux.DashView {
                                         <th scope="col">Employee</th>
                                         <th scope="col">Payment date</th>
                                         <th scope="col">Amount</th>
-                                        <th scope="col">deductions</th>
+                                        <th scope="col">Deductions</th>
+                                        <th scope="col">Taxes</th>
                                         <th scope="col">Payment method</th>
                                     </tr>
                                 </thead>
@@ -95,6 +96,7 @@ export class PaymentsReport extends Flux.DashView {
                                             <td>{pay.payment_date}</td>
                                             <td>{pay.amount}</td>
                                             <td>{pay.deductions}</td>
+                                            <td>{pay.taxes}</td>
                                             <td>{pay.payment_source}</td>
                                         </tr>;
                                     })}
