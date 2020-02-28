@@ -83,7 +83,7 @@ export class DeductionsReport extends Flux.DashView {
                                     <tr>
                                         <th scope="col">Employee</th>
                                         <th scope="col">Payment date</th>
-                                        <th scope="col">deductions</th>
+                                        <th scope="col">Deductions</th>
                                         <th scope="col">Deductions Amount</th>
                                     </tr>
                                 </thead>
