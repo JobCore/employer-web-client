@@ -93,11 +93,11 @@ export class ManageFavorites extends Flux.DashView {
 
     render() {
         return (<div className="p-1 listcontents">
-            <Wizard continuous
+            {/* <Wizard continuous
                 steps={this.state.steps}
                 run={this.state.runTutorial}
                 callback={callback}
-            />
+            /> */}
             <h1><span id="your-favorites-heading">Your favorite lists</span></h1>
             <Theme.Consumer>
                 {({ bar }) =>

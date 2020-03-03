@@ -120,6 +120,7 @@ export const ShiftCalendar = ({ catalog }) => {
         };
 
     }, [groupedLabel]);
+
     return <Theme.Consumer>
         {({ bar }) => <div className="row">
             <div className="col-10">

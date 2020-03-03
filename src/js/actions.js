@@ -299,7 +299,7 @@ export const searchMe = (entity, queryString, mergeResults = false) => new Promi
             if (mergeResults) {
                 const previous = store.getState(entity.slug || entity);
                 if (Array.isArray(previous)) list = previous.concat(list.results || list);
-
+                
             }
             Flux.dispatchEvent(entity.slug || entity, list);
             accept(list);

@@ -31,7 +31,7 @@ var Stars = function Stars(_ref) {
         lis.length > 0 ? lis : _react2.default.createElement(
             'small',
             null,
-            'No rating available'
+            'No rating available '
         ),
         decimalPart > 0 ? _react2.default.createElement('i', { className: 'fas fa-star-half' }) : '',
         jobCount ? _react2.default.createElement(

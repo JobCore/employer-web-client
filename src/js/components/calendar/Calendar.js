@@ -150,7 +150,6 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
                             else{
                                 setCalendarEvents(newEvents);
                                 setYAxis(generateAxis(newEvents));
-                                console.log(yAxis);
                             }
                         }
                 }}>

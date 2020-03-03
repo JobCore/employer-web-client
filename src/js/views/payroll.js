@@ -770,7 +770,6 @@ export const PayrollPeriodDetails = ({ match, history }) => {
         groupedPayments[pay.employee.id].payments.push(pay);
     }
     groupedPayments = Object.keys(groupedPayments).map(id => groupedPayments[id]);
-    console.log(payments);
     return <div className="p-1 listcontents">
         <p className="text-right">
             {period.status != "OPEN" ?
@@ -939,7 +938,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                     </div>
                                     )
                                 : null}
-                                
+
                             </td>
                         </tr>
                     </tbody>
@@ -1048,6 +1047,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
     if (!employee || employee.id === "new") return <p className="px-3 py-1">⬆ Search an employee from the list above...</p>;
 
     const [clockin, setClockin] = useState(Clockin(payment.clockin).defaults().unserialize());
+
     const [shift, setShift] = useState(Shift(payment.shift).defaults().unserialize());
     const [possibleShifts, setPossibleShifts] = useState(null);
 
@@ -1734,6 +1734,7 @@ export class PayrollReport extends Flux.DashView {
         this.state = {
             employer: store.getState('current_employer'),
             payrollPeriods: [],
+            payments: [],
             paymentInfo: [],
             singlePayrollPeriod: null,
         };
@@ -1754,12 +1755,15 @@ export class PayrollReport extends Flux.DashView {
         this.subscribe(store, 'payroll-periods', (_payrollPeriods) => {
             //Updated payroll.
         });
-        if (!payrollPeriods) {
-            searchMe('payroll-periods');
+        if (!payrollPeriods || payrollPeriods.length == 0 ) {
+            if(this.props.match.params.period_id !== undefined) fetchSingle("payroll-periods", this.props.match.params.period_id).then(_period => {
+            this.setState({singlePayrollPeriod:_period, payments: this.groupPayments(_period).filter(p => p.payments.length != 0)});
+        });
         }
         else {
             this.updatePayrollPeriod(payrollPeriods);
             this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
+
 
         }
         this.removeHistoryListener = this.props.history.listen((data) => {
@@ -1877,6 +1881,7 @@ export class PayrollReport extends Flux.DashView {
                                         {this.state.paymentInfo.payments.sort((a, b) =>
                                             a.employee.last_name.toLowerCase() > b.employee.last_name.toLowerCase() ? 1 : -1
                                         ).map(pay => {
+
                                             return <tr key={pay.employee.id}>
                                                 <td>
                                                     {pay.employee.last_name}, {pay.employee.first_name}
@@ -1903,6 +1908,8 @@ export class PayrollReport extends Flux.DashView {
                                                         {pay.paid ? "Payment details" : "Make payment"}
                                                     </Button>
                                                 </td>
+                                                {/* <td>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</td>
+                                                <td>${Math.round(total.total_amount * 100) / 100}</td> */}
                                             </tr>;
                                         })}
                                     </tbody>
@@ -1916,3 +1923,4 @@ export class PayrollReport extends Flux.DashView {
         </div >);
     }
 }
+

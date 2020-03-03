@@ -2,7 +2,7 @@ import React from "react";
 import moment from "moment";
 import PropTypes from "prop-types";
 import JobCoreLogo from '../../../img/logo.png';
-import { Page, Image, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
+import { Page, Image, Text, View, Document, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
 
 const BORDER_COLOR = '#000000';
 const BORDER_STYLE = 'solid';

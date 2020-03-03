@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import { store, search, fetchTemporal, create, GET } from '../actions.js';
+import { store, search, fetchTemporal, create, GET, searchMe } from '../actions.js';
 import { callback, hasTutorial } from '../utils/tutorial';
 import { GenericCard, Avatar, Stars, Theme, Button, Wizard, StarRating, SearchCatalogSelect, ShiftOption, ShiftOptionSelected, EmployeeExtendedCard } from '../components/index';
 import Select from 'react-select';
@@ -113,11 +113,9 @@ export class ManageRating extends Flux.DashView {
 
     componentDidMount() {
 
-        this.filter();
-        this.subscribe(store, 'ratings', (ratings) => {
-            this.setState({ ratings });
-        });
 
+        // this.filter();
+   
         this.props.history.listen(() => {
             this.filter();
             this.setState({ firstSearch: false });
@@ -127,6 +125,12 @@ export class ManageRating extends Flux.DashView {
         fetchTemporal('employers/me', 'current_employer');
         this.subscribe(store, 'current_employer', (employer) => {
             this.setState({ employer });
+            searchMe(`ratings`, `?employer=${employer.id}`);
+        });
+
+        const ratings = store.getState('ratings');
+        this.subscribe(store, 'ratings', (_ratings) => {
+            this.setState({ ratings:_ratings });
         });
     }
 

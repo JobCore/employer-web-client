@@ -56,6 +56,7 @@ class PrivateLayout extends Flux.DashView {
                     { label: "Search for specific seople", value: 'SPECIFIC_PEOPLE' }
                 ],
                 stars: [
+                    { label: "0 Star", value: 0 },
                     { label: "1 Star", value: 1 },
                     { label: "2 Stars", value: 2 },
                     { label: "3 Stars", value: 3 },
@@ -187,6 +188,7 @@ class PrivateLayout extends Flux.DashView {
                             break;
                         case 'add_to_favlist':
                             option.title = "Add to favorite lists";
+                      
                             this.showRightBar(AddFavlistsToTalent, option, { formData: Talent(option.data).getFormData() });
                             break;
                         case 'create_favlist':

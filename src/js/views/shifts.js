@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 import { Link } from 'react-router-dom';
 import Flux from "@4geeksacademy/react-flux-dash";
-import { store, create, searchMe, fetchAllMe } from '../actions.js';
+import { store, create, searchMe, fetchAllMe, deleteShiftEmployee} from '../actions.js';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
@@ -295,7 +295,6 @@ export class ManageShifts extends Flux.DashView {
 
     render() {
         let status = queryString.parse(window.location.search, { arrayFormat: 'index' });
-        console.log('status', status);
         const groupedShifts = _.groupBy(this.state.shifts, (s) => moment(s.starting_at).format('MMMM YYYY'));
         const shiftsHTML = [];
 
@@ -356,7 +355,6 @@ export const FilterShifts = ({ onSave, onCancel, onChange, catalog }) => {
     const [employees, setEmployees] = useState("");
     const [location, setLocation] = useState("");
     const [status, setStatus] = useState("");
-    console.log(employees);
     useEffect(() => {
         const venues = store.getState('venues');
         if (!venues) fetchAllMe(['venues']);
@@ -552,11 +550,18 @@ export const ShiftEmployees = (props) => {
 
                             {!catalog.shift.expired && <Button className="mt-0 text-danger" icon="trash" label="Delete" onClick={() => {
                                 const noti = Notify.info("Are you sure? The Talent will be kicked out of this shift", (answer) => {
-                                    if (answer) onSave({
-                                        executed_action: 'delete_shift_employee',
-                                        employee: emp,
-                                        shift: catalog.shift
-                                    });
+                                    if(catalog.showShift){
+                                        if (answer) {
+                                            deleteShiftEmployee(catalog.shift.id, emp.id);
+                                            catalog.shift.employees = catalog.shift.employees.filter(e => e.id == emp.id);
+                                        }
+                                    }else{
+                                        if (answer) {onSave({
+                                            executed_action: 'delete_shift_employee',
+                                            employee: emp,
+                                            shift: catalog.shift
+                                        });}
+                                    }
                                     noti.remove();
                                 });
                             }} />
@@ -567,7 +572,7 @@ export const ShiftEmployees = (props) => {
                         <p>No talents every worked on this shift</p>
                         :
                         <p>No talents have been accepted for this shift yet, <span className="anchor"
-                            onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift", allowLevels: true })}
+                            onClick={() => bar.show({slug: "search_talent_and_invite_to_shift",data: { shifts: [catalog.shift] },allowLevels: true })}
                         >invite more talents</span> or  <span className="anchor"
                             onClick={() => bar.show({ slug: "review_shift_invites", allowLevels: true, data: [catalog.shift] })}
                         >review previous invites</span></p>
@@ -1088,10 +1093,10 @@ const ShowShift = ({ shift, bar }) => {
         }
         <hr/>
         <div> 
-            <ShiftEmployees catalog={{shift: shift}}/>
+            <ShiftEmployees catalog={{shift: shift, showShift: true}}/>
         </div>
         <hr/>
-        <ShiftApplicants catalog={{shift: shift, applicants: []}}/>
+        <ShiftApplicants catalog={{shift: shift, applicants: shift.candidates, showShift: true}}/>
     </div>);
 };
 ShowShift.propTypes = {
