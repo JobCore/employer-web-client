@@ -4,6 +4,8 @@ import { Button } from '../components/index';
 import Flux from "@4geeksacademy/react-flux-dash";
 import { Notify } from 'bc-react-notifier';
 import { makeEmployeePayment } from "../actions";
+import CustomModal from "../components/custom-modal/CustomModal";
+
 export const Payment = (data = {}) => {
 
     const _defaults = {
@@ -95,7 +97,7 @@ export class MakePayment extends Flux.DashView {
                                         color="success"
                                         size="small"
                                         onClick={() => {
-                                            const noti = Notify.info("Are you sure to pay ?", async (answer) => {
+                                            const noti = Notify.add("info", ({ onConfirm }) => <CustomModal onConfirm={onConfirm} title={"Are you sure to pay ?"} />, async (answer) => {
                                                 if(answer){
                                                     try{
                                                         await makeEmployeePayment(
@@ -125,7 +127,7 @@ export class MakePayment extends Flux.DashView {
                                                 color="success"
                                                 size="small"
                                                 onClick={() => {
-                                                    const noti = Notify.info("Are you sure to pay ?", async (answer) => {
+                                                    const noti = Notify.add("info", ({ onConfirm }) => <CustomModal onConfirm={onConfirm} title={"Are you sure to pay ?"} />, async (answer) => {
                                                         if(answer){
                                                             try{
                                                                 await makeEmployeePayment(
