@@ -295,7 +295,6 @@ export class ManageShifts extends Flux.DashView {
 
     render() {
         let status = queryString.parse(window.location.search, { arrayFormat: 'index' });
-        console.log('status', status);
         const groupedShifts = _.groupBy(this.state.shifts, (s) => moment(s.starting_at).format('MMMM YYYY'));
         const shiftsHTML = [];
 
@@ -356,7 +355,6 @@ export const FilterShifts = ({ onSave, onCancel, onChange, catalog }) => {
     const [employees, setEmployees] = useState("");
     const [location, setLocation] = useState("");
     const [status, setStatus] = useState("");
-    console.log(employees);
     useEffect(() => {
         const venues = store.getState('venues');
         if (!venues) fetchAllMe(['venues']);
@@ -498,7 +496,7 @@ export const ShiftApplicants = (props) => {
                         )
                         :
                         <li>No applicants were found for this shift, <span className="anchor"
-                            onClick={() => bar.show({slug: "search_talent_and_invite_to_shift",data: { shifts: [catalog.shift] },allowLevels: true })}
+                            onClick={() => bar.show({ slug: "search_talent_and_invite_to_shift",data: { shifts: [catalog.shift], employees: [] },  allowLevels: true })}
                         >invite more talents</span> or  <span className="anchor"
                             onClick={() => bar.show({ slug: "review_shift_invites", allowLevels: true, data: catalog.shift })}
                         >review previous invites</span></li>
@@ -1068,7 +1066,7 @@ ShiftDetails.propTypes = {
     catalog: PropTypes.object //contains the data needed for the form to load
 };
 
-const ShowShift = ({ shift, bar}) => {
+const ShowShift = ({ shift, bar }) => {
     const totalCandidates = (Array.isArray(shift.candidates)) ? shift.candidates.length : 0;
     const totalEmployees = (Array.isArray(shift.employees)) ? shift.employees.length : 0;
     const openVacancys = shift.maximum_allowed_employees - totalEmployees;

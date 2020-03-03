@@ -113,6 +113,7 @@ export class ManageRating extends Flux.DashView {
 
     componentDidMount() {
 
+
         // this.filter();
    
         this.props.history.listen(() => {
@@ -138,7 +139,6 @@ export class ManageRating extends Flux.DashView {
     }
 
     render() {
-        console.log(this.state);
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({ bar }) => (<span>

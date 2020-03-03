@@ -194,7 +194,6 @@ export class ManageTalents extends Flux.DashView {
  * AddShift
  */
 export const FilterTalents = (props) => {
-    console.log("EDIT", props);
     return (<form>
         <div className="row">
             <div className="col-6">
@@ -268,7 +267,6 @@ FilterTalents.propTypes = {
  */
 export const TalentDetails = (props) => {
     const employee = props.catalog.employee;
-    console.log(props);
     return (<Theme.Consumer>
         {({bar}) =>
             (<li className="aplication-details">

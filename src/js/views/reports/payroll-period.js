@@ -88,13 +88,10 @@ const styles = StyleSheet.create({
 });
 
 const PayrollPeriodReport = ({ period, employer, payments }) => {
-    console.log(period);
-    const taxesMagicNumber = 0;
     return <Document>
-        {/* <Page style={styles.page}> */}
         <Page style={styles.body}>
             <View style={styles.section}>
-                <Image source={JobCoreLogo} style={styles.image} />
+                <Image src={JobCoreLogo} style={styles.image} />
             </View>
             {employer.picture ? (
                 <View style={styles.section}>
@@ -115,78 +112,40 @@ const PayrollPeriodReport = ({ period, employer, payments }) => {
                         <Text style={styles.tableCellHeader}>REGULAR HRS</Text>
                     </View>
                     <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>OT HRS</Text>
+                        <Text style={styles.tableCellHeader}>OVER TIME</Text>
                     </View>
                     <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>TOTAL HRS</Text>
-                    </View>
-                    <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>REG</Text>
-                    </View>
-                    <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>OT</Text>
-                    </View>
-                    <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>TOTAL</Text>
+                        <Text style={styles.tableCellHeader}>EARNINGS</Text>
                     </View>
                     <View style={styles.tableColHeader}>
                         <Text style={styles.tableCellHeader}>TAXES</Text>
                     </View>
                     <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>CHECK AMOUNT</Text>
+                        <Text style={styles.tableCellHeader}>AMOUNT</Text>
                     </View>
                 </View>
 
                 {payments.sort((a, b) =>
-                    a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
+                    a.employee.last_name.toLowerCase() > b.employee.last_name.toLowerCase() ? 1 : -1
                 ).map(pay => {
-                    const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + Number(regular_hours) + Number(over_time), 0);
-                                            
-                    const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + (Number(regular_hours) + Number(over_time))*Number(hourly_rate) , 0);
-                    const total_reg = total_hours > 40 ? 40 * Number(pay.payments[0]['hourly_rate']) : 0;
-                    const total_ot = total_hours > 40 ? (total_hours - 40) * (Number(pay.payments[0]['hourly_rate'])*1.5): 0;
-                    const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
-                        return {
-                                overtime: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) > 40 ? parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) - 40 : 0,
-                                over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
-                                regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
-                                taxes: taxesMagicNumber,
-                                total_ot: total_ot,
-                                total_reg: total_reg,
-                                total_amount: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) > 40 ?(
-                                    ((((Math.round(total_amount * 100) / 100)/(Math.round(total_hours * 100) / 100))*0.5)*Math.round((total_hours - 40) * 100) / 100 + Math.round(total_amount * 100) / 100).toFixed(2)
-                                ): (Math.round(total_amount * 100) / 100),
-                                status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
-                            };
-                    }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
                     return <View key={pay.employee.id} style={styles.tableRow}>
                         <View style={styles.tableCol1}>
-                            <Text style={styles.tableCell}>{pay.employee.user.last_name + " " + pay.employee.user.first_name + " - " + total.status.toLowerCase()}</Text>
-                        </View>
-                       
-                        <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>{Math.round((total.regular_hours + total.over_time) * 100) / 100 > 40 ? 40 : Math.round((total.regular_hours + total.over_time) * 100) / 100 }</Text>
+                            <Text style={styles.tableCell}>{pay.employee.last_name}, {pay.employee.first_name}</Text>
                         </View>
                         <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>{Math.round((total.regular_hours + total.over_time) * 100) / 100 > 40 ? Math.round((total.regular_hours + total.over_time - 40) * 100) / 100 : 0}</Text>
+                            <Text style={styles.tableCell}>{pay.regular_hours}</Text>
                         </View>
                         <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</Text>
+                            <Text style={styles.tableCell}>{pay.over_time}</Text>
                         </View>
                         <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>${Math.round((total.regular_hours + total.over_time) * 100) / 100 > 40 ? Math.round(total.total_reg * 100) / 100 : Math.round(total.total_amount * 100) / 100 }</Text>
+                            <Text style={styles.tableCell}>{pay.earnings}</Text>
                         </View>
                         <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>${Math.floor(total.total_ot * 100) / 100}</Text>
+                            <Text style={styles.tableCell}>${pay.deductions}</Text>
                         </View>
                         <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>${Math.round((total.regular_hours + total.over_time) * 100) / 100 > 40 ? Math.round(total.total_reg * 100)/100 + Math.floor(total.total_ot * 100)/100: Math.round(total.total_amount * 100) / 100}</Text>
-                        </View>
-                        <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>0</Text>
-                        </View>
-                        <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>${Math.round((total.regular_hours + total.over_time) * 100) / 100 > 40 ? Math.round(total.total_reg * 100)/100 + Math.floor(total.total_ot * 100)/100: Math.round(total.total_amount * 100) / 100}</Text>
+                            <Text style={styles.tableCell}>${pay.amount}</Text>
                         </View>
                     </View>;
                 })}
