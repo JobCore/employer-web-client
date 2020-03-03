@@ -519,7 +519,6 @@ ShiftApplicants.propTypes = {
  */
 export const ShiftEmployees = (props) => {
     const { onCancel, onSave, catalog } = props;
-    console.log(props);
     return (<Theme.Consumer>
         {({ bar }) => (<div className="sidebar-applicants">
             {catalog.shift.expired ?
@@ -577,7 +576,7 @@ export const ShiftEmployees = (props) => {
                         <p>No talents have been accepted for this shift yet, <span className="anchor"
                             onClick={() => bar.show({slug: "search_talent_and_invite_to_shift",data: { shifts: [catalog.shift] },allowLevels: true })}
                         >invite more talents</span> or  <span className="anchor"
-                            onClick={() => bar.show({ slug: "review_shift_invites", allowLevels: true, data: catalog.shift })}
+                            onClick={() => bar.show({ slug: "review_shift_invites", allowLevels: true, data: [catalog.shift] })}
                         >review previous invites</span></p>
             }
         </div>)}

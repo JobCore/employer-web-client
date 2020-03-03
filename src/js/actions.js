@@ -321,7 +321,7 @@ export const create = (entity, data, status = WEngine.modes.LIVE) => new Promise
             let entities = store.getState(entity.slug || entity);
             if (!entities || !Array.isArray(entities)) entities = [];
 
-            //if the response from the server is not a list 
+            //if the response from the server is not a list
             if (!Array.isArray(incoming)) {
                 // if the response is not a list, I will add the new object into that list
                 Flux.dispatchEvent(entity.slug || entity, entities.concat([{ ...data, id: incoming.id }]));
@@ -651,6 +651,53 @@ export const createPayment = async (payment, period) => {
     return period;
 };
 
+    /**
+ * Make employee payment
+ * @param  {string}  employeePaymentId employee payment id
+ * @param  {string}  paymentType payment type could be: CHECK, FAKE or ELECTRONIC TRANSFERENCE
+ * @param  {string}  employer_bank_account_id employer bank account id
+ * @param  {string}  employee_bank_account_id employee bank account id
+ */
+export const makeEmployeePayment = (
+    employeePaymentId,
+    paymentType,
+    employer_bank_account_id,
+    employee_bank_account_id
+    ) => new Promise((resolve, reject) => {
+        const data = {
+            payment_type: paymentType,
+            payment_data: paymentType === "CHECK" ? {} : {
+                employer_bank_account_id: employer_bank_account_id,
+                employee_bank_account_id: employee_bank_account_id
+            }
+        };
+
+        POST(`employers/me/employee-payment/${employeePaymentId}`, data)
+        .then(resp => {
+            Flux.dispatchEvent('employee-payment',resp);
+            Notify.success("Payment was successful");
+            resolve(resp);
+        })
+        .catch(error => {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject(error);
+        });
+});
+
+/**
+ * Fetch payroll period payments
+ * @param  {string}  payrollPeriodId employee payment id
+ */
+export const fetchPeyrollPeriodPayments = async (payrollPeriodId) => {
+    try {
+        const response = await GET(`employers/me/employee-payment-list/${payrollPeriodId}`);
+        Flux.dispatchEvent('payroll-period-payments', response);
+    } catch(error) {
+        Notify.error(error.message || error);
+    }
+};
+
 export const addBankAccount = (token, metadata) => new Promise((resolve, reject) => POST('bank-accounts/',
     normalizeToSnakeCase({ publicToken: token, institutionName: metadata.institution.name }))
     .then(function (data) {
@@ -677,6 +724,48 @@ export const searchBankAccounts = () => new Promise((accept, reject) =>
             log.error(error);
             reject(error);
         })
+);
+
+/**
+ * Get payments report
+ * @param  {string}  periodId payroll period id
+ * @param  {string}  startDate start date
+ * @param  {string}  endDate end date
+ */
+export const getPaymentsReport = (periodId, startDate, endDate) => new Promise((accept, reject) => {
+    const route = `employers/me/employee-payment/report?start_date=${startDate}&end_date=${endDate}&period_id=${periodId}`;
+    GET(route)
+        .then(function (list) {
+            Flux.dispatchEvent('payments-reports', list);
+            accept(list);
+        })
+        .catch(function (error) {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject(error);
+        });
+}
+);
+
+/**
+ * Get deductions report
+ * @param  {string}  periodId payroll period id
+ * @param  {string}  startDate start date
+ * @param  {string}  endDate end date
+ */
+export const getDeductionsReport = (periodId, startDate, endDate) => new Promise((accept, reject) => {
+    const route = `employers/me/employee-payment/deduction-report?start_date=${startDate}&end_date=${endDate}&period_id=${periodId}`;
+    GET(route)
+        .then(function (list) {
+            Flux.dispatchEvent('deductions-reports', list);
+            accept(list);
+        })
+        .catch(function (error) {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject(error);
+        });
+}
 );
 
 // export const createPayrollPeriodRating = (entity, queryString) => new Promise((accept, reject) =>
@@ -706,6 +795,7 @@ class _Store extends Flux.DashStore {
             return invites.map(inv => Invite(inv).defaults().unserialize());
         });
         this.addEvent('payment');
+        this.addEvent('employee-payment');
         this.addEvent('clockins', clockins => !Array.isArray(clockins) ? [] : clockins.map(c => ({ ...c, started_at: moment(c.starting_at), ended_at: moment(c.ended_at) })));
         this.addEvent('jobcore-invites');
         this.addEvent('ratings', (_ratings) => (!Array.isArray(_ratings)) ? [] : _ratings.map(ra => Rating(ra).defaults().unserialize()));
@@ -716,6 +806,9 @@ class _Store extends Flux.DashStore {
         });
         this.addEvent('favlists');
         this.addEvent('deduction');
+        this.addEvent('payroll-period-payments');
+        this.addEvent('payments-reports');
+        this.addEvent('deductions-reports');
         this.addEvent('badges');
 
         this.addEvent('applications', (applicants) => {

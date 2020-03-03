@@ -19,6 +19,8 @@ import { ManageFavorites, AddFavlistsToTalent, FavlistEmployees, AddTalentToFavl
 import { ManageLocations, AddOrEditLocation, Location } from './views/locations.js';
 import { ManagePayroll, PayrollPeriodDetails, PayrollReport, SelectTimesheet, EditOrAddExpiredShift, PayrollSettings, PayrollRating } from './views/payroll.js';
 import { ManageRating, Rating, RatingDetails, ReviewTalent, ReviewTalentAndShift, RatingEmployees, UnratingEmployees } from './views/ratings.js';
+import { PaymentsReport } from "./views/payments-report";
+import { DeductionsReport } from "./views/deductions-report";
 import { Profile, ManageUsers, InviteUserToCompanyJobcore } from './views/profile.js';
 import { NOW } from './components/utils.js';
 import { Notifier, Notify } from 'bc-react-notifier';
@@ -430,6 +432,8 @@ class PrivateLayout extends Flux.DashView {
                             <Route exact path='/payroll/settings' component={PayrollSettings} />
                             <Route exact path='/payroll/period/:period_id' component={PayrollPeriodDetails} />
                             <Route exact path='/payroll/report/:period_id' component={PayrollReport} />
+                            <Route exact path='/payroll/payments-report' component={PaymentsReport} />
+                            <Route exact path='/payroll/deductions-report' component={DeductionsReport} />
                             <Route exact path='/payroll/rating/:period_id' component={PayrollRating} />
                             <Route exact path='/rate' component={RateShift} />
                             <Route exact path='/home' component={Dashboard} />

@@ -59,7 +59,7 @@ export const ShiftCalendar = ({ catalog }) => {
     
         if (moment.isMoment(_filters.start)) _filters.start = _filters.start.format('YYYY-MM-DD');
         if (moment.isMoment(_filters.end)) _filters.end = _filters.end.format('YYYY-MM-DD');
-        searchMe('shifts', '?serializer=big&limit=10000&' + queryString.stringify(_filters));
+        searchMe('shifts', '?serializer=big&limit=10000&' + queryString.stringify(_filters)).then(()=> setCalendarLoading(false));
     };
     const groupShifts = (sh, l = null) => {
         let _shifts = {};
@@ -120,6 +120,7 @@ export const ShiftCalendar = ({ catalog }) => {
         };
 
     }, [groupedLabel]);
+
     return <Theme.Consumer>
         {({ bar }) => <div className="row">
             <div className="col-10">

@@ -63,6 +63,7 @@ export default class Home extends Flux.DashView {
     }
 
     render() {
+        console.log('calendarloading',this.state.calendarLoading);
         return (
             <Theme.Consumer>
                 {({ bar }) =>

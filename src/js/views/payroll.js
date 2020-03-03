@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import { store, search, update, fetchSingle, searchMe, processPendingPayrollPeriods, updatePayments, createPayment, fetchAllMe, fetchTemporal, remove, create } from '../actions.js';
+import { store, search, update, fetchSingle, searchMe, processPendingPayrollPeriods, updatePayments, createPayment, fetchAllMe, fetchTemporal, remove, create, fetchPeyrollPeriodPayments } from '../actions.js';
 import { GET } from '../utils/api_wrapper';
 
 
@@ -939,7 +939,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                     </div>
                                     )
                                 : null}
-                                
+
                             </td>
                         </tr>
                     </tbody>
@@ -1736,6 +1736,7 @@ export class PayrollReport extends Flux.DashView {
             employer: store.getState('current_employer'),
             payrollPeriods: [],
             payments: [],
+            paymentInfo: [],
             singlePayrollPeriod: null,
         };
     }
@@ -1745,7 +1746,12 @@ export class PayrollReport extends Flux.DashView {
         this.subscribe(store, 'current_employer', (employer) => {
             this.setState({ employer });
         });
-
+        this.subscribe(store, 'payroll-period-payments', (paymentInfo) => {
+            this.setState({ paymentInfo });
+        });
+        this.subscribe(store, 'employee-payment', () => {
+            fetchPeyrollPeriodPayments(this.state.singlePayrollPeriod.id);
+        });
         const payrollPeriods = store.getState('payroll-periods');
         this.subscribe(store, 'payroll-periods', (_payrollPeriods) => {
             //Updated payroll.
@@ -1760,6 +1766,7 @@ export class PayrollReport extends Flux.DashView {
             this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
 
         }
+
         this.removeHistoryListener = this.props.history.listen((data) => {
             const period = /\/payroll\/period\/(\d+)/gm;
             const periodMatches = period.exec(data.pathname);
@@ -1808,8 +1815,6 @@ export class PayrollReport extends Flux.DashView {
 
 
     render() {
-        console.log(this.state);
-        const taxesMagicNumber = 0;
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
@@ -1821,11 +1826,11 @@ export class PayrollReport extends Flux.DashView {
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({ bar }) => (<span>
-                    {(!this.state.singlePayrollPeriod) ? '' :
-                        (this.state.singlePayrollPeriod.payments.length > 0) ?
+                    {(!this.state.paymentInfo) ? '' :
+                        (this.state.paymentInfo.payments && this.state.paymentInfo.payments.length > 0) ?
                             <div>
                                 <p className="text-right">
-                                    <h2>Payments for {this.state.singlePayrollPeriod.label ? this.state.singlePayrollPeriod.label : `From ${moment(this.state.singlePayrollPeriod.starting_at).format('MM-D-YY h:mm A')} to ${moment(this.state.singlePayrollPeriod.ending_at).format('MM-D-YY h:mm A')}`}</h2>
+                                    <h2>Payments for {this.state.singlePayrollPeriod.label}</h2>
                                 </p>
                                 <div className="row mb-4 text-right">
                                     <div className="col text-left">
@@ -1863,16 +1868,15 @@ export class PayrollReport extends Flux.DashView {
                                             <th scope="col">Staff</th>
                                             <th scope="col">Regular Hrs</th>
                                             <th scope="col">Over Time</th>
-                                            <th scope="col">Total Hours</th>
-                                            <th scope="col">Total Earnings</th>
+                                            <th scope="col">Earnings</th>
                                             <th scope="col">Taxes</th>
-                                            <th scope="col">Check Amount</th>
+                                            <th scope="col">Amount</th>
                                             <th scope="col"></th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {this.state.payments.sort((a, b) =>
-                                            a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
+                                        {this.state.paymentInfo.payments.sort((a, b) =>
+                                            a.employee.last_name.toLowerCase() > b.employee.last_name.toLowerCase() ? 1 : -1
                                         ).map(pay => {
                                             const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + Number(regular_hours) + Number(over_time), 0);
                                             
@@ -1893,27 +1897,28 @@ export class PayrollReport extends Flux.DashView {
                                             }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });
                                             return <tr key={pay.employee.id}>
                                                 <td>
-                                                    {pay.employee.user.last_name}, {pay.employee.user.first_name}
-                                                    <p className="m-0 p-0"><span className="badge">{total.status.toLowerCase()}</span></p>
+                                                    {pay.employee.last_name}, {pay.employee.first_name}
+                                                    <p className="m-0 p-0"><span className="badge">{pay.paid ? "paid" : "unpaid"}</span></p>
                                                 </td>
-                                                <td>{Math.round(total.regular_hours * 100) / 100}</td>
-                                                <td>{Number(total.overtime).toFixed(2)}</td>
-                                                <td>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</td>
-                                                <td>${Math.round(total.total_amount * 100) / 100}</td>
-                                                <td>0</td>
-                                                <td>${Math.round((total.total_amount - taxesMagicNumber) * 100) / 100}</td>
+                                                <td>{pay.regular_hours}</td>
+                                                <td>{pay.over_time}</td>
+                                                <td>{pay.earnings}</td> 
+                                                <td>{pay.deductions}</td>
+                                                <td>{pay.amount}</td>
                                                 <td>
-                                                    <Button
-                                                        color="success"
-                                                        size="small"
-                                                        onClick={() => bar.show({
-                                                            slug: "make_payment",
-                                                            data: {
-                                                                pay: pay,
-                                                                total: total,
-                                                            }
-                                                        })}>
-                                                        Make payment
+                                                    <Button 
+                                                    color="success" 
+                                                    size="small" 
+                                                    onClick={() => bar.show({ 
+                                                        slug: "make_payment", 
+                                                        data: {
+                                                            pay: pay,
+                                                            paymentInfo: this.state.paymentInfo,
+                                                            periodId: this.state.singlePayrollPeriod.id,
+                                                            bar: bar
+                                                    } 
+                                                    })}>
+                                                        {pay.paid ? "Payment details" : "Make payment"}
                                                     </Button>
                                                 </td>
                                                 {/* <td>{Math.round((total.regular_hours + total.over_time) * 100) / 100}</td>
@@ -1931,3 +1936,4 @@ export class PayrollReport extends Flux.DashView {
         </div >);
     }
 }
+
