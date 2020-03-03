@@ -770,30 +770,43 @@ export const PayrollPeriodDetails = ({ match, history }) => {
         groupedPayments[pay.employee.id].payments.push(pay);
     }
     groupedPayments = Object.keys(groupedPayments).map(id => groupedPayments[id]);
-
+    console.log(payments);
     return <div className="p-1 listcontents">
         <p className="text-right">
             {period.status != "OPEN" ?
-                <Button className="btn btn-info" onClick={() => history.push('/payroll/report/' + period.id)}>Take me to the Payroll Report</Button>
+
+                (
+                    <div>
+                        <Button className="btn btn-info text-left mr-4"  onClick={() => {
+                                    update('payroll-periods', Object.assign(period, { status: 'OPEN' })).then(_payment => setPayments(payments.map(_pay => {return {
+                                        ..._pay, status: "APPROVED" };
+                                    }
+                                    )))
+                                    .catch(e => Notify.error(e.message || e));
+                                    }}>Undo Period
+                        </Button>
+                        <Button className="btn btn-info" onClick={() => history.push('/payroll/report/' + period.id)}>Take me to the Payroll Report</Button>
+                    </div>
+                )
                 :
-                <Button icon="plus" size="small" onClick={() => {
-                    const isOpen = period.payments.find(p => p.status === "NEW");
-                    const thereIsAnotherNew = payments.find(item => item.status === 'NEW');
+                    <Button icon="plus" size="small" onClick={() => {
+                        const isOpen = period.payments.find(p => p.status === "NEW");
+                        const thereIsAnotherNew = payments.find(item => item.status === 'NEW');
 
-                    if (isOpen) return;
-                    if (thereIsAnotherNew) setPayments(payments.map(_pay => {
-                        if (_pay.status !== 'NEW') return _pay;
-                        else {
-                            return {
-                                ..._pay,
-                                payments: _pay.payments.filter(p => p.status == 'NEW')
-                            };
-                        }
-                    }));
+                        if (isOpen) return;
+                        if (thereIsAnotherNew) setPayments(payments.map(_pay => {
+                            if (_pay.status !== 'NEW') return _pay;
+                            else {
+                                return {
+                                    ..._pay,
+                                    payments: _pay.payments.filter(p => p.status == 'NEW')
+                                };
+                            }
+                        }));
 
-                    setPayments(period.payments.concat([Payment({ status: "NEW", employee: { id: 'new' } }).defaults()]));
-                    bar.close();
-                }}>Add employee to timesheet</Button>
+                        setPayments(period.payments.concat([Payment({ status: "NEW", employee: { id: 'new' } }).defaults()]));
+                        bar.close();
+                    }}>Add employee to timesheet</Button>
             }
         </p>
         {groupedPayments.length == 0 ?
@@ -1035,6 +1048,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
     if (!employee || employee.id === "new") return <p className="px-3 py-1">⬆ Search an employee from the list above...</p>;
 
     const [clockin, setClockin] = useState(Clockin(payment.clockin).defaults().unserialize());
+    console.log('CLOCK IN,', clockin);
     const [shift, setShift] = useState(Shift(payment.shift).defaults().unserialize());
     const [possibleShifts, setPossibleShifts] = useState(null);
 
@@ -1600,9 +1614,9 @@ export class PayrollRating extends Flux.DashView {
         }
 
         return (<div className="p-1 listcontents mx-auto">
-            {this.state.singlePayrollPeriod && this.state.singlePayrollPeriod.status == "FINALIZED" &&
+            {/* {this.state.singlePayrollPeriod && this.state.singlePayrollPeriod.status == "FINALIZED" &&
                 <Redirect from={'/payroll/rating/' + this.state.singlePayrollPeriod.id} to={'/payroll/report/' + this.state.singlePayrollPeriod.id} />
-            }
+            } */}
             <Theme.Consumer>
                 {({ bar }) => (<span>
                     {(!this.state.singlePayrollPeriod) ? '' :
@@ -1734,10 +1748,9 @@ export class PayrollReport extends Flux.DashView {
 
         const payrollPeriods = store.getState('payroll-periods');
         this.subscribe(store, 'payroll-periods', (_payrollPeriods) => {
-            this.updatePayrollPeriod(_payrollPeriods);
-            //if(!this.state.singlePayrollPeriod) this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
+            //Updated payroll.
         });
-        if (!payrollPeriods) {
+        if (!payrollPeriods || payrollPeriods.length == 0 ) {
             if(this.props.match.params.period_id !== undefined) fetchSingle("payroll-periods", this.props.match.params.period_id).then(_period => {
             this.setState({singlePayrollPeriod:_period, payments: this.groupPayments(_period).filter(p => p.payments.length != 0)});
         });
@@ -1760,6 +1773,7 @@ export class PayrollReport extends Flux.DashView {
         if (!singlePeriod) return null;
 
         let groupedPayments = {};
+
         singlePeriod.payments.forEach(pay => {
             if (typeof groupedPayments[pay.employee.id] === 'undefined') {
                 groupedPayments[pay.employee.id] = { employee: pay.employee, payments: [] };
@@ -1775,7 +1789,7 @@ export class PayrollReport extends Flux.DashView {
             if (!payrollPeriods) fetchSingle("payroll-periods", periodId);
             else {
                 const singlePayrollPeriod = payrollPeriods.find(pp => pp.id == periodId);
-                this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod).filter(p => p.payments.length != 0) });
+                this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod) });
             }
         }
     }
@@ -1794,6 +1808,7 @@ export class PayrollReport extends Flux.DashView {
 
 
     render() {
+        console.log(this.state);
         const taxesMagicNumber = 0;
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
@@ -1813,11 +1828,21 @@ export class PayrollReport extends Flux.DashView {
                                     <h2>Payments for {this.state.singlePayrollPeriod.label ? this.state.singlePayrollPeriod.label : `From ${moment(this.state.singlePayrollPeriod.starting_at).format('MM-D-YY h:mm A')} to ${moment(this.state.singlePayrollPeriod.ending_at).format('MM-D-YY h:mm A')}`}</h2>
                                 </p>
                                 <div className="row mb-4 text-right">
+                                    <div className="col text-left">
+                                        <Button size="small" onClick={() => {
+                                            // res => this.props.history.push('/payroll/period/' + period.id
+                                        const period =this.state.singlePayrollPeriod;
+                                        update('payroll-periods', Object.assign(period, { status: 'OPEN' })).then(res => this.props.history.push('/payroll/period/' + period.id))
+                                        .catch(e => Notify.error(e.message || e));
+                                        }}>Undo Period
+                                        </Button>
+                                    </div>
+
                                     <div className="col">
 
                                         <Button size="small" onClick={() => this.props.history.push('/payroll/period/' + this.state.singlePayrollPeriod.id)}>Review Timesheet</Button>
                                     </div>
-                                    <PDFDownloadLink document={<PayrollPeriodReport employer={this.state.employer} payments={this.state.payments} period={this.state.singlePayrollPeriod}/>} fileName={"JobCore " + this.state.singlePayrollPeriod.label + ".pdf"}>
+                                    <PDFDownloadLink document={<PayrollPeriodReport employer={this.state.employer} payments={this.state.payments} period={this.state.singlePayrollPeriod}/>} fileName={"JobCore" + ".pdf"}>
                                         {({ blob, url, loading, error }) => (loading ? 'Loading...' : (
                                             <div className="col">
                                                 <Button color="success" size="small" >Export to PDF</Button>
@@ -1825,13 +1850,13 @@ export class PayrollReport extends Flux.DashView {
                                         )
                                         )}
                                     </PDFDownloadLink>
-
+                                    
 
                                 </div>
 
-                                {this.state.singlePayrollPeriod.status == "OPEN" &&
+                                {/* {this.state.singlePayrollPeriod.status == "OPEN" &&
                                     <Redirect from={'/payroll/report/' + this.state.singlePayrollPeriod.id} to={'/payroll/rating/' + this.state.singlePayrollPeriod.id} />
-                                }
+                                } */}
                                 <table className="table table-striped payroll-summary">
                                     <thead>
                                         <tr>
@@ -1849,13 +1874,20 @@ export class PayrollReport extends Flux.DashView {
                                         {this.state.payments.sort((a, b) =>
                                             a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
                                         ).map(pay => {
+                                            const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + Number(regular_hours) + Number(over_time), 0);
+                                            
+                                            const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + (Number(regular_hours) + Number(over_time))*Number(hourly_rate) , 0);
+                                            const total_reg = total_hours > 40 ? 40 * Number(pay.payments[0]['hourly_rate']) : 0;
+                                            const total_ot = total_hours > 40 ? (total_hours - 40) * Number(pay.payments[0]['hourly_rate']*1.5) : 0;
                                             const total = pay.payments.filter(p => p.status === 'APPROVED').reduce((incoming, current) => {
                                                 return {
                                                     overtime: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) > 40 ? parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) - 40 : 0,
                                                     over_time: parseFloat(current.over_time) + parseFloat(incoming.over_time),
                                                     regular_hours: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours),
                                                     taxes: taxesMagicNumber,
-                                                    total_amount: parseFloat(current.total_amount) + parseFloat(incoming.total_amount),
+                                                    total_amount: parseFloat(current.regular_hours) + parseFloat(incoming.regular_hours) > 40 ?(
+                                                        ((((Math.round(total_amount * 100) / 100)/(Math.round(total_hours * 100) / 100))*0.5)*Math.round((total_hours - 40) * 100) / 100 + Math.round(total_amount * 100) / 100).toFixed(2)
+                                                    ): (Math.round(total_amount * 100) / 100),
                                                     status: current.status == 'PAID' && incoming.status == 'PAID' ? 'PAID' : 'UNPAID'
                                                 };
                                             }, { regular_hours: 0, total_amount: 0, over_time: 0, status: 'UNPAID' });

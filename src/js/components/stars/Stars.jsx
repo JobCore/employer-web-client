@@ -9,7 +9,7 @@ const Stars = ({ rating , jobCount, className, onClick, noRatingLabel}) => {
     for(let i = 0; i < whole; i++) lis.push(<i key={i} className="fas fa-star"></i>);
     return (<div className={`starrating ${className} ${onClick ? "clickable":""}`}>
         {
-            (lis.length > 0) ? lis : <small>{noRatingLabel ? noRatingLabel  : 'No rating available'}</small>
+            (lis.length > 0) ? lis : <small>{noRatingLabel ? noRatingLabel  : 'No rating available '}</small>
         }
         {
             (decimalPart > 0) ? <i className="fas fa-star-half"></i> : ''

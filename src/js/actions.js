@@ -12,7 +12,7 @@ import { POST, GET, PUT, DELETE, PUTFiles } from './utils/api_wrapper';
 import log from './utils/log';
 import WEngine from "./utils/write_engine.js";
 import qs from "query-string";
-import { normalizeToSnakeCase } from "./utils/snakeCase";
+import { normalizeToSnakeCase } from "./utils/validation";
 const Models = {
     "shifts": Shift,
     "ratings": Rating,
@@ -299,6 +299,7 @@ export const searchMe = (entity, queryString, mergeResults = false) => new Promi
             if (mergeResults) {
                 const previous = store.getState(entity.slug || entity);
                 if (Array.isArray(previous)) list = previous.concat(list.results || list);
+                
             }
             Flux.dispatchEvent(entity.slug || entity, list);
             accept(list);

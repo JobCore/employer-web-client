@@ -181,11 +181,11 @@ export class ManageApplicantions extends Flux.DashView {
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({ bar }) => (<span>
-                    <Wizard continuous
+                    {/* <Wizard continuous
                         steps={this.state.steps}
                         run={this.state.runTutorial}
                         callback={callback}
-                    />
+                    /> */}
                     <h1><span id="applicant_details_header">Applicant Details</span></h1>
                     {
                         (applicansHTML.length == 0) ?
@@ -270,42 +270,54 @@ ApplicationDetails.propTypes = {
 /**
  * Filter Applications
  */
-export const FilterApplications = ({ onSave, onCancel, onChange, catalog, formData }) => (<form>
-    <div className="row">
-        <div className="col">
-            <label>Looking for</label>
-            <Select isMulti
-                value={formData.positions}
-                options={catalog.positions}
-                onChange={(selection) => onChange({ positions: selection })}
-            />
+export const FilterApplications = ({ onSave, onCancel, onChange, catalog, formData }) => {
+console.log(catalog);
+return(
+    <form>
+        <div className="row">
+            <div className="col">
+                <label>Looking for</label>
+                <Select isMulti
+                    value={formData.positions}
+                    options={catalog.positions}
+                    onChange={(selection) => onChange({ positions: selection })}
+                />
+            </div>
         </div>
-    </div>
-    <div className="row">
-        <div className="col">
-            <label>Price / hour</label>
-            <input type="number" className="form-control" onChange={(e) => onChange({ minimum_hourly_rate: e.target.value })} value={formData.minimum_hourly_rate} />
+        <div className="row">
+            <div className="col">
+                <label>Price / hour</label>
+                <input type="number" className="form-control" onChange={(e) => onChange({ minimum_hourly_rate: e.target.value })} value={formData.minimum_hourly_rate} />
+            </div>
+            <div className="col">
+                <label>Date</label>
+                <input type="date" className="form-control" onChange={(e) => onChange({ date: e.target.value })} />
+            </div>
         </div>
-        <div className="col">
-            <label>Date</label>
-            <input type="date" className="form-control" onChange={(e) => onChange({ date: e.target.value })} />
+        <div className="row">
+            <div className="col">
+                <label>Venue</label>
+                <Select isMulti
+                    value={formData.venues}
+                    options={catalog.venues}
+                    onChange={(selection) => onChange({ venues: selection })}
+                />
+            </div>
         </div>
-    </div>
-    <div className="row">
-        <div className="col">
-            <label>Venue</label>
-            <Select isMulti
-                value={formData.venues}
-                options={catalog.venues}
-                onChange={(selection) => onChange({ venues: selection })}
-            />
+        <div className="btn-bar">
+            <button type="button" className="btn btn-primary" onClick={() => onSave()}>Apply Filters</button>
+            <button type="button" className="btn btn-secondary" onClick={() => {
+                    console.log(formData);
+                    formData.venues = [];
+                    formData.positions = [];
+                    formData.date = '';
+                    formData.minimum_hourly_rate = '';
+                    onSave(false);
+            }}>Clear Filters</button>
         </div>
-    </div>
-    <div className="btn-bar">
-        <button type="button" className="btn btn-primary" onClick={() => onSave()}>Apply Filters</button>
-        <button type="button" className="btn btn-secondary" onClick={() => onSave(false)}>Clear Filters</button>
-    </div>
-</form>);
+    </form>
+);
+};
 FilterApplications.propTypes = {
     onSave: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,

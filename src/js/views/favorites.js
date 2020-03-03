@@ -93,11 +93,11 @@ export class ManageFavorites extends Flux.DashView {
 
     render() {
         return (<div className="p-1 listcontents">
-            <Wizard continuous
+            {/* <Wizard continuous
                 steps={this.state.steps}
                 run={this.state.runTutorial}
                 callback={callback}
-            />
+            /> */}
             <h1><span id="your-favorites-heading">Your favorite lists</span></h1>
             <Theme.Consumer>
                 {({ bar }) =>
@@ -264,7 +264,7 @@ export const FavlistEmployees = ({ formData, onChange, onSave, catalog }) => {
                 {(favlist && favlist.employees.length > 0) ?
                     <div className="row">
                         <div className="col-12">
-                            <ul>
+                            <ul className="scroll" style={{ maxHeight: "600px", overflowY: "auto", padding: "10px", margin: "-10px" }}>
                                 {favlist.employees.map((em, i) => (
                                     <EmployeeExtendedCard
                                         key={i}

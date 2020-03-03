@@ -219,6 +219,11 @@ var ShiftDetails = exports.ShiftDetails = function ShiftDetails(_ref) {
                     },
                     _react2.default.createElement(
                         'option',
+                        { value: 0 },
+                        '0 star'
+                    ),
+                    _react2.default.createElement(
+                        'option',
                         { value: 1 },
                         '1 star'
                     ),
