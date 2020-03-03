@@ -770,7 +770,6 @@ export const PayrollPeriodDetails = ({ match, history }) => {
         groupedPayments[pay.employee.id].payments.push(pay);
     }
     groupedPayments = Object.keys(groupedPayments).map(id => groupedPayments[id]);
-    console.log(payments);
     return <div className="p-1 listcontents">
         <p className="text-right">
             {period.status != "OPEN" ?
