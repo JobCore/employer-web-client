@@ -62,7 +62,7 @@ export const Talent = (data) => {
         getFormData: () => {
             const _formShift = {
                 id: _entity.id,
-                favoriteLists: _entity.favoriteLists.map(fav => ({ label: fav.title, value: fav.id }))
+                favoriteLists: _entity.favoritelist_set.map(fav => ({ label: fav.title, value: fav.id }))
             };
             return _formShift;
         },
@@ -194,6 +194,7 @@ export class ManageTalents extends Flux.DashView {
  * AddShift
  */
 export const FilterTalents = (props) => {
+    console.log(props.formData);
     return (<form>
         <div className="row">
             <div className="col-6">
@@ -248,7 +249,7 @@ export const FilterTalents = (props) => {
                 props.formData.last_name = '';
                 props.formData.positions = [];
                 props.formData.badges = [];
-                props.formData.rating = {label: "0 Stars", value: 0};
+                props.formData.rating = '';
                 props.onSave(false);
                 }}>Clear Filters</Button>
         </div>

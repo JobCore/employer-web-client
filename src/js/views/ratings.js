@@ -124,8 +124,8 @@ export class ManageRating extends Flux.DashView {
 
         fetchTemporal('employers/me', 'current_employer');
         this.subscribe(store, 'current_employer', (employer) => {
-            this.setState({ employer });
             searchMe(`ratings`, `?employer=${employer.id}`);
+            this.setState({ employer });
         });
 
         const ratings = store.getState('ratings');
@@ -135,7 +135,8 @@ export class ManageRating extends Flux.DashView {
     }
 
     filter(ratings = null) {
-        search('ratings', window.location.search);
+        console.log(this.state.employer);
+        search('ratings', `?employer=${this.state.employer.id}`);
     }
 
     render() {

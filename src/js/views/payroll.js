@@ -728,7 +728,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
     const [employer, setEmployer] = useState(store.getState('current_employer'));
     const [period, setPeriod] = useState(null);
     const [payments, setPayments] = useState([]);
-
+    console.log('this are the payments', payments);
     const { bar } = useContext(Theme.Context);
     useEffect(() => {
         const employerSub = store.subscribe('current_employer', (employer) => setEmployer(employer));
@@ -762,6 +762,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
     }
 
     let groupedPayments = {};
+    console.log('group payment', groupedPayments);
     for(let i = 0; i < payments.length; i++){
         const pay = payments[i];
         if (typeof groupedPayments[pay.employee.id] === 'undefined') {
@@ -816,8 +817,8 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                     b.employee.id === "new" ? 1 :
                         a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
             ).map(pay => {
-                const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + Number(regular_hours) + Number(over_time), 0);
-                const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + (Number(regular_hours) + Number(over_time))*Number(hourly_rate) , 0);
+                const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, breaktime_minutes}) => total + Number(regular_hours) + Number(over_time), 0);
+                const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate, breaktime_minutes }) => total + (Number(regular_hours) + Number(over_time))*Number(hourly_rate) , 0);
                 return <table key={pay.employee.id} className="table table-striped payroll-summary">
                     <thead>
                         <tr>
@@ -879,7 +880,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                             employee: p.employee.id || p.employee,
                                             shift: (payment.shift) ? payment.shift.id : p.shift.id,
                                             id: p.id
-                                        }).then(_payment => setPayments(payments.map(_pay => (_pay.id !== p.id) ? _pay : { ..._pay, status: "APPROVED", over_time: payment.over_time, breaktime_minutes: payment.breaktime_minutes })))
+                                        }).then(_payment => setPayments(payments.map(_pay => (_pay.id !== p.id) ? _pay : { ..._pay, status: "APPROVED", breaktime_minutes: payment.breaktime_minutes, over_time: payment.over_time, regular_hours: payment.regular_hours })))
                                         :
                                         create('payment',{
                                             ...payment,
@@ -894,6 +895,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                             employee: _pay.employee,
                                             over_time: payment.over_time, breaktime_minutes: payment.breaktime_minutes, hourly_rate: payment.shift.minimum_hourly_rate,
                                             shift: payment.shift,
+                                            regular_hours: payment.regular_hours,
                                             id: p.id || _pay.id || _payment.id
                                         })));
                                 }}
@@ -1538,9 +1540,11 @@ export class PayrollRating extends Flux.DashView {
             //if(!this.state.singlePayrollPeriod) this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
         });
         if (!payrollPeriods) {
+            alert('popo');
             searchMe('payroll-periods');
         }
         else {
+            alert('popopopo');
             this.updatePayrollPeriod(payrollPeriods);
             this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
 
@@ -1741,11 +1745,12 @@ export class PayrollReport extends Flux.DashView {
     }
 
     componentDidMount() {
-
+        
         this.subscribe(store, 'current_employer', (employer) => {
             this.setState({ employer });
         });
         this.subscribe(store, 'payroll-period-payments', (paymentInfo) => {
+            console.log(paymentInfo);
             this.setState({ paymentInfo });
         });
         this.subscribe(store, 'employee-payment', () => {
@@ -1753,19 +1758,12 @@ export class PayrollReport extends Flux.DashView {
         });
         const payrollPeriods = store.getState('payroll-periods');
         this.subscribe(store, 'payroll-periods', (_payrollPeriods) => {
-            //Updated payroll.
+            console.log(_payrollPeriods);
         });
-        if (!payrollPeriods || payrollPeriods.length == 0 ) {
-            if(this.props.match.params.period_id !== undefined) fetchSingle("payroll-periods", this.props.match.params.period_id).then(_period => {
-            this.setState({singlePayrollPeriod:_period, payments: this.groupPayments(_period).filter(p => p.payments.length != 0)});
-        });
-        }
-        else {
-            this.updatePayrollPeriod(payrollPeriods);
-            this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
 
+        this.updatePayrollPeriod(payrollPeriods);
+        this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
 
-        }
         this.removeHistoryListener = this.props.history.listen((data) => {
             const period = /\/payroll\/period\/(\d+)/gm;
             const periodMatches = period.exec(data.pathname);
@@ -1794,7 +1792,12 @@ export class PayrollReport extends Flux.DashView {
 
     getSinglePeriod(periodId, payrollPeriods) {
         if (typeof periodId !== 'undefined') {
-            if (!payrollPeriods) fetchSingle("payroll-periods", periodId);
+            if (!payrollPeriods || !this.state.singlePayrollPeriod) fetchSingle("payroll-periods", periodId).then(period => {
+                this.setState({ singlePayrollPeriod: period, payments: this.groupPayments(period) }, () => {
+                    fetchPeyrollPeriodPayments(this.state.singlePayrollPeriod.id);
+                });                
+             
+            });
             else {
                 const singlePayrollPeriod = payrollPeriods.find(pp => pp.id == periodId);
                 this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod) }, () => {
