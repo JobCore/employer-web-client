@@ -817,8 +817,8 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                     b.employee.id === "new" ? 1 :
                         a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
             ).map(pay => {
-                const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, breaktime_minutes}) => total + Number(regular_hours) + Number(over_time), 0);
-                const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate, breaktime_minutes }) => total + (Number(regular_hours) + Number(over_time))*Number(hourly_rate) , 0);
+                const total_hours = pay.payments.filter(p => p.status === "APPROVED" || p.status === "PAID").reduce((total, { regular_hours, over_time, breaktime_minutes}) => total + Number(regular_hours) + Number(over_time), 0);
+                const total_amount = pay.payments.filter(p => p.status === "APPROVED" || p.status === "PAID").reduce((total, { regular_hours, over_time, hourly_rate, breaktime_minutes }) => total + (Number(regular_hours) + Number(over_time))*Number(hourly_rate) , 0);
                 return <table key={pay.employee.id} className="table table-striped payroll-summary">
                     <thead>
                         <tr>
@@ -1260,7 +1260,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
             <td className="text-center">
                 {payment.status === "APPROVED" ? <span><i className="fas fa-check-circle"></i></span>
                     : payment.status === "REJECTED" ? <span><i className="fas fa-times-circle"></i></span>
-                        : `${payment.status}<${readOnly ? "true" : "false"}`
+                        : payment.status === "PAID" ?  <p className="m-0 p-0"><span className="badge">paid</span></p> : null
                 }
                 {period.status === "OPEN" && (payment.status === "APPROVED" || payment.status === "REJECTED") &&
                     <i onClick={() => onUndo(payment)} className="fas fa-undo ml-2 pointer"></i>
@@ -1360,6 +1360,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
         end.add(7, 'days');
         if (end.isBefore(TODAY())) note = "Payroll was generated until " + end.format('M d');
     }
+    console.log(periods);
     return (<div>
         <div className="top-bar">
             <Button
@@ -1381,7 +1382,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
                                 onClick={() => history.push(`/payroll/period/${p.id}`)}
                             >
                                 <div className="avatar text-center pt-1 bg-transparent">
-                                    {p.status === "FINALIZED" ? <i className="fas fa-check-circle"></i>
+                                    {p.status === "FINALIZED" || p.status === "PAID" ? <i className="fas fa-check-circle"></i>
                                         : p.status === "OPEN" ? <i className="far fa-circle"></i>
                                             : ''
                                     }
@@ -1874,6 +1875,7 @@ export class PayrollReport extends Flux.DashView {
                                             <th scope="col">Staff</th>
                                             <th scope="col">Regular Hrs</th>
                                             <th scope="col">Over Time</th>
+                                            <th scope="col">Total Hrs</th>
                                             <th scope="col">Earnings</th>
                                             <th scope="col">Taxes</th>
                                             <th scope="col">Amount</th>
@@ -1890,8 +1892,9 @@ export class PayrollReport extends Flux.DashView {
                                                     {pay.employee.last_name}, {pay.employee.first_name}
                                                     <p className="m-0 p-0"><span className="badge">{pay.paid ? "paid" : "unpaid"}</span></p>
                                                 </td>
-                                                <td>{pay.regular_hours}</td>
-                                                <td>{pay.over_time}</td>
+                                                <td>{Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100) / 100 > 40 ? 40 : Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100)/100}</td>
+                                                <td>{Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100) / 100 > 40 ? Math.round((Number(pay.regular_hours) + Number(pay.over_time)- 40) * 100 )  / 100  : "-" }</td>
+                                                <td>{Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100) / 100}</td>
                                                 <td>{pay.earnings}</td> 
                                                 <td>{pay.deductions}</td>
                                                 <td>{pay.amount}</td>

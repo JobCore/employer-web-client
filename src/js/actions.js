@@ -641,7 +641,6 @@ export const updatePayments = async (payments, period) => {
 };
 
 export const createPayment = async (payment, period) => {
-    console.log(payment);
     const _new = await create("payment", { ...payment, employee: payment.employee.id || payment.employee, shift: payment.shift.id || payment.shift });
     const _period = {
         ...period,
@@ -819,7 +818,6 @@ class _Store extends Flux.DashStore {
             });
         });
         this.addEvent('shifts', (shifts) => {
-            console.log('el store del shift', shifts);
             shifts = Array.isArray(shifts.results) ? shifts.results : Array.isArray(shifts) ? shifts : null;
             let newShifts = (!shifts || (Object.keys(shifts).length === 0 && shifts.constructor === Object)) ? [] : shifts.filter(s => s.status !== 'CANCELLED').map((shift) => {
                 //already transformed
@@ -827,12 +825,11 @@ class _Store extends Flux.DashStore {
                 return Shift(shift).defaults().unserialize();
             });
 
-    
+            
             const applicants = this.getState('applications');
             if (!applicants && Session.get().isValid) fetchAllMe(['applications']);
 
             // const _shift = newShifts.find(s => s.id == 1095);
-            console.log(newShifts);
             return newShifts;
         });
 

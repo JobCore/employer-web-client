@@ -135,7 +135,6 @@ export class ManageRating extends Flux.DashView {
     }
 
     filter(ratings = null) {
-        console.log(this.state.employer);
         search('ratings', `?employer=${this.state.employer.id}`);
     }
 
@@ -152,11 +151,11 @@ export class ManageRating extends Flux.DashView {
                     <div className="row mt-2">
                         <div className="col-6">
                             <label>Total Ratings</label>
-                            <p>You have been rated <span className="text-success">{this.state.employer ? this.state.employer.total_ratings : "0"} times.</span></p>
+                            <p>You have been rated <span className="text-success">{this.state.ratings.length} times.</span></p>
                         </div>
                         <div className="col-6">
                             <label>Rating</label>
-                            <p>Talents rated you with <span className="text-success">{this.state.employer ? this.state.employer.rating : "0"} points avg.</span></p>
+                            <p>Talents rated you with <span className="text-success">{this.state.employer ? this.state.employer.rating : 0} points avg.</span></p>
                         </div>
                     </div>
                     <div className="row">
