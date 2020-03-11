@@ -1066,7 +1066,6 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
     const shiftStartTime = shift.starting_at.format('LT');
     const shiftEndTime = shift.ending_at.format('LT');
     const shiftNextDay = shift.ending_at.isBefore(shift.starting_at);
-    console.log(shift.ending_at);
     const shiftDuration = moment.duration(moment(shiftEndingTimeNoSeconds).diff(moment(shiftStartingTimeNoSeconds)));
     const plannedHours = Math.round(shiftDuration.asHours() * 100) / 100;
 
@@ -1217,7 +1216,6 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                             const starting = approvedTimes.in;
                             let ended_at = moment(clockin.started_at).set({ hour: d1.get('hour'), minute: d1.get('minute') });
                             if (starting.isAfter(ended_at)) ended_at = moment(ended_at).add(1, 'days');
-                            console.log(ended_at);
                             if(ended_at && ended_at !== undefined) setApprovedTimes({ ...approvedTimes, out: ended_at });
                         }
                     }}
