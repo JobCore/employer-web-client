@@ -728,7 +728,6 @@ export const PayrollPeriodDetails = ({ match, history }) => {
     const [employer, setEmployer] = useState(store.getState('current_employer'));
     const [period, setPeriod] = useState(null);
     const [payments, setPayments] = useState([]);
-    console.log('this are the payments', payments);
     const { bar } = useContext(Theme.Context);
     useEffect(() => {
         const employerSub = store.subscribe('current_employer', (employer) => setEmployer(employer));
@@ -762,7 +761,6 @@ export const PayrollPeriodDetails = ({ match, history }) => {
     }
 
     let groupedPayments = {};
-    console.log('group payment', groupedPayments);
     for(let i = 0; i < payments.length; i++){
         const pay = payments[i];
         if (typeof groupedPayments[pay.employee.id] === 'undefined') {
@@ -1360,7 +1358,6 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
         end.add(7, 'days');
         if (end.isBefore(TODAY())) note = "Payroll was generated until " + end.format('M d');
     }
-    console.log(periods);
     return (<div>
         <div className="top-bar">
             <Button

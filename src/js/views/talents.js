@@ -194,7 +194,6 @@ export class ManageTalents extends Flux.DashView {
  * AddShift
  */
 export const FilterTalents = (props) => {
-    console.log(props.formData);
     return (<form>
         <div className="row">
             <div className="col-6">

@@ -7,7 +7,7 @@ import { Page, Image, Text, View, Document, StyleSheet, PDFDownloadLink } from '
 const BORDER_COLOR = '#000000';
 const BORDER_STYLE = 'solid';
 const COL1_WIDTH = 20;
-const COLN_WIDTH = (100 - COL1_WIDTH) / 8;
+const COLN_WIDTH = (100 - COL1_WIDTH) / 6;
 
 const styles = StyleSheet.create({
     body: {
@@ -74,7 +74,8 @@ const styles = StyleSheet.create({
         borderColor: BORDER_COLOR,
         borderWidth: 1,
         borderLeftWidth: 0,
-        borderTopWidth: 0
+        borderTopWidth: 0,
+        textAlign: 'center'
     },
     tableCellHeader: {
         margin: 5,
@@ -115,6 +116,9 @@ const PayrollPeriodReport = ({ period, employer, payments }) => {
                         <Text style={styles.tableCellHeader}>OVER TIME</Text>
                     </View>
                     <View style={styles.tableColHeader}>
+                        <Text style={styles.tableCellHeader}>TOTAL HRS</Text>
+                    </View>
+                    <View style={styles.tableColHeader}>
                         <Text style={styles.tableCellHeader}>EARNINGS</Text>
                     </View>
                     <View style={styles.tableColHeader}>
@@ -133,10 +137,13 @@ const PayrollPeriodReport = ({ period, employer, payments }) => {
                             <Text style={styles.tableCell}>{pay.employee.last_name}, {pay.employee.first_name}</Text>
                         </View>
                         <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>{pay.regular_hours}</Text>
+                            <Text style={styles.tableCell}>{parseFloat(pay.regular_hours) + parseFloat(pay.over_time) < 40 ? parseFloat(pay.regular_hours) + parseFloat(pay.over_time) : 40}</Text>
                         </View>
                         <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>{pay.over_time}</Text>
+                            <Text style={styles.tableCell}>{parseFloat(pay.regular_hours) + parseFloat(pay.over_time) > 40 ? parseFloat(pay.regular_hours) + parseFloat(pay.over_time)- 40 : '-'}</Text>
+                        </View>
+                        <View style={styles.tableCol}>
+                            <Text style={styles.tableCell}>{parseFloat(pay.regular_hours) + parseFloat(pay.over_time)}</Text>
                         </View>
                         <View style={styles.tableCol}>
                             <Text style={styles.tableCell}>{pay.earnings}</Text>

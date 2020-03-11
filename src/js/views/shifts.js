@@ -68,7 +68,6 @@ export const Shift = (data) => {
             delete newShift.required_badges;
             //this is a special property used on the form for creating an expried (past) shift and adding the employess right away
             if (Array.isArray(this.employeesToAdd)) newShift.employees = this.employeesToAdd.map(e => e.value || e.id);
-            console.log('NEW SHIFTS: ', newShift);
             return Object.assign(this, newShift);
         },
         unserialize: function () {
@@ -643,7 +642,6 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
     if(formData.employer && isNaN(formData.employer )) formData.employer = formData.employer.id;
     if(!formData.shift && !isNaN(formData.id)) formData.shift = formData.id;
     if(formData.required_badges) delete formData.required_badges;
-    console.log(formData);
     return (
         <form>
             <div className="row">
