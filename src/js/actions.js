@@ -518,8 +518,9 @@ export const removeUser = (user) => new Promise((resolve, reject) => {
 });
 
 
-export const deleteShiftEmployee = (shiftId, employee) => {
-    const shift = store.get('shifts', shiftId);
+export const deleteShiftEmployee = async (shiftId, employee) => {
+    let shift = store.get('shifts', shiftId);
+    if (!shift) shift = await fetchSingle('shifts', shiftId);
     if (shift) {
         const newEmployees = shift.employees.filter(emp => emp.id != employee.id);
         const updatedShift = {
@@ -640,7 +641,6 @@ export const updatePayments = async (payments, period) => {
 };
 
 export const createPayment = async (payment, period) => {
-    console.log(payment);
     const _new = await create("payment", { ...payment, employee: payment.employee.id || payment.employee, shift: payment.shift.id || payment.shift });
     const _period = {
         ...period,
@@ -821,9 +821,11 @@ class _Store extends Flux.DashStore {
             shifts = Array.isArray(shifts.results) ? shifts.results : Array.isArray(shifts) ? shifts : null;
             let newShifts = (!shifts || (Object.keys(shifts).length === 0 && shifts.constructor === Object)) ? [] : shifts.filter(s => s.status !== 'CANCELLED').map((shift) => {
                 //already transformed
+               
                 return Shift(shift).defaults().unserialize();
             });
 
+            
             const applicants = this.getState('applications');
             if (!applicants && Session.get().isValid) fetchAllMe(['applications']);
 

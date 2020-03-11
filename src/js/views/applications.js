@@ -271,7 +271,6 @@ ApplicationDetails.propTypes = {
  * Filter Applications
  */
 export const FilterApplications = ({ onSave, onCancel, onChange, catalog, formData }) => {
-console.log(catalog);
 return(
     <form>
         <div className="row">
@@ -307,7 +306,6 @@ return(
         <div className="btn-bar">
             <button type="button" className="btn btn-primary" onClick={() => onSave()}>Apply Filters</button>
             <button type="button" className="btn btn-secondary" onClick={() => {
-                    console.log(formData);
                     formData.venues = [];
                     formData.positions = [];
                     formData.date = '';

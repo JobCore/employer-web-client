@@ -53,7 +53,7 @@ class PrivateLayout extends Flux.DashView {
                 applicationRestrictions: [
                     { label: "Anyone that qualifies", value: 'ANYONE' },
                     { label: "Only from favorite lists", value: 'FAVORITES' },
-                    { label: "Search for specific seople", value: 'SPECIFIC_PEOPLE' }
+                    { label: "Search for specific people", value: 'SPECIFIC_PEOPLE' }
                 ],
                 stars: [
                     { label: "0 Star", value: 0 },
@@ -81,7 +81,6 @@ class PrivateLayout extends Flux.DashView {
                     log.info("Right Bar Action: ", option.slug);
                     switch (option.slug) {
                         case 'create_shift':
-                            //console.log('create_shift', option.data);
                             this.showRightBar(ShiftDetails, option, { formData: Shift(option.data).defaults() });
                             break;
                         case 'create_deduction':

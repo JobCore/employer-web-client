@@ -29,7 +29,6 @@ export const getShiftInitialFilters = () => {
 };
 
 export const Shift = (data) => {
-
     const _defaults = {
         position: '',
         maximum_allowed_employees: '1',
@@ -69,7 +68,6 @@ export const Shift = (data) => {
             delete newShift.required_badges;
             //this is a special property used on the form for creating an expried (past) shift and adding the employess right away
             if (Array.isArray(this.employeesToAdd)) newShift.employees = this.employeesToAdd.map(e => e.value || e.id);
-
             return Object.assign(this, newShift);
         },
         unserialize: function () {
@@ -449,7 +447,6 @@ FilterShifts.propTypes = {
  */
 export const ShiftApplicants = (props) => {
     const { onCancel, onSave, catalog } = props;
-    console.log(props);
     return (<Theme.Consumer>
         {({ bar }) => (<div className="sidebar-applicants">
             {catalog.shift.expired ?
@@ -552,7 +549,7 @@ export const ShiftEmployees = (props) => {
                                 const noti = Notify.info("Are you sure? The Talent will be kicked out of this shift", (answer) => {
                                     if(catalog.showShift){
                                         if (answer) {
-                                            deleteShiftEmployee(catalog.shift.id, emp.id);
+                                            deleteShiftEmployee(catalog.shift.id, emp);
                                             catalog.shift.employees = catalog.shift.employees.filter(e => e.id == emp.id);
                                         }
                                     }else{
@@ -634,7 +631,6 @@ ShiftInvites.propTypes = {
  * EditOrAddShift
  */
 const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar, oldShift }) => {
-
     useEffect(() => {
         const venues = store.getState('venues');
         const favlists = store.getState('favlists');
@@ -642,7 +638,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
     }, []);
     const expired = moment(formData.starting_at).isBefore(NOW()) || moment(formData.ending_at).isBefore(NOW());
     if(catalog.positions.find((pos) => pos.value == formData.position.id || pos.value == formData.position))formData['position'] = catalog.positions.find((pos) => pos.value == formData.position.id || pos.value == formData.position).value.toString();
-    if(catalog.positions.find((pos) => pos.value == formData.venue.id || pos.value == formData.venue))formData['venue'] = catalog.positions.find((pos) => pos.value == formData.venue.id || pos.value == formData.venue).value.toString();
+    if(catalog.venues.find((pos) => pos.value == formData.venue.id || pos.value == formData.venue))formData['venue'] = catalog.venues.find((pos) => pos.value == formData.venue.id || pos.value == formData.venue).value.toString();
     if(formData.employer && isNaN(formData.employer )) formData.employer = formData.employer.id;
     if(!formData.shift && !isNaN(formData.id)) formData.shift = formData.id;
     if(formData.required_badges) delete formData.required_badges;
