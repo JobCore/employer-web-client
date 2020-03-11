@@ -1053,19 +1053,21 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
 
     const [breaktime, setBreaktime] = useState(payment.breaktime_minutes);
     
+    let shiftStartingTimeNoSeconds = moment(shift.starting_at).format('YYYY-MM-DDTHH:mm');
+    let shiftEndingTimeNoSeconds = moment(shift.ending_at).format('YYYY-MM-DDTHH:mm');
     const approvedClockin = payment.approved_clockin_time ? moment(payment.approved_clockin_time) : clockin.started_at ? clockin.started_at : shift.starting_at;
     const approvedClockout = payment.approved_clockout_time ? moment(payment.approved_clockout_time) : clockin.ended_at ? clockin.ended_at : shift.ending_at;
     const [approvedTimes, setApprovedTimes] = useState({ in: approvedClockin, out: approvedClockout });
+ 
     const clockInDuration = moment.duration(approvedTimes.out.diff(approvedTimes.in));
-    
+
     // const clockinHours = !clockInDuration ? 0 : clockin.shift || !readOnly ? Math.round(clockInDuration.asHours() * 100) / 100 : "-";
     const clockinHours = Math.round(clockInDuration.asHours() * 100) / 100;
-
     const shiftStartTime = shift.starting_at.format('LT');
     const shiftEndTime = shift.ending_at.format('LT');
     const shiftNextDay = shift.ending_at.isBefore(shift.starting_at);
-
-    const shiftDuration = moment.duration(shift.ending_at.diff(shift.starting_at));
+    console.log(shift.ending_at);
+    const shiftDuration = moment.duration(moment(shiftEndingTimeNoSeconds).diff(moment(shiftStartingTimeNoSeconds)));
     const plannedHours = Math.round(shiftDuration.asHours() * 100) / 100;
 
     const clockInDurationAfterBreak = clockInDuration.subtract(breaktime, "minute");
@@ -1213,8 +1215,9 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                     onChange={(d1) => {
                         if (d1) {
                             const starting = approvedTimes.in;
-                            let ended_at = moment(clockin.started_at).set({ hour: d1.get('hour'), minute: d1.get('minute'), second: d1.get('second') });
+                            let ended_at = moment(clockin.started_at).set({ hour: d1.get('hour'), minute: d1.get('minute') });
                             if (starting.isAfter(ended_at)) ended_at = moment(ended_at).add(1, 'days');
+                            console.log(ended_at);
                             if(ended_at && ended_at !== undefined) setApprovedTimes({ ...approvedTimes, out: ended_at });
                         }
                     }}
