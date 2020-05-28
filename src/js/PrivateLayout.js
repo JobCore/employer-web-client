@@ -163,7 +163,7 @@ class PrivateLayout extends Flux.DashView {
                             this.showRightBar(SearchTalentToInviteToShift, option, { formData: ShiftInvite(option.data).getFormData() });
                             break;
                         case 'invite_talent_to_jobcore':
-                            this.showRightBar(InviteTalentToJobcore, option, { formData: { include_sms: false } });
+                            this.showRightBar(InviteTalentToJobcore, option, { formData: { talent: true, include_sms: false } });
                             break;
                         case 'invite_user_to_employer':
                             this.showRightBar(InviteUserToCompanyJobcore, option);

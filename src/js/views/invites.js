@@ -227,18 +227,22 @@ export const PendingJobcoreInvites = ({ catalog, formData }) => (<div>
             <h2>These are your pending invites</h2>
             <ul className="li-white">
                 { (catalog.jcInvites.length > 0) ?
-                    catalog.jcInvites.map((inv, i) =>
-                        (<li key={i}>
-                            <button
-                                className="btn btn-primary float-right mt-2 btn-sm"
-                                onClick={() => update('jobcore-invites', inv)}
-                            >Resend</button>
-                            <p className="p-0 m-0">
-                                <span>{inv.first_name} {inv.last_name} {inv.employer && " (company)"} </span>
-                            </p>
-                            <span className="badge">{moment(inv.updated_at).fromNow()}</span>
-                            <small>{inv.email}</small>
-                        </li>)
+                    catalog.jcInvites.map((inv, i) =>{
+                        if(inv.status == "PENDING"){
+                            console.log('true!!!!');
+                            return(<li key={i}>
+                                <button
+                                    className="btn btn-primary float-right mt-2 btn-sm"
+                                    onClick={() => update('jobcore-invites', inv)}
+                                >Resend</button>
+                                <p className="p-0 m-0">
+                                    <span>{inv.first_name} {inv.last_name} {inv.employer && " (company)"} </span>
+                                </p>
+                                <span className="badge">{moment(inv.updated_at).fromNow()}</span>
+                                <small>{inv.email}</small>
+                            </li>);
+                        }
+                    }
                     ):
                     <p className="text-center">No pending invites</p>
                 }
