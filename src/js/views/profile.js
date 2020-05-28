@@ -258,7 +258,7 @@ export class ManageUsers extends Flux.DashView {
                                     }
                                 }}></Button>
                             </div>
-                            <p className="mt-2">{u.first_name} {u.last_name} ({u.profile.employer_role})</p>
+                            <p className="mt-2">{u.first_name} {u.last_name} ({u.profile.employer_role == "" ? "NEW EMPLOYER" : u.profile.employer_role})</p>
                         </GenericCard>
                     ))}
                 </span>)}
