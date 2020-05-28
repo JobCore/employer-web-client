@@ -277,7 +277,7 @@ export class Invite extends React.Component{
                                     last_name: this.state.last_name,
                                     token: this.state.token,
                                     employer: this.state.employer || undefined,
-                                    account_type: this.state.employer ? 'employer' : 'employee'
+                                    account_type: this.state.employer ? 'employer' : 'employee',
                                 }, this.props.history)
                                     .then(() => this.setState({loading: false, error: null }))
                                     .catch((error) => this.setState({loading: false, error }));
