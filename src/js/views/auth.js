@@ -243,6 +243,7 @@ export class Invite extends React.Component{
     constructor(props){
         super(props);
         const urlVariables = qs.parse(props.location.search);
+        console.log(urlVariables);
         this.state = {
             email: '',
             password: '',
@@ -250,12 +251,13 @@ export class Invite extends React.Component{
             first_name: '',
             last_name: '',
             employer: urlVariables.employer || urlVariables.company || undefined,
-            token: urlVariables.token || '',
+            token: urlVariables.token_invite || '',
             error: null,
             loading: false
         };
     }
     render(){
+        console.log(this.state);
         return (
             <div className="row mt-5">
                 <div className="col-12 col-sm-10 col-md-9 col-lg-8 col-xl-6 mx-auto">
