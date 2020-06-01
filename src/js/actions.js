@@ -131,8 +131,10 @@ export const resendValidationLink = (email) => new Promise((resolve, reject) => 
 );
 
 export const logout = () => {
-    Session.destroy();
-    store = new _Store();
+    setTimeout(() => {
+        Session.destroy();
+        store = new _Store();
+      }, 3000);
 };
 
 

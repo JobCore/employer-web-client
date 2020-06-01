@@ -11,6 +11,9 @@ import DateTime from 'react-datetime';
 import moment from 'moment';
 import PropTypes from "prop-types";
 
+import Tooltip from 'rc-tooltip';
+import 'rc-tooltip/assets/bootstrap_white.css';
+
 export const Employer = (data = {}) => {
 
     const _defaults = {
@@ -205,45 +208,56 @@ export class ManageUsers extends Flux.DashView {
                         <GenericCard key={i} hover={true}>
                             <Avatar url={u.profile.picture} />
                             <div className="btn-group">
-                                <Button disable={u.profile.employer_role == 'ADMIN' ? true : false} onClick={() => {
-                                    if (this.state.currentUser.id === u.profile.id)  Notify.error('You cannot make yourself an admin');
-                                    else if(this.state.currentUser.employer_role !='ADMIN'){
-                                        Notify.error('You cannot change role if you are not ADMIN');
-                                    }
-                                    else{
-                                        const noti = Notify.info("Are you sure you want to make this person Admin?", (answer) => {
-                                            if (answer) updateUser({ id: u.profile.id, employer_role: 'ADMIN' });
-                                            noti.remove();
-                                        });
+                                <Tooltip placement="bottom" trigger={['hover']} overlay={<small>Admin can create shifts, make payroll payments and change employers role.</small>}>
 
-                                    }
-                                }}>make admin</Button>
-                                <Button disable={u.profile.employer_role == 'MANAGER' ? true : false} onClick={() => {
-                                    if (this.state.currentUser.id === u.profile.id) Notify.error('You cannot make yourself an manager');
-                                    else if(this.state.currentUser.employer_role !='ADMIN'){
-                                        Notify.error('You cannot change role if you are not ADMIN');
-                                    }
-                                    else{
-                                        const noti = Notify.info("Are you sure you want to make this person Manager?", (answer) => {
-                                            if (answer) updateUser({ id: u.profile.id, employer_role: 'MANAGER' });
-                                            noti.remove();
-                                        });
+                                    <Button onClick={() => {
+                                        if (this.state.currentUser.id === u.profile.id)  Notify.error('You cannot make yourself an admin');
+                                        else if(this.state.currentUser.employer_role !='ADMIN'){
+                                            Notify.error('You cannot change role if you are not ADMIN');
+                                        }
+                                        else{
+                                            const noti = Notify.info("Are you sure you want to make this person Admin?", (answer) => {
+                                                if (answer) updateUser({ id: u.profile.id, employer_role: 'ADMIN' });
+                                                noti.remove();
+                                            });
 
-                                    }
-                                }}>make manager</Button>
-                                <Button disable={u.profile.employer_role == 'SUPERVISOR' ? true : false} onClick={() => {
-                                    if (this.state.currentUser.id === u.profile.id) Notify.error('You cannot make yourself an supervisor');
-                                    else if(this.state.currentUser.employer_role !='ADMIN'){
-                                        Notify.error('You cannot change role if you are not ADMIN');
-                                    }
-                                    else{
-                                        const noti = Notify.info("Are you sure you want to make this person Supervisor?", (answer) => {
-                                            if (answer) updateUser({ id: u.profile.id, employer_role: 'SUPERVISOR' });
-                                            noti.remove();
-                                        });
+                                        }
+                                    }}>make admin</Button>
+                                </Tooltip> 
 
-                                    }
-                                }}>make supervisor</Button>                                
+                                <Tooltip placement="bottom" trigger={['hover']} overlay={<small>Manager can create shifts and make payroll payments.</small>}>
+
+                                    <Button  onClick={() => {
+                                        if (this.state.currentUser.id === u.profile.id) Notify.error('You cannot make yourself an manager');
+                                        else if(this.state.currentUser.employer_role !='ADMIN'){
+                                            Notify.error('You cannot change role if you are not ADMIN');
+                                        }
+                                        else{
+                                            const noti = Notify.info("Are you sure you want to make this person Manager?", (answer) => {
+                                                if (answer) updateUser({ id: u.profile.id, employer_role: 'MANAGER' });
+                                                noti.remove();
+                                            });
+
+                                        }
+                                    }}>make manager</Button>
+                                </Tooltip> 
+
+                                <Tooltip placement="bottom" trigger={['hover']} overlay={<small>Supervisor can create shifts and invite employees to work.</small>}>
+                                    <Button onClick={() => {
+                                        if (this.state.currentUser.id === u.profile.id) Notify.error('You cannot make yourself an supervisor');
+                                        else if(this.state.currentUser.employer_role !='ADMIN'){
+                                            Notify.error('You cannot change role if you are not ADMIN');
+                                        }
+                                        else{
+                                            const noti = Notify.info("Are you sure you want to make this person Supervisor?", (answer) => {
+                                                if (answer) updateUser({ id: u.profile.id, employer_role: 'SUPERVISOR' });
+                                                noti.remove();
+                                            });
+
+                                        }
+                                    }}>make supervisor</Button>   
+                           
+                                </Tooltip>                             
                                 <Button icon="trash" onClick={() => {
                                     if (this.state.currentUser.id === u.profile.id) Notify.error('You cannot delete yourself');
                                     else if(u.profile.employer_role !='ADMIN'){
