@@ -210,7 +210,7 @@ export class ManageUsers extends Flux.DashView {
                             <div className="btn-group">
                                 <Tooltip placement="bottom" trigger={['hover']} overlay={<small>Admin can create shifts, make payroll payments and change employers role.</small>}>
 
-                                    <Button disable={u.profile.employer_role == 'ADMIN' ? true : false} onClick={() => {
+                                    <Button onClick={() => {
                                         if (this.state.currentUser.id === u.profile.id)  Notify.error('You cannot make yourself an admin');
                                         else if(this.state.currentUser.employer_role !='ADMIN'){
                                             Notify.error('You cannot change role if you are not ADMIN');
@@ -227,7 +227,7 @@ export class ManageUsers extends Flux.DashView {
 
                                 <Tooltip placement="bottom" trigger={['hover']} overlay={<small>Manager can create shifts and make payroll payments.</small>}>
 
-                                    <Button disable={u.profile.employer_role == 'MANAGER' ? true : false} onClick={() => {
+                                    <Button  onClick={() => {
                                         if (this.state.currentUser.id === u.profile.id) Notify.error('You cannot make yourself an manager');
                                         else if(this.state.currentUser.employer_role !='ADMIN'){
                                             Notify.error('You cannot change role if you are not ADMIN');
@@ -243,7 +243,7 @@ export class ManageUsers extends Flux.DashView {
                                 </Tooltip> 
 
                                 <Tooltip placement="bottom" trigger={['hover']} overlay={<small>Supervisor can create shifts and invite employees to work.</small>}>
-                                    <Button disable={u.profile.employer_role == 'SUPERVISOR' ? true : false} onClick={() => {
+                                    <Button onClick={() => {
                                         if (this.state.currentUser.id === u.profile.id) Notify.error('You cannot make yourself an supervisor');
                                         else if(this.state.currentUser.employer_role !='ADMIN'){
                                             Notify.error('You cannot change role if you are not ADMIN');
