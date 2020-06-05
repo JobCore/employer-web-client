@@ -239,6 +239,72 @@ Forgot.propTypes = {
     history: PropTypes.object
 };
 
+export class ResetPassword extends React.Component{
+    constructor(props){
+        super(props);
+        const urlVariables = qs.parse(props.location.search);
+        this.state = {
+            password: '',
+            repPassword: '',
+            token: urlVariables.reset_token || '',
+            error: null,
+            loading: false
+        };
+    }
+    render(){
+        console.log(this.state);
+        return (
+            <div className="row mt-5">
+                <div className="col-12 col-sm-10 col-md-9 col-lg-8 col-xl-6 mx-auto">
+                    <p className="m-0 text-center"><img className="banner w-75 mx-auto" src={loginBanner} /></p>
+                    <h2 className="my-4 text-center">Change Your Password</h2>
+                    <p className="text-center">Use only letters, numbers, and common symbols. Avoid spaces at the start and end.</p>
+                    <form className="col-12 col-lg-10 mx-auto"
+                        onSubmit={(e)=> {
+                            e.preventDefault();
+                            this.setState({ error: null });
+                            if(this.state.password != this.state.repPassword) this.setState({ error: `Your passwords don't match`, loading: false });
+                            else{
+                                this.setState({ loading: true });
+                                actions.resetPassword({
+                                    new_password: this.state.password,
+                                    token: this.state.token,
+                                }, this.props.history)
+                                    .then(() => this.setState({loading: false, error: null }))
+                                    .catch((error) => this.setState({loading: false, error }));
+                            }
+
+                        }}
+                    >
+                        { this.state.error && <div className="alert alert-danger">{this.state.error}</div> }
+                        <div className="form-group">
+                            <input type="password" className="form-control rounded" id="exampleInputPassword1" placeholder="Password"
+                                 onChange={(e) => this.setState({password: e.target.value, error: null })} value={this.state.password}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <input type="password" className="form-control rounded" id="exampleInputPassword1" placeholder="Repeat your password"
+                                 onChange={(e) => this.setState({repPassword: e.target.value, error: null})} value={this.state.repPassword}
+                            />
+                        </div>
+                        {
+                            this.state.loading ?
+                                <button type="submit" className="btn btn-secondary form-control" disabled={true}>Loading...</button>
+                                : this.state.error ?
+                                    <button type="submit" className="btn btn-danger form-control" disabled={true}>Check errors above</button>
+                                    :
+                                    <button type="submit" className="btn btn-primary form-control">Reset Password</button>
+                        }
+                    </form>
+                </div>
+            </div>
+        );
+    }
+}
+ResetPassword.propTypes = {
+    history: PropTypes.object,
+    location: PropTypes.object
+};
 export class Invite extends React.Component{
     constructor(props){
         super(props);

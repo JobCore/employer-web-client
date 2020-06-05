@@ -646,6 +646,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
     if(formData.employer && isNaN(formData.employer )) formData.employer = formData.employer.id;
     if(!formData.shift && !isNaN(formData.id)) formData.shift = formData.id;
     if(formData.required_badges) delete formData.required_badges;
+    console.log(formData);
     return (
         <form>
             <div className="row">
@@ -768,6 +769,132 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                     </div>
                 </div>
             </div>
+            {/* <div className="row align-items-center">
+                <div className="col-1">
+                    <input type="checkbox" aria-label="Checkbox for following text input"/>
+
+                </div>
+                <div className="col-">
+                    <div className="input-group">
+                        <DateTime
+                            timeFormat={false}
+                            className="shiftdate-picker"
+                            closeOnSelect={true}
+                            value={formData.starting_at}
+                            isValidDate={(current) => {
+                                return formData.multiple_dates !== undefined && formData.multiple_dates.length > 0 ? current.isAfter(YESTERDAY) : true;
+                            }}
+                            renderInput={(properties) => {
+                                const { value, ...rest } = properties;
+                                return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
+                            }}
+                            onChange={(value) => {
+
+
+                                const getRealDate = (start, end) => {
+                                    if (typeof start == 'string') value = moment(start);
+
+                                    const starting = moment(start.format("MM-DD-YYYY") + " " + start.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+
+                                    var ending = moment(start.format("MM-DD-YYYY") + " " + end.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                                    if (typeof starting !== 'undefined' && starting.isValid()) {
+                                        if (ending.isBefore(starting)) {
+                                            ending = ending.add(1, 'days');
+                                        }
+
+                                        return { starting_at: starting, ending_at: ending };
+                                    }
+                                    return null;
+                                };
+
+                                const mainDate = getRealDate(value, formData.ending_at);
+
+                                const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
+                                onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
+
+
+                            }}
+
+
+                        />
+              
+                    </div> 
+                </div>
+                <div className="col-3">
+                    <label>From</label>
+                    <DateTime
+                        dateFormat={false}
+                        timeFormat={DATETIME_FORMAT}
+                        closeOnTab={true}
+                        timeConstraints={{ minutes: { step: 15 } }}
+                        value={formData.starting_at}
+                        renderInput={(properties) => {
+                            const { value, ...rest } = properties;
+                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                        }}
+                        onChange={(value) => {
+                            if (typeof value == 'string') value = moment(value);
+
+                            const getRealDate = (start, end) => {
+                                const starting = moment(start.format("MM-DD-YYYY") + " " + value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                                var ending = moment(end);
+                                if (typeof starting !== 'undefined' && starting.isValid()) {
+                                    if (ending.isBefore(starting)) {
+                                        ending = ending.add(1, 'days');
+                                    }
+
+                                    return { starting_at: starting, ending_at: ending };
+                                }
+                                return null;
+                            };
+
+                            const mainDate = getRealDate(formData.starting_at, formData.ending_at);
+                            const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
+                            onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
+
+
+                        }}
+                    />
+                </div>
+                <div className="col-3">
+                    <label>To {(formData.ending_at.isBefore(formData.starting_at)) && "(next day)"}</label>
+                    <DateTime
+                        className="picker-left"
+                        dateFormat={false}
+                        timeFormat={DATETIME_FORMAT}
+                        timeConstraints={{ minutes: { step: 15 } }}
+                        value={formData.ending_at}
+                        renderInput={(properties) => {
+                            const { value, ...rest } = properties;
+                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                        }}
+                        onChange={(value) => {
+                            if (typeof value == 'string') value = moment(value);
+
+                            const getRealDate = (start, end) => {
+
+                                const starting = start;
+                                var ending = moment(start.format("MM-DD-YYYY") + " " + value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+
+                                if (typeof starting !== 'undefined' && starting.isValid()) {
+                                    if (ending.isBefore(starting)) {
+                                        ending = ending.add(1, 'days');
+                                    }
+
+                                    return { starting_at: starting, ending_at: ending };
+                                }
+                                return null;
+                            };
+
+                            const mainDate = getRealDate(formData.starting_at, formData.ending_at);
+                            const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
+                            onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
+
+                        }}
+                    />
+                </div>
+                
+            </div> */}
             <div className="row">
                 <div className="col-6">
                     <label>From</label>

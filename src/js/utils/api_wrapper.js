@@ -136,7 +136,7 @@ export const PUTFiles = (endpoint, files) => {
 
 export const PUT = (endpoint, putData, extraHeaders = {}) => {
 
-  if (['register', 'login'].indexOf(endpoint) == -1) {
+  if (['register', 'login','user/password/reset'].indexOf(endpoint) == -1) {
     HEADERS['Authorization'] = `JWT ${getToken()}`;
   }
   const REQ = {

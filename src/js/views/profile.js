@@ -77,6 +77,7 @@ export class Profile extends Flux.DashView {
     }
 
     render() {
+        console.log(this.state);
         return (<div className="p-1 listcontents company-profile">
             <h1><span id="company_details">Company Details</span></h1>
             <form>

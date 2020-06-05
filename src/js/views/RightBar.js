@@ -206,7 +206,7 @@ class RightBar extends React.Component {
     render(){
         const View = this.props.component;
         const styles = { width: this.props.width , right: (this.props.level * (this.props.width/3))};
-
+        console.log(this.props.width);
         return (<div className={"right-bar"+(!this.props.isCollapsable ? " collapsed" : '')} style={styles}>
             <span className="backdrop" onClick={() => this.props.onBackdropClick() } />
             {

@@ -4,6 +4,7 @@ import './style.scss';
 import RightBar from '../../views/RightBar.js';
 
 const SideBar = (props) => {
+    console.log('side bar',props);
     const bars = props.sideBarLevels.map((sb, i) =>
       (<RightBar key={i}
           level={i}

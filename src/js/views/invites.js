@@ -229,7 +229,6 @@ export const PendingJobcoreInvites = ({ catalog, formData }) => (<div>
                 { (catalog.jcInvites.length > 0) ?
                     catalog.jcInvites.map((inv, i) =>{
                         if(inv.status == "PENDING"){
-                            console.log('true!!!!');
                             return(<li key={i}>
                                 <button
                                     className="btn btn-primary float-right mt-2 btn-sm"
