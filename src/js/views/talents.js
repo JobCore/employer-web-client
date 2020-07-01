@@ -156,7 +156,7 @@ export class ManageTalents extends Flux.DashView {
         if(!lists) fetchAllMe(['favlists']);
 
         this.props.history.listen(() => {
-            this.filter();
+            // this.filter();
             this.setState({ firstSearch: false });
         });
         this.setState({ runTutorial: true });
@@ -165,6 +165,9 @@ export class ManageTalents extends Flux.DashView {
     filter(employees=null){
         search('employees', window.location.search);
     }
+
+
+
     render() {
         if(this.state.firstSearch) return <p>Please search for an employee</p>;
         const allowLevels = (window.location.search != '');
@@ -267,6 +270,18 @@ FilterTalents.propTypes = {
  */
 export const TalentDetails = (props) => {
     const employee = props.catalog.employee;
+
+    function reformatPhoneNumber(phoneNumberString){
+        console.log(phoneNumberString);
+        var cleaned = ('' + phoneNumberString).replace(/\D/g, '');
+        var match = cleaned.match(/^(1|)?(\d{3})(\d{3})(\d{4})$/);
+        if (match) {
+          var intlCode = (match[1] ? '+1 ' : '');
+          return [intlCode, '(', match[2], ') ', match[3], '-', match[4]].join('');
+        }
+        return null;
+    }
+
     return (<Theme.Consumer>
         {({bar}) =>
             (<li className="aplication-details">
@@ -277,11 +292,13 @@ export const TalentDetails = (props) => {
                     />
                 </div>
                 <Avatar url={employee.user.profile.picture} />
-                <p>{typeof employee.fullName == 'function' ? employee.fullName() : employee.first_name + ' ' + employee.last_name}</p>
+                <p style={{fontWeight: "bolder", fontSize: '24px'}}>{typeof employee.fullName == 'function' ? employee.fullName() : employee.first_name + ' ' + employee.last_name}</p>
+                <p>Email: {employee.user ?  employee.user.email : 'No email provided'}</p>
+                <p>Phone number: {employee.user ?  reformatPhoneNumber(employee.user.profile.phone_number) : 'No email provided'}</p>
                 <p>
-                    <Stars rating={Number(employee.rating)} jobCount={!Array.isArray(employee.positions) ? 0 : employee.positions.length}  />
+                    <Stars rating={Number(employee.rating)} jobCount={employee.job_count}  />
                 </p>
-                <p>$ {Number(employee.minimum_hourly_rate).toFixed(2)}/hr minimum expected rate</p>
+                <p>${Number(employee.minimum_hourly_rate).toFixed(2)}/hr minimum expected rate</p>
                 <p>{employee.user.profile.bio}</p>
                 {employee.positions.length > 0 && <p>{employee.positions.map(p => <span key={p.id} className="badge badge-success">{p.title}</span>)}</p>}
                 {employee.badges.length > 0 && <p>{employee.badges.map(b => <span key={b.id} className="badge badge-secondary">{b.title}</span>)}</p>}

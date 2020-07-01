@@ -14,7 +14,7 @@ const EmployeeExtendedCard = (props) => {
         <Avatar url={props.employee.user.profile.picture} />
         <a href="#"><b>{props.employee.user.first_name + ' ' + props.employee.user.last_name}</b></a>
 
-        <Stars rating={Number(props.employee.rating)} jobCount={!Array.isArray(props.employee.positions) ? 0 : props.employee.positions.length}  />
+        <Stars rating={Number(props.employee.rating)} jobCount={props.employee.total_ratings}  />
         { (props.showFavlist) ?
             <p href="#">{ (favoriteCount > 0) ? <span className="badge badge-warning"><i className="fas fa-star"></i> {favoriteCount} Lists</span> : '' } {badgesHTML}</p>
             :''

@@ -165,7 +165,7 @@ export class ManageRating extends Flux.DashView {
                                 <GenericCard key={i} hover={true} onClick={() => bar.show({ slug: "show_single_rating", data: rate, allowLevels: false })}>
                                     <Avatar url={rate.sender.picture} />
                                     <Stars className="float-left" rating={Number(rate.rating)} />
-                                    <span>{`  on ${rate.created_at.substring(0, 10)}`}</span>
+                                    <span className="pl-1">{`on ${rate.created_at.substring(0, 10)}`}</span>
                                     <p className="mt-0">{rate.comments !== '' ? `"${rate.comments}"` : `The talent didn't provide any comments for this rating.`}</p>
                                 </GenericCard>
                             ))}

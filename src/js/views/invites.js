@@ -213,6 +213,7 @@ InviteTalentToJobcore.propTypes = {
   onSave: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
+  width: PropTypes.number,
   formData: PropTypes.object,
   catalog: PropTypes.object //contains the data needed for the form to load
 };
@@ -250,6 +251,7 @@ export const PendingJobcoreInvites = ({ catalog, formData }) => (<div>
     </div>
 </div>);
 PendingJobcoreInvites.propTypes = {
+  width: PropTypes.number,
   formData: PropTypes.object,
   catalog: PropTypes.object //contains the data needed for the form to load
 };

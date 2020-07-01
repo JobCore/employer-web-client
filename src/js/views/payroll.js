@@ -956,8 +956,10 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                     if (Array.isArray(unapproved) && unapproved.length > 0) Notify.error("There are still some payments that need to be approved or rejected");
                     else if (Array.isArray(payments) && payments.length === 0) Notify.error("There are no clockins to review for this period");
                     // else {history.push('/payroll/rating/' + period.id);} 
-                   else update('payroll-periods', Object.assign(period, { status: 'FINALIZED' })).then(res => history.push('/payroll/report/' + period.id))
-                                .catch(e => Notify.error(e.message || e));
+                //    else update('payroll-periods', Object.assign(period, { status: 'FINALIZED' })).then(res => history.push('/payroll/report/' + period.id))
+                //                 .catch(e => Notify.error(e.message || e));
+                //                 }}>Finalize Period</button>
+                   else history.push('/payroll/rating/' + period.id);
                                 }}>Finalize Period</button>
                                 :
                 <Button className="btn btn-success" onClick={() => history.push('/payroll/report/' + period.id)}>Take me to the Payroll Report</Button>
@@ -1535,17 +1537,22 @@ export class PayrollRating extends Flux.DashView {
 
         const payrollPeriods = store.getState('payroll-periods');
         this.subscribe(store, 'payroll-periods', (_payrollPeriods) => {
-            this.updatePayrollPeriod(_payrollPeriods);
+            // this.updatePayrollPeriod(_payrollPeriods);
             //if(!this.state.singlePayrollPeriod) this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
         });
-        if (!payrollPeriods) {
-            searchMe('payroll-periods');
-        }
-        else {
-            this.updatePayrollPeriod(payrollPeriods);
-            this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
+        // if (!payrollPeriods) {
+        //     this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
+        // }
+        // else {
+        //     this.updatePayrollPeriod(payrollPeriods);
+        //     this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
 
-        }
+        // }
+        if(this.props.match.params.period_id !== undefined) fetchSingle("payroll-periods", this.props.match.params.period_id).then(_period => {
+            this.defaultRatings(_period).then(res => this.setState({ratings: res, singlePayrollPeriod: _period, payments: _period.payments}));
+           
+        });
+
         this.removeHistoryListener = this.props.history.listen((data) => {
             const period = /\/payroll\/period\/(\d+)/gm;
             const periodMatches = period.exec(data.pathname);
@@ -1564,6 +1571,7 @@ export class PayrollRating extends Flux.DashView {
 
             if (!singlePeriod) resolve(null);
             const shiftList = singlePeriod.payments.map(s => s.shift.id).filter((v, i, s) => s.indexOf(v) === i).join(",");
+            console.log(shiftList);
             searchMe('ratings', '?shifts=' + shiftList)
                 .then(previousRatings => {
                     let ratings = {};
@@ -1573,6 +1581,7 @@ export class PayrollRating extends Flux.DashView {
                         if (!hasPreviousShift && pay.shift) ratings[pay.employee.id].shifts.push(pay.shift.id);
 
                     });
+                    
                     resolve(Object.values(ratings));
                 })
                 .catch(error => Notify.error("There was an error fetching the ratings for the shift"));
@@ -1605,6 +1614,7 @@ export class PayrollRating extends Flux.DashView {
 
 
     render() {
+        console.log(this.state);
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
@@ -1619,12 +1629,12 @@ export class PayrollRating extends Flux.DashView {
             } */}
             <Theme.Consumer>
                 {({ bar }) => (<span>
-                    {(!this.state.singlePayrollPeriod) ? '' :
-                        (this.state.singlePayrollPeriod.payments.length > 0) ?
+                    {(!this.state.ratings) ? '' :
+                        (this.state.singlePayrollPeriod) ?
                             <div>
                                 <p className="text-center">
                                     <h2 className="mb-0">Please rate the talents for this period</h2>
-                                    <h4 className="mt-0">{this.state.singlePayrollPeriod.label}</h4>
+                                    <h4 className="mt-0">{this.state.singlePayrollPeriod.label || ""}</h4>
                                 </p>
                             </div>
                             :
@@ -1632,9 +1642,9 @@ export class PayrollRating extends Flux.DashView {
                     }
 
                     {
-                        this.state.payments.map((list, i) => {
+                        this.state.ratings.map((list, i) => {
 
-                            if (Array.isArray(list.shifts) && list.shifts.length > 0) return (
+                            if (list.employee) return (
                                 <div className="row list-card" key={i} >
 
                                     <div className="col-1 my-auto">
@@ -1648,10 +1658,10 @@ export class PayrollRating extends Flux.DashView {
                                     <div className="col my-auto">
                                         <StarRating
                                             onClick={(e) => {
-                                                const allPayments = this.state.payments;
-                                                allPayments[i].rating = e;
+                                                let newRating = Object.assign({}, this.state);
+                                                newRating.ratings[i].rating = e;
                                                 this.setState({
-                                                    allPayments
+                                                    newRating
                                                 });
                                             }
                                             }
@@ -1672,11 +1682,11 @@ export class PayrollRating extends Flux.DashView {
                                     <div className="col-6 my-auto">
                                         <TextareaAutosize style={{ width: '100%' }} placeholder="Any additional comments?" value={list.comments} onChange={(e) => {
 
-                                            const allPayments = this.state.payments;
-                                            allPayments[i].comments = e.target.value;
-                                            this.setState({
-                                                allPayments
-                                            });
+                                        let newComment = Object.assign({}, this.state);
+                                        newComment.ratings[i].comments = e.target.value;
+                                        this.setState({
+                                            newComment
+                                        });
                                         }} />
                                     </div>
 
@@ -1690,15 +1700,14 @@ export class PayrollRating extends Flux.DashView {
                     <div className="btn-bar text-center mt-3">
 
                         <button type="button" className="btn btn-primary" onClick={() => {
-                            const unrated = this.state.payments.find(p => p.rating == null && p.shifts.length > 0);
-                            const rated = [].concat.apply([], this.state.payments.filter(s => s.shifts.length > 0).map(p => {
+                            const unrated = this.state.ratings.find(p => p.rating == null && p.shifts.length > 0);
+                            const rated = [].concat.apply([], this.state.ratings.filter(s => s.shifts.length > 0).map(p => {
                                 if (p.shifts.length > 1) {
                                     return p.shifts.map(s => ({
                                         employee: p.employee.id,
                                         shift: s,
                                         rating: p.rating,
-                                        comments: p.comments,
-                                        payment: p.id
+                                        comments: p.comments
                                     }));
                                 } else {
                                     return (
@@ -1706,8 +1715,8 @@ export class PayrollRating extends Flux.DashView {
                                             employee: p.employee.id,
                                             shift: p.shifts[0],
                                             rating: p.rating,
-                                            comments: p.comments,
-                                            payment: p.id
+                                            comments: p.comments
+                                            // payment: p.id
                                         }]
                                     );
                                 }
@@ -1717,6 +1726,7 @@ export class PayrollRating extends Flux.DashView {
                                 create('ratings', rated).then((res) => { if (res) update('payroll-periods', Object.assign(this.state.singlePayrollPeriod, { status: 'FINALIZED' })); })
                                     .then((resp) => { this.props.history.push('/payroll/report/' + this.state.singlePayrollPeriod.id); })
                                     .catch(e => Notify.error(e.message || e));
+                                  
                             }
 
                         }}>Finalize Period</button>

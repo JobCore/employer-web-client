@@ -4,7 +4,6 @@ import './style.scss';
 import RightBar from '../../views/RightBar.js';
 
 const SideBar = (props) => {
-    console.log('side bar',props);
     const bars = props.sideBarLevels.map((sb, i) =>
       (<RightBar key={i}
           level={i}
@@ -12,6 +11,7 @@ const SideBar = (props) => {
           parent={(i > 0) ? props.sideBarLevels[i-1] : null}
           catalog={props.catalog}
           option={sb.option}
+          width={props.width}
           formData={sb.formData}
           component={sb.component}
           goFetch={props.goFetch}
@@ -25,6 +25,7 @@ const SideBar = (props) => {
 };
 SideBar.propTypes = {
   sideBarLevels: PropTypes.array.isRequired,
+  width: PropTypes.number,
   goFetch: PropTypes.func,
   catalog: PropTypes.object.isRequired,
   className: PropTypes.string,

@@ -76,8 +76,9 @@ export class Profile extends Flux.DashView {
 
     }
 
+
     render() {
-        console.log(this.state);
+        console.log('logo', this.state);
         return (<div className="p-1 listcontents company-profile">
             <h1><span id="company_details">Company Details</span></h1>
             <form>
@@ -105,24 +106,33 @@ export class Profile extends Flux.DashView {
                 <div className="row">
                     <div className="col-12">
                         <label>Company Logo</label>
+                            
                         {!this.state.editingImage ?
                             <div className="company-logo" style={{ backgroundImage: `url(${this.state.employer.picture})` }}>
                                 <Button color="primary" size="small" onClick={() => this.setState({ editingImage: true })} icon="pencil" />
                             </div>
                             :
                             <div>
+                                {this.state.uploadCompanyLogo ? <div className="company-logo" style={{backgroundImage:`url(${URL.createObjectURL(this.state.uploadCompanyLogo)})`}}> <Button color="primary" size="small" onClick={() => this.setState({ editingImage: false, uploadCompanyLogo: null })} icon="times" /></div> : 
                                 <Dropzone onDrop={acceptedFiles => this.setState({ uploadCompanyLogo: acceptedFiles[0] })}>
-                                    {({ getRootProps, getInputProps }) => (
-                                        <section className="upload-zone">
-                                            <div {...getRootProps()}>
-                                                <input {...getInputProps()} />
-                                                <p>Drop your company logo here, or click me to open the file browser</p>
-                                            </div>
-                                        </section>
-                                    )}
-                                </Dropzone>
-                                <Button onClick={() => this.setState({ editingImage: false })} color="secondary">Cancel</Button>
-                                <Button onClick={() => updateProfileImage(this.state.uploadCompanyLogo)} color="success">Save</Button>
+                                    {({ getRootProps, getInputProps }) => {
+                                            return(<section className="upload-zone">
+                                                <div {...getRootProps()}>
+                                                    <input {...getInputProps()} />
+                                                    <p>Drop your company logo here, or click me to open the file browser</p>
+                                                </div>
+                                            </section>);
+                                    }}
+                                </Dropzone>                               
+                                
+                                }
+
+                                <br/>
+                                <Button onClick={() => this.setState({ editingImage: false, uploadCompanyLogo: null})} color="secondary">Cancel</Button>
+                                <Button onClick={() => {
+                                    updateProfileImage(this.state.uploadCompanyLogo);
+                                    window.location.reload();
+                                }} color="success">Save</Button>
                             </div>
                         }
                     </div>

@@ -90,7 +90,7 @@ export const ShiftCalendar = ({ catalog }) => {
         }
         setGroupedShifts(_shifts);
         if (l) setGroupedLabel(l);
-        else if (groupedLabel === null) setGroupedLabel({ label: "Employees", value: "employees" });
+        else if (groupedLabel === null) setGroupedLabel({ label: "Position", value: "positions" });
     };
 
     const previousLabel = useRef(groupedLabel);
