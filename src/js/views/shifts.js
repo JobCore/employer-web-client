@@ -571,7 +571,7 @@ export const ShiftEmployees = (props) => {
                         <p>No talents have been accepted for this shift yet, <span className="anchor"
                             onClick={() => bar.show({slug: "search_talent_and_invite_to_shift",data: { shifts: [catalog.shift] },allowLevels: true })}
                         >invite more talents</span> or  <span className="anchor"
-                            onClick={() => bar.show({ slug: "review_shift_invites", allowLevels: true, data: [catalog.shift] })}
+                            onClick={() => bar.show({ slug: "review_shift_invites", allowLevels: true, data: catalog.shift })}
                         >review previous invites</span></p>
             }
         </div>)}
@@ -761,9 +761,11 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                         }}>
                             <span className="input-group-text pointer">More <i className="fas fa-plus ml-1"></i></span>
                         </div>
+                      
                     </div>
                 </div>
             </div>
+          
             <div className="row">
                 <div className="col-6">
                     <label>From</label>

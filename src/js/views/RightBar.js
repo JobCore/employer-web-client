@@ -63,7 +63,7 @@ class RightBar extends React.Component {
                     }
                 break;
                 case 'invite_user_to_employer':{
-                        create('jobcore-invites', Invite({ ...this.state.formData, employer: session.user.profile.employer.id }).validate().serialize());
+                        create('jobcore-invites', Invite({ ...this.state.formData, employer: session.user.id }).validate().serialize());
                         this.props.onClose();
                     }
                 break;
@@ -206,7 +206,6 @@ class RightBar extends React.Component {
     render(){
         const View = this.props.component;
         const styles = { width: this.props.width , right: (this.props.level * (this.props.width/3))};
-
         return (<div className={"right-bar"+(!this.props.isCollapsable ? " collapsed" : '')} style={styles}>
             <span className="backdrop" onClick={() => this.props.onBackdropClick() } />
             {

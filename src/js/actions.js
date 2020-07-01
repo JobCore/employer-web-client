@@ -114,6 +114,22 @@ export const remind = (email) => new Promise((resolve, reject) => POST('user/pas
         log.error(error);
     })
 );
+export const resetPassword = (formData, history) => new Promise((resolve, reject) => PUT('user/password/reset', {
+    new_password: formData.new_password,
+    repeat_password: formData.new_password,
+    token: formData.token
+})
+    .then(function (data) {
+        resolve();
+        Notify.success("You have change password successfully, proceed to log in");
+        history.push(`/login`);
+    })
+    .catch(function (error) {
+        Notify.error(error.message || error);
+        reject(error.message || error);
+        log.error(error);
+    })
+);
 
 
 export const resendValidationLink = (email) => new Promise((resolve, reject) => POST('user/email/validate/send/' + email, {
