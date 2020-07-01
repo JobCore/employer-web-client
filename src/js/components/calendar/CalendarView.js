@@ -6,6 +6,7 @@ import moment from "moment";
 const getDaysOfWeek = activeDate => {
   const start = moment(activeDate).startOf("week");
   const end = moment(activeDate).endOf("week");
+
   let days = [start];
   let current = moment(start).add(1, "day");
   while (current.isBefore(end)) {
@@ -17,7 +18,7 @@ const getDaysOfWeek = activeDate => {
 
 const getDaysOfMonth = activeDate => {
     const start = moment(activeDate).startOf("month");
-    const startWithOffset = moment(start).startOf("week");
+    const startWithOffset = moment(start).startOf("week").startOf('hour');
     const end = moment(activeDate).endOf("month");
     const endWithOffset = moment(end).endOf("week");
     let days = [startWithOffset];

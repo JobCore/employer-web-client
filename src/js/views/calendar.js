@@ -44,7 +44,7 @@ export const ShiftCalendar = ({ catalog }) => {
     const [filters, setFilters] = useState(null);
     const [shifts, setShifts] = useState(null);
     const [venues, setVenues] = useState([]);
-    const [positions, setPositions] = useState([]);
+    const [positions, setPositions] = useState(catalog.positions || []);
     const [shiftChanges, setShiftChanges] = useState([]);
     const [groupedShifts, setGroupedShifts] = useState(null);
     const [groupedLabel, setGroupedLabel] = useState(null);
@@ -108,7 +108,6 @@ export const ShiftCalendar = ({ catalog }) => {
         let positions = store.getState('positions');
         const unsubscribeVenues = store.subscribe('venues', (venues) => setVenues(venues));
         const unsubscribePositions = store.subscribe('positions', (positions) => setPositions(positions));
-
         let venues = store.getState('venues');
         if (!venues) fetchAllMe(['venues']).then(() => setCalendarFilters());
         if (filters === null) setCalendarFilters(getURLFilters());
@@ -120,7 +119,6 @@ export const ShiftCalendar = ({ catalog }) => {
         };
 
     }, [groupedLabel]);
-
     return <Theme.Consumer>
         {({ bar }) => <div className="row">
             <div className="col-10">
@@ -207,7 +205,7 @@ export const ShiftCalendar = ({ catalog }) => {
                                 bar.show({
                                     slug: "create_shift", data: {
                                         starting_at: e.start,
-                                        ending_at: e.end,
+                                        ending_at: e.end.startOf('hour'),
                                         venue: venue ? venue.id : '',
                                         position: position && position.id ? position.id : position && position.value ? position.value : '',
                                         application_restriction: employee ? 'SPECIFIC_PEOPLE' : 'ANYONE',

@@ -1,8 +1,11 @@
 import './style.scss';
 import React, { useState, useEffect } from 'react';
+import Flux from "@4geeksacademy/react-flux-dash";
+
 import ShiftCard from '../shift-card';
 import {Link} from "react-router-dom";
 import PropTypes from 'prop-types';
+import { store} from '../../actions.js';
 
 const statusLabel = {
     "EXPIRED": "completed",
@@ -15,8 +18,10 @@ const DashboardBox = ({ defaultShifts, title, status, id, fetchData }) => {
     const [ collapsed, setCollapsed ] = useState(true);
     const [ shifts, setShifts ] = useState(defaultShifts);
 
+
     useEffect(() => {
-        if(fetchData) fetchData().then((data) => setShifts(data));
+        const shiftSub = store.subscribe('shifts', (shifts) => { if(fetchData) fetchData().then((data) => setShifts(data));});
+       
     }, []);
     const shiftList = shifts.results;
     const shiftsHTML = (!Array.isArray(shiftList)) ? [] : shiftList.map((s,i) => (<ShiftCard key={i} shift={s} clickForDetails={true} showStatus={true} />));
