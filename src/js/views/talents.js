@@ -156,7 +156,8 @@ export class ManageTalents extends Flux.DashView {
         if(!lists) fetchAllMe(['favlists']);
 
         this.props.history.listen(() => {
-            // this.filter();
+            if(this.props.history.location.pathname == "/talents") this.filter();
+            else console.log(this.props.history);
             this.setState({ firstSearch: false });
         });
         this.setState({ runTutorial: true });
@@ -294,7 +295,7 @@ export const TalentDetails = (props) => {
                 <Avatar url={employee.user.profile.picture} />
                 <p style={{fontWeight: "bolder", fontSize: '24px'}}>{typeof employee.fullName == 'function' ? employee.fullName() : employee.first_name + ' ' + employee.last_name}</p>
                 <p>Email: {employee.user ?  employee.user.email : 'No email provided'}</p>
-                <p>Phone number: {employee.user ?  reformatPhoneNumber(employee.user.profile.phone_number) : 'No email provided'}</p>
+                <p>Phone number: {employee.user && employee.user.profile.phone_number != "" ?  reformatPhoneNumber(employee.user.profile.phone_number) : 'none'}</p>
                 <p>
                     <Stars rating={Number(employee.rating)} jobCount={employee.job_count}  />
                 </p>
