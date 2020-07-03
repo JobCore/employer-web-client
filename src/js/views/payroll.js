@@ -956,11 +956,11 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                     if (Array.isArray(unapproved) && unapproved.length > 0) Notify.error("There are still some payments that need to be approved or rejected");
                     else if (Array.isArray(payments) && payments.length === 0) Notify.error("There are no clockins to review for this period");
                     // else {history.push('/payroll/rating/' + period.id);} 
-                //    else update('payroll-periods', Object.assign(period, { status: 'FINALIZED' })).then(res => history.push('/payroll/report/' + period.id))
-                //                 .catch(e => Notify.error(e.message || e));
-                //                 }}>Finalize Period</button>
-                   else history.push('/payroll/rating/' + period.id);
+                   else update('payroll-periods', Object.assign(period, { status: 'FINALIZED' })).then(res => history.push('/payroll/report/' + period.id))
+                                .catch(e => Notify.error(e.message || e));
                                 }}>Finalize Period</button>
+                //    else history.push('/payroll/rating/' + period.id);
+                //                 }}>Finalize Period</button>
                                 :
                 <Button className="btn btn-success" onClick={() => history.push('/payroll/report/' + period.id)}>Take me to the Payroll Report</Button>
             }
