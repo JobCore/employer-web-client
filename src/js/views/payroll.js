@@ -728,7 +728,6 @@ export const PayrollPeriodDetails = ({ match, history }) => {
     const [employer, setEmployer] = useState(store.getState('current_employer'));
     const [period, setPeriod] = useState(null);
     const [payments, setPayments] = useState([]);
-
     const { bar } = useContext(Theme.Context);
     useEffect(() => {
         const employerSub = store.subscribe('current_employer', (employer) => setEmployer(employer));
@@ -770,7 +769,6 @@ export const PayrollPeriodDetails = ({ match, history }) => {
         groupedPayments[pay.employee.id].payments.push(pay);
     }
     groupedPayments = Object.keys(groupedPayments).map(id => groupedPayments[id]);
-    console.log(payments);
     return <div className="p-1 listcontents">
         <p className="text-right">
             {period.status != "OPEN" ?
@@ -817,8 +815,8 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                     b.employee.id === "new" ? 1 :
                         a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
             ).map(pay => {
-                const total_hours = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time }) => total + Number(regular_hours) + Number(over_time), 0);
-                const total_amount = pay.payments.filter(p => p.status === "APPROVED").reduce((total, { regular_hours, over_time, hourly_rate }) => total + (Number(regular_hours) + Number(over_time))*Number(hourly_rate) , 0);
+                const total_hours = pay.payments.filter(p => p.status === "APPROVED" || p.status === "PAID").reduce((total, { regular_hours, over_time, breaktime_minutes}) => total + Number(regular_hours) + Number(over_time), 0);
+                const total_amount = pay.payments.filter(p => p.status === "APPROVED" || p.status === "PAID").reduce((total, { regular_hours, over_time, hourly_rate, breaktime_minutes }) => total + (Number(regular_hours) + Number(over_time))*Number(hourly_rate) , 0);
                 return <table key={pay.employee.id} className="table table-striped payroll-summary">
                     <thead>
                         <tr>
@@ -880,7 +878,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                             employee: p.employee.id || p.employee,
                                             shift: (payment.shift) ? payment.shift.id : p.shift.id,
                                             id: p.id
-                                        }).then(_payment => setPayments(payments.map(_pay => (_pay.id !== p.id) ? _pay : { ..._pay, status: "APPROVED", over_time: payment.over_time, breaktime_minutes: payment.breaktime_minutes })))
+                                        }).then(_payment => setPayments(payments.map(_pay => (_pay.id !== p.id) ? _pay : { ..._pay, status: "APPROVED", breaktime_minutes: payment.breaktime_minutes, over_time: payment.over_time, regular_hours: payment.regular_hours })))
                                         :
                                         create('payment',{
                                             ...payment,
@@ -895,6 +893,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                             employee: _pay.employee,
                                             over_time: payment.over_time, breaktime_minutes: payment.breaktime_minutes, hourly_rate: payment.shift.minimum_hourly_rate,
                                             shift: payment.shift,
+                                            regular_hours: payment.regular_hours,
                                             id: p.id || _pay.id || _payment.id
                                         })));
                                 }}
@@ -1056,19 +1055,20 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
 
     const [breaktime, setBreaktime] = useState(payment.breaktime_minutes);
     
+    let shiftStartingTimeNoSeconds = moment(shift.starting_at).format('YYYY-MM-DDTHH:mm');
+    let shiftEndingTimeNoSeconds = moment(shift.ending_at).format('YYYY-MM-DDTHH:mm');
     const approvedClockin = payment.approved_clockin_time ? moment(payment.approved_clockin_time) : clockin.started_at ? clockin.started_at : shift.starting_at;
     const approvedClockout = payment.approved_clockout_time ? moment(payment.approved_clockout_time) : clockin.ended_at ? clockin.ended_at : shift.ending_at;
     const [approvedTimes, setApprovedTimes] = useState({ in: approvedClockin, out: approvedClockout });
+ 
     const clockInDuration = moment.duration(approvedTimes.out.diff(approvedTimes.in));
-    
+
     // const clockinHours = !clockInDuration ? 0 : clockin.shift || !readOnly ? Math.round(clockInDuration.asHours() * 100) / 100 : "-";
     const clockinHours = Math.round(clockInDuration.asHours() * 100) / 100;
-
     const shiftStartTime = shift.starting_at.format('LT');
     const shiftEndTime = shift.ending_at.format('LT');
     const shiftNextDay = shift.ending_at.isBefore(shift.starting_at);
-
-    const shiftDuration = moment.duration(shift.ending_at.diff(shift.starting_at));
+    const shiftDuration = moment.duration(moment(shiftEndingTimeNoSeconds).diff(moment(shiftStartingTimeNoSeconds)));
     const plannedHours = Math.round(shiftDuration.asHours() * 100) / 100;
 
     const clockInDurationAfterBreak = clockInDuration.subtract(breaktime, "minute");
@@ -1216,7 +1216,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                     onChange={(d1) => {
                         if (d1) {
                             const starting = approvedTimes.in;
-                            let ended_at = moment(clockin.started_at).set({ hour: d1.get('hour'), minute: d1.get('minute'), second: d1.get('second') });
+                            let ended_at = moment(clockin.started_at).set({ hour: d1.get('hour'), minute: d1.get('minute') });
                             if (starting.isAfter(ended_at)) ended_at = moment(ended_at).add(1, 'days');
                             if(ended_at && ended_at !== undefined) setApprovedTimes({ ...approvedTimes, out: ended_at });
                         }
@@ -1261,7 +1261,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
             <td className="text-center">
                 {payment.status === "APPROVED" ? <span><i className="fas fa-check-circle"></i></span>
                     : payment.status === "REJECTED" ? <span><i className="fas fa-times-circle"></i></span>
-                        : `${payment.status}<${readOnly ? "true" : "false"}`
+                        : payment.status === "PAID" ?  <p className="m-0 p-0"><span className="badge">paid</span></p> : null
                 }
                 {period.status === "OPEN" && (payment.status === "APPROVED" || payment.status === "REJECTED") &&
                     <i onClick={() => onUndo(payment)} className="fas fa-undo ml-2 pointer"></i>
@@ -1382,7 +1382,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
                                 onClick={() => history.push(`/payroll/period/${p.id}`)}
                             >
                                 <div className="avatar text-center pt-1 bg-transparent">
-                                    {p.status === "FINALIZED" ? <i className="fas fa-check-circle"></i>
+                                    {p.status === "FINALIZED" || p.status === "PAID" ? <i className="fas fa-check-circle"></i>
                                         : p.status === "OPEN" ? <i className="far fa-circle"></i>
                                             : ''
                                     }
@@ -1752,11 +1752,12 @@ export class PayrollReport extends Flux.DashView {
     }
 
     componentDidMount() {
-
+        
         this.subscribe(store, 'current_employer', (employer) => {
             this.setState({ employer });
         });
         this.subscribe(store, 'payroll-period-payments', (paymentInfo) => {
+            console.log(paymentInfo);
             this.setState({ paymentInfo });
         });
         this.subscribe(store, 'employee-payment', () => {
@@ -1764,19 +1765,12 @@ export class PayrollReport extends Flux.DashView {
         });
         const payrollPeriods = store.getState('payroll-periods');
         this.subscribe(store, 'payroll-periods', (_payrollPeriods) => {
-            //Updated payroll.
+            console.log(_payrollPeriods);
         });
-        if (!payrollPeriods || payrollPeriods.length == 0 ) {
-            if(this.props.match.params.period_id !== undefined) fetchSingle("payroll-periods", this.props.match.params.period_id).then(_period => {
-            this.setState({singlePayrollPeriod:_period, payments: this.groupPayments(_period).filter(p => p.payments.length != 0)});
-        });
-        }
-        else {
-            this.updatePayrollPeriod(payrollPeriods);
-            this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
 
+        this.updatePayrollPeriod(payrollPeriods);
+        this.getSinglePeriod(this.props.match.params.period_id, payrollPeriods);
 
-        }
         this.removeHistoryListener = this.props.history.listen((data) => {
             const period = /\/payroll\/period\/(\d+)/gm;
             const periodMatches = period.exec(data.pathname);
@@ -1805,7 +1799,12 @@ export class PayrollReport extends Flux.DashView {
 
     getSinglePeriod(periodId, payrollPeriods) {
         if (typeof periodId !== 'undefined') {
-            if (!payrollPeriods) fetchSingle("payroll-periods", periodId);
+            if (!payrollPeriods || !this.state.singlePayrollPeriod) fetchSingle("payroll-periods", periodId).then(period => {
+                this.setState({ singlePayrollPeriod: period, payments: this.groupPayments(period) }, () => {
+                    fetchPeyrollPeriodPayments(this.state.singlePayrollPeriod.id);
+                });                
+             
+            });
             else {
                 const singlePayrollPeriod = payrollPeriods.find(pp => pp.id == periodId);
                 this.setState({ singlePayrollPeriod, payments: this.groupPayments(singlePayrollPeriod) }, () => {
@@ -1882,6 +1881,7 @@ export class PayrollReport extends Flux.DashView {
                                             <th scope="col">Staff</th>
                                             <th scope="col">Regular Hrs</th>
                                             <th scope="col">Over Time</th>
+                                            <th scope="col">Total Hrs</th>
                                             <th scope="col">Earnings</th>
                                             <th scope="col">Taxes</th>
                                             <th scope="col">Amount</th>
@@ -1898,8 +1898,9 @@ export class PayrollReport extends Flux.DashView {
                                                     {pay.employee.last_name}, {pay.employee.first_name}
                                                     <p className="m-0 p-0"><span className="badge">{pay.paid ? "paid" : "unpaid"}</span></p>
                                                 </td>
-                                                <td>{pay.regular_hours}</td>
-                                                <td>{pay.over_time}</td>
+                                                <td>{Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100) / 100 > 40 ? 40 : Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100)/100}</td>
+                                                <td>{Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100) / 100 > 40 ? Math.round((Number(pay.regular_hours) + Number(pay.over_time)- 40) * 100 )  / 100  : "-" }</td>
+                                                <td>{Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100) / 100}</td>
                                                 <td>{pay.earnings}</td> 
                                                 <td>{pay.deductions}</td>
                                                 <td>{pay.amount}</td>

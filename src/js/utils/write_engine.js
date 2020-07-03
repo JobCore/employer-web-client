@@ -67,7 +67,6 @@ export const EngineComponent = () => {
     React.useEffect(() => {
         _emitter.on('changes', () => {
             refresh(engine.changes);
-            console.log("pupupupupupupu");
         });
     },[]);
     return engine.total && <div className="write-engine">

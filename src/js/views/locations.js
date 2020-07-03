@@ -138,7 +138,6 @@ export class ManageLocations extends Flux.DashView {
  * AddShift
  */
 export const FilterLocations = (props) => {
-    console.log(props);
     return (<form>
         <div className="row">
             <div className="col-6">

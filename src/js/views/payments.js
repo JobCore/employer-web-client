@@ -4,6 +4,8 @@ import { Button } from '../components/index';
 import Flux from "@4geeksacademy/react-flux-dash";
 import { Notify } from 'bc-react-notifier';
 import { makeEmployeePayment } from "../actions";
+import CustomModal from "../components/custom-modal/CustomModal";
+
 export const Payment = (data = {}) => {
 
     const _defaults = {
@@ -49,6 +51,7 @@ export class MakePayment extends Flux.DashView {
          } = this.props;
          const { pay, paymentInfo, bar } = formData;
          const employerBankAccounts = paymentInfo && paymentInfo.employer ? paymentInfo.employer.bank_accounts : null;
+         const employeeBankAccounts = pay && pay.employee.bank_accounts && pay.employee.bank_accounts.length > 0;
         console.log('MakePayment pay: ', pay);
         console.log('MakePayment error: ', error);
         console.log('MakePayment paymentInfo: ', paymentInfo);
@@ -87,71 +90,69 @@ export class MakePayment extends Flux.DashView {
                         <div className="col-12">
                             <label>Payment methods</label>
                         </div>
-                        {paymentInfo.payments[0] && paymentInfo.payments[0].employee.bank_accounts
-                            ? <>
-                                <div className="col-12 payment-cell">
-                                    <Button
-                                        style={{ width: '200px' }}
-                                        color="success"
-                                        size="small"
-                                        onClick={() => {
-                                            const noti = Notify.info("Are you sure to pay ?", async (answer) => {
-                                                if(answer){
-                                                    try{
-                                                        await makeEmployeePayment(
-                                                            pay.id, 
-                                                            "CHECK", 
-                                                            "", 
-                                                            "",
-                                                            );
-                                                        noti.remove();
-                                                        bar.close();
-                                                    }catch(error){
-                                                        Notify.error(error.message || error);
-                                                    }
-                                                } else{
-                                                    noti.remove();
-                                                }
-                                            });
-                                        }}>
-                                        Check payment
-                                    </Button>
-                                </div>
-                                {employerBankAccounts && employerBankAccounts.length > 0
-                                    ? employerBankAccounts.map((bankaccount, i) =>
-                                        <div className="col-12 payment-cell" key={i}>
-                                            <Button
-                                                style={{ width: '200px' }}
-                                                color="success"
-                                                size="small"
-                                                onClick={() => {
-                                                    const noti = Notify.info("Are you sure to pay ?", async (answer) => {
-                                                        if(answer){
-                                                            try{
-                                                                await makeEmployeePayment(
-                                                                    pay.id, 
-                                                                    "ELECTRONIC TRANSFERENCE",
-                                                                    bankaccount.id, 
-                                                                    pay.employee.bank_accounts[0].id,
-                                                                    );
-                                                                noti.remove();
-                                                                bar.close();
-                                                            }catch(error){
-                                                                Notify.error(error.message || error);
-                                                            }
-                                                        } else{
+                        <div className="col-12 payment-cell">
+                            <Button
+                                style={{ width: '200px' }}
+                                color="success"
+                                size="small"
+                                onClick={() => {
+                                    const noti = Notify.add("info", ({ onConfirm }) => <CustomModal onConfirm={onConfirm} title={"Are you sure to pay ?"} />, async (answer) => {
+                                        if(answer){
+                                            try{
+                                                await makeEmployeePayment(
+                                                    pay.id, 
+                                                    "CHECK", 
+                                                    "", 
+                                                    "",
+                                                    );
+                                                noti.remove();
+                                                bar.close();
+                                            }catch(error){
+                                                Notify.error(error.message || error);
+                                            }
+                                        } else{
+                                            noti.remove();
+                                        }
+                                    });
+                                }}>
+                                Check payment
+                            </Button>
+                        </div>
+                        {employeeBankAccounts
+                            ? employerBankAccounts && employerBankAccounts.length > 0
+                                ? employerBankAccounts.map((bankaccount, i) =>
+                                    <div className="col-12 payment-cell" key={i}>
+                                        <Button
+                                            style={{ width: '200px' }}
+                                            color="success"
+                                            size="small"
+                                            onClick={() => {
+                                                const noti = Notify.add("info", ({ onConfirm }) => <CustomModal onConfirm={onConfirm} title={"Are you sure to pay ?"} />, async (answer) => {
+                                                    if(answer){
+                                                        try{
+                                                            await makeEmployeePayment(
+                                                                pay.id, 
+                                                                "ELECTRONIC TRANSFERENCE",
+                                                                bankaccount.id, 
+                                                                pay.employee.bank_accounts[0].id,
+                                                                );
                                                             noti.remove();
+                                                            bar.close();
+                                                        }catch(error){
+                                                            Notify.error(error.message || error);
                                                         }
-                                                    });
-                                                }}
-                                                >
-                                                {`${bankaccount.institution_name} ${bankaccount.name}`}
-                                            </Button>
-                                        </div>
-                                    )
-                                : <div className="col-12"><label>Employer doesn{`'`}t have any bank accounts</label></div>}
-                        </>
-                        : <div className="col-12"><label>Employee doesn{`'`}t have any bank accounts</label></div>}
+                                                    } else{
+                                                        noti.remove();
+                                                    }
+                                                });
+                                            }}
+                                            >
+                                            {`${bankaccount.institution_name} ${bankaccount.name}`}
+                                        </Button>
+                                    </div>
+                                )
+                            : <div className="col-12"><label>Employer doesn{`'`}t have any bank accounts</label></div>
+                        : <div className="col-12"><label>Employee doesn{`'`}t have any bank accounts</label></div>}                   
                     </div>
         : <div className="row">
             <div className="col-12">
