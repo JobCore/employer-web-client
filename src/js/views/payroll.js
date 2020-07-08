@@ -523,9 +523,9 @@ export const EditOrAddExpiredShift = ({ onSave, onCancel, onChange, catalog, for
                             closeOnSelect={true}
                             viewDate={formData.starting_at}
                             value={formData.starting_at}
-                            // isValidDate={(current) => {
-                            //     return current.isSameOrAfter(moment(formData.period_starting).startOf('day')) && current.isSameOrBefore(moment(formData.period_ending).startOf('day'));
-                            // }}
+                            isValidDate={(current) => {
+                                return current.isSameOrAfter(moment(formData.period_starting).startOf('day')) && current.isSameOrBefore(moment(formData.period_ending).startOf('day'));
+                            }}
                             renderInput={(properties) => {
                                 const { value, ...rest } = properties;
                                 return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
