@@ -7,7 +7,7 @@
     "node": "10.x"
   },
   "scripts": {
-    "start": "API_HOST=https://8000-c50c6f93-a9bc-4720-bd98-2493535a5067.ws-us02.gitpod.io  bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
+    "start": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
     "start:gitpod": "API_HOST=https://8000-c50c6f93-a9bc-4720-bd98-2493535a5067.ws-us02.gitpod.io bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
     "start:dev": "API_HOST=https://jobcore-test.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
     "start:prod": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
@@ -95,7 +95,7 @@
     "react-dom": "^16.8.6",
     "react-dropzone": "^10.1.5",
     "react-joyride": "^2.0.0-14",
-    "react-loader-spinner": "^3.1.5",
+    "react-loader-spinner": "^3.1.14",
     "react-places-autocomplete": "^7.2.0",
     "react-plaid-link": "^1.5.0",
     "react-polyfills": "0.0.1",

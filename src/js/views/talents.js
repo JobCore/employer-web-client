@@ -225,7 +225,9 @@ export const FilterTalents = (props) => {
                 />
             </div>
         </div>
-        <div className="row">
+        
+        {/* BADGE COMING SOON */}
+        {/* <div className="row">
             <div className="col-12">
                 <label>Badges:</label>
                 <Select isMulti
@@ -234,7 +236,7 @@ export const FilterTalents = (props) => {
                     options={props.catalog.badges}
                 />
             </div>
-        </div>
+        </div> */}
         <div className="row">
             <div className="col-12">
                 <label>Minimum start rating</label>

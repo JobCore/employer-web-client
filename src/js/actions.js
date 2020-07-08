@@ -416,6 +416,7 @@ export const updateProfileImage = (file) => PUTFiles('employers/me/image', [file
         const payload = Session.getPayload();
         const user = Object.assign(payload.user, { profile: incomingObject });
         Session.setPayload({ user });
+        return user.profile.picture;
     })
     .catch(function (error) {
         Notify.error(error.message || error);

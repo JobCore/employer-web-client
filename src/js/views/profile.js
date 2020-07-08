@@ -56,7 +56,8 @@ export class Profile extends Flux.DashView {
     constructor() {
         super();
         this.state = {
-            employer: Employer().defaults()
+            employer: Employer().defaults(),
+            currentUser: Session.getPayload().user.profile
         };
     }
 
@@ -69,7 +70,6 @@ export class Profile extends Flux.DashView {
 
         let employer = store.getState('current_employer');
         if (employer) this.setState({ employer });
-
         this.subscribe(store, 'current_employer', (employer) => {
             this.setState({ employer });
         });
@@ -78,7 +78,6 @@ export class Profile extends Flux.DashView {
 
 
     render() {
-        console.log('logo', this.state);
         return (<div className="p-1 listcontents company-profile">
             <h1><span id="company_details">Company Details</span></h1>
             <form>
@@ -130,8 +129,14 @@ export class Profile extends Flux.DashView {
                                 <br/>
                                 <Button onClick={() => this.setState({ editingImage: false, uploadCompanyLogo: null})} color="secondary">Cancel</Button>
                                 <Button onClick={() => {
-                                    updateProfileImage(this.state.uploadCompanyLogo);
-                                    window.location.reload();
+                                    updateProfileImage(this.state.uploadCompanyLogo).then(picture => {
+                                        this.setState(prevState => {
+                                            let employer = Object.assign({}, prevState.employer);  
+                                            employer.picture =  picture;                                   
+                                            return { employer,editingImage: false, uploadCompanyLogo: null };                                 
+                                          });
+                                    });
+
                                 }} color="success">Save</Button>
                             </div>
                         }
