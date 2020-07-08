@@ -301,13 +301,13 @@ export class PayrollSettings extends Flux.DashView {
                                         });
                                     }}
                                 >
-                                    <option value={1}>Monday{"'s"}</option>
-                                    <option value={2}>Tuesday{"'s"}</option>
-                                    <option value={3}>Wednesday{"'s"}</option>
-                                    <option value={4}>Thursday{"'s"}</option>
-                                    <option value={5}>Friday{"'s"}</option>
-                                    <option value={6}>Saturday{"'s"}</option>
-                                    <option value={7}>Sunday{"'s"}</option>
+                                    <option value={1}>Mondays</option>
+                                    <option value={2}>Tuesdays</option>
+                                    <option value={3}>Wednesdays</option>
+                                    <option value={4}>Thursdays</option>
+                                    <option value={5}>Fridays</option>
+                                    <option value={6}>Saturdays</option>
+                                    <option value={7}>Sundays</option>
                                 </select>
                                 <span> at </span>
                                 <DateTime
