@@ -159,7 +159,7 @@ SearchTalentToInviteToShift.propTypes = {
  */
 export const InviteTalentToJobcore = ({ onSave, onCancel, onChange, catalog, formData }) => (<Theme.Consumer>
     {({bar}) => (
-        <form>
+        <form id="invite_talent_jobcore">
             <div className="row">
                 <div className="col-12">
                     <p>

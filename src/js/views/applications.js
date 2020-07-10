@@ -181,11 +181,11 @@ export class ManageApplicantions extends Flux.DashView {
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({ bar }) => (<span>
-                    {/* <Wizard continuous
+                    <Wizard continuous
                         steps={this.state.steps}
                         run={this.state.runTutorial}
                         callback={callback}
-                    /> */}
+                    />
                     <h1><span id="applicant_details_header">Applicant Details</span></h1>
                     {
                         (applicansHTML.length == 0) ?

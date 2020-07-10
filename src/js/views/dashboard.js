@@ -17,15 +17,16 @@ export default class Home extends Flux.DashView {
         this.state = {
             shifts: [],
             session: Session.get(),
-            runTutorial: hasTutorial(),
+            runTutorial: false,
             start: moment().subtract(1, 'weeks'),
             end: moment().add(1, 'weeks'),
             calendarLoading: true,
             steps: [
                 {
                     content: <h2>Welcome to the tour!</h2>,
-                    placement: "center",
+                    placement: "center",   
                     disableBeacon: true,
+
                     styles: {
                         options: {
                             zIndex: 10000
@@ -33,7 +34,7 @@ export default class Home extends Flux.DashView {
                     },
                     locale: { skip: "Skip tutorial" },
                     target: "body"
-                },
+                    },
                 {
                     target: '#create_shift',
                     content: 'Start by creating a new shift',
@@ -63,16 +64,17 @@ export default class Home extends Flux.DashView {
     }
 
     render() {
+        console.log(this.state);
         return (
             <Theme.Consumer>
                 {({ bar }) =>
                     <div>
                         <Wizard continuous
                             steps={this.state.steps}
-                            run={this.state.runTutorial && this.state.session.active}
+                            run={this.state.runTutorial}
                             callback={callback}
                         />
-                        <div className="row">
+                        <div className="row" >
                             <div className="col-8">
                                 <CalendarView
                                     viewMode={"day"}
@@ -147,36 +149,44 @@ export default class Home extends Flux.DashView {
 
                                     }}
                                 />
-                                <DashboardBox id="draft_shifts"
-                                    status="DRAFT"
-                                    title="Draft Shifts"
-                                    fetchData={() => GET(`employers/me/shifts?status=DRAFT&envelope=true&limit=10`)}
-                                    defaultShifts={this.state.shifts.filter(s => s.status == 'DRAFT')}
-                                />
-                                <DashboardBox id="open_shifts"
-                                    status="OPEN"
-                                    title="Open Shifts"
-                                    fetchData={() => GET(`employers/me/shifts?status=OPEN&envelope=true&limit=10`)}
-                                    defaultShifts={this.state.shifts.filter(s => s.status == 'OPEN')}
-                                />
-                                <DashboardBox id="upcoming_shifts"
-                                    title="Filled Shifts"
-                                    status="FILLED"
-                                    fetchData={() => GET(`employers/me/shifts?filled=true&upcoming=true&not_status=DRAFT&envelope=true&limit=10`)}
-                                    defaultShifts={this.state.shifts.filter(s => s.status != 'DRAFT' && s.maximum_allowed_employees == s.employees.length && moment(s.ending_at).isAfter(NOW()))}
-                                />
-                                <DashboardBox id="expired_shifts"
-                                    status="EXPIRED"
-                                    title="Completed Shifts"
-                                    fetchData={() => GET(`employers/me/shifts?status=EXPIRED&envelope=true&limit=10`)}
-                                    defaultShifts={this.state.shifts.filter(s => !['DRAFT', 'COMPLETED', 'CANCELLED'].includes(s.status) && moment(s.ending_at).isBefore(NOW()))}
-                                />
-                                <DashboardBox id="completed_shifts"
-                                    status="COMPLETED"
-                                    title="Paid Shifts"
-                                    fetchData={() => GET(`employers/me/shifts?status=COMPLETED&envelope=true&limit=10`)}
-                                    defaultShifts={this.state.shifts.filter(s => s.status == 'COMPLETED' && moment(s.ending_at).isBefore(NOW()))}
-                                />
+                                <div id="draft_shifts">
+
+                                    <DashboardBox id="draft_shift"
+                                        status="DRAFT"
+                                        title="Draft Shifts"
+                                        fetchData={() => GET(`employers/me/shifts?status=DRAFT&envelope=true&limit=10`)}
+                                        defaultShifts={this.state.shifts.filter(s => s.status == 'DRAFT')}
+                                    />
+                                    <DashboardBox id="open_shifts"
+                                        status="OPEN"
+                                        title="Open Shifts"
+                                        fetchData={() => GET(`employers/me/shifts?status=OPEN&envelope=true&limit=10`)}
+                                        defaultShifts={this.state.shifts.filter(s => s.status == 'OPEN')}
+                                    />
+                                    <DashboardBox id="upcoming_shifts"
+                                        title="Filled Shifts"
+                                        status="FILLED"
+                                        fetchData={() => GET(`employers/me/shifts?filled=true&upcoming=true&not_status=DRAFT&envelope=true&limit=10`)}
+                                        defaultShifts={this.state.shifts.filter(s => s.status != 'DRAFT' && s.maximum_allowed_employees == s.employees.length && moment(s.ending_at).isAfter(NOW()))}
+                                    />
+                                    <DashboardBox id="expired_shifts"
+                                        status="EXPIRED"
+                                        title="Completed Shifts"
+                                        fetchData={() => GET(`employers/me/shifts?status=EXPIRED&envelope=true&limit=10`)}
+                                        defaultShifts={this.state.shifts.filter(s => !['DRAFT', 'COMPLETED', 'CANCELLED'].includes(s.status) && moment(s.ending_at).isBefore(NOW()))}
+                                    />
+                                    <DashboardBox id="completed_shifts"
+                                        status="COMPLETED"
+                                        title="Paid Shifts"
+                                        fetchData={() => GET(`employers/me/shifts?status=COMPLETED&envelope=true&limit=10`)}
+                                        defaultShifts={this.state.shifts.filter(s => s.status == 'COMPLETED' && moment(s.ending_at).isBefore(NOW()))}
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="col">
+                                <button className="btn btn-primary btn-sm" onClick={()=> this.setState({runTutorial: true})}> Show Tutorial</button>
+
                             </div>
                         </div>
                     </div>
