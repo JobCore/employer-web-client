@@ -363,9 +363,7 @@ class PrivateLayout extends Flux.DashView {
     }
 
     render() {
-        console.log(this.state);
         const Logo = () => (<span className="svg_img" style={{ backgroundImage: `url(${logoURL})` }} />);
-        const CompanyLogo = () => (<div style={{ height:"75px", borderRadius: "50%", border: "1px solid #BDBDBD", backgroundSize: "cover", width: "75px", backgroundImage: `url(${this.state.user && this.state.user.profile.picture})` }}/>);
         return (
             <Theme.Provider value={{ bar: this.state.bar }}>
                 <LoadBar component={() => <img src={loadingURL} />} style={{ position: "fixed", left: "50vw", top: "50vh" }} />
@@ -399,7 +397,7 @@ class PrivateLayout extends Flux.DashView {
                     </div>
                     <div className="right_pane bc-scrollbar">
                         {this.state.userStatus == 'PENDING_EMAIL_VALIDATION' && <div className="alert alert-warning p-2 text-center mb-0" style={{ marginLeft: "-15px" }}>You need to validate your email to receive notifications
-                            <button className="btn btn-success btn-sm ml-2" onClick={() => {resendValidationLink(this.state.user.email);window.open('mailto:');}}>
+                            <button className="btn btn-success btn-sm ml-2" onClick={() => resendValidationLink(this.state.user.email)}>
                                 Resend validation link
                             </button>
                         </div>
@@ -421,7 +419,7 @@ class PrivateLayout extends Flux.DashView {
                                         <div className="col-xs-6">
                                             {this.state.employer.picture ? <div style={{ height:"75px", borderRadius: "50%", border: "1px solid #BDBDBD", backgroundSize: "cover", width: "75px", backgroundImage: `url(${this.state.employer.picture})` }}/>: ""}
                                         </div>
-                                        <div className="col-xs-6 pl-4 my-auto">
+                                        <div className="col-xs-6 pl-4 my-auto" >
                                             <h1><u>{this.state.employer? this.state.employer.title.toUpperCase(): ""}</u></h1>
 
                                         </div>

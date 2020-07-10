@@ -10,7 +10,7 @@ export const hasTutorial = function(){
 export const callback = ({type}) => {
     if(type == 'tour:end'){
         const session = Session.get();
-        updateProfile({ id: session.payload.user.id, show_tutorial: false});
+        // updateProfile({ id: session.payload.user.id, show_tutorial: false});
         
         const profile = Object.assign(session.payload.user.profile, { show_tutorial: false });
         const user = Object.assign(session.payload.user, { profile });
