@@ -26,6 +26,7 @@ export const autoLogin = (token = '') => {
 
     return new Promise((resolve, reject) => GET('profiles/me', null, { 'Authorization': 'JWT ' + token })
         .then(function (profile) {
+            console.log(profile);
             if (!profile.employer) {
                 Notify.error("Only employers are allowed to login into this application");
                 reject("Only employers are allowed to login into this application");
@@ -425,6 +426,18 @@ export const updateProfileImage = (file) => PUTFiles('employers/me/image', [file
 
 export const updateProfile = (data) => {
     PUT(`profiles/${data.id}`, data)
+        .then(function (incomingObject) {
+            const payload = Session.getPayload();
+            const user = Object.assign(payload.user, { profile: incomingObject });
+            Session.setPayload({ user });
+        })
+        .catch(function (error) {
+            Notify.error(error.message || error);
+            log.error(error);
+        });
+};
+export const updateProfileMe = (data) => {
+    PUT(`profiles/me`, data)
         .then(function (incomingObject) {
             const payload = Session.getPayload();
             const user = Object.assign(payload.user, { profile: incomingObject });
