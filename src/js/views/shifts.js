@@ -631,6 +631,103 @@ ShiftInvites.propTypes = {
  * EditOrAddShift
  */
 const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar, oldShift }) => {
+   
+    const [runTutorial, setRunTutorial] = useState(hasTutorial());
+    const [steps, setSteps] = useState(
+        [
+            {
+                target: '#looking-for',
+                content: 'Here you can select what position you are looking for',
+                placement: 'left',
+                styles: {
+                    options: {
+                        zIndex: 10000
+                    }
+                },
+                locale: { skip: "Skip tutorial" },
+            },
+            {
+                target: '#how-many',
+                content: 'Total number of talents for the shift',
+                placement: 'left',
+                styles: {
+                    options: {
+                        zIndex: 10000
+                    }
+                },
+                locale: { skip: "Skip tutorial" },
+            },
+            {
+                target: '#price',
+                content: 'Hourly rate for the shift',
+                placement: 'left',
+                styles: {
+                    options: {
+                        zIndex: 10000
+                    }
+                },
+                locale: { skip: "Skip tutorial" },
+            },
+            {
+                target: '#date-shift',
+                content: 'The date of the shift. and click more if you want to create more than one shift',
+                placement: 'left',
+                styles: {
+                    options: {
+                        zIndex: 10000
+                    }
+                },
+                locale: { skip: "Skip tutorial" },
+            },
+            {
+                target: '#from-to-date',
+                content: 'Time of the shift',
+                placement: 'left',
+                styles: {
+                    options: {
+                        zIndex: 10000
+                    }
+                },
+                locale: { skip: "Skip tutorial" },
+            },
+            {
+                target: '#location',
+                content: 'You can add the location of where the shift is taking place',
+                placement: 'left',
+                styles: {
+                    options: {
+                        zIndex: 10000
+                    }
+                },
+                locale: { skip: "Skip tutorial" },
+            },
+            {
+                target: '#who-can-apply',
+                content: 'Here you can select who can apply for this shift',
+                placement: 'left',
+                styles: {
+                    options: {
+                        zIndex: 10000
+                    }
+                },
+                locale: { skip: "Skip tutorial" },
+            },
+            {
+                target: '#publish',
+                content: 'When you are done click publish and they will receive a notification',
+                placement: 'left',
+                styles: {
+                    options: {
+                        zIndex: 10000
+                    }
+                },
+                locale: { skip: "Skip tutorial" },
+            }
+   
+            
+        ]
+    );
+
     useEffect(() => {
         const venues = store.getState('venues');
         const favlists = store.getState('favlists');
@@ -642,91 +739,160 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
     if(formData.employer && isNaN(formData.employer )) formData.employer = formData.employer.id;
     if(!formData.shift && !isNaN(formData.id)) formData.shift = formData.id;
     if(formData.required_badges) delete formData.required_badges;
+    console.log(runTutorial);
     return (
-        <form>
-            <div className="row">
-                <div className="col-12">
-                    {formData.hide_warnings === true ? null : (formData.status == 'DRAFT' && !error) ?
-                        <div className="alert alert-warning d-inline"><i className="fas fa-exclamation-triangle"></i> This shift is a draft</div>
-                        : (formData.status != 'UNDEFINED' && !error) ?
-                            <div className="alert alert-success">This shift is published, therefore <strong>it needs to be unpublished</strong> before it can be updated</div>
-                            : ''
-                    }
+        <div>
+            <Wizard continuous
+        steps={steps}
+        run={true}
+        callback={callback}
+        />
+
+            <form>
+       
+                <div className="row">
+                    <div className="col-12">
+                        {formData.hide_warnings === true ? null : (formData.status == 'DRAFT' && !error) ?
+                            <div className="alert alert-warning d-inline"><i className="fas fa-exclamation-triangle"></i> This shift is a draft</div>
+                            : (formData.status != 'UNDEFINED' && !error) ?
+                                <div className="alert alert-success">This shift is published, therefore <strong>it needs to be unpublished</strong> before it can be updated</div>
+                                : ''
+                        }
+                    </div>
                 </div>
-            </div>
-            <div className="row">
-                <div className="col-12">
-                    <label>Looking for</label>
-                    <Select
-                        placeholder="Select a position"
-                        value={catalog.positions.find((pos) => pos.value == formData.position.id || pos.value == formData.position)}
-                        onChange={(selection) => onChange({ position: selection.value.toString(), has_sensitive_updates: true })}
-                        options={catalog.positions}
-                    />
+           
+                <div className="row" id="looking-for">
+                    <div className="col-12">
+                        <label>Looking for</label>
+                    
+                        <Select
+                            placeholder="Select a position"
+                            value={catalog.positions.find((pos) => pos.value == formData.position.id || pos.value == formData.position)}
+                            onChange={(selection) => onChange({ position: selection.value.toString(), has_sensitive_updates: true })}
+                            options={catalog.positions}
+                        />
+                    </div>
                 </div>
-            </div>
-            <div className="row">
-                <div className="col-6">
-                    <label>How many?</label>
-                    <input type="number" className="form-control"
-                        value={formData.maximum_allowed_employees}
-                        onChange={(e) => {
-                            if (parseInt(e.target.value, 10) > 0) {
-                                if (oldShift && oldShift.employees.length > parseInt(e.target.value, 10)) Notify.error(`${oldShift.employees.length} talents are scheduled to work on this shift already, delete scheduled employees first.`);
-                                else onChange({ maximum_allowed_employees: e.target.value });
-                            }
-                        }}
-                    />
-                </div>
-                <div className="col-6">
-                    <label>Price / hour</label>
-                    <input type="number" className="form-control"
-                        value={formData.minimum_hourly_rate}
-                        onChange={(e) => onChange({
-                            minimum_hourly_rate: e.target.value,
-                            has_sensitive_updates: true
-                        })}
-                    />
-                </div>
-            </div>
-            <div className="row">
-                <div className="col-12">
-                    <label className="mb-1">Dates</label>
-                    {formData.multiple_dates && <p className="mb-1 mt-0">
-                        {formData.multiple_dates.map((d, i) => (
-                            <span key={i} className="badge">{d.starting_at.format('MM-DD-YYYY')}
-                                <i
-                                    className="fas fa-trash-alt ml-1 pointer"
-                                    onClick={() => onChange({
-                                        multiple_dates: !formData.multiple_dates ? [] : formData.multiple_dates.filter(dt => !dt.starting_at.isSame(d.starting_at)),
-                                        has_sensitive_updates: true
-                                    })}
-                                />
-                            </span>
-                        ))}
-                    </p>}
-                    <div className="input-group">
-                        <DateTime
-                            timeFormat={false}
-                            className="shiftdate-picker"
-                            closeOnSelect={true}
-                            value={formData.starting_at}
-                            isValidDate={(current) => {
-                                return formData.multiple_dates !== undefined && formData.multiple_dates.length > 0 ? current.isAfter(YESTERDAY) : true;
+                <div className="row">
+                    <div className="col-6"  id="how-many">
+                        <label>How many?</label>
+                        <input type="number" className="form-control"
+                            value={formData.maximum_allowed_employees}
+                            onChange={(e) => {
+                                if (parseInt(e.target.value, 10) > 0) {
+                                    if (oldShift && oldShift.employees.length > parseInt(e.target.value, 10)) Notify.error(`${oldShift.employees.length} talents are scheduled to work on this shift already, delete scheduled employees first.`);
+                                    else onChange({ maximum_allowed_employees: e.target.value });
+                                }
                             }}
+                        />
+                    </div>
+                    <div className="col-6" id="price">
+                        <label>Price / hour</label>
+                        <input type="number" className="form-control"
+                            value={formData.minimum_hourly_rate}
+                            onChange={(e) => onChange({
+                                minimum_hourly_rate: e.target.value,
+                                has_sensitive_updates: true
+                            })}
+                        />
+                    </div>
+                </div>
+                <div className="row" id="date-shift">
+                    <div className="col-12">
+                        <label className="mb-1">Dates</label>
+                        {formData.multiple_dates && <p className="mb-1 mt-0">
+                            {formData.multiple_dates.map((d, i) => (
+                                <span key={i} className="badge">{d.starting_at.format('MM-DD-YYYY')}
+                                    <i
+                                        className="fas fa-trash-alt ml-1 pointer"
+                                        onClick={() => onChange({
+                                            multiple_dates: !formData.multiple_dates ? [] : formData.multiple_dates.filter(dt => !dt.starting_at.isSame(d.starting_at)),
+                                            has_sensitive_updates: true
+                                        })}
+                                    />
+                                </span>
+                            ))}
+                        </p>}
+                        <div className="input-group" >
+                            <DateTime
+                                timeFormat={false}
+                                className="shiftdate-picker"
+                                closeOnSelect={true}
+                                value={formData.starting_at}
+                                isValidDate={(current) => {
+                                    return formData.multiple_dates !== undefined && formData.multiple_dates.length > 0 ? current.isAfter(YESTERDAY) : true;
+                                }}
+                                renderInput={(properties) => {
+                                    const { value, ...rest } = properties;
+                                    return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
+                                }}
+                                onChange={(value) => {
+
+
+                                    const getRealDate = (start, end) => {
+                                        if (typeof start == 'string') value = moment(start);
+
+                                        const starting = moment(start.format("MM-DD-YYYY") + " " + start.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+
+                                        var ending = moment(start.format("MM-DD-YYYY") + " " + end.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                                        if (typeof starting !== 'undefined' && starting.isValid()) {
+                                            if (ending.isBefore(starting)) {
+                                                ending = ending.add(1, 'days');
+                                            }
+
+                                            return { starting_at: starting, ending_at: ending };
+                                        }
+                                        return null;
+                                    };
+
+                                    const mainDate = getRealDate(value, formData.ending_at);
+
+                                    const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
+                                    onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
+
+
+                                }}
+
+
+                            />
+                            <div className="input-group-append" onClick={() => {
+                                if (expired) Notify.error("Shifts with and expired starting or ending times cannot have multiple dates or be recurrent");
+                                else onChange({
+                                    multiple_dates: !formData.multiple_dates ?
+                                        [{ starting_at: formData.starting_at, ending_at: formData.ending_at }]
+                                        :
+                                        formData.multiple_dates.filter(dt => !dt.starting_at.isSame(formData.starting_at)).concat(
+                                            { starting_at: formData.starting_at, ending_at: formData.ending_at }
+                                        ),
+                                    has_sensitive_updates: true
+                                });
+                            }}>
+                                <span className="input-group-text pointer">More <i className="fas fa-plus ml-1"></i></span>
+                            </div>
+                        
+                        </div>
+                    </div>
+                </div>
+          
+                <div className="row" id="from-to-date">
+                    <div className="col-6">
+                        <label>From</label>
+                        <DateTime
+                            dateFormat={false}
+                            timeFormat={DATETIME_FORMAT}
+                            closeOnTab={true}
+                            timeConstraints={{ minutes: { step: 15 } }}
+                            value={formData.starting_at}
                             renderInput={(properties) => {
                                 const { value, ...rest } = properties;
-                                return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
+                                return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
                             }}
                             onChange={(value) => {
-
+                                if (typeof value == 'string') value = moment(value);
 
                                 const getRealDate = (start, end) => {
-                                    if (typeof start == 'string') value = moment(start);
-
-                                    const starting = moment(start.format("MM-DD-YYYY") + " " + start.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-
-                                    var ending = moment(start.format("MM-DD-YYYY") + " " + end.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                                    const starting = moment(start.format("MM-DD-YYYY") + " " + value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                                    var ending = moment(end);
                                     if (typeof starting !== 'undefined' && starting.isValid()) {
                                         if (ending.isBefore(starting)) {
                                             ending = ending.add(1, 'days');
@@ -737,247 +903,191 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                                     return null;
                                 };
 
-                                const mainDate = getRealDate(value, formData.ending_at);
-
+                                const mainDate = getRealDate(formData.starting_at, formData.ending_at);
                                 const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
                                 onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
 
 
                             }}
-
-
                         />
-                        <div className="input-group-append" onClick={() => {
-                            if (expired) Notify.error("Shifts with and expired starting or ending times cannot have multiple dates or be recurrent");
-                            else onChange({
-                                multiple_dates: !formData.multiple_dates ?
-                                    [{ starting_at: formData.starting_at, ending_at: formData.ending_at }]
-                                    :
-                                    formData.multiple_dates.filter(dt => !dt.starting_at.isSame(formData.starting_at)).concat(
-                                        { starting_at: formData.starting_at, ending_at: formData.ending_at }
-                                    ),
-                                has_sensitive_updates: true
-                            });
-                        }}>
-                            <span className="input-group-text pointer">More <i className="fas fa-plus ml-1"></i></span>
-                        </div>
-                      
+                    </div>
+                    <div className="col-6">
+                        <label>To {(formData.ending_at.isBefore(formData.starting_at)) && "(next day)"}</label>
+                        <DateTime
+                            className="picker-left"
+                            dateFormat={false}
+                            timeFormat={DATETIME_FORMAT}
+                            timeConstraints={{ minutes: { step: 15 } }}
+                            value={formData.ending_at}
+                            renderInput={(properties) => {
+                                const { value, ...rest } = properties;
+                                return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                            }}
+                            onChange={(value) => {
+                                if (typeof value == 'string') value = moment(value);
+
+                                const getRealDate = (start, end) => {
+
+                                    const starting = start;
+                                    var ending = moment(start.format("MM-DD-YYYY") + " " + value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+
+                                    if (typeof starting !== 'undefined' && starting.isValid()) {
+                                        if (ending.isBefore(starting)) {
+                                            ending = ending.add(1, 'days');
+                                        }
+
+                                        return { starting_at: starting, ending_at: ending };
+                                    }
+                                    return null;
+                                };
+
+                                const mainDate = getRealDate(formData.starting_at, formData.ending_at);
+                                const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
+                                onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
+
+                            }}
+                        />
                     </div>
                 </div>
-            </div>
-          
-            <div className="row">
-                <div className="col-6">
-                    <label>From</label>
-                    <DateTime
-                        dateFormat={false}
-                        timeFormat={DATETIME_FORMAT}
-                        closeOnTab={true}
-                        timeConstraints={{ minutes: { step: 15 } }}
-                        value={formData.starting_at}
-                        renderInput={(properties) => {
-                            const { value, ...rest } = properties;
-                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
-                        }}
-                        onChange={(value) => {
-                            if (typeof value == 'string') value = moment(value);
-
-                            const getRealDate = (start, end) => {
-                                const starting = moment(start.format("MM-DD-YYYY") + " " + value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-                                var ending = moment(end);
-                                if (typeof starting !== 'undefined' && starting.isValid()) {
-                                    if (ending.isBefore(starting)) {
-                                        ending = ending.add(1, 'days');
-                                    }
-
-                                    return { starting_at: starting, ending_at: ending };
-                                }
-                                return null;
-                            };
-
-                            const mainDate = getRealDate(formData.starting_at, formData.ending_at);
-                            const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
-                            onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
-
-
-                        }}
-                    />
-                </div>
-                <div className="col-6">
-                    <label>To {(formData.ending_at.isBefore(formData.starting_at)) && "(next day)"}</label>
-                    <DateTime
-                        className="picker-left"
-                        dateFormat={false}
-                        timeFormat={DATETIME_FORMAT}
-                        timeConstraints={{ minutes: { step: 15 } }}
-                        value={formData.ending_at}
-                        renderInput={(properties) => {
-                            const { value, ...rest } = properties;
-                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
-                        }}
-                        onChange={(value) => {
-                            if (typeof value == 'string') value = moment(value);
-
-                            const getRealDate = (start, end) => {
-
-                                const starting = start;
-                                var ending = moment(start.format("MM-DD-YYYY") + " " + value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-
-                                if (typeof starting !== 'undefined' && starting.isValid()) {
-                                    if (ending.isBefore(starting)) {
-                                        ending = ending.add(1, 'days');
-                                    }
-
-                                    return { starting_at: starting, ending_at: ending };
-                                }
-                                return null;
-                            };
-
-                            const mainDate = getRealDate(formData.starting_at, formData.ending_at);
-                            const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
-                            onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
-
-                        }}
-                    />
-                </div>
-            </div>
-            <div className="row">
-                <div className="col-12">
-                    <label>Location</label>
-                    <Select
-                        value={catalog.venues.find((ven) => ven.value == formData.venue.id || ven.value == formData.venue)}
-                        options={[{ label: "Add a location", value: 'new_venue', component: AddOrEditLocation }].concat(catalog.venues)}
-                        onChange={(selection) => {
-                            if (selection.value == 'new_venue') bar.show({ slug: "create_location", allowLevels: true });
-                            else onChange({ venue: selection.value.toString(), has_sensitive_updates: true });
-                        }}
-                    />
-                </div>
-            </div>
-            <div className="row mt-3">
-                <div className="col-12">
-                    <h4>Who can apply to this shift?</h4>
-                </div>
-            </div>
-            <div className="row">
-                <div className="col-12">
-                    {expired ?
-                        <div className="alert alert-warning">This shift has an expired date, therefore you cannot invite anyone but you can still use it for payroll purposes.</div>
-                        :
+                <div className="row" id="location">
+                    <div className="col-12">
+                        <label>Location</label>
                         <Select
-                            value={catalog.applicationRestrictions.find((a) => a.value == formData.application_restriction)}
-                            onChange={(selection) => onChange({ application_restriction: selection.value.toString() })}
-                            options={catalog.applicationRestrictions}
+                            value={catalog.venues.find((ven) => ven.value == formData.venue.id || ven.value == formData.venue)}
+                            options={[{ label: "Add a location", value: 'new_venue', component: AddOrEditLocation }].concat(catalog.venues)}
+                            onChange={(selection) => {
+                                if (selection.value == 'new_venue') bar.show({ slug: "create_location", allowLevels: true });
+                                else onChange({ venue: selection.value.toString(), has_sensitive_updates: true });
+                            }}
                         />
-                    }
-                </div>
-            </div>
-            {
-                (!expired && formData.application_restriction == "FAVORITES") ?
-                    <div className="row">
-                        <div className="col-12">
-                            <label>From these favorite lists</label>
-                            <Select isMulti
-                                value={formData.allowedFavlists}
-                                onChange={(opt) => onChange({ allowedFavlists: opt })}
-                                options={catalog.favlists}
-                            >
-                            </Select>
-                        </div>
                     </div>
-                    : (!expired && formData.application_restriction == "ANYONE") ?
-                        <div className="row mt-3">
-                            <div className="col-5">
-                                <label className="mt-2">Minimum rating</label>
-                            </div>
-                            <div className="col-7">
-                                <Select
-                                    value={catalog.stars.find((s) => s.value == formData.minimum_allowed_rating)}
-                                    onChange={(selection) => onChange({ minimum_allowed_rating: selection.value })}
-                                    options={catalog.stars}
-                                />
-                            </div>
-                        </div>
-                        : !expired &&
-                        <div className="row">
-                            <div className="col-12">
-                                <label>Search people in JobCore:</label>
-                                <SearchCatalogSelect
-                                    isMulti={true}
-                                    value={formData.pending_invites}
-                                    onChange={(selections) => {
-                                        const invite = selections.find(opt => opt.value == 'invite_talent_to_jobcore');
-                                        if (invite) bar.show({
-                                            allowLevels: true,
-                                            slug: "invite_talent_to_jobcore",
-                                            onSave: (emp) => onChange({ pending_jobcore_invites: formData.pending_jobcore_invites.concat(emp) })
-                                        });
-                                        else onChange({ pending_invites: selections });
-                                    }}
-                                    searchFunction={(search) => new Promise((resolve, reject) =>
-                                        GET('catalog/employees?full_name=' + search)
-                                            .then(talents => resolve([
-                                                { label: `${(talents.length == 0) ? 'No one found: ' : ''}Invite "${search}" to jobcore`, value: 'invite_talent_to_jobcore' }
-                                            ].concat(talents)))
-                                            .catch(error => reject(error))
-                                    )}
-                                />
-                            </div>
-                        </div>
-            }
-            {(formData.pending_jobcore_invites.length > 0) ?
+                </div>
+                <div className="row mt-3" >
+                    <div className="col-12" id="who-can-apply">
+                        <h4>Who can apply to this shift?</h4>
+                    </div>
+                </div>
                 <div className="row">
                     <div className="col-12">
-                        <p className="m-0 p-0">The following people will be invited to this shift after they accept your invitation to jobcore:</p>
-                        {formData.pending_jobcore_invites.map((emp, i) => (
-                            <span key={i} className="badge">{emp.first_name} {emp.last_name} <i className="fas fa-trash-alt"></i></span>
-                        ))}
+                        {expired ?
+                            <div className="alert alert-warning">This shift has an expired date, therefore you cannot invite anyone but you can still use it for payroll purposes.</div>
+                            :
+                            <Select
+                                value={catalog.applicationRestrictions.find((a) => a.value == formData.application_restriction)}
+                                onChange={(selection) => onChange({ application_restriction: selection.value.toString() })}
+                                options={catalog.applicationRestrictions}
+                            />
+                        }
                     </div>
-                </div> : ''
-            }
-            <div className="btn-bar">
-                {(formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ? // create shift
-                    <button type="button" className="btn btn-primary" onClick={() => onSave({
-                        executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
-                        status: 'DRAFT'
-                    })}>Save as draft</button> : ''
+                </div>
+                {
+                    (!expired && formData.application_restriction == "FAVORITES") ?
+                        <div className="row">
+                            <div className="col-12">
+                                <label>From these favorite lists</label>
+                                <Select isMulti
+                                    value={formData.allowedFavlists}
+                                    onChange={(opt) => onChange({ allowedFavlists: opt })}
+                                    options={catalog.favlists}
+                                >
+                                </Select>
+                            </div>
+                        </div>
+                        : (!expired && formData.application_restriction == "ANYONE") ?
+                            <div className="row mt-3">
+                                <div className="col-5">
+                                    <label className="mt-2">Minimum rating</label>
+                                </div>
+                                <div className="col-7">
+                                    <Select
+                                        value={catalog.stars.find((s) => s.value == formData.minimum_allowed_rating)}
+                                        onChange={(selection) => onChange({ minimum_allowed_rating: selection.value })}
+                                        options={catalog.stars}
+                                    />
+                                </div>
+                            </div>
+                            : !expired &&
+                            <div className="row">
+                                <div className="col-12">
+                                    <label>Search people in JobCore:</label>
+                                    <SearchCatalogSelect
+                                        isMulti={true}
+                                        value={formData.pending_invites}
+                                        onChange={(selections) => {
+                                            const invite = selections.find(opt => opt.value == 'invite_talent_to_jobcore');
+                                            if (invite) bar.show({
+                                                allowLevels: true,
+                                                slug: "invite_talent_to_jobcore",
+                                                onSave: (emp) => onChange({ pending_jobcore_invites: formData.pending_jobcore_invites.concat(emp) })
+                                            });
+                                            else onChange({ pending_invites: selections });
+                                        }}
+                                        searchFunction={(search) => new Promise((resolve, reject) =>
+                                            GET('catalog/employees?full_name=' + search)
+                                                .then(talents => resolve([
+                                                    { label: `${(talents.length == 0) ? 'No one found: ' : ''}Invite "${search}" to jobcore`, value: 'invite_talent_to_jobcore' }
+                                                ].concat(talents)))
+                                                .catch(error => reject(error))
+                                        )}
+                                    />
+                                </div>
+                            </div>
                 }
-                {(formData.status == 'DRAFT') ?
-                    <button type="button" className="btn btn-success" onClick={() => {
-                        if (!formData.has_sensitive_updates && !isNaN(formData.id)) onSave({ executed_action: 'update_shift', status: 'OPEN' });
-                        else {
-                            const noti = Notify.info("Are you sure? All talents will have to apply again the shift because the information was updated.", (answer) => {
-                                if (answer) onSave({
-                                    executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
-                                    status: 'OPEN'
+                {(formData.pending_jobcore_invites.length > 0) ?
+                    <div className="row">
+                        <div className="col-12">
+                            <p className="m-0 p-0">The following people will be invited to this shift after they accept your invitation to jobcore:</p>
+                            {formData.pending_jobcore_invites.map((emp, i) => (
+                                <span key={i} className="badge">{emp.first_name} {emp.last_name} <i className="fas fa-trash-alt"></i></span>
+                            ))}
+                        </div>
+                    </div> : ''
+                }
+                <div className="btn-bar">
+                    {(formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ? // create shift
+                        <button type="button" className="btn btn-primary" onClick={() => onSave({
+                            executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
+                            status: 'DRAFT'
+                        })}>Save as draft</button> : ''
+                    }
+                    {(formData.status == 'DRAFT') ?
+                        <button type="button" className="btn btn-success" onClick={() => {
+                            if (!formData.has_sensitive_updates && !isNaN(formData.id)) onSave({ executed_action: 'update_shift', status: 'OPEN' });
+                            else {
+                                const noti = Notify.info("Are you sure? All talents will have to apply again the shift because the information was updated.", (answer) => {
+                                    if (answer) onSave({
+                                        executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
+                                        status: 'OPEN'
+                                    });
+                                    noti.remove();
                                 });
+                            }
+                        }}>Publish</button>
+                        : (formData.status != 'UNDEFINED') ?
+                            <button type="button" className="btn btn-primary" onClick={() => {
+                                const noti = Notify.info("Are you sure you want to unpublish this shift?", (answer) => {
+                                    if (answer) onSave({ executed_action: 'update_shift', status: 'DRAFT' });
+                                    noti.remove();
+                                }, 9999999999999);
+                            }}>Unpublish shift</button>
+                            :
+                            <button type="button" id="publish" className="btn btn-success" onClick={() => onSave({
+                                executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
+                                status: 'OPEN'
+                            })}>Save and publish</button>
+                    }
+                    {(formData.status != 'UNDEFINED') ?
+                        <button type="button" className="btn btn-danger" onClick={() => {
+                            const noti = Notify.info("Are you sure you want to cancel this shift?", (answer) => {
+                                if (answer) onSave({ executed_action: 'update_shift', status: 'CANCELLED' });
                                 noti.remove();
                             });
-                        }
-                    }}>Publish</button>
-                    : (formData.status != 'UNDEFINED') ?
-                        <button type="button" className="btn btn-primary" onClick={() => {
-                            const noti = Notify.info("Are you sure you want to unpublish this shift?", (answer) => {
-                                if (answer) onSave({ executed_action: 'update_shift', status: 'DRAFT' });
-                                noti.remove();
-                            }, 9999999999999);
-                        }}>Unpublish shift</button>
-                        :
-                        <button type="button" className="btn btn-success" onClick={() => onSave({
-                            executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
-                            status: 'OPEN'
-                        })}>Save and publish</button>
-                }
-                {(formData.status != 'UNDEFINED') ?
-                    <button type="button" className="btn btn-danger" onClick={() => {
-                        const noti = Notify.info("Are you sure you want to cancel this shift?", (answer) => {
-                            if (answer) onSave({ executed_action: 'update_shift', status: 'CANCELLED' });
-                            noti.remove();
-                        });
-                    }}>Delete</button> : ''
-                }
-            </div>
-        </form>
+                        }}>Delete</button> : ''
+                    }
+                
+                </div>
+            </form>
+        </div>
     );
 };
 EditOrAddShift.propTypes = {

@@ -17,13 +17,13 @@ export default class Home extends Flux.DashView {
         this.state = {
             shifts: [],
             session: Session.get(),
-            runTutorial: false,
+            runTutorial: hasTutorial(),
             start: moment().subtract(1, 'weeks'),
             end: moment().add(1, 'weeks'),
             calendarLoading: true,
             steps: [
                 {
-                    content: <h2>Welcome to the tour!</h2>,
+                    content: <h2>Welcome to jobcore!</h2>,
                     placement: "center",   
                     disableBeacon: true,
 
@@ -38,6 +38,11 @@ export default class Home extends Flux.DashView {
                 {
                     target: '#create_shift',
                     content: 'Start by creating a new shift',
+                    placement: 'right'
+                },
+                {
+                    target: '#creating-shifts',
+                    content: 'Start by ffwefefewfwe a new shift',
                     placement: 'right'
                 },
                 {
@@ -64,7 +69,6 @@ export default class Home extends Flux.DashView {
     }
 
     render() {
-        console.log(this.state);
         return (
             <Theme.Consumer>
                 {({ bar }) =>
@@ -184,10 +188,7 @@ export default class Home extends Flux.DashView {
                                 </div>
                             </div>
                             
-                            <div className="col">
-                                <button className="btn btn-primary btn-sm" onClick={()=> this.setState({runTutorial: true})}> Show Tutorial</button>
-
-                            </div>
+                       
                         </div>
                     </div>
                 }
