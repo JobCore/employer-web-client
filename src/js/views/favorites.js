@@ -144,7 +144,7 @@ export const AddFavlistsToTalent = ({ onChange, formData, onSave, onCancel, cata
             <div className="col-12">
                 <label>Pick your favorite lists:</label>
                 <Select isMulti className="select-favlists"
-                    value={formData.favoriteLists}
+                    value={catalog.favlists}
                     options={[{ label: "Add new favorite list", value: 'new_favlist', component: AddorUpdateFavlist }].concat(catalog.favlists)}
                     onChange={(selection) => {
                         const create = selection.find(opt => (opt.value == 'new_favlist'));

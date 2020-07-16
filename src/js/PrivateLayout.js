@@ -187,7 +187,6 @@ class PrivateLayout extends Flux.DashView {
                             break;
                         case 'add_to_favlist':
                             option.title = "Add to favorite lists";
-                      
                             this.showRightBar(AddFavlistsToTalent, option, { formData: Talent(option.data).getFormData() });
                             break;
                         case 'create_favlist':

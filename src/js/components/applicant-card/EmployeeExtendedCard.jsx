@@ -7,19 +7,34 @@ import Stars from '../stars';
  * Applican Card
  */
 const EmployeeExtendedCard = (props) => {
+    console.log(props);
+    const positions = !props.employee.positions ? [] : props.employee.positions.slice(0, 4).map((p, i) => {
+        return props.positions.find(pos => p == pos.value);
+    });
     const badgesHTML = !props.employee.badges ? [] : props.employee.badges.map((b, i) => (<span key={i} className="badge">{b.title}</span>));
     const favoriteCount = !Array.isArray(props.employee.favoritelist_set) ? 0 :props.employee.favoritelist_set.length;
     return (<li className={`aplicantcard ${props.hoverEffect ? "aplicantcard-hover":""} ${props.showButtonsOnHover ? "show-hover":""} ${props.className}`} onClick={() => (props.onClick) ? props.onClick() : false}>
 
         <Avatar url={props.employee.user.profile.picture} />
-        <a href="#"><b>{props.employee.user.first_name + ' ' + props.employee.user.last_name}</b></a>
-
-        <Stars rating={Number(props.employee.rating)} jobCount={props.employee.total_ratings}  />
-        { (props.showFavlist) ?
-            <p href="#">{ (favoriteCount > 0) ? <span className="badge badge-warning"><i className="fas fa-star"></i> {favoriteCount} Lists</span> : '' } {badgesHTML}</p>
-            :''
-        }
-
+        <div className="row">
+            <div className="col-4">
+                <a href="#"><b>{props.employee.user.first_name + ' ' + props.employee.user.last_name}</b></a>
+                <Stars rating={Number(props.employee.rating)} jobCount={props.employee.total_ratings}  />
+                { (props.showFavlist) ?
+                    <p href="#">{ (favoriteCount > 0) ? <span className="badge badge-warning"><i className="fas fa-star"></i> {favoriteCount} Lists</span> : '' } {badgesHTML}</p>
+                  :''
+              }
+            </div>
+            <div className="col my-auto">
+                {positions && positions.map((pos, i)=> {
+                    if(i < 3 && pos ) return (<span key={i} className="badge badge-success">{pos.label || ""}</span>);
+                  }
+                )}
+                {Array.isArray(positions) && positions.length > 3 ? <span className="text-right ml-4">See more</span> : null}
+            </div>
+        </div>
+  
+      
         {(props.children) ?
             <div className="btn-group" role="group" aria-label="Basic example">
                 {props.children}
@@ -38,7 +53,8 @@ EmployeeExtendedCard.propTypes = {
   className: PropTypes.string,
   showButtonsOnHover: PropTypes.bool,
   hoverEffect: PropTypes.bool,
-  onClick: PropTypes.func
+  onClick: PropTypes.func,
+  positions: PropTypes.array
 };
 EmployeeExtendedCard.defaultProps = {
   showFavlist: true,
@@ -46,7 +62,8 @@ EmployeeExtendedCard.defaultProps = {
   hoverEffect: true,
   showButtonsOnHover: true,
   children: null,
-  onClick: null
+  onClick: null,
+  positions: []
 };
 
 export default EmployeeExtendedCard;

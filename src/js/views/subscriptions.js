@@ -124,9 +124,9 @@ export const YourSubscription = (props) => {
                 <p className="m-0">QuickBooks Integration</p>
             </div>
             {plans.map(p => 
-                <div key={p.id} className="col-3 text-center">
+                <div key={p.id} className="col-2 text-center">
                     <h2>{p.title}</h2>
-                    <p className="m-0">${p.price_month} mo./${p.price_year} yr.</p>
+                    <p className="m-0">${p.price_month}/month</p>
                     <FeatureIndicator fixed={p.feature_max_shifts} additional={p.price_per_shifts} />
                     <FeatureIndicator fixed={p.feature_max_active_employees} additional={p.price_per_active_employees} />
                     <FeatureIndicator fixed={p.feature_max_clockins} additional={p.price_per_active_employees} />
