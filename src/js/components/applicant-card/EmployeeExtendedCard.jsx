@@ -7,17 +7,19 @@ import Stars from '../stars';
  * Applican Card
  */
 const EmployeeExtendedCard = (props) => {
-    console.log(props);
-    const positions = !props.employee.positions ? [] : props.employee.positions.slice(0, 4).map((p, i) => {
-        return props.positions.find(pos => p == pos.value);
+
+    const positions =  !props.positions ? null : props.employee.positions.slice(0, 4).map((p, i) => {
+        return props.positions.find(pos => p == pos.value || p.id == pos.value);
     });
+
+
     const badgesHTML = !props.employee.badges ? [] : props.employee.badges.map((b, i) => (<span key={i} className="badge">{b.title}</span>));
     const favoriteCount = !Array.isArray(props.employee.favoritelist_set) ? 0 :props.employee.favoritelist_set.length;
     return (<li className={`aplicantcard ${props.hoverEffect ? "aplicantcard-hover":""} ${props.showButtonsOnHover ? "show-hover":""} ${props.className}`} onClick={() => (props.onClick) ? props.onClick() : false}>
 
         <Avatar url={props.employee.user.profile.picture} />
         <div className="row">
-            <div className="col-4">
+            <div className="col">
                 <a href="#"><b>{props.employee.user.first_name + ' ' + props.employee.user.last_name}</b></a>
                 <Stars rating={Number(props.employee.rating)} jobCount={props.employee.total_ratings}  />
                 { (props.showFavlist) ?
@@ -25,13 +27,16 @@ const EmployeeExtendedCard = (props) => {
                   :''
               }
             </div>
-            <div className="col my-auto">
-                {positions && positions.map((pos, i)=> {
-                    if(i < 3 && pos ) return (<span key={i} className="badge badge-success">{pos.label || ""}</span>);
-                  }
-                )}
-                {Array.isArray(positions) && positions.length > 3 ? <span className="text-right ml-4">See more</span> : null}
-            </div>
+            {Array.isArray(positions) && positions.length > 0 ? (
+                <div className="col-8 my-auto">
+                    { positions.map((pos, i)=> {
+                        if(i < 3 && pos ) return (<span key={i} className="badge badge-success">{pos.label || pos.title}</span>);
+                      }
+                    )}
+                    {Array.isArray(positions) && positions.length > 3 ? <span className="text-right ml-4">See more</span> : null}
+                </div>
+            ): null}
+
         </div>
   
       
@@ -63,7 +68,7 @@ EmployeeExtendedCard.defaultProps = {
   showButtonsOnHover: true,
   children: null,
   onClick: null,
-  positions: []
+  positions: null
 };
 
 export default EmployeeExtendedCard;

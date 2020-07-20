@@ -43,6 +43,7 @@ export const ShiftCalendar = ({ catalog }) => {
 
     const [filters, setFilters] = useState(null);
     const [shifts, setShifts] = useState(null);
+    console.log('shiptur', shifts);
     const [venues, setVenues] = useState([]);
     const [positions, setPositions] = useState(catalog.positions || []);
     const [shiftChanges, setShiftChanges] = useState([]);

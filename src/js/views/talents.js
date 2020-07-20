@@ -146,9 +146,14 @@ export class ManageTalents extends Flux.DashView {
     componentDidMount(){
 
         this.filter();
-        this.subscribe(store, 'positions', (positions) => {
-            this.setState({ positions });
-        });
+        
+        const positions = store.getState('positions');
+
+        if(!positions){
+            this.subscribe(store, 'positions', (positions) => {
+                this.setState({ positions });
+            });
+        }else this.setState({ positions });
 
         this.subscribe(store, 'employees', (employees) => {
             this.setState({ employees });

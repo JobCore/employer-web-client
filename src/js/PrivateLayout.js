@@ -81,6 +81,7 @@ class PrivateLayout extends Flux.DashView {
                     log.info("Right Bar Action: ", option.slug);
                     switch (option.slug) {
                         case 'create_shift':
+                            console.log('create shift', option);
                             this.showRightBar(ShiftDetails, option, { formData: Shift(option.data).defaults() });
                             break;
                         case 'create_deduction':
