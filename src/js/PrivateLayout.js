@@ -283,6 +283,20 @@ class PrivateLayout extends Flux.DashView {
             });
         });
 
+        const users = store.getState('users');
+        this.subscribe(store, 'users', (users) => {
+            if(session.payload){
+                const user = users.find(u => u.email == session.payload.user.username);
+                if(user) this.setState({profileStatus: user.profile.status});
+            }
+        });
+        if (users){
+            if(session.payload){
+                const user = users.find(u => u.email == session.payload.user.username);
+                if(user) this.setState({profileStatus: user.profile.status});
+            }
+        }
+        else searchMe('users');
 
         this.subscribe(store, 'current_employer', (employer) => this.setState({ employer }));
         fetchTemporal('employers/me', 'current_employer');
@@ -396,7 +410,7 @@ class PrivateLayout extends Flux.DashView {
                         </ul>
                     </div>
                     <div className="right_pane bc-scrollbar">
-                        {this.state.userStatus == 'PENDING_EMAIL_VALIDATION' && <div className="alert alert-warning p-2 text-center mb-0" style={{ marginLeft: "-15px" }}>You need to validate your email to receive notifications
+                        {this.state.profileStatus == 'PENDING_EMAIL_VALIDATION' && <div className="alert alert-warning p-2 text-center mb-0" style={{ marginLeft: "-15px" }}>You need to validate your email to receive notifications
                             <button className="btn btn-success btn-sm ml-2" onClick={() => resendValidationLink(this.state.user.email)}>
                                 Resend validation link
                             </button>
