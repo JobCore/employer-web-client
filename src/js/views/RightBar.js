@@ -33,6 +33,8 @@ class RightBar extends React.Component {
         try{
             switch (data.executed_action || this.props.option.slug) {
                 case 'create_shift':
+                    console.log('right bar shift',this.state.formData);
+                    console.log('pos',Shift(this.state.formData).validate().withStatus(data.status).serialize());
                     create('shifts', Shift(this.state.formData).validate().withStatus(data.status).serialize());
                     this.props.onClose();
                 break;

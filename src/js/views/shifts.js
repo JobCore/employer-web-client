@@ -739,7 +739,8 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
     if(formData.employer && isNaN(formData.employer )) formData.employer = formData.employer.id;
     if(!formData.shift && !isNaN(formData.id)) formData.shift = formData.id;
     if(formData.required_badges) delete formData.required_badges;
-    console.log(runTutorial);
+
+    console.log('formdata', formData);
     return (
         <div>
             <Wizard continuous

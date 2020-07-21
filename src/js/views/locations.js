@@ -251,7 +251,7 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
                 >
                     {({ getInputProps, getSuggestionItemProps, suggestions, loading }) => (
                         <div className="autocomplete-root">
-                            <input {...getInputProps()} className="form-control" />
+                            <input {...getInputProps()} className="form-control" autoComplete="off"/>
                             <div className="autocomplete-dropdown-container bg-white">
                                 {loading && <div>Loading...</div>}
                                 {suggestions.map((suggestion,i) => (

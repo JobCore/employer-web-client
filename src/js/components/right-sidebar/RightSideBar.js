@@ -32,6 +32,7 @@ export const bar = {
         log.info("Right Bar Action: ", option.slug);
         switch (option.slug) {
             case 'create_shift':
+                console.log(option);
                 this.showRightBar(ShiftDetails, option, { formData: Shift(option.data).defaults() });
                 break;
             case 'create_expired_shift':
@@ -106,6 +107,7 @@ export const bar = {
                 break;
             case 'add_to_favlist':
                 option.title = "Add to favorite lists";
+                console.log('favlist option',option.data);
                 this.showRightBar(AddFavlistsToTalent, option, { formData: Talent(option.data).getFormData() });
                 break;
             case 'create_favlist':

@@ -15,7 +15,7 @@ const Stars = ({ rating , jobCount, className, onClick, noRatingLabel}) => {
             (decimalPart > 0) ? <i className="fas fa-star-half"></i> : ''
         }
         { jobCount !== null &&
-            <small className="jobs" onClick={() => onClick()}>in {jobCount} jobs</small>
+            <small className="jobs" onClick={() => onClick()}> in {jobCount} jobs</small>
         }
     </div>);
 };

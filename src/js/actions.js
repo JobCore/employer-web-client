@@ -853,7 +853,7 @@ class _Store extends Flux.DashStore {
             shifts = Array.isArray(shifts.results) ? shifts.results : Array.isArray(shifts) ? shifts : null;
             let newShifts = (!shifts || (Object.keys(shifts).length === 0 && shifts.constructor === Object)) ? [] : shifts.filter(s => s.status !== 'CANCELLED').map((shift) => {
                 //already transformed
-               
+               console.log(Shift(shift).defaults().unserialize());
                 return Shift(shift).defaults().unserialize();
             });
 
