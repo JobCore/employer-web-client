@@ -323,7 +323,6 @@ export class Invite extends React.Component{
         };
     }
     render(){
-        console.log(this.state);
         return (
             <div className="row mt-5">
                 <div className="col-12 col-sm-10 col-md-9 col-lg-8 col-xl-6 mx-auto">

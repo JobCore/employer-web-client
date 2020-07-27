@@ -68,6 +68,17 @@ export class Profile extends Flux.DashView {
 
     componentDidMount() {
 
+        const users = store.getState('users');
+        this.subscribe(store, 'users', (_users) => {
+            const user = _users.filter(e => e.profile.id ==Session.getPayload().user.profile.id )[0];
+            this.setState({ user: user });
+        });
+        if (users){
+            const user = users.filter(e => e.profile.id ==Session.getPayload().user.profile.id )[0];
+            this.setState({ user: user });
+        }
+        else searchMe('users');
+
         let employer = store.getState('current_employer');
         if (employer) this.setState({ employer });
         this.subscribe(store, 'current_employer', (employer) => {
@@ -76,9 +87,55 @@ export class Profile extends Flux.DashView {
 
     }
 
+    showOtherEmployers = () => {
+        if(this.state.user){
+            const profile = this.state.user.profile;
+            if(Array.isArray(profile.other_employers) && profile.other_employers.length > 0){
+                return(
+                    <div className="mb-3">
+                        <label>Employers</label>
+                        <ul>
+                            {profile.other_employers.map((e,i)=>{
+                                return(
+                                    <li style={{marginBottom: "10px"}} key={i}>{e.title}{this.state.employer.id != e.id ? <Button className="ml-2" onClick={() => {
+                                        const noti = Notify.info("Are you sure you want to change company?", (answer) => {
+                                            if (answer) {
+                                                updateUser({ id: this.state.currentUser.id, employer: e.id }).then(res => {if(res) window.location.reload();});
+
+                                            }   
+                                                
+                                            noti.remove();
+                                        });
+                                    }} size="small">change company</Button> : ""}</li>
+                                );
+                            })}
+                        </ul>      
+                    </div>
+
+                     
+                );
+            }
+        
+        }
+    }
 
     render() {
+        console.log(this.state);
         return (<div className="p-1 listcontents company-profile">
+            <h1><span id="company_details">User Details</span></h1>
+            <form>
+                <div className="row mt-2">
+                    <div className="col-6">
+                        <label>Name</label>
+                        <p>{this.state.user && this.state.user.first_name + " " + this.state.user.last_name}</p>
+                    </div>
+                    <div className="col-6">
+                        <label>Email</label>
+                        <p>{this.state.user &&  this.state.user.email}</p>
+                    </div>
+                </div>
+                {this.showOtherEmployers()}
+            </form>
             <h1><span id="company_details">Company Details</span></h1>
             <form>
                 <div className="row mt-2">
@@ -219,7 +276,9 @@ export class ManageUsers extends Flux.DashView {
                     <p className="text-right">
                         <h1 className="float-left">Company Users</h1>
                         <Button onClick={() => bar.show({ slug: "invite_user_to_employer", allowLevels: true })}>Invite new user</Button>
+                
                     </p>
+  
                     {this.state.companyUsers.map((u, i) => (
                         <GenericCard key={i} hover={true}>
                             <Avatar url={u.profile.picture} />
@@ -332,6 +391,7 @@ export const InviteUserToCompanyJobcore = ({ onSave, onCancel, onChange, catalog
                         onChange={(e) => onChange({ email: e.target.value })}
                     />
                 </div>
+            
             </div>
             <div className="btn-bar">
                 <Button color="success" onClick={() => onSave()}>Send Invite</Button>

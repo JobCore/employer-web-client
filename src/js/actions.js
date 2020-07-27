@@ -619,6 +619,7 @@ export const acceptCandidate = async (shiftId, applicant) => {
 
 export const updateTalentList = (action, employee, listId) => {
     const favoriteList = store.get("favlists", listId);
+  
     return new Promise((resolve, reject) => {
         if (favoriteList) {
             let employeeIdsArr = favoriteList.employees.map(employee => employee.id || employee);
@@ -837,6 +838,7 @@ class _Store extends Flux.DashStore {
             return employees.filter(em => em.user.profile).map(tal => Talent(tal).defaults().unserialize());
         });
         this.addEvent('favlists');
+        this.addEvent('company-user');
         this.addEvent('deduction');
         this.addEvent('payroll-period-payments');
         this.addEvent('payments-reports');
