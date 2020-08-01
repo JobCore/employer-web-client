@@ -49,13 +49,22 @@ export const autoLogin = (token = '') => {
     );
 };
 
-export const login = (email, password, keep, history) => new Promise((resolve, reject) => POST('login', {
+export const login = (email, password, keep, history,id) => new Promise((resolve, reject) => POST('login', {
     username_or_email: email,
     password: password,
+    employer_id: Number(id),
     exp_days: keep ? 30 : 1
 })
     .then(function (data) {
-        if (!data.user.profile.employer) {
+        console.log('employer', data);
+        console.log('id',id);
+        if (Number(data.user.profile.employer) != Number(id)) {
+            let other_employers = data.user.profile.other_employers.filter(e => e == id ).concat(data.user.profile.employer);
+            let employer = id; //employer_id
+            let profile = data.user.profile.id;
+            updateUser({id: profile, employer: employer, other_employers: other_employers}, { 'Authorization': 'JWT ' + data.token });
+        }
+        else if (!data.user.profile.employer) {
             Notify.error("Only employers are allowed to login into this application");
             reject("Only employers are allowed to login into this application");
         }
@@ -83,6 +92,7 @@ export const login = (email, password, keep, history) => new Promise((resolve, r
 export const signup = (formData, history) => new Promise((resolve, reject) => POST('user/register', {
     email: formData.email,
     account_type: formData.account_type,
+    employer_role: formData.employer_role || '',
     employer: formData.company || formData.employer,
     token: formData.token || '',
     username: formData.email,
@@ -133,12 +143,31 @@ export const resetPassword = (formData, history) => new Promise((resolve, reject
 );
 
 
-export const resendValidationLink = (email) => new Promise((resolve, reject) => POST('user/email/validate/send/' + email, {
-    email: email
+export const resendValidationLink = (email, employer) => new Promise((resolve, reject) => POST('user/email/validate/send/' + email + '/' + employer, {
+    email: email,
+    employer: employer
 })
     .then(function (data) {
         resolve();
         Notify.success("We have sent you a validation link, check your email!");
+    })
+    .catch(function (error) {
+        Notify.error(error.message || error);
+        reject(error.message || error);
+        log.error(error);
+    })
+);
+
+//Send company inviation to user
+export const sendCompanyInvitation = (email, employer, employer_role) => new Promise((resolve, reject) => POST('user/email/company/send/' + email + '/' + employer + '/' + employer_role, {
+    email: email,
+    employer: employer,
+    employer_role: employer_role
+})
+    .then(function (data) {
+        console.log(data);
+        resolve();
+        Notify.success("We have sent the company invitation!");
     })
     .catch(function (error) {
         Notify.error(error.message || error);
@@ -511,16 +540,21 @@ export const rejectCandidate = async (shiftId, applicant) => {
 };
 
 
-export const updateUser = (user) => new Promise((resolve, reject) => {
+export const updateUser = (user, header = {}) => new Promise((resolve, reject) => {
 
-    PUT(`employers/me/users/${user.id}`, user)
+    PUT(`employers/me/users/${user.id}`, user, header)
         .then(resp => {
-            const users = store.getState('users').map(u => {
-                if (u.email == resp.email) return resp;
-                else return u;
-            });
-
-            Flux.dispatchEvent('users', users);
+            
+            const users = store.getState('users');
+            
+            if(users){
+                let _users = users.map(u => {
+                    if (u.email == resp.email) return resp;
+                    else return u;
+                });
+    
+                Flux.dispatchEvent('users', _users);
+            }
 
             Notify.success("The user was successfully updated");
             resolve(resp);

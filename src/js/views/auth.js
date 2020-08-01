@@ -17,7 +17,7 @@ export class Login extends React.Component{
     constructor(props){
         super(props);
         const urlVariables = qs.parse(props.location.search);
-        this.state = { email: '', password: '', type: urlVariables.type || 'company', loading: false, keep: true };
+        this.state = { email: '', password: '', id: '', type: urlVariables.type || 'company', loading: false, keep: true };
     }
     render(){
         return (
@@ -59,7 +59,7 @@ export class Login extends React.Component{
                                 onSubmit={(e)=> {
                                     e.preventDefault();
                                     this.setState({loading: true});
-                                    actions.login(this.state.email, this.state.password, this.state.keep, this.props.history)
+                                    actions.login(this.state.email, this.state.password,this.state.keep, this.props.history,this.state.id)
                                         .then(() => this.setState({loading: false}))
                                         .catch(() => this.setState({loading: false}));
                                 }}
@@ -70,9 +70,14 @@ export class Login extends React.Component{
                                         onChange={(e) => this.setState({email: e.target.value})}
                                     />
                                 </div>
-                                <div className="form-group mb-0">
+                                <div className="form-group">
                                     <input type="password" className="form-control rounded" id="exampleInputPassword1" placeholder="Password"
                                         onChange={(e) => this.setState({password: e.target.value})} value={this.state.password}
+                                    />
+                                </div>
+                                <div className="form-group mb-0">
+                                    <input type="text" className="form-control rounded" id="exampleInputID" placeholder="Company ID"
+                                        onChange={(e) => this.setState({id: e.target.value})} value={this.state.id}
                                     />
                                 </div>
                                 <div className="form-group text-left">
@@ -309,7 +314,6 @@ export class Invite extends React.Component{
     constructor(props){
         super(props);
         const urlVariables = qs.parse(props.location.search);
-        console.log(urlVariables);
         this.state = {
             email: '',
             password: '',
@@ -318,6 +322,7 @@ export class Invite extends React.Component{
             last_name: '',
             employer: urlVariables.employer || urlVariables.company || undefined,
             token: urlVariables.token_invite || '',
+            employer_role: urlVariables.employer_role || '',
             error: null,
             loading: false
         };
@@ -342,6 +347,7 @@ export class Invite extends React.Component{
                                     last_name: this.state.last_name,
                                     token: this.state.token,
                                     employer: this.state.employer || undefined,
+                                    employer_role: this.state.employer_role || undefined,
                                     account_type: this.state.employer ? 'employer' : 'employee',
                                 }, this.props.history)
                                     .then(() => this.setState({loading: false, error: null }))

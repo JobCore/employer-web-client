@@ -55,6 +55,11 @@ class PrivateLayout extends Flux.DashView {
                     { label: "Only from favorite lists", value: 'FAVORITES' },
                     { label: "Search for specific people", value: 'SPECIFIC_PEOPLE' }
                 ],
+                employer_role: [
+                    { label: "Supervisor", value: 'SUPERVISOR' },
+                    { label: "Manager", value: 'MANAGER' },
+                    { label: "Admin", value: 'ADMIN' }
+                ],
                 stars: [
                     { label: "0 Star", value: 0 },
                     { label: "1 Star", value: 1 },
@@ -377,6 +382,7 @@ class PrivateLayout extends Flux.DashView {
     }
 
     render() {
+        console.log(this.state);
         const Logo = () => (<span className="svg_img" style={{ backgroundImage: `url(${logoURL})` }} />);
         return (
             <Theme.Provider value={{ bar: this.state.bar }}>
@@ -411,7 +417,7 @@ class PrivateLayout extends Flux.DashView {
                     </div>
                     <div className="right_pane bc-scrollbar">
                         {this.state.profileStatus == 'PENDING_EMAIL_VALIDATION' && <div className="alert alert-warning p-2 text-center mb-0" style={{ marginLeft: "-15px" }}>You need to validate your email to receive notifications
-                            <button className="btn btn-success btn-sm ml-2" onClick={() => resendValidationLink(this.state.user.email)}>
+                            <button className="btn btn-success btn-sm ml-2" onClick={() => resendValidationLink(this.state.user.email, this.state.employer.id)}>
                                 Resend validation link
                             </button>
                         </div>

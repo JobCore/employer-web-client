@@ -740,7 +740,8 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
     if(!formData.shift && !isNaN(formData.id)) formData.shift = formData.id;
     if(formData.required_badges) delete formData.required_badges;
 
-    console.log('formdata', formData);
+    console.log('catalogo restriction', catalog.applicationRestrictions);
+    console.log('formdata', formData.application_restriction);
     return (
         <div>
             <Wizard continuous

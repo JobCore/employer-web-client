@@ -1,8 +1,8 @@
 import React, { useState, useContext, useEffect } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
-import { store, fetchTemporal, update, updateProfileImage, searchMe, remove, updateUser, removeUser } from '../actions.js';
+import { store, fetchTemporal, update, updateProfileImage, searchMe, remove, updateUser, removeUser, sendCompanyInvitation } from '../actions.js';
 import { TIME_FORMAT, DATETIME_FORMAT, DATE_FORMAT, TODAY } from '../components/utils.js';
-import { Button, Theme, GenericCard, Avatar } from '../components/index';
+import { Button, Theme, GenericCard, Avatar, SearchCatalogSelect } from '../components/index';
 import { Notify } from 'bc-react-notifier';
 import { Session } from 'bc-react-session';
 import { validator, ValidationError } from '../utils/validation';
@@ -10,9 +10,12 @@ import Dropzone from 'react-dropzone';
 import DateTime from 'react-datetime';
 import moment from 'moment';
 import PropTypes from "prop-types";
+import Select from 'react-select';
+import { GET } from '../utils/api_wrapper';
 
 import Tooltip from 'rc-tooltip';
 import 'rc-tooltip/assets/bootstrap_white.css';
+import { select } from "underscore";
 
 export const Employer = (data = {}) => {
 
@@ -87,40 +90,8 @@ export class Profile extends Flux.DashView {
 
     }
 
-    showOtherEmployers = () => {
-        if(this.state.user){
-            const profile = this.state.user.profile;
-            if(Array.isArray(profile.other_employers) && profile.other_employers.length > 0){
-                return(
-                    <div className="mb-3">
-                        <label>Employers</label>
-                        <ul>
-                            {profile.other_employers.map((e,i)=>{
-                                return(
-                                    <li style={{marginBottom: "10px"}} key={i}>{e.title}{this.state.employer.id != e.id ? <Button className="ml-2" onClick={() => {
-                                        const noti = Notify.info("Are you sure you want to change company?", (answer) => {
-                                            if (answer) {
-                                                updateUser({ id: this.state.currentUser.id, employer: e.id }).then(res => {if(res) window.location.reload();});
-
-                                            }   
-                                                
-                                            noti.remove();
-                                        });
-                                    }} size="small">change company</Button> : ""}</li>
-                                );
-                            })}
-                        </ul>      
-                    </div>
-
-                     
-                );
-            }
-        
-        }
-    }
 
     render() {
-        console.log(this.state);
         return (<div className="p-1 listcontents company-profile">
             <h1><span id="company_details">User Details</span></h1>
             <form>
@@ -134,7 +105,6 @@ export class Profile extends Flux.DashView {
                         <p>{this.state.user &&  this.state.user.email}</p>
                     </div>
                 </div>
-                {this.showOtherEmployers()}
             </form>
             <h1><span id="company_details">Company Details</span></h1>
             <form>
@@ -359,8 +329,15 @@ export class ManageUsers extends Flux.DashView {
 /**
  * Invite a new user to the company
  */
-export const InviteUserToCompanyJobcore = ({ onSave, onCancel, onChange, catalog, formData }) => (<Theme.Consumer>
-    {({ bar }) => (
+export const InviteUserToCompanyJobcore = ({ onSave, onCancel, onChange, catalog, formData }) => {
+
+    const { bar } = useContext(Theme.Context);
+    const [isNew, setIsNew] = useState(true);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [employer, setEmployer] = useState(Session.getPayload().user.profile.employer);
+    if(selectedUser) formData.user = selectedUser.value;
+
+    return (
         <form>
             <div className="row">
                 <div className="col-12">
@@ -373,33 +350,89 @@ export const InviteUserToCompanyJobcore = ({ onSave, onCancel, onChange, catalog
                 </div>
             </div>
             <div className="row">
-                <div className="col-12">
-                    <label>First Name</label>
-                    <input type="text" className="form-control"
-                        onChange={(e) => onChange({ first_name: e.target.value })}
-                    />
+                
+                <div className="col-12 align-content-center justify-content-center text-center mb-4">
+                    <div className="btn-group btn-group-toggle" data-toggle="buttons">
+                        <label className={"btn btn-secondary " + (isNew ? 'active' : '')}>
+                            <input type="radio" name="options" id="option1" autoComplete="off" onClick={()=>setIsNew(true)} checked={isNew}/> New User
+                        </label>
+                        <label className={"btn btn-secondary " + (!isNew ? 'active' : '')}>
+                            <input type="radio" name="options" id="option2" autoComplete="off" onClick={()=>setIsNew(false)} checked={!isNew}/> Existing User
+                        </label>
+                    </div>
                 </div>
-                <div className="col-12">
-                    <label>Last Name</label>
-                    <input type="text" className="form-control"
-                        onChange={(e) => onChange({ last_name: e.target.value })}
-                    />
-                </div>
-                <div className="col-12">
-                    <label>Email</label>
-                    <input type="email" className="form-control"
-                        onChange={(e) => onChange({ email: e.target.value })}
-                    />
-                </div>
-            
             </div>
+            {isNew ? (
+                <div className="row">  
+                    <div className="col-12">
+                        <label>First Name</label>
+                        <input type="text" className="form-control"
+                            onChange={(e) => onChange({ first_name: e.target.value })}
+                        />
+                    </div>
+                    <div className="col-12">
+                        <label>Last Name</label>
+                        <input type="text" className="form-control"
+                            onChange={(e) => onChange({ last_name: e.target.value })}
+                        />
+                    </div>
+                    <div className="col-12">
+                        <label>Email</label>
+                        <input type="email" className="form-control"
+                            onChange={(e) => onChange({ email: e.target.value })}
+                        />
+                    </div>
+                    <div className="col-12">
+                        <label>Company Role</label>
+                        <Select
+                            value={catalog.employer_role.find((a) => a.value == formData.employer_role)}
+                            onChange={(selection) => onChange({ employer_role: selection.value.toString() })}
+                            options={catalog.employer_role}
+                        />
+                    </div>     
+                </div>      
+
+            ):(
+                <div className="row">  
+                    <div className="col-12">
+                        <label>Search people in JobCore:</label>
+                        <SearchCatalogSelect
+                            isMulti={false}
+                            value={selectedUser}
+                            onChange={(selection) => {
+                                setSelectedUser({label: selection.label, value: selection.value});
+                            }}
+                            searchFunction={(search) => new Promise((resolve, reject) =>
+                                GET('catalog/profiles?full_name=' + search)
+                                    .then(talents => resolve([
+                                        { label: `${(talents.length == 0) ? 'No one found: ' : ''}Invite "${search}" to Company?`, value: 'invite_talent_to_jobcore' }
+                                    ].concat(talents)))
+                                    .catch(error => reject(error))
+                            )}
+                        />
+                    </div>
+            
+                    <div className="col-12">
+                        <label>Company Role</label>
+                        <Select
+                            value={catalog.employer_role.find((a) => a.value == formData.employer_role)}
+                            onChange={(selection) => onChange({ employer_role: selection.value.toString() })}
+                            options={catalog.employer_role}
+                        />
+                    </div>     
+                </div>  
+            )}
             <div className="btn-bar">
-                <Button color="success" onClick={() => onSave()}>Send Invite</Button>
+                <Button color="success" onClick={() => {
+                    GET(`employers/me/users/${formData.user}`).then(user =>
+                        sendCompanyInvitation(user.email, employer, formData.employer_role)
+                        );
+                }}>Send Invite</Button>
                 <Button color="secondary" onClick={() => onCancel()}>Cancel</Button>
             </div>
         </form>
-    )}
-</Theme.Consumer>);
+    );
+};
 InviteUserToCompanyJobcore.propTypes = {
     onSave: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
