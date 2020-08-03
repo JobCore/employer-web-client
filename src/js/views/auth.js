@@ -6,6 +6,7 @@ import * as actions from '../actions';
 import {Notifier} from 'bc-react-notifier';
 import loginBanner from '../../img/login-banner.png';
 import {validator, onlyLetters} from '../utils/validation';
+import { Notify } from 'bc-react-notifier';
 
 import { BrowserView, MobileView } from "react-device-detect";
 
@@ -17,7 +18,7 @@ export class Login extends React.Component{
     constructor(props){
         super(props);
         const urlVariables = qs.parse(props.location.search);
-        this.state = { email: '', password: '', type: urlVariables.type || 'company', loading: false, keep: true };
+        this.state = { email: '', password: '', id: '', type: urlVariables.type || 'company', loading: false, keep: true };
     }
     render(){
         return (
@@ -59,9 +60,14 @@ export class Login extends React.Component{
                                 onSubmit={(e)=> {
                                     e.preventDefault();
                                     this.setState({loading: true});
-                                    actions.login(this.state.email, this.state.password, this.state.keep, this.props.history)
-                                        .then(() => this.setState({loading: false}))
-                                        .catch(() => this.setState({loading: false}));
+                                    if(this.state.id != "" && this.state.id != "0" ){
+                                        actions.login(this.state.email, this.state.password,this.state.keep, this.props.history,this.state.id)
+                                            .then(() => this.setState({loading: false}))
+                                            .catch(() => this.setState({loading: false}));
+                                    }else{
+                                        Notify.error("Please enter a valid Company ID");
+                                        this.setState({loading: false});
+                                    }
                                 }}
                             >
                                 <div className="form-group">
@@ -70,9 +76,14 @@ export class Login extends React.Component{
                                         onChange={(e) => this.setState({email: e.target.value})}
                                     />
                                 </div>
-                                <div className="form-group mb-0">
+                                <div className="form-group">
                                     <input type="password" className="form-control rounded" id="exampleInputPassword1" placeholder="Password"
                                         onChange={(e) => this.setState({password: e.target.value})} value={this.state.password}
+                                    />
+                                </div>
+                                <div className="form-group mb-0">
+                                    <input type="text" className="form-control rounded" id="exampleInputID" placeholder="Company ID"
+                                        onChange={(e) => this.setState({id: e.target.value})} value={this.state.id}
                                     />
                                 </div>
                                 <div className="form-group text-left">
@@ -309,7 +320,6 @@ export class Invite extends React.Component{
     constructor(props){
         super(props);
         const urlVariables = qs.parse(props.location.search);
-        console.log(urlVariables);
         this.state = {
             email: '',
             password: '',
@@ -318,12 +328,12 @@ export class Invite extends React.Component{
             last_name: '',
             employer: urlVariables.employer || urlVariables.company || undefined,
             token: urlVariables.token_invite || '',
+            employer_role: urlVariables.employer_role || '',
             error: null,
             loading: false
         };
     }
     render(){
-        console.log(this.state);
         return (
             <div className="row mt-5">
                 <div className="col-12 col-sm-10 col-md-9 col-lg-8 col-xl-6 mx-auto">
@@ -343,6 +353,7 @@ export class Invite extends React.Component{
                                     last_name: this.state.last_name,
                                     token: this.state.token,
                                     employer: this.state.employer || undefined,
+                                    employer_role: this.state.employer_role || undefined,
                                     account_type: this.state.employer ? 'employer' : 'employee',
                                 }, this.props.history)
                                     .then(() => this.setState({loading: false, error: null }))

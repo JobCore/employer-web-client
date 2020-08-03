@@ -49,13 +49,29 @@ export const autoLogin = (token = '') => {
     );
 };
 
-export const login = (email, password, keep, history) => new Promise((resolve, reject) => POST('login', {
+export const login = (email, password, keep, history,id) => new Promise((resolve, reject) => POST('login', {
     username_or_email: email,
     password: password,
+    employer_id: Number(id),
     exp_days: keep ? 30 : 1
 })
     .then(function (data) {
-        if (!data.user.profile.employer) {
+
+        if (Number(data.user.profile.employer) != Number(id)) {
+       
+            let company = data.user.profile.other_employers.find(emp => emp.employer == Number(id) );
+
+            updateCompanyUser({id: company.profile_id, employer: company.employer, employer_role: company.employer_role}, { 'Authorization': 'JWT ' + data.token });
+
+            Session.start({
+                payload: {
+                    user: data.user, access_token: data.token
+                }
+            });
+            history.push('/');
+            resolve();
+        }
+        else if (!data.user.profile.employer) {
             Notify.error("Only employers are allowed to login into this application");
             reject("Only employers are allowed to login into this application");
         }
@@ -83,6 +99,7 @@ export const login = (email, password, keep, history) => new Promise((resolve, r
 export const signup = (formData, history) => new Promise((resolve, reject) => POST('user/register', {
     email: formData.email,
     account_type: formData.account_type,
+    employer_role: formData.employer_role || '',
     employer: formData.company || formData.employer,
     token: formData.token || '',
     username: formData.email,
@@ -133,12 +150,31 @@ export const resetPassword = (formData, history) => new Promise((resolve, reject
 );
 
 
-export const resendValidationLink = (email) => new Promise((resolve, reject) => POST('user/email/validate/send/' + email, {
-    email: email
+export const resendValidationLink = (email, employer) => new Promise((resolve, reject) => POST('user/email/validate/send/' + email + '/' + employer, {
+    email: email,
+    employer: employer
 })
     .then(function (data) {
         resolve();
         Notify.success("We have sent you a validation link, check your email!");
+    })
+    .catch(function (error) {
+        Notify.error(error.message || error);
+        reject(error.message || error);
+        log.error(error);
+    })
+);
+
+//Send company inviation to user
+export const sendCompanyInvitation = (email, employer, employer_role) => new Promise((resolve, reject) => POST('user/email/company/send/' + email + '/' + employer + '/' + employer_role, {
+    email: email,
+    employer: employer,
+    employer_role: employer_role
+})
+    .then(function (data) {
+        console.log(data);
+        resolve();
+        Notify.success("We have sent the company invitation!");
     })
     .catch(function (error) {
         Notify.error(error.message || error);
@@ -511,16 +547,45 @@ export const rejectCandidate = async (shiftId, applicant) => {
 };
 
 
-export const updateUser = (user) => new Promise((resolve, reject) => {
+export const updateCompanyUser = (user, header = {}) => new Promise((resolve, reject) => {
 
-    PUT(`employers/me/users/${user.id}`, user)
+    PUT(`employers/me/users/${user.id}`, user, header)
         .then(resp => {
-            const users = store.getState('users').map(u => {
-                if (u.email == resp.email) return resp;
-                else return u;
-            });
+            
+            const users = store.getState('users');
+            
+            if(users){
+                let _users = users.map(u => {
+                    if (u.email == resp.email) return resp;
+                    else return u;
+                });
+    
+                Flux.dispatchEvent('users', _users);
+            }
 
-            Flux.dispatchEvent('users', users);
+            resolve(resp);
+        })
+        .catch(error => {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject(error);
+        });
+});
+export const updateUser = (user, header = {}) => new Promise((resolve, reject) => {
+
+    PUT(`employers/me/users/${user.id}`, user, header)
+        .then(resp => {
+            
+            const users = store.getState('users');
+            
+            if(users){
+                let _users = users.map(u => {
+                    if (u.email == resp.email) return resp;
+                    else return u;
+                });
+    
+                Flux.dispatchEvent('users', _users);
+            }
 
             Notify.success("The user was successfully updated");
             resolve(resp);
@@ -619,6 +684,7 @@ export const acceptCandidate = async (shiftId, applicant) => {
 
 export const updateTalentList = (action, employee, listId) => {
     const favoriteList = store.get("favlists", listId);
+  
     return new Promise((resolve, reject) => {
         if (favoriteList) {
             let employeeIdsArr = favoriteList.employees.map(employee => employee.id || employee);
@@ -837,6 +903,7 @@ class _Store extends Flux.DashStore {
             return employees.filter(em => em.user.profile).map(tal => Talent(tal).defaults().unserialize());
         });
         this.addEvent('favlists');
+        this.addEvent('company-user');
         this.addEvent('deduction');
         this.addEvent('payroll-period-payments');
         this.addEvent('payments-reports');
