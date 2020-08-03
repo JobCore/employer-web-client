@@ -237,6 +237,14 @@ export class ManageUsers extends Flux.DashView {
         searchMe('users', window.location.search);
     }
 
+    showRole(profile){
+        if(profile.employer == this.state.currentUser.employer){
+            return profile.employer_role;
+        }else if(profile.employer != this.state.currentUser.employer){
+            const role = profile.other_employers.find(emp => emp.employer == this.state.currentUser.employer);
+            return role.employer_role;
+        }else return "";
+    }
     render() {
         const allowLevels = (window.location.search != '');
         console.log(this.state);
@@ -262,7 +270,7 @@ export class ManageUsers extends Flux.DashView {
                                         }
                                         else{
                                             const noti = Notify.info("Are you sure you want to make this person Admin?", (answer) => {
-                                                if (answer) updateUser({ id: u.profile.id, employer_role: 'ADMIN' });
+                                                if (answer) updateUser({ id: u.profile.id, employer_id: this.state.currentUser.employer, employer_role: 'ADMIN' });
                                                 noti.remove();
                                             });
 
@@ -279,7 +287,7 @@ export class ManageUsers extends Flux.DashView {
                                         }
                                         else{
                                             const noti = Notify.info("Are you sure you want to make this person Manager?", (answer) => {
-                                                if (answer) updateUser({ id: u.profile.id, employer_role: 'MANAGER' });
+                                                if (answer) updateUser({ id: u.profile.id, employer_id: this.state.currentUser.employer, employer_role: 'MANAGER' });
                                                 noti.remove();
                                             });
 
@@ -295,7 +303,7 @@ export class ManageUsers extends Flux.DashView {
                                         }
                                         else{
                                             const noti = Notify.info("Are you sure you want to make this person Supervisor?", (answer) => {
-                                                if (answer) updateUser({ id: u.profile.id, employer_role: 'SUPERVISOR' });
+                                                if (answer) updateUser({ id: u.profile.id, employer_id: this.state.currentUser.employer, employer_role: 'SUPERVISOR' });
                                                 noti.remove();
                                             });
 
@@ -317,7 +325,7 @@ export class ManageUsers extends Flux.DashView {
                                     }
                                 }}></Button>
                             </div>
-                            <p className="mt-2">{u.first_name} {u.last_name} ({u.profile.employer_role == "" ? "NEW EMPLOYER" : u.profile.employer_role})</p>
+                            <p className="mt-2">{u.first_name} {u.last_name} ({this.showRole(u.profile)})</p>
                         </GenericCard>
                     ))}
                 </span>)}

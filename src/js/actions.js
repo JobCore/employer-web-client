@@ -56,13 +56,20 @@ export const login = (email, password, keep, history,id) => new Promise((resolve
     exp_days: keep ? 30 : 1
 })
     .then(function (data) {
-        console.log('employer', data);
-        console.log('id',id);
+
         if (Number(data.user.profile.employer) != Number(id)) {
-            let other_employers = data.user.profile.other_employers.filter(e => e == id ).concat(data.user.profile.employer);
-            let employer = id; //employer_id
-            let profile = data.user.profile.id;
-            updateUser({id: profile, employer: employer, other_employers: other_employers}, { 'Authorization': 'JWT ' + data.token });
+       
+            let company = data.user.profile.other_employers.find(emp => emp.employer == Number(id) );
+
+            updateCompanyUser({id: company.profile_id, employer: company.employer, employer_role: company.employer_role}, { 'Authorization': 'JWT ' + data.token });
+
+            Session.start({
+                payload: {
+                    user: data.user, access_token: data.token
+                }
+            });
+            history.push('/');
+            resolve();
         }
         else if (!data.user.profile.employer) {
             Notify.error("Only employers are allowed to login into this application");
@@ -540,6 +547,30 @@ export const rejectCandidate = async (shiftId, applicant) => {
 };
 
 
+export const updateCompanyUser = (user, header = {}) => new Promise((resolve, reject) => {
+
+    PUT(`employers/me/users/${user.id}`, user, header)
+        .then(resp => {
+            
+            const users = store.getState('users');
+            
+            if(users){
+                let _users = users.map(u => {
+                    if (u.email == resp.email) return resp;
+                    else return u;
+                });
+    
+                Flux.dispatchEvent('users', _users);
+            }
+
+            resolve(resp);
+        })
+        .catch(error => {
+            Notify.error(error.message || error);
+            log.error(error);
+            reject(error);
+        });
+});
 export const updateUser = (user, header = {}) => new Promise((resolve, reject) => {
 
     PUT(`employers/me/users/${user.id}`, user, header)
