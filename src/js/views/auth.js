@@ -6,6 +6,7 @@ import * as actions from '../actions';
 import {Notifier} from 'bc-react-notifier';
 import loginBanner from '../../img/login-banner.png';
 import {validator, onlyLetters} from '../utils/validation';
+import { Notify } from 'bc-react-notifier';
 
 import { BrowserView, MobileView } from "react-device-detect";
 
@@ -59,9 +60,14 @@ export class Login extends React.Component{
                                 onSubmit={(e)=> {
                                     e.preventDefault();
                                     this.setState({loading: true});
-                                    actions.login(this.state.email, this.state.password,this.state.keep, this.props.history,this.state.id)
-                                        .then(() => this.setState({loading: false}))
-                                        .catch(() => this.setState({loading: false}));
+                                    if(this.state.id != "" && this.state.id != "0" ){
+                                        actions.login(this.state.email, this.state.password,this.state.keep, this.props.history,this.state.id)
+                                            .then(() => this.setState({loading: false}))
+                                            .catch(() => this.setState({loading: false}));
+                                    }else{
+                                        Notify.error("Please enter a valid Company ID");
+                                        this.setState({loading: false});
+                                    }
                                 }}
                             >
                                 <div className="form-group">
