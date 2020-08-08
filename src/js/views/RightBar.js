@@ -15,6 +15,7 @@ import {ValidationError} from '../utils/validation';
 import {Notify} from 'bc-react-notifier';
 import WEngine from "../utils/write_engine.js";
 import {Session} from 'bc-react-session';
+import { Payrate } from './payrates';
 
 class RightBar extends React.Component {
 
@@ -133,6 +134,21 @@ class RightBar extends React.Component {
                 break;
                 case 'delete_location':{
                         remove('venues',Location(this.state.formData).validate().serialize());
+                        this.props.onClose();
+                    }
+                break;
+                case 'create_payrate':{
+                        create('payrates',Payrate(this.state.formData).validate().serialize());
+                        this.props.onClose();
+                    }
+                break;
+                case 'update_payrate':{
+                        update('payrates',Payrate(this.state.formData).validate().serialize());
+                        this.props.onClose();
+                    }
+                break;
+                case 'delete_payrate':{
+                        remove('payrates',Payrate(this.state.formData).validate().serialize());
                         this.props.onClose();
                     }
                 break;

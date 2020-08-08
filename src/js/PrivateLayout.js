@@ -16,6 +16,7 @@ import { ManageApplicantions, ApplicationDetails, FilterApplications, getApplica
 import { Talent, ShiftInvite, ManageTalents, FilterTalents, getTalentInitialFilters, TalentDetails } from './views/talents.js';
 import { PendingInvites, PendingJobcoreInvites, SearchShiftToInviteTalent, InviteTalentToJobcore, SearchTalentToInviteToShift } from './views/invites.js';
 import { ManageFavorites, AddFavlistsToTalent, FavlistEmployees, AddTalentToFavlist, Favlist, AddorUpdateFavlist } from './views/favorites.js';
+import { ManagePayrates, AddOrEditPayrate, Payrate } from './views/payrates.js';
 import { ManageLocations, AddOrEditLocation, Location } from './views/locations.js';
 import { ManagePayroll, PayrollPeriodDetails, PayrollReport, SelectTimesheet, EditOrAddExpiredShift, PayrollSettings, PayrollRating } from './views/payroll.js';
 import { ManageRating, Rating, RatingDetails, ReviewTalent, ReviewTalentAndShift, RatingEmployees, UnratingEmployees } from './views/ratings.js';
@@ -211,6 +212,14 @@ class PrivateLayout extends Flux.DashView {
                             option.title = "Update Venue";
                             this.showRightBar(AddOrEditLocation, option, { formData: Location(option.data).getFormData() });
                             break;
+                        case 'create_payrate':
+                            option.title = "Create New Payrate";
+                            this.showRightBar(AddOrEditPayrate, option, { formData: Payrate(option.data).getFormData() });
+                            break;
+                        case 'update_payrate':
+                            option.title = "Update Payrate";
+                            this.showRightBar(AddOrEditPayrate, option, { formData: Payrate(option.data).getFormData() });
+                            break;
                         case 'add_talent_to_favlist':
                             option.title = "Search for the talent";
                             this.showRightBar(AddTalentToFavlist, option, { formData: Favlist(option.data).getFormData() });
@@ -382,7 +391,6 @@ class PrivateLayout extends Flux.DashView {
     }
 
     render() {
-        console.log(this.state);
         const Logo = () => (<span className="svg_img" style={{ backgroundImage: `url(${logoURL})` }} />);
         return (
             <Theme.Provider value={{ bar: this.state.bar }}>
@@ -454,6 +462,7 @@ class PrivateLayout extends Flux.DashView {
                             <Route exact path='/applicants' component={ManageApplicantions} />
                             <Route exact path='/talents' component={ManageTalents} />
                             <Route exact path='/favorites' component={ManageFavorites} />
+                            <Route exact path='/payrates' component={ManagePayrates} />
                             <Route exact path='/payroll-settings' component={PayrollSettings} />
                             <Route exact path='/profile' component={Profile} />
                             <Route exact path='/profile/subscription' component={YourSubscription} />

@@ -159,13 +159,27 @@ export const resendValidationLink = (email, employer) => new Promise((resolve, r
 );
 
 //Send company inviation to user
-export const sendCompanyInvitation = (email, employer, employer_role) => new Promise((resolve, reject) => POST('user/email/company/send/' + email + '/' + employer + '/' + employer_role, {
+export const sendCompanyInvitation = (email, employer, employer_role, sender) => new Promise((resolve, reject) => POST('user/email/company/send/' + email + '/' + sender + '/' + employer + '/' + employer_role, {
     email: email,
+    sender: sender,
     employer: employer,
     employer_role: employer_role
 })
     .then(function (data) {
-        console.log(data);
+            //fisrt check if I have any of this on the store
+            let entities = store.getState('jobcore-invites');
+            if (!entities || !Array.isArray(entities)) entities = [];
+
+            //if the response from the server is not a list
+            if (!Array.isArray(data)) {
+                // if the response is not a list, I will add the new object into that list
+                Flux.dispatchEvent('jobcore-invites', entities.concat([{ ...data, id: data.id }]));
+            }
+            //if it is an array
+            else {
+                const newShifts = data.map(inc => Object.assign({ ...data, id: inc.id }));
+                Flux.dispatchEvent('jobcore-invites', entities.concat(newShifts));
+            }
         resolve();
         Notify.success("We have sent the company invitation!");
     })
@@ -874,6 +888,7 @@ class _Store extends Flux.DashStore {
         this.addEvent('favlists');
         this.addEvent('company-user');
         this.addEvent('deduction');
+        this.addEvent('payrates');
         this.addEvent('payroll-period-payments');
         this.addEvent('payments-reports');
         this.addEvent('deductions-reports');

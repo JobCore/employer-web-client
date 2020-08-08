@@ -134,6 +134,14 @@ export const bar = {
                 option.title = "Update Venue";
                 this.showRightBar(AddOrEditLocation, option, { formData: Location(option.data).getFormData() });
                 break;
+            case 'create_payrate':
+                option.title = "Create New Payrate";
+                this.showRightBar(AddOrEditPayrate, option, { formData: Payrate(option.data).getFormData() });
+                break;
+            case 'update_payrate':
+                option.title = "Update Payrate";
+                this.showRightBar(AddOrEditPayrate, option, { formData: Payrate(option.data).getFormData() });
+                break;
             case 'add_talent_to_favlist':
                 option.title = "Search for the talent";
                 this.showRightBar(AddTalentToFavlist, option, { formData: Favlist(option.data).getFormData() });

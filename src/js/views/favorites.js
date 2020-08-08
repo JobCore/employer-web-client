@@ -1,9 +1,9 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import { store, update, remove, updateTalentList, fetchAllMe } from '../actions.js';
+import { store, update, remove, updateTalentList, fetchAllMe, searchMe } from '../actions.js';
 import { callback, hasTutorial } from '../utils/tutorial';
-import { ListCard, EmployeeExtendedCard, Button, Theme, Wizard, SearchCatalogSelect } from '../components/index';
+import { ListCard, EmployeeExtendedCard, Button, Theme, Wizard, SearchCatalogSelect, GenericCard } from '../components/index';
 import Select from 'react-select';
 import { Session } from 'bc-react-session';
 import { Notify } from 'bc-react-notifier';
@@ -294,3 +294,56 @@ FavlistEmployees.propTypes = {
     onChange: PropTypes.func.isRequired,
     catalog: PropTypes.object //contains the data needed for the form to load
 };
+
+export class ManagePayrates extends Flux.DashView {
+
+    constructor(){
+        super();
+        this.state = {
+            locations: []
+        };
+    }
+
+    componentDidMount(){
+
+        this.filter();
+        this.subscribe(store, 'venues', (locations) => {
+            this.setState({ locations });
+        });
+
+        this.props.history.listen(() => {
+            this.filter();
+            this.setState({ firstSearch: false });
+        });
+    }
+
+    filter(locations=null){
+        searchMe('venues', window.location.search);
+    }
+
+    render() {
+        if(this.state.firstSearch) return <p>Search for any location</p>;
+        const allowLevels = (window.location.search != '');
+        return (<div className="p-1 listcontents">
+            <Theme.Consumer>
+                {({bar}) => (<span>
+                    <h1><span id="talent_search_header">Payrates Search</span></h1>
+                    {this.state.locations.map((l,i) => (
+                        <GenericCard key={i} hover={true} onClick={() => bar.show({ slug: "update_location", data: l, allowLevels })}>
+                            <div className="btn-group">
+                                <Button icon="pencil" onClick={() => bar.show({ slug: "update_location", data: l, allowLevels })}></Button>
+                                <Button icon="trash" onClick={() => {
+                                    const noti = Notify.info("Are you sure you want to delete this location?",(answer) => {
+                                        if(answer) remove('venues', l);
+                                        noti.remove();
+                                    });
+                                }}></Button>
+                            </div>
+                            <p className="mt-2">{l.title}</p>
+                        </GenericCard>
+                    ))}
+                </span>)}
+            </Theme.Consumer>
+        </div>);
+    }
+}
