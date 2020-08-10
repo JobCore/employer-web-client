@@ -313,7 +313,8 @@ export class ManageUsers extends Flux.DashView {
                                 </Tooltip>                             
                                 <Button icon="trash" onClick={() => {
                                     if (this.state.currentUser.id === u.profile.id) Notify.error('You cannot delete yourself');
-                                    else if(u.profile.employer_role !='ADMIN'){
+                                    else if(this.state.currentUser.employer_role !='ADMIN'){
+                                        console.log(u.profile.employer_role);
                                         Notify.error('You cannot delete if you are not ADMIN');
                                     }
                                     else{
@@ -342,7 +343,7 @@ export const InviteUserToCompanyJobcore = ({ onSave, onCancel, onChange, catalog
     const { bar } = useContext(Theme.Context);
     const [isNew, setIsNew] = useState(true);
     const [selectedUser, setSelectedUser] = useState(null);
-    const [employer, setEmployer] = useState(Session.getPayload().user.profile.employer);
+    const [employer, setEmployer] = useState(Session.getPayload().user.profile);
     if(selectedUser) formData.user = selectedUser.value;
 
     return (
@@ -371,73 +372,83 @@ export const InviteUserToCompanyJobcore = ({ onSave, onCancel, onChange, catalog
                 </div>
             </div>
             {isNew ? (
-                <div className="row">  
-                    <div className="col-12">
-                        <label>First Name</label>
-                        <input type="text" className="form-control"
-                            onChange={(e) => onChange({ first_name: e.target.value })}
-                        />
-                    </div>
-                    <div className="col-12">
-                        <label>Last Name</label>
-                        <input type="text" className="form-control"
-                            onChange={(e) => onChange({ last_name: e.target.value })}
-                        />
-                    </div>
-                    <div className="col-12">
-                        <label>Email</label>
-                        <input type="email" className="form-control"
-                            onChange={(e) => onChange({ email: e.target.value })}
-                        />
-                    </div>
-                    <div className="col-12">
-                        <label>Company Role</label>
-                        <Select
-                            value={catalog.employer_role.find((a) => a.value == formData.employer_role)}
-                            onChange={(selection) => onChange({ employer_role: selection.value.toString() })}
-                            options={catalog.employer_role}
-                        />
-                    </div>     
-                </div>      
+                <div>
+
+                    <div className="row">  
+                        <div className="col-12">
+                            <label>First Name</label>
+                            <input type="text" className="form-control"
+                                onChange={(e) => onChange({ first_name: e.target.value })}
+                            />
+                        </div>
+                        <div className="col-12">
+                            <label>Last Name</label>
+                            <input type="text" className="form-control"
+                                onChange={(e) => onChange({ last_name: e.target.value })}
+                            />
+                        </div>
+                        <div className="col-12">
+                            <label>Email</label>
+                            <input type="email" className="form-control"
+                                onChange={(e) => onChange({ email: e.target.value })}
+                            />
+                        </div>
+                        <div className="col-12">
+                            <label>Company Role</label>
+                            <Select
+                                value={catalog.employer_role.find((a) => a.value == formData.employer_role)}
+                                onChange={(selection) => onChange({ employer_role: selection.value.toString() })}
+                                options={catalog.employer_role}
+                            />
+                        </div> 
+                    </div>      
+                    <div className="btn-bar">
+                        <Button color="success" onClick={() => onSave()}>Send Invite</Button>
+                        <Button color="secondary" onClick={() => onCancel()}>Cancel</Button>
+                    </div>    
+                </div>
 
             ):(
-                <div className="row">  
-                    <div className="col-12">
-                        <label>Search people in JobCore:</label>
-                        <SearchCatalogSelect
-                            isMulti={false}
-                            value={selectedUser}
-                            onChange={(selection) => {
-                                setSelectedUser({label: selection.label, value: selection.value});
-                            }}
-                            searchFunction={(search) => new Promise((resolve, reject) =>
-                                GET('catalog/profiles?full_name=' + search)
-                                    .then(talents => resolve([
-                                        { label: `${(talents.length == 0) ? 'No one found: ' : ''}Invite "${search}" to Company?`, value: 'invite_talent_to_jobcore' }
-                                    ].concat(talents)))
-                                    .catch(error => reject(error))
-                            )}
-                        />
+                <div>
+                    <div className="row">  
+                        <div className="col-12">
+                            <label>Search people in JobCore:</label>
+                            <SearchCatalogSelect
+                                isMulti={false}
+                                value={selectedUser}
+                                onChange={(selection) => {
+                                    setSelectedUser({label: selection.label, value: selection.value});
+                                }}
+                                searchFunction={(search) => new Promise((resolve, reject) =>
+                                    GET('catalog/profiles?full_name=' + search)
+                                        .then(talents => resolve([
+                                            { label: `${(talents.length == 0) ? 'No one found: ' : ''}Invite "${search}" to Company?`, value: 'invite_talent_to_jobcore' }
+                                        ].concat(talents)))
+                                        .catch(error => reject(error))
+                                )}
+                            />
+                        </div>
+                
+                        <div className="col-12">
+                            <label>Company Role</label>
+                            <Select
+                                value={catalog.employer_role.find((a) => a.value == formData.employer_role)}
+                                onChange={(selection) => onChange({ employer_role: selection.value.toString() })}
+                                options={catalog.employer_role}
+                            />
+                        </div>     
+                    </div>  
+                    <div className="btn-bar">
+                        <Button color="success" onClick={() => {
+                            GET(`employers/me/users/${formData.user}`).then(user =>
+                                sendCompanyInvitation(user.email, employer.employer, formData.employer_role, employer.id)
+                                );
+                        }}>Send Invite</Button>
+                        <Button color="secondary" onClick={() => onCancel()}>Cancel</Button>
                     </div>
-            
-                    <div className="col-12">
-                        <label>Company Role</label>
-                        <Select
-                            value={catalog.employer_role.find((a) => a.value == formData.employer_role)}
-                            onChange={(selection) => onChange({ employer_role: selection.value.toString() })}
-                            options={catalog.employer_role}
-                        />
-                    </div>     
-                </div>  
+
+                </div>
             )}
-            <div className="btn-bar">
-                <Button color="success" onClick={() => {
-                    GET(`employers/me/users/${formData.user}`).then(user =>
-                        sendCompanyInvitation(user.email, employer, formData.employer_role)
-                        );
-                }}>Send Invite</Button>
-                <Button color="secondary" onClick={() => onCancel()}>Cancel</Button>
-            </div>
         </form>
     );
 };
