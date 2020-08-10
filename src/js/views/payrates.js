@@ -48,7 +48,7 @@ export const Payrate = (data) => {
             const _formShift = {
                 id: _payrate.id,
                 employer: _payrate.employer,
-                position: Number(_payrate.position),
+                position: _payrate.position,
                 hourly_rate: parseFloat(_payrate.hourly_rate)
             };
             return _formShift;
@@ -69,9 +69,14 @@ export class ManagePayrates extends Flux.DashView {
     componentDidMount(){
 
         this.filter();
-        this.subscribe(store, 'positions', (positions) => {
-            this.setState({ positions });
-        });
+        const positions = store.getState('positions');
+
+        if(!positions){
+            this.subscribe(store, 'positions', (positions) => {
+                this.setState({ positions });
+            });
+        }else this.setState({ positions });
+
         this.subscribe(store, ENTITIY_NAME, (payrates) => {
             console.log(payrates);
             this.setState({ payrates });
@@ -102,15 +107,15 @@ export class ManagePayrates extends Flux.DashView {
                                 <Button icon="pencil" onClick={() => bar.show({ slug: "update_payrate", data: l, allowLevels })}></Button>
                                 <Button icon="trash" onClick={() => {
                                     const noti = Notify.info("Are you sure you want to delete this payrate?",(answer) => {
-                                        if(answer) remove('payrate', l);
+                                        if(answer) remove('payrates', l);
                                         noti.remove();
                                     });
                                 }}></Button>
                             </div>
                             {Array.isArray(this.state.positions) && !l.position.title ? (
-                                <p className="mt-2">{this.state.positions.find(item => item.value === l.position).label + ", " + l.hourly_rate + "/hr"}</p>
+                                <p className="mt-2">{this.state.positions.find(item => item.value == l.position).label + ", " + "$" +  + l.hourly_rate + "/hr"}</p>
                             ):(
-                                <p className="mt-2">{l.position.title + ", " + l.hourly_rate + "/hr"}</p>
+                                <p className="mt-2">{l.position.title + ", " + "$" + l.hourly_rate + "/hr"}</p>
                             )}
 
                         </GenericCard>
@@ -189,6 +194,8 @@ FilterLocations.propTypes = {
 export const AddOrEditPayrate = ({ onSave, onCancel, onChange, catalog, formData }) => {
     const { bar } = useContext(Theme.Context);
 
+    if(catalog.positions.find((pos) => pos.value == formData.position.id || pos.value == formData.position))formData['position'] = catalog.positions.find((pos) => pos.value == formData.position.id || pos.value == formData.position).value.toString();
+    
     console.log(formData);
     return(
         <form>

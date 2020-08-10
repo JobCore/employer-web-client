@@ -390,7 +390,16 @@ class PrivateLayout extends Flux.DashView {
         this.setState({ catalog });
     }
 
+    showPayroll(){
+        if(this.state.user){
+            if(this.state.user.profile.employer_role == "SUPERVISOR"){
+                return(<li className="mt-2" style={{cursor: "pointer"}}onClick={() => Notify.error("Only admins and managers are allowed to use the payroll system.")
+            }><i className="icon icon-shifts"></i>Payroll</li>);
+            }else return <li><NavLink to="/payroll"><i className="icon icon-shifts"></i>Payroll</NavLink></li>;
+        }
+    }
     render() {
+        console.log(this.state);
         const Logo = () => (<span className="svg_img" style={{ backgroundImage: `url(${logoURL})` }} />);
         return (
             <Theme.Provider value={{ bar: this.state.bar }}>
@@ -402,7 +411,7 @@ class PrivateLayout extends Flux.DashView {
                             <li><NavLink to="/talents"><i className="icon icon-talents"></i>Talent Search</NavLink></li>
                             <li><NavLink to="/favorites"><i className="icon icon-favorite"></i>Favorites</NavLink></li>
                             <li><NavLink to="/applicants"><i className="icon icon-applications"></i>Applicants</NavLink></li>
-                            <li><NavLink to="/payroll"><i className="icon icon-shifts"></i>Payroll</NavLink></li>
+                            {this.showPayroll()}
                             <li><NavLink to="/profile"><i className="icon icon-companyprofile"></i>Your Profile</NavLink></li>
                             <li>
                                 <a
@@ -470,7 +479,7 @@ class PrivateLayout extends Flux.DashView {
                             <Route exact path='/profile/users' component={ManageUsers} />
                             <Route exact path='/profile/ratings' component={ManageRating} />
                             <Route exact path='/profile/bank-accounts' component={EmployerBankAccounts} />
-                            <Route exact path='/payroll' component={ManagePayroll} />
+                            <Route exact path='/payroll' recomponent={ManagePayroll} />
                             <Route exact path='/payroll/settings' component={PayrollSettings} />
                             <Route exact path='/payroll/period/:period_id' component={PayrollPeriodDetails} />
                             <Route exact path='/payroll/report/:period_id' component={PayrollReport} />

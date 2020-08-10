@@ -121,7 +121,7 @@ export const YourSubscription = (props) => {
                 <p className="m-0">Pre Approved Trusted Talent</p>
                 <p className="m-0">On-line Payments</p>
                 <p className="m-0">Pre calculated deductions</p>
-                <p className="m-0">QuickBooks Integration</p>
+                {/* <p className="m-0">QuickBooks Integration</p> */}
             </div>
             {plans.map(p => 
                 <div key={p.id} className="col-2 text-center">
@@ -140,7 +140,7 @@ export const YourSubscription = (props) => {
                     <FeatureIndicator boolean={p.feature_trusted_talents} />
                     <FeatureIndicator boolean={p.feature_ach_payments} />
                     <FeatureIndicator boolean={p.feature_calculate_deductions} />
-                    <FeatureIndicator boolean={p.feature_quickbooks_integration} />
+                    {/* <FeatureIndicator boolean={p.feature_quickbooks_integration} /> */}
                     { (!employer.active_subscription || employer.active_subscription.id !== p.id) &&
                         <Button className="w-100 mt-2" onClick={() => {
                             const noti = Notify.info("Are you sure? You will loose any other subscription you may have", (answer) => {

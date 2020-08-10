@@ -247,6 +247,7 @@ export class ManageUsers extends Flux.DashView {
     }
     render() {
         const allowLevels = (window.location.search != '');
+        console.log(this.state);
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({ bar }) => (<span>
@@ -312,7 +313,8 @@ export class ManageUsers extends Flux.DashView {
                                 </Tooltip>                             
                                 <Button icon="trash" onClick={() => {
                                     if (this.state.currentUser.id === u.profile.id) Notify.error('You cannot delete yourself');
-                                    else if(u.profile.employer_role !='ADMIN'){
+                                    else if(this.state.currentUser.employer_role !='ADMIN'){
+                                        console.log(u.profile.employer_role);
                                         Notify.error('You cannot delete if you are not ADMIN');
                                     }
                                     else{

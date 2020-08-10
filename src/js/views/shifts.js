@@ -631,7 +631,6 @@ ShiftInvites.propTypes = {
  * EditOrAddShift
  */
 const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, bar, oldShift }) => {
-   
     const [runTutorial, setRunTutorial] = useState(hasTutorial());
     const [steps, setSteps] = useState(
         [
@@ -727,21 +726,23 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
             
         ]
     );
+    const [payrates, setPayrates] = useState();
 
     useEffect(() => {
         const venues = store.getState('venues');
         const favlists = store.getState('favlists');
+        const payrate = store.getState('payrates');
+        if(!payrate) searchMe('payrates').then(payrate => setPayrates(payrate));
+        else setPayrates(payrate);
         if (!venues || !favlists) fetchAllMe(['venues', 'favlists']);
     }, []);
     const expired = moment(formData.starting_at).isBefore(NOW()) || moment(formData.ending_at).isBefore(NOW());
+
     if(catalog.positions.find((pos) => pos.value == formData.position.id || pos.value == formData.position))formData['position'] = catalog.positions.find((pos) => pos.value == formData.position.id || pos.value == formData.position).value.toString();
     if(catalog.venues.find((pos) => pos.value == formData.venue.id || pos.value == formData.venue))formData['venue'] = catalog.venues.find((pos) => pos.value == formData.venue.id || pos.value == formData.venue).value.toString();
     if(formData.employer && isNaN(formData.employer )) formData.employer = formData.employer.id;
     if(!formData.shift && !isNaN(formData.id)) formData.shift = formData.id;
     if(formData.required_badges) delete formData.required_badges;
-
-    console.log('catalogo restriction', catalog.applicationRestrictions);
-    console.log('formdata', formData.application_restriction);
     return (
         <div>
             <Wizard continuous
@@ -770,7 +771,13 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                         <Select
                             placeholder="Select a position"
                             value={catalog.positions.find((pos) => pos.value == formData.position.id || pos.value == formData.position)}
-                            onChange={(selection) => onChange({ position: selection.value.toString(), has_sensitive_updates: true })}
+                            onChange={(selection) => {
+                                onChange({ position: selection.value.toString(), has_sensitive_updates: true });
+                                if(Array.isArray(payrates) && payrates.length > 0 ){
+                                    const positionPayrate = payrates.find(p => p.position.id == formData.position.id || p.position.id == formData.position);
+                                    if(positionPayrate) formData['minimum_hourly_rate'] = positionPayrate.hourly_rate;
+                                }
+                            }}
                             options={catalog.positions}
                         />
                     </div>
