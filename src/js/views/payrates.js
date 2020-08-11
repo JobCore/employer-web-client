@@ -100,7 +100,7 @@ export class ManagePayrates extends Flux.DashView {
             <Theme.Consumer>
                 {({bar}) => (<span>
                     <h1><span id="talent_search_header">Payrates</span></h1>
-                
+                    {this.state.payrates.length == 0 ? "There are no payrates at the moment, you can add payrates by clicking the create payrate button" : null}
                     {this.state.payrates.map((l,i) => (
                         <GenericCard key={i} hover={true} onClick={() => bar.show({ slug: "update_payrate", data: l, allowLevels })}>
                             <div className="btn-group">
