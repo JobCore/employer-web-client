@@ -638,89 +638,105 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                 target: '#looking-for',
                 content: 'Here you can select what position you are looking for',
                 placement: 'left',
+                allowClicksThruHole: true,
+                disableOverlay: true,
                 styles: {
                     options: {
                         zIndex: 10000
                     }
                 },
-                locale: { skip: "Skip tutorial" },
+                locale: { skip: "Skip Tutorial" },
             },
             {
                 target: '#how-many',
                 content: 'Total number of talents for the shift',
                 placement: 'left',
+                allowClicksThruHole: true,
+                disableOverlay: true,
                 styles: {
                     options: {
                         zIndex: 10000
                     }
                 },
-                locale: { skip: "Skip tutorial" },
+                locale: { skip: "Skip Tutorial" },
             },
             {
                 target: '#price',
                 content: 'Hourly rate for the shift',
                 placement: 'left',
+                allowClicksThruHole: true,
+                disableOverlay: true,
                 styles: {
                     options: {
                         zIndex: 10000
                     }
                 },
-                locale: { skip: "Skip tutorial" },
+                locale: { skip: "Skip Tutorial" },
             },
             {
                 target: '#date-shift',
                 content: 'The date of the shift. and click more if you want to create more than one shift',
                 placement: 'left',
+                allowClicksThruHole: true,
+                disableOverlay: true,
                 styles: {
                     options: {
                         zIndex: 10000
                     }
                 },
-                locale: { skip: "Skip tutorial" },
+                locale: { skip: "Skip Tutorial" },
             },
             {
                 target: '#from-to-date',
                 content: 'Time of the shift',
                 placement: 'left',
+                allowClicksThruHole: true,
+                disableOverlay: true,
                 styles: {
                     options: {
                         zIndex: 10000
                     }
                 },
-                locale: { skip: "Skip tutorial" },
+                locale: { skip: "Skip Tutorial" },
             },
             {
                 target: '#location',
-                content: 'You can add the location of where the shift is taking place',
+                content: 'You can add the location of where the shift is taking place. If you need to add a new location click in the option "Add a location"',
                 placement: 'left',
+                allowClicksThruHole: true,
+                disableOverlay: true,
                 styles: {
                     options: {
                         zIndex: 10000
                     }
                 },
-                locale: { skip: "Skip tutorial" },
+                locale: { skip: "Skip Tutorial" },
             },
             {
                 target: '#who-can-apply',
-                content: 'Here you can select who can apply for this shift',
+                content: 'Here you can select who can apply for this shift. If a shift has an expired date, you cannot invite anyone but you can still use it for payroll purposes.',
                 placement: 'left',
+                allowClicksThruHole: true,
+                disableOverlay: true,
                 styles: {
                     options: {
                         zIndex: 10000
                     }
                 },
-                locale: { skip: "Skip tutorial" },
+                locale: { skip: "Skip Tutorial" },
             },
             {
                 target: '#publish',
-                content: 'When you are done click publish and they will receive a notification',
+                content: 'When you are done click publish and they will receive a notification to all qualified employees',
                 placement: 'left',
+                allowClicksThruHole: true,
+                disableOverlay: true,
                 styles: {
                     options: {
                         zIndex: 10000
                     }
                 },
-                locale: { skip: "Skip tutorial" },
+                locale: { skip: "Skip Tutorial" },
             }
    
             

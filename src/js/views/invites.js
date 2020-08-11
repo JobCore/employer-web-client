@@ -229,7 +229,7 @@ export const PendingJobcoreInvites = ({ catalog, formData }) => (<div>
             <ul className="li-white">
                 { (catalog.jcInvites.length > 0) ?
                     catalog.jcInvites.map((inv, i) =>{
-                        if(inv.status == "PENDING"){
+                        if(inv.status == "PENDING" || inv.status == "COMPANY"){
                             return(<li key={i}>
                                 <button
                                     className="btn btn-primary float-right mt-2 btn-sm"

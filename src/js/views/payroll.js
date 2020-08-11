@@ -1359,7 +1359,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
     if (periods && periods.length > 0) {
         const end = moment(periods[0].ending_at);
         end.add(7, 'days');
-        if (end.isBefore(TODAY())) note = "Payroll was generated until " + end.format('M d');
+        if (end.isBefore(TODAY())) note = "Payroll was generated until " + end.format("L");
     }
     return (<div>
         <div className="top-bar">
