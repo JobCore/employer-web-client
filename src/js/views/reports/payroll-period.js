@@ -137,22 +137,22 @@ const PayrollPeriodReport = ({ period, employer, payments }) => {
                             <Text style={styles.tableCell}>{pay.employee.last_name}, {pay.employee.first_name}</Text>
                         </View>
                         <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>{parseFloat(pay.regular_hours) + parseFloat(pay.over_time) < 40 ? parseFloat(pay.regular_hours) + parseFloat(pay.over_time) : 40}</Text>
+                            <Text style={styles.tableCell}>{(parseFloat(pay.regular_hours) + parseFloat(pay.over_time) < 40 ? parseFloat(pay.regular_hours) + parseFloat(pay.over_time) : 40).toFixed(2)}</Text>
                         </View>
                         <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>{parseFloat(pay.regular_hours) + parseFloat(pay.over_time) > 40 ? parseFloat(pay.regular_hours) + parseFloat(pay.over_time)- 40 : '-'}</Text>
+                            <Text style={styles.tableCell}>{parseFloat(pay.regular_hours) + parseFloat(pay.over_time) > 40 ? (parseFloat(pay.regular_hours) + parseFloat(pay.over_time)- 40).toFixed(2) : '-'}</Text>
                         </View>
                         <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>{parseFloat(pay.regular_hours) + parseFloat(pay.over_time)}</Text>
+                            <Text style={styles.tableCell}>{(parseFloat(pay.regular_hours) + parseFloat(pay.over_time)).toFixed(2)}</Text>
                         </View>
                         <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>{pay.earnings}</Text>
+                            <Text style={styles.tableCell}>{pay.earnings && parseFloat(pay.earnings).toFixed(2)}</Text>
                         </View>
                         <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>${pay.deductions}</Text>
+                            <Text style={styles.tableCell}>${pay.deductions && parseFloat(pay.deductions).toFixed(2)}</Text>
                         </View>
                         <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>${pay.amount}</Text>
+                            <Text style={styles.tableCell}>${pay.amount && parseFloat(pay.amount).toFixed(2)}</Text>
                         </View>
                     </View>;
                 })}

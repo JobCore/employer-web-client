@@ -154,6 +154,7 @@ export const PUT = (endpoint, putData, extraHeaders = {}) => {
     })
   );
   PendingReq.add(req);
+  
   return req;
 };
 

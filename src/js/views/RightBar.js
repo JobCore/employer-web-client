@@ -44,6 +44,7 @@ class RightBar extends React.Component {
                     this.props.onClose();
                 break;
                 case 'update_shift':
+                    console.log('udpate shift', Shift(this.state.formData).validate().withStatus(data.status).serialize());
                     if(typeof data.status != 'undefined' && data.status === 'CANCELLED') update('shifts', Shift(this.state.formData).get().serialize().withStatus(data.status));
                     else update('shifts', Shift(this.state.formData).validate().withStatus(data.status).serialize());
                     this.props.onClose();
@@ -143,6 +144,7 @@ class RightBar extends React.Component {
                     }
                 break;
                 case 'update_payrate':{
+                        
                         update('payrates',Payrate(this.state.formData).validate().serialize());
                         this.props.onClose();
                     }

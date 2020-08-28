@@ -23,7 +23,7 @@ export default class Home extends Flux.DashView {
             calendarLoading: true,
             steps: [
                 {
-                    content: <h2>Welcome to jobcore!</h2>,
+                    content: <div><h2>Welcome to JobCore!</h2><p>Where employers can create their calendar shifts, recruit workers from our curated pool, communicate, schedule, pay and rate them quicky and efficiently.</p></div>,
                     placement: "center",   
                     disableBeacon: true,
 

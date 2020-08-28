@@ -413,18 +413,16 @@ export const create = (entity, data, status = WEngine.modes.LIVE) => new Promise
 export const update = (entity, data, mode = WEngine.modes.LIVE) => new Promise((resolve, reject) => {
     let path = (typeof entity == 'string') ? `employers/me/${entity}/${data.id}` : entity.path + (typeof data.id !== 'undefined' ? `/${data.id}` : '');
     const event_name = (typeof entity == 'string') ? entity : entity.event_name;
-
     if (mode === WEngine.modes.POSPONED) path += "?posponed=true";
     PUT(path, data)
         .then(function (incomingObject) {
-
             if (mode === WEngine.modes.POSPONED) {
                 if (event_name === "shifts") data = Shift(incomingObject).defaults().unserialize();
                 WEngine.add({ entity: event_name, method: 'PUT', data, id: data.id });
             }
+            else if (entity == 'payrates') data = incomingObject;
             else
                 Notify.success("The " + event_name + " was updated successfully");
-
             let entities = store.replaceMerged(event_name, data.id, data);
             Flux.dispatchEvent(event_name, entities);
             resolve(data);
