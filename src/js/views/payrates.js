@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
 import {store, searchMe, remove} from '../actions.js';
-import { GenericCard, Theme, Button } from '../components/index';
+import { GenericCard, Theme, Button, SearchCatalogSelect, Avatar } from '../components/index';
 import Select from 'react-select';
 import queryString from 'query-string';
 import { Session } from 'bc-react-session';
@@ -15,6 +15,8 @@ import GoogleMapReact from 'google-map-react';
 import markerURL from '../../img/marker.png';
 import PlacesAutocomplete, {geocodeByAddress, getLatLng} from 'react-places-autocomplete';
 
+import { GET } from '../utils/api_wrapper';
+
 const ENTITIY_NAME = 'payrates';
 
 //gets the querystring and creats a formData object to be used when opening the rightbar
@@ -26,11 +28,12 @@ export const Payrate = (data) => {
         position: '',
         employer: Session.getPayload().user.profile.employer,
         hourly_rate: 0.00,
+        employee: '',
+        employee_user: {},
 
         serialize: function(){
 
             const newPayrate = {};
-
             return Object.assign(this, newPayrate);
         }
     };
@@ -47,8 +50,10 @@ export const Payrate = (data) => {
         getFormData: () => {
             const _formShift = {
                 id: _payrate.id,
+                employee: _payrate.employee,
                 employer: _payrate.employer,
                 position: _payrate.position,
+                employee_user: _payrate.employee_user,
                 hourly_rate: parseFloat(_payrate.hourly_rate)
             };
             return _formShift;
@@ -103,7 +108,7 @@ export class ManagePayrates extends Flux.DashView {
                     {this.state.payrates.length == 0 ? "There are no payrates at the moment, you can add payrates by clicking the create payrate button" : null}
                     {this.state.payrates.map((l,i) => (
                         <GenericCard key={i} hover={true} onClick={() => bar.show({ slug: "update_payrate", data: l, allowLevels })}>
-                            <div className="btn-group">
+                            <div className="btn-group mt-2">
                                 <Button icon="pencil" onClick={() => bar.show({ slug: "update_payrate", data: l, allowLevels })}></Button>
                                 <Button icon="trash" onClick={() => {
                                     const noti = Notify.info("Are you sure you want to delete this payrate?",(answer) => {
@@ -112,12 +117,21 @@ export class ManagePayrates extends Flux.DashView {
                                     });
                                 }}></Button>
                             </div>
-                            {Array.isArray(this.state.positions) && !l.position.title ? (
-                                <p className="mt-2">{this.state.positions.find(item => item.value == l.position).label + ", " + "$" +  + l.hourly_rate + "/hr"}</p>
-                            ):(
-                                <p className="mt-2">{l.position.title + ", " + "$" + l.hourly_rate + "/hr"}</p>
-                            )}
+                     
+                        
+                            <Avatar url={l.employee.picture} className="mt-2"/>
+                            <div className="row">
+                                <div className="col">
+                                    <a href="#"><b>{l.employee.first_name + ' ' + l.employee.last_name}</b></a>
+                                    {Array.isArray(this.state.positions) && !l.position.title ? (
+                                        <p className="mt-2">{this.state.positions.find(item => item.value == l.position).label + " - " + "$" +  + l.hourly_rate + "/hr"}</p>
+                                        ):(
+                                            <p className="mt-2">{l.position.title + " - " + "$" + l.hourly_rate + "/hr"}</p>
+                                        )}
+                                </div>
 
+
+                            </div>
                         </GenericCard>
                     ))}
                 </span>)}
@@ -126,76 +140,17 @@ export class ManagePayrates extends Flux.DashView {
     }
 }
 
-/**
- * AddShift
- */
-export const FilterLocations = (props) => {
-    return (<form>
-        <div className="row">
-            <div className="col-6">
-                <label>First Name:</label>
-                <input className="form-control"
-                    value={props.formData.first_name}
-                    onChange={(e)=>props.onChange({ first_name: e.target.value })}
-                />
-            </div>
-            <div className="col-6">
-                <label>Last Name:</label>
-                <input className="form-control"
-                    value={props.formData.last_name}
-                    onChange={(e)=>props.onChange({ last_name: e.target.value })}
-                />
-            </div>
-        </div>
-        <div className="row">
-            <div className="col-12">
-                <label>Experience in past positions:</label>
-                <Select isMulti
-                    value={props.formData.positions}
-                    onChange={(selectedOption)=>props.onChange({positions: selectedOption})}
-                    options={props.catalog.positions}
-                />
-            </div>
-        </div>
-        <div className="row">
-            <div className="col-12">
-                <label>Badges:</label>
-                <Select isMulti
-                    value={props.formData.badges}
-                    onChange={(selectedOption)=>props.onChange({badges: selectedOption})}
-                    options={props.catalog.badges}
-                />
-            </div>
-        </div>
-        <div className="row">
-            <div className="col-12">
-                <label>Minimum start rating</label>
-                <Select
-                    value={props.formData.rating}
-                    onChange={(opt)=>props.onChange({rating: opt})}
-                    options={props.catalog.stars}
-                />
-            </div>
-        </div>
-        <div className="btn-bar">
-            <Button color="primary" onClick={() => props.onSave()}>Apply Filters</Button>
-            <Button color="secondary" onClick={() => props.onSave(false)}>Clear Filters</Button>
-        </div>
-    </form>);
-};
-FilterLocations.propTypes = {
-  onSave: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  onChange: PropTypes.func.isRequired,
-  formData: PropTypes.object,
-  catalog: PropTypes.object //contains the data needed for the form to load
-};
+
 
 export const AddOrEditPayrate = ({ onSave, onCancel, onChange, catalog, formData }) => {
     const { bar } = useContext(Theme.Context);
 
     if(catalog.positions.find((pos) => pos.value == formData.position.id || pos.value == formData.position))formData['position'] = catalog.positions.find((pos) => pos.value == formData.position.id || pos.value == formData.position).value.toString();
     
+    if(formData.employee){
+        if(formData.employee.first_name && formData.employee.last_name && formData.employee.employee)
+        formData.employee = {"label": formData.employee.first_name + " " + formData.employee.last_name, "value": formData.employee.employee};
+    }
     console.log(formData);
     return(
         <form>
@@ -206,6 +161,23 @@ export const AddOrEditPayrate = ({ onSave, onCancel, onChange, catalog, formData
                         value={catalog.positions.find((a) => a.value == formData.position)}
                         onChange={(selection) => onChange({ position: selection.value })}
                         options={catalog.positions}
+                    />
+                </div>
+                <div className="col-12">
+                    <label>JobCore Employee:</label>
+                    <SearchCatalogSelect
+                        isMulti={false}
+                        value={formData.employee}
+                        onChange={(selections) => {
+                        onChange({ employee: selections });
+                        }}
+                        searchFunction={(search) => new Promise((resolve, reject) =>
+                            GET('catalog/employees?full_name=' + search)
+                                .then(talents => resolve([
+                                    { label: `${(talents.length == 0) ? 'No one found: ' : ''}Invite "${search}" to jobcore`, value: 'invite_talent_to_jobcore' }
+                                ].concat(talents)))
+                                .catch(error => reject(error))
+                        )}
                     />
                 </div>
             </div>

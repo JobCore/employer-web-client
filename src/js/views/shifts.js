@@ -759,6 +759,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
     if(formData.employer && isNaN(formData.employer )) formData.employer = formData.employer.id;
     if(!formData.shift && !isNaN(formData.id)) formData.shift = formData.id;
     if(formData.required_badges) delete formData.required_badges;
+    console.log(formData);
     return (
         <div>
             <Wizard continuous
@@ -789,10 +790,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                             value={catalog.positions.find((pos) => pos.value == formData.position.id || pos.value == formData.position)}
                             onChange={(selection) => {
                                 onChange({ position: selection.value.toString(), has_sensitive_updates: true });
-                                if(Array.isArray(payrates) && payrates.length > 0 ){
-                                    const positionPayrate = payrates.find(p => p.position.id == formData.position.id || p.position.id == formData.position);
-                                    if(positionPayrate) formData['minimum_hourly_rate'] = positionPayrate.hourly_rate;
-                                }
+                          
                             }}
                             options={catalog.positions}
                         />
@@ -917,12 +915,13 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
 
                                 const getRealDate = (start, end) => {
                                     const starting = moment(start.format("MM-DD-YYYY") + " " + value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                                  
                                     var ending = moment(end);
                                     if (typeof starting !== 'undefined' && starting.isValid()) {
                                         if (ending.isBefore(starting)) {
                                             ending = ending.add(1, 'days');
                                         }
-
+                                          
                                         return { starting_at: starting, ending_at: ending };
                                     }
                                     return null;
@@ -1090,6 +1089,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                         }}>Publish</button>
                         : (formData.status != 'UNDEFINED') ?
                             <button type="button" className="btn btn-primary" onClick={() => {
+                      
                                 const noti = Notify.info("Are you sure you want to unpublish this shift?", (answer) => {
                                     if (answer) onSave({ executed_action: 'update_shift', status: 'DRAFT' });
                                     noti.remove();
@@ -1100,6 +1100,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                                 executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
                                 status: 'OPEN'
                             })}>Save and publish</button>
+                      
                     }
                     {(formData.status != 'UNDEFINED') ?
                         <button type="button" className="btn btn-danger" onClick={() => {

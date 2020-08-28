@@ -71,18 +71,18 @@ export class Login extends React.Component{
                                 }}
                             >
                                 <div className="form-group">
-                                    <input type="email" className="form-control rounded" aria-describedby="emailHelp" placeholder="Email"
+                                    <input type="email" autoComplete="new-email" className="form-control rounded" aria-describedby="emailHelp" placeholder="Email"
                                         value={this.state.email}
                                         onChange={(e) => this.setState({email: e.target.value})}
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <input type="password" className="form-control rounded" id="exampleInputPassword1" placeholder="Password"
+                                    <input type="password" autoComplete="new-password" className="form-control rounded" id="exampleInputPassword1" placeholder="Password"
                                         onChange={(e) => this.setState({password: e.target.value})} value={this.state.password}
                                     />
                                 </div>
                                 <div className="form-group mb-0">
-                                    <input type="text" className="form-control rounded" id="exampleInputID" placeholder="Company ID"
+                                    <input name="Company ID" type="text" autoComplete="new-company-id-pass" className="form-control rounded" id="exampleInputID" placeholder="Company ID"
                                         onChange={(e) => this.setState({id: e.target.value})} value={this.state.id}
                                     />
                                 </div>

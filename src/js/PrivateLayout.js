@@ -87,7 +87,6 @@ class PrivateLayout extends Flux.DashView {
                     log.info("Right Bar Action: ", option.slug);
                     switch (option.slug) {
                         case 'create_shift':
-                            console.log('create shift', option);
                             this.showRightBar(ShiftDetails, option, { formData: Shift(option.data).defaults() });
                             break;
                         case 'create_deduction':
@@ -399,7 +398,6 @@ class PrivateLayout extends Flux.DashView {
         }
     }
     render() {
-        console.log(this.state);
         const Logo = () => (<span className="svg_img" style={{ backgroundImage: `url(${logoURL})` }} />);
         return (
             <Theme.Provider value={{ bar: this.state.bar }}>
