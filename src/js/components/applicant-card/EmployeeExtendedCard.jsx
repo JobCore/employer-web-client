@@ -19,7 +19,7 @@ const EmployeeExtendedCard = (props) => {
 
         <Avatar url={props.employee.user.profile.picture} />
         <div className="row">
-            <div className="col-4">
+            <div className="col">
                 <a href="#"><b>{props.employee.user.first_name + ' ' + props.employee.user.last_name}</b></a>
                 <Stars rating={Number(props.employee.rating)} jobCount={props.employee.total_ratings}  />
                 { (props.showFavlist) ?
@@ -28,7 +28,7 @@ const EmployeeExtendedCard = (props) => {
               }
             </div>
             {Array.isArray(positions) && positions.length > 0 ? (
-                <div className="col my-auto">
+                <div className="col-8 my-auto">
                     { positions.map((pos, i)=> {
                         if(i < 3 && pos ) return (<span key={i} className="badge badge-success">{pos.label || pos.title}</span>);
                       }
