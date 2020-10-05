@@ -2,13 +2,14 @@ import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 //include images into your bundle
 import { DashboardBox, Wizard, Theme, Button, ShiftBadge } from '../components/index';
-import { store, fetchAllMe, searchMe } from '../actions.js';
-import { callback, hasTutorial } from '../utils/tutorial';
+import { store, fetchAllMe, searchMe, updateProfileMe } from '../actions.js';
+import {hasTutorial } from '../utils/tutorial';
 import { GET } from '../utils/api_wrapper.js';
 import { NOW } from '../components/utils.js';
 import { Session } from 'bc-react-session';
 import moment from 'moment';
 import { CalendarView } from "../components/calendar/index.js";
+import { Redirect } from 'react-router-dom';
 
 export default class Home extends Flux.DashView {
     constructor() {
@@ -26,10 +27,13 @@ export default class Home extends Flux.DashView {
                     content: <div><h2>Welcome to JobCore!</h2><p>Where employers can create their calendar shifts, recruit workers from our curated pool, communicate, schedule, pay and rate them quicky and efficiently.</p></div>,
                     placement: "center",   
                     disableBeacon: true,
-
+                    disableCloseOnEsc: true,
                     styles: {
                         options: {
                             zIndex: 10000
+                        },
+                        buttonClose: {
+                            display: "none"
                         }
                     },
                     locale: { skip: "Skip tutorial" },
@@ -39,22 +43,8 @@ export default class Home extends Flux.DashView {
                     target: '#create_shift',
                     content: 'Start by creating a new shift',
                     placement: 'right'
-                },
-                {
-                    target: '#creating-shifts',
-                    content: 'Start by ffwefefewfwe a new shift',
-                    placement: 'right'
-                },
-                {
-                    target: '#invite_talent_to_jobcore',
-                    content: 'Or you can also invite people to your pool of talents',
-                    placement: 'right'
-                },
-                {
-                    target: '#draft_shifts',
-                    content: 'Finally, you can see your current shifts grouped by status: Drafts, Open (Receiving applicants), Upcoming and Pending to process payment.',
-                    placement: 'right'
                 }
+
             ]
         };
     }
@@ -67,7 +57,21 @@ export default class Home extends Flux.DashView {
    
         searchMe(`shifts`, `?limit=10000&end=${this.state.end.format('YYYY-MM-DD')}&start=${this.state.start.format('YYYY-MM-DD')}`);
     }
+    callback = (data) => {
+     
+        if(data.action == 'next' && data.index == 0){
+            this.props.history.push("/profile");
 
+        }
+        if(data.status == 'skipped'){
+            const session = Session.get();
+            updateProfileMe({show_tutorial: false});
+            
+            const profile = Object.assign(session.payload.user.profile, { show_tutorial: false });
+            const user = Object.assign(session.payload.user, { profile });
+            Session.setPayload({ user });
+        }
+    };
     render() {
         return (
             <Theme.Consumer>
@@ -76,7 +80,10 @@ export default class Home extends Flux.DashView {
                         <Wizard continuous
                             steps={this.state.steps}
                             run={this.state.runTutorial}
-                            callback={callback}
+                            callback={(data) => this.callback(data)}
+                            disableCloseOnEsc={true}
+                            disableOverlayClose={true}
+                            disableScrollParentFix={true}
                         />
                         <div className="row" >
                             <div className="col-8">

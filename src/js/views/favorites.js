@@ -64,19 +64,7 @@ export class ManageFavorites extends Flux.DashView {
         super();
         this.state = {
             lists: [],
-            runTutorial: hasTutorial(),
-            steps: [
-                {
-                    target: '#your-favorites-heading',
-                    content: 'Here you can manage you favorite lists',
-                    placement: 'right'
-                }
-                // {
-                //     target: '#filter_applicants',
-                //     content: 'You can also filter this list of applicants by any desired criteria',
-                //     placement: 'left',
-                // },
-            ]
+        
         };
     }
 
@@ -93,11 +81,7 @@ export class ManageFavorites extends Flux.DashView {
 
     render() {
         return (<div className="p-1 listcontents">
-            <Wizard continuous
-                steps={this.state.steps}
-                run={this.state.runTutorial}
-                callback={callback}
-            />
+         
             <h1><span id="your-favorites-heading">Your favorite lists</span></h1>
             <Theme.Consumer>
                 {({ bar }) =>

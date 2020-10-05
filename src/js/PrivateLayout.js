@@ -393,8 +393,8 @@ class PrivateLayout extends Flux.DashView {
         if(this.state.user){
             if(this.state.user.profile.employer_role == "SUPERVISOR"){
                 return(<li className="mt-2" style={{cursor: "pointer"}}onClick={() => Notify.error("Only admins and managers are allowed to use the payroll system.")
-            }><i className="icon icon-shifts"></i>Payroll</li>);
-            }else return <li><NavLink to="/payroll"><i className="icon icon-shifts"></i>Payroll</NavLink></li>;
+            }><i id="payroll" className="icon icon-shifts"></i>Payroll</li>);
+            }else return <li><NavLink to="/payroll"><i id="payroll" className="icon icon-shifts"></i>Payroll</NavLink></li>;
         }
     }
     render() {
