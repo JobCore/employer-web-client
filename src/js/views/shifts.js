@@ -1006,18 +1006,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                         />
                     </div>
                 </div>
-                {/* <div className="row" id="instruction">
-                    <div className="col-12">
-                        <label>Shift Description</label>
-                        <TextareaAutosize style={{ width: '100%'}} placeholder="Dressing code, job description, location instructions, etc..?"
-                        onChange={event => setDescriptionContent(event.target.value)}
-                        value={description}
-                        />
-                        <p>
-                            {description.length}/{300}
-                        </p>
-                    </div>
-                </div> */}
+
                 <div className="row mt-3" >
                     <div className="col-12" id="who-can-apply">
                         <h4>Who can apply to this shift?</h4>
