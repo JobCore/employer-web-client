@@ -1,8 +1,8 @@
 import React, { useState, useContext, useEffect } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
-import { store, fetchTemporal, update, updateProfileImage, searchMe, remove, updateUser, removeUser, sendCompanyInvitation } from '../actions.js';
+import { store, fetchTemporal, update, updateProfileImage, searchMe, remove, updateUser, removeUser,updateProfileMe, sendCompanyInvitation } from '../actions.js';
 import { TIME_FORMAT, DATETIME_FORMAT, DATE_FORMAT, TODAY } from '../components/utils.js';
-import { Button, Theme, GenericCard, Avatar, SearchCatalogSelect } from '../components/index';
+import { Button, Theme, GenericCard, Avatar, SearchCatalogSelect,Wizard} from '../components/index';
 import { Notify } from 'bc-react-notifier';
 import { Session } from 'bc-react-session';
 import { validator, ValidationError } from '../utils/validation';
@@ -12,6 +12,7 @@ import moment from 'moment';
 import PropTypes from "prop-types";
 import Select from 'react-select';
 import { GET } from '../utils/api_wrapper';
+import {hasTutorial } from '../utils/tutorial';
 
 import Tooltip from 'rc-tooltip';
 import 'rc-tooltip/assets/bootstrap_white.css';
@@ -60,7 +61,100 @@ export class Profile extends Flux.DashView {
         super();
         this.state = {
             employer: Employer().defaults(),
-            currentUser: Session.getPayload().user.profile
+            currentUser: Session.getPayload().user.profile,
+            runTutorial: hasTutorial(),
+            steps: [
+                {
+                    content: <div><h2>This is your profile page</h2><p>In here you can change subscription, update your company details.</p></div>,
+                    placement: "center",   
+
+                    styles: {
+                        options: {
+                            zIndex: 10000
+                        },
+                        buttonClose: {
+                            display: "none"
+                        }
+                    },
+                    locale: { skip: "Skip tutorial" },
+                    target: "body",
+                  
+                    },
+                {
+                    target: '#company_logo',
+                    content: 'Upload your company logo here by clicking inside the circle',
+                    placement: 'right',
+                    styles: {
+                        buttonClose: {
+                            display: "none"
+                        }
+                    },
+                    spotlightClicks: true
+                },
+                {
+                    target: '#company_title',
+                    content: 'Edit company title',
+                    placement: 'right',
+                    styles: {
+                        buttonClose: {
+                            display: "none"
+                        }
+                    },
+                    spotlightClicks: true
+
+                },
+                {
+                    target: '#company_website',
+                    content: 'Edit company website',
+                    placement: 'right',
+                    styles: {
+                        buttonClose: {
+                            display: "none"
+                        }
+                    },
+                    spotlightClicks: true
+
+                },
+                {
+                    target: '#company_bio',
+                    content: 'Edit company bio',
+                    placement: 'right',
+                    styles: {
+                        buttonClose: {
+                            display: "none"
+                        }
+                    },
+                    spotlightClicks: true
+
+                },
+                {
+                    target: '#button_save',
+                    content: 'Save',
+                    placement: 'right',
+                    styles: {
+                        buttonClose: {
+                            display: "none"
+                        }
+                    },
+                    spotlightClicks: true
+
+                },
+            
+                {
+                    target: '#manage_locations',
+                    content: 'Manage your company location. You will need the company address in order to send shift to future employees',
+                    placement: 'right',
+                    styles: {
+                        buttonClose: {
+                            display: "none"
+                        },
+                        buttonNext: {
+                            display: 'none',
+                        }
+                    },
+                    spotlightClicks: true
+                }
+            ]
         };
     }
 
@@ -89,10 +183,34 @@ export class Profile extends Flux.DashView {
         });
 
     }
+    callback = (data) => {
+        console.log('DATA', data);
+     
+        // if(data.action == 'next' && data.index == 0){
+        //     this.props.history.push("/payroll");
 
+        // }
+        if(data.type == 'skip'){
+            const session = Session.get();
+            updateProfileMe({show_tutorial: false});
+            
+            const profile = Object.assign(session.payload.user.profile, { show_tutorial: false });
+            const user = Object.assign(session.payload.user, { profile });
+            Session.setPayload({ user });
+        }
+    };
 
     render() {
         return (<div className="p-1 listcontents company-profile">
+            <Wizard continuous
+                            steps={this.state.steps}
+                            run={this.state.runTutorial}
+                            callback={(data) => this.callback(data)}
+                            disableCloseOnEsc={true}
+                            disableOverlayClose={true}
+                            disableScrollParentFix={true}
+
+                        />
             <h1><span id="company_details">User Details</span></h1>
             <form>
                 <div className="row mt-2">
@@ -129,8 +247,8 @@ export class Profile extends Flux.DashView {
                             <Button className="ml-2" onClick={() => this.props.history.push('/profile/subscription')} size="small">update</Button></p>
                     </div>
                 </div>
-                <div className="row">
-                    <div className="col-12">
+                <div className="row" >
+                    <div className="col-12" id="company_logo">
                         <label>Company Logo</label>
                             
                         {!this.state.editingImage ?
@@ -169,7 +287,7 @@ export class Profile extends Flux.DashView {
                         }
                     </div>
                 </div>
-                <div className="row">
+                <div className="row" id="company_title">
                     <div className="col-12">
                         <label>Company Name</label>
                         <input type="text" className="form-control" value={this.state.employer.title}
@@ -177,7 +295,7 @@ export class Profile extends Flux.DashView {
                         />
                     </div>
                 </div>
-                <div className="row mt-2">
+                <div className="row mt-2" id="company_website">
                     <div className="col-12">
                         <label>Website</label>
                         <input type="text" className="form-control" value={this.state.employer.website}
@@ -185,7 +303,7 @@ export class Profile extends Flux.DashView {
                         />
                     </div>
                 </div>
-                <div className="row mt-2">
+                <div className="row mt-2" id="company_bio">
                     <div className="col-12">
                         <label>Bio</label>
                         <input type="text" className="form-control" value={this.state.employer.bio}
@@ -196,6 +314,7 @@ export class Profile extends Flux.DashView {
                 <div className="mt-4 text-right">
                     <button
                         type="button"
+                        id="button_save"
                         className="btn btn-primary"
                         onClick={() => update({ path: 'employers/me', event_name: 'current_employer' }, Employer(this.state.employer).validate().serialize()).catch(e => Notify.error(e.message || e))}
                     >Save</button>

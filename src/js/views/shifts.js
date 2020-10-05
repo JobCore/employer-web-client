@@ -18,6 +18,7 @@ import { validator, ValidationError } from '../utils/validation';
 import { callback, hasTutorial } from '../utils/tutorial';
 import { AddOrEditLocation } from '../views/locations.js';
 import { ShiftInvite, Talent } from '../views/talents.js';
+import TextareaAutosize from 'react-textarea-autosize';
 
 import moment from 'moment';
 import { GET } from '../utils/api_wrapper';
@@ -638,8 +639,9 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                 target: '#looking-for',
                 content: 'Here you can select what position you are looking for',
                 placement: 'left',
-                allowClicksThruHole: true,
                 disableOverlay: true,
+                disableBeacon: true,
+                spotlightClicks: true,
                 styles: {
                     options: {
                         zIndex: 10000
@@ -653,6 +655,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                 placement: 'left',
                 allowClicksThruHole: true,
                 disableOverlay: true,
+                spotlightClicks: true,
                 styles: {
                     options: {
                         zIndex: 10000
@@ -666,6 +669,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                 placement: 'left',
                 allowClicksThruHole: true,
                 disableOverlay: true,
+                spotlightClicks: true,
                 styles: {
                     options: {
                         zIndex: 10000
@@ -678,6 +682,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                 content: 'The date of the shift. and click more if you want to create more than one shift',
                 placement: 'left',
                 allowClicksThruHole: true,
+                spotlightClicks: true,
                 disableOverlay: true,
                 styles: {
                     options: {
@@ -692,6 +697,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                 placement: 'left',
                 allowClicksThruHole: true,
                 disableOverlay: true,
+                spotlightClicks: true,
                 styles: {
                     options: {
                         zIndex: 10000
@@ -705,6 +711,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                 placement: 'left',
                 allowClicksThruHole: true,
                 disableOverlay: true,
+                spotlightClicks: true,
                 styles: {
                     options: {
                         zIndex: 10000
@@ -718,6 +725,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                 placement: 'left',
                 allowClicksThruHole: true,
                 disableOverlay: true,
+                spotlightClicks: true,
                 styles: {
                     options: {
                         zIndex: 10000
@@ -731,6 +739,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                 placement: 'left',
                 allowClicksThruHole: true,
                 disableOverlay: true,
+                spotlightClicks: true,
                 styles: {
                     options: {
                         zIndex: 10000
@@ -743,6 +752,12 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
         ]
     );
     const [payrates, setPayrates] = useState();
+    const [description, setDescription] = useState('');
+    const [tutorial, setTutorial] = useState(false);
+
+    const setDescriptionContent = description => {
+        description.length > 300 ? setDescription(description.slice(0, 300)) : setDescription(description);
+      };
 
     useEffect(() => {
         const venues = store.getState('venues');
@@ -764,12 +779,17 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
         <div>
             <Wizard continuous
         steps={steps}
-        run={true}
+        run={tutorial}
         callback={callback}
+        disableBeacon={true}
         />
 
             <form>
-       
+                <div className="row">
+                    <div className="col-12 text-right">
+                        <button type="button" className="btn btn-primary p-1 text-right" onClick={()=>setTutorial(true)}><strong>HELP ?</strong></button>
+                    </div>
+                </div>
                 <div className="row">
                     <div className="col-12">
                         {formData.hide_warnings === true ? null : (formData.status == 'DRAFT' && !error) ?
@@ -984,6 +1004,18 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                                 else onChange({ venue: selection.value.toString(), has_sensitive_updates: true });
                             }}
                         />
+                    </div>
+                </div>
+                <div className="row" id="instruction">
+                    <div className="col-12">
+                        <label>Shift Description</label>
+                        <TextareaAutosize style={{ width: '100%'}} placeholder="Dressing code, job description, location instructions, etc..?"
+                        onChange={event => setDescriptionContent(event.target.value)}
+                        value={description}
+                        />
+                        <p>
+                            {description.length}/{300}
+                        </p>
                     </div>
                 </div>
                 <div className="row mt-3" >

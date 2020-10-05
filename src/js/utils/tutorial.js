@@ -8,8 +8,10 @@ export const hasTutorial = function(){
     return (session.payload.user.profile.show_tutorial == true) ? true : false;
 };
 
-export const callback = ({type}) => {
-    if(type == 'tour:end'){
+export const callback = (data) => {
+    console.log('CALLBACK TYPE', data);
+ 
+    if(data.type == 'tour:end'){
         const session = Session.get();
         updateProfileMe({show_tutorial: false});
         

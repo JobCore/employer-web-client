@@ -98,7 +98,7 @@ export class Login extends React.Component{
                                     <button type="submit" className="btn btn-primary form-control">Sign In</button>
                                 }
                                 <div className="extra-actions">
-                                    <a href="https://jobcore.co/employers-signup/" className="float-left ml-4 mt-2">Sign Up</a>
+                                    <a href="https://jobcore.co/pricing/" className="float-left ml-4 mt-2">Sign Up</a>
                                     <Link to="/forgot" className="float-right mr-4 mt-2">Forgot Password</Link>
                                 </div>
                             </form>
