@@ -899,6 +899,7 @@ class _Store extends Flux.DashStore {
         super();
         this.addEvent('positions');
         this.addEvent('venues');
+        this.addEvent('onboarding');
         this.addEvent('users');
         this.addEvent('invites', (invites) => {
             if (!Array.isArray(invites)) return [];

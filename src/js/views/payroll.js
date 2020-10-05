@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useContext } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import { store, search, update, fetchSingle, searchMe, processPendingPayrollPeriods, updatePayments, createPayment, fetchAllMe, fetchTemporal, remove, create, fetchPeyrollPeriodPayments } from '../actions.js';
+import { store, search, update, fetchSingle, searchMe, processPendingPayrollPeriods, updateProfileMe, updatePayments, createPayment, fetchAllMe, fetchTemporal, remove, create, fetchPeyrollPeriodPayments } from '../actions.js';
 import { GET } from '../utils/api_wrapper';
+import { Session } from 'bc-react-session';
 
 
 import DateTime from 'react-datetime';
 import moment from 'moment';
 import { DATETIME_FORMAT, TIME_FORMAT, NOW, TODAY, haversineDistance } from '../components/utils.js';
 import Select from 'react-select';
+import {hasTutorial } from '../utils/tutorial';
 
 import { Notify } from 'bc-react-notifier';
 
@@ -31,7 +33,6 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 import TextareaAutosize from 'react-textarea-autosize';
 import {PayrollPeriodReport} from "./reports/index.js";
 
-import { Redirect } from 'react-router-dom';
 
 const ENTITIY_NAME = 'payroll';
 
@@ -238,7 +239,91 @@ export class PayrollSettings extends Flux.DashView {
         super();
         this.state = {
             employer: Employer().defaults(),
-            deductions: []
+            deductions: [],
+            runTutorial: hasTutorial(),
+            steps: [
+                {
+                    content: <div><h2>This is your payroll setting page</h2><p>In here you can update when do you want the payroll to start </p></div>,
+                    placement: "center",   
+
+                    styles: {
+                        options: {
+                            zIndex: 10000
+                        },
+                        buttonClose: {
+                            display: "none"
+                        }
+                    },
+                    locale: { skip: "Skip tutorial" },
+                    target: "body",
+                  
+                    },
+                {
+                    target: '#payroll_run',
+                    content: 'Enter the day and time you want the payroll to be process',
+                    placement: 'right',
+                    styles: {
+                        buttonClose: {
+                            display: "none"
+                        }
+                    },
+                    spotlightClicks: true
+                },
+                {
+                    target: '#payroll_clockin',
+                    content: 'Here you can decide the time in minutes for employees to start clock in and out',
+                    placement: 'right',
+                    styles: {
+                        buttonClose: {
+                            display: "none"
+                        }
+                    },
+                    spotlightClicks: true
+
+                },
+                {
+                    target: '#payroll_automatic',
+                    content: 'You can choose to enable automatic checkout',
+                    placement: 'right',
+                    styles: {
+                        buttonClose: {
+                            display: "none"
+                        }
+                    },
+                    spotlightClicks: true
+
+                },
+                {
+                    target: '#payroll_deduction',
+                    content: 'Add, edit or delete deduction',
+                    placement: 'right',
+                    styles: {
+                        buttonClose: {
+                            display: "none"
+                        }
+                    },
+                    spotlightClicks: true
+
+                },
+                {
+                    target: '#button_save',
+                    content: 'Click save to complete the payroll set-up',
+                    placement: 'right',
+                    styles: {
+                        buttonClose: {
+                            display: "none"
+                        },
+                        buttonNext: {
+                            display: 'none',
+                        }
+                    },
+                    spotlightClicks: false,
+                    disableCloseOnEsc:false,
+                    disableOverlayClose:false,
+                    disableScrollParentFix:false
+                
+                }
+            ]
         };
     }
 
@@ -264,7 +349,31 @@ export class PayrollSettings extends Flux.DashView {
         });
 
     }
+    callback = (data) => {
+        console.log('DATA', data);
+     
+        // if(data.action == 'next' && data.index == 0){
+        //     this.props.history.push("/payroll");
 
+        // }
+        if(data.status == 'skipped'){
+            const session = Session.get();
+            updateProfileMe({show_tutorial: false});
+            
+            const profile = Object.assign(session.payload.user.profile, { show_tutorial: false });
+            const user = Object.assign(session.payload.user, { profile });
+            Session.setPayload({ user });
+        }
+        if(data.type == 'tour:end'){
+            const session = Session.get();
+            updateProfileMe({show_tutorial: false});
+            
+            const profile = Object.assign(session.payload.user.profile, { show_tutorial: false });
+            const user = Object.assign(session.payload.user, { profile });
+            Session.setPayload({ user });
+        }
+        
+    };
     render() {
 
         const autoClockout = this.state.employer.maximum_clockout_delay_minutes == null ? false : true;
@@ -275,6 +384,15 @@ export class PayrollSettings extends Flux.DashView {
         return (<Theme.Consumer>
             {({ bar }) =>
                 <div className="p-1 listcontents company-payroll-settings">
+                    <Wizard continuous
+                            steps={this.state.steps}
+                            run={this.state.runTutorial}
+                            callback={(data) => this.callback(data)}
+                            disableCloseOnEsc={true}
+                            disableOverlayClose={true}
+                            disableScrollParentFix={true}
+
+                        />
                     <h1><span id="company_details">Your Payroll Settings</span></h1>
                     <div className="row mt-2">
                         <div className="col-12">
@@ -283,7 +401,7 @@ export class PayrollSettings extends Flux.DashView {
                     </div>
                     <form>
                         <div className="row mt-2">
-                            <div className="col-12">
+                            <div className="col-12" id="payroll_run">
                                 <label className="d-block">When do you want your payroll to run?</label>
                                 <span>Every </span>
                                 <select className="form-control" style={{ width: "100px", display: "inline-block" }}>
@@ -292,7 +410,7 @@ export class PayrollSettings extends Flux.DashView {
                                 <span> starting </span>
                                 <select
                                     value={weekday || 1}
-                                    className="form-control" style={{ width: "100px", display: "inline-block" }}
+                                    className="form-control" style={{ width: "120px", display: "inline-block" }}
                                     onChange={(e) => {
                                         const diff = (e.target.value - weekday);
                                         let newDate = this.state.employer.payroll_period_starting_time.clone().add(diff, 'days');
@@ -328,7 +446,7 @@ export class PayrollSettings extends Flux.DashView {
                             </div>
                         </div>
                         <div className="row">
-                            <div className="col-12">
+                            <div className="col-12" id="payroll_clockin">
                                 <label className="d-block">When can talents start clocking in?</label>
                                 <select
                                     value={this.state.employer.maximum_clockin_delta_minutes}
@@ -345,44 +463,47 @@ export class PayrollSettings extends Flux.DashView {
                                 <span> before or after the starting time of the shift</span>
                             </div>
                         </div>
-                        <div className="row mt-2">
-                            <div className="col-12">
-                                <label className="d-block">Do you want automatic checkout?</label>
-                                <select value={autoClockout} className="form-control" style={{ width: "300px", display: "inline-block" }} onChange={(e) => {
-                                    this.setEmployer({ maximum_clockout_delay_minutes: e.target.value == 'true' ? 10 : null, timeclock_warning: true });
-                                }}>
-                                    <option value={true}>Only if the talent forgets to checkout</option>
-                                    <option value={false}>No, leave the shift active until the talent checkouts</option>
-                                </select>
-                                {!autoClockout ? '' : (
-                                    <span>
-                                        , wait
-                                        <input type="number" style={{ width: "60px" }} className="form-control d-inline-block ml-2 mr-2"
-                                            value={this.state.employer.maximum_clockout_delay_minutes}
-                                            onChange={(e) => this.setEmployer({ maximum_clockout_delay_minutes: e.target.value, timeclock_warning: true })}
-                                        />
-                                        min to auto checkout
-                                    </span>
+                        <div  id="payroll_automatic">
 
-                                )
-                                }
+                            <div className="row mt-2">
+                                <div className="col-12">
+                                    <label className="d-block">Do you want automatic checkout?</label>
+                                    <select value={autoClockout} className="form-control" style={{ width: "450px", display: "inline-block" }} onChange={(e) => {
+                                        this.setEmployer({ maximum_clockout_delay_minutes: e.target.value == 'true' ? 10 : null, timeclock_warning: true });
+                                    }}>
+                                        <option value={true}>Only if the talent forgets to checkout</option>
+                                        <option value={false}>No, leave the shift active until the talent checkouts</option>
+                                    </select>
+                                    {!autoClockout ? '' : (
+                                        <span>
+                                            , wait
+                                            <input type="number" style={{ width: "60px" }} className="form-control d-inline-block ml-2 mr-2"
+                                                value={this.state.employer.maximum_clockout_delay_minutes}
+                                                onChange={(e) => this.setEmployer({ maximum_clockout_delay_minutes: e.target.value, timeclock_warning: true })}
+                                            />
+                                            min to auto checkout
+                                        </span>
+
+                                    )
+                                    }
+                                </div>
                             </div>
+                            {this.state.employer.timeclock_warning &&
+                                <div className="alert alert-warning p-2 mt-3">
+                                    Apply time clock settings to:
+                                    <select
+                                        value={this.state.employer.retroactive}
+                                        className="form-control w-100" style={{ width: "100px", display: "inline-block" }}
+                                        onChange={(e) => this.setEmployer({ retroactive: e.target.value === "true" ? true : false })}
+                                    >
+                                        <option value={false}>Only new shifts (from now on)</option>
+                                        <option value={true}>All shifts (including previously created)</option>
+                                    </select>
+                                </div>
+                            }
                         </div>
-                        {this.state.employer.timeclock_warning &&
-                            <div className="alert alert-warning p-2 mt-3">
-                                Apply time clock settings to:
-                                <select
-                                    value={this.state.employer.retroactive}
-                                    className="form-control w-100" style={{ width: "100px", display: "inline-block" }}
-                                    onChange={(e) => this.setEmployer({ retroactive: e.target.value === "true" ? true : false })}
-                                >
-                                    <option value={false}>Only new shifts (from now on)</option>
-                                    <option value={true}>All shifts (including previously created)</option>
-                                </select>
-                            </div>
-                        }
                         <div className="row mt-2">
-                            <div className="col-12">
+                            <div className="col-12" id="payroll_deduction">
                                 <label>Deductions</label>
                                 <div className="p-1 listcontents">
                                     {this.state.deductions.length > 0
@@ -438,6 +559,7 @@ export class PayrollSettings extends Flux.DashView {
                         </div>
                         <div className="mt-4 text-right">
                             <button
+                                id="button_save"
                                 type="button"
                                 className="btn btn-primary"
                                 onClick={() => update({ path: 'employers/me', event_name: 'current_employer' }, Employer(this.state.employer).validate().serialize())

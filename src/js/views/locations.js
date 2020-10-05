@@ -2,9 +2,11 @@ import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
 import {store, searchMe, remove} from '../actions.js';
-import { GenericCard, Theme, Button } from '../components/index';
+import { GenericCard, Theme, Button,Wizard } from '../components/index';
 import Select from 'react-select';
 import queryString from 'query-string';
+import {hasTutorial } from '../utils/tutorial';
+import {Link} from "react-router-dom";
 
 import {validator, ValidationError} from '../utils/validation';
 
@@ -86,7 +88,57 @@ export class ManageLocations extends Flux.DashView {
     constructor(){
         super();
         this.state = {
-            locations: []
+            locations: [],
+            runTutorial: hasTutorial(),
+            steps: [
+                {
+                    content: <div><h2>Location page</h2><p>Company venues will be listed here, also in here you will be able to create a new location.</p></div>,
+                    placement: "center",   
+                    disableBeacon: true,
+
+                    styles: {
+                        options: {
+                            zIndex: 10000
+                        },
+                        buttonClose: {
+                            display: "none"
+                        },
+                    },
+                    locale: { skip: "Skip tutorial" },
+                    target: "body",
+                    disableCloseOnEsc: true,
+                    spotlightClicks: true
+                    },
+                {
+                    target: '#create_location',
+                    content: 'Create a new venue for your company',
+                    placement: 'right',
+                    styles: {
+                        buttonClose: {
+                            display: "none"
+                        },
+                        buttonNext: {
+                            display: 'none',
+                        }
+                    },
+                    spotlightClicks: true
+
+                },
+                {
+                    target: '#payroll',
+                    content: 'Set up the company payroll',
+                    placement: 'right',
+                    styles: {
+                        buttonClose: {
+                            display: "none"
+                        },
+                        buttonNext: {
+                            display: 'none',
+                        }
+                    },
+                    spotlightClicks: true
+                },
+            ]
         };
     }
 
@@ -113,6 +165,12 @@ export class ManageLocations extends Flux.DashView {
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({bar}) => (<span>
+                    <Wizard continuous
+                            steps={this.state.steps}
+                            run={this.state.runTutorial}
+                            callback={callback}
+
+                        />
                     <h1><span id="talent_search_header">Location Search</span></h1>
                     {this.state.locations.map((l,i) => (
                         <GenericCard key={i} hover={true} onClick={() => bar.show({ slug: "update_location", data: l, allowLevels })}>
@@ -199,6 +257,22 @@ FilterLocations.propTypes = {
   catalog: PropTypes.object //contains the data needed for the form to load
 };
 
+function callback (data) {
+    console.log('DATA', data);
+ 
+    // if(data.action == 'next' && data.index == 0){
+    //     this.props.history.push("/payroll");
+
+    // }
+    // if(data.type == 'tour:end'){
+    //     const session = Session.get();
+    //     updateProfileMe({show_tutorial: false});
+        
+    //     const profile = Object.assign(session.payload.user.profile, { show_tutorial: false });
+    //     const user = Object.assign(session.payload.user, { profile });
+    //     Session.setPayload({ user });
+    // }
+}
 /**
  * Add a Location
  */
@@ -226,8 +300,75 @@ Marker.propTypes = {
 };
 export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData}) => (<Theme.Consumer>
     {({bar}) => (<div>
+  
         <div className="row">
-            <div className="col-12">
+            <Wizard continuous
+                            steps={ [
+                                {
+                                    target: '#address',
+                                    content: 'Enter your address',
+                                    placement: 'right',
+                                    disableBeacon: true,
+                                    styles: {
+                                        options: {
+                                            zIndex: 10000
+                                        },
+                                        buttonClose: {
+                                            display: "none"
+                                        },
+                                    },
+
+                                },
+                                {
+                                    target: '#location_nickname',
+                                    content: 'Enter your venue name',
+                                    placement: 'right',
+                                    styles: {
+                                        options: {
+                                            zIndex: 10000
+                                        },
+                                        buttonClose: {
+                                            display: "none"
+                                        },
+                                    },
+                                },
+                                {
+                                    target: '#location_details',
+                                    content: 'Enter additional location details',
+                                    placement: 'right',
+                                    styles: {
+                                        options: {
+                                            zIndex: 10000
+                                        },
+                                        buttonClose: {
+                                            display: "none"
+                                        },
+                                    },
+                                },
+                                {
+                                    target: '#button_save',
+                                    content: 'After you are done, click save',
+                                    placement: 'right',
+                                    styles: {
+                                        options: {
+                                            zIndex: 10000
+                                        },
+                                        buttonClose: {
+                                            display: "none"
+                                        },
+                                        buttonNext: {
+                                            display: 'none',
+                                        }
+                                    },
+                                     spotlightClicks: true
+                                }
+                            ]}
+                            run={hasTutorial()}
+                            callback={callback}
+                            spotlightClicks={true}
+
+                        />  
+            <div className="col-12" id="address">
                 <label>Address</label>
                 <PlacesAutocomplete
                     value={formData.street_address || ''}
@@ -266,7 +407,7 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
             </div>
         </div>
         <div className="row">
-            <div className="col-12">
+            <div className="col-12" id="location_nickname">
                 <label>Location nickname</label>
                 <input type="text" className="form-control"
                     value={formData.title}
@@ -301,7 +442,7 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
                     </GoogleMapReact>
                 </div>
             </div>
-            <div className="col-6">
+            <div className="col-6" id="location_details">
                 <label>Country</label>
                 <input type="text" className="form-control"
                     value={formData.country}
@@ -322,7 +463,11 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
         <div className="row">
             <div className="col-12">
                 <div className="btn-bar">
-                    <button type="button" className="btn btn-success" onClick={() => onSave()}>Save</button>
+                    {hasTutorial() == true ? (
+                        <Link to ="/payroll/settings" onClick={()=> onSave()}>
+                            <button id="button_save"type="button" className="btn btn-success">Save</button>
+                        </Link>
+                    ): (<button id="button_save"type="button" className="btn btn-success" onClick={() => onSave()}>Save</button>)}
                     <button type="button" className="btn btn-default" onClick={() => bar.close()}>Cancel</button>
                 </div>
             </div>

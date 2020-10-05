@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import Joyride from 'react-joyride';
+import Joyride, { ACTIONS, EVENTS, STATUS } from 'react-joyride';
 import './styles.scss';
 
 const Beacon = (props) => (<div className="beacon" {...props}>
