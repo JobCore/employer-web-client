@@ -63,9 +63,10 @@ export class Profile extends Flux.DashView {
             employer: Employer().defaults(),
             currentUser: Session.getPayload().user.profile,
             runTutorial: hasTutorial(),
+            stepIndex: 0,
             steps: [
                 {
-                    content: <div><h2>This is your profile page</h2><p>In here you can change subscription, update your company details.</p></div>,
+                    content: <div className="text-left"><h1>Your Profile</h1><h5>This is where you edit your company information (company logo, company name, company website and the bio) </h5><h5>Manage Subscription and view company rating</h5></div>,
                     placement: "center",   
 
                     styles: {
@@ -81,15 +82,48 @@ export class Profile extends Flux.DashView {
                   
                     },
                 {
-                    target: '#company_logo',
-                    content: 'Upload your company logo here by clicking inside the circle',
+                    target: '#company-logo-circle',
+                    content: 'Click the pencil button inside the circle to upload a new company logo',
                     placement: 'right',
                     styles: {
                         buttonClose: {
                             display: "none"
+                        },
+                        buttonNext:{
+                            display: "none"
                         }
                     },
                     spotlightClicks: true
+
+                },
+                {
+                    target: '#company-logo-dropzone',
+                    content: 'Click the on the rectangle to upload a company logo',
+                    placement: 'right',
+                    styles: {
+                        buttonClose: {
+                            display: "none"
+                        },
+                        buttonNext:{
+                            display: "none"
+                        }
+                    },
+                    spotlightClicks: true
+                },
+                {
+                    target: '#company-logo-save',
+                    content: 'To save the company logo, click save',
+                    placement: 'right',
+                    styles: {
+                        buttonClose: {
+                            display: "none"
+                        },
+                        buttonNext:{
+                            display: "none"
+                        }
+                    },
+                    spotlightClicks: true
+
                 },
                 {
                     target: '#company_title',
@@ -122,6 +156,9 @@ export class Profile extends Flux.DashView {
                     styles: {
                         buttonClose: {
                             display: "none"
+                        },
+                        buttonNext:{
+                            display: "none"
                         }
                     },
                     spotlightClicks: true
@@ -129,7 +166,7 @@ export class Profile extends Flux.DashView {
                 },
                 {
                     target: '#button_save',
-                    content: 'Save',
+                    content: 'When done, save company information',
                     placement: 'right',
                     styles: {
                         buttonClose: {
@@ -142,7 +179,7 @@ export class Profile extends Flux.DashView {
             
                 {
                     target: '#manage_locations',
-                    content: 'Manage your company location. You will need the company address in order to send shift to future employees',
+                    content: 'Manage your company locations. You will need at least one company address in order to send shift to future employees',
                     placement: 'right',
                     styles: {
                         buttonClose: {
@@ -153,7 +190,8 @@ export class Profile extends Flux.DashView {
                         }
                     },
                     spotlightClicks: true
-                }
+                },
+            
             ]
         };
     }
@@ -185,11 +223,34 @@ export class Profile extends Flux.DashView {
     }
     callback = (data) => {
         console.log('DATA', data);
-     
+        
         // if(data.action == 'next' && data.index == 0){
         //     this.props.history.push("/payroll");
 
         // }
+        if(data.action == "next" && data.index == 0){
+
+
+            this.setState({stepIndex: 1});
+        
+        }
+        else if(data.action == "next" && data.index == 4 && data.lifecycle == "complete" && data.step.target == "#company_title"){
+        
+            this.setState({stepIndex: 5});
+    
+        }
+        else if(data.action == "next" && data.index == 5 && data.lifecycle == "complete" &&  data.step.target == "#company_website"){
+
+                this.setState({stepIndex: 6});
+  
+        }
+        else if(data.action == "next" && data.index == 6 && data.lifecycle == "complete" &&  data.step.target == "#company_bio"){
+     
+                this.setState({stepIndex: 7});
+
+        }
+     
+
         if(data.type == 'skip'){
             const session = Session.get();
             updateProfileMe({show_tutorial: false});
@@ -201,14 +262,23 @@ export class Profile extends Flux.DashView {
     };
 
     render() {
+        console.log(this.state);
         return (<div className="p-1 listcontents company-profile">
             <Wizard continuous
                             steps={this.state.steps}
                             run={this.state.runTutorial}
                             callback={(data) => this.callback(data)}
+                            stepIndex={this.state.stepIndex}
                             disableCloseOnEsc={true}
                             disableOverlayClose={true}
+                            hideBackButton={true}
                             disableScrollParentFix={true}
+                            styles={{
+                                options: {
+                                    width: 600  ,
+                                    zIndex: 1000
+                                }
+                            }}
 
                         />
             <h1><span id="company_details">User Details</span></h1>
@@ -247,18 +317,18 @@ export class Profile extends Flux.DashView {
                             <Button className="ml-2" onClick={() => this.props.history.push('/profile/subscription')} size="small">update</Button></p>
                     </div>
                 </div>
-                <div className="row" >
-                    <div className="col-12" id="company_logo">
+                <div className="row"  id="company-logo-dropzone" >
+                    <div className="col-12">
                         <label>Company Logo</label>
                             
                         {!this.state.editingImage ?
-                            <div className="company-logo" style={{ backgroundImage: `url(${this.state.employer.picture})` }}>
-                                <Button color="primary" size="small" onClick={() => this.setState({ editingImage: true })} icon="pencil" />
+                            <div id="company-logo-circle" className="company-logo" style={{ backgroundImage: `url(${this.state.employer.picture})` }}>
+                                <Button color="primary" size="small" onClick={() => this.setState({ editingImage: true, stepIndex: 2})} icon="pencil" />
                             </div>
                             :
                             <div>
                                 {this.state.uploadCompanyLogo ? <div className="company-logo" style={{backgroundImage:`url(${URL.createObjectURL(this.state.uploadCompanyLogo)})`}}> <Button color="primary" size="small" onClick={() => this.setState({ editingImage: false, uploadCompanyLogo: null })} icon="times" /></div> : 
-                                <Dropzone onDrop={acceptedFiles => this.setState({ uploadCompanyLogo: acceptedFiles[0] })}>
+                                <Dropzone onDrop={acceptedFiles => this.setState({ uploadCompanyLogo: acceptedFiles[0],  stepIndex: 3 })}>
                                     {({ getRootProps, getInputProps }) => {
                                             return(<section className="upload-zone">
                                                 <div {...getRootProps()}>
@@ -273,12 +343,12 @@ export class Profile extends Flux.DashView {
 
                                 <br/>
                                 <Button onClick={() => this.setState({ editingImage: false, uploadCompanyLogo: null})} color="secondary">Cancel</Button>
-                                <Button onClick={() => {
-                                    updateProfileImage(this.state.uploadCompanyLogo).then(picture => {
+                                <Button id="company-logo-save" onClick={() => {
+                                    updateProfileImage(this.state.uploadCompanyLogo, this.state.runTutorial).then(picture => {
                                         this.setState(prevState => {
                                             let employer = Object.assign({}, prevState.employer);  
                                             employer.picture =  picture;                                   
-                                            return { employer,editingImage: false, uploadCompanyLogo: null };                                 
+                                            return { employer,editingImage: false, uploadCompanyLogo: null, stepIndex:4 };                                 
                                           });
                                     });
 
@@ -316,7 +386,7 @@ export class Profile extends Flux.DashView {
                         type="button"
                         id="button_save"
                         className="btn btn-primary"
-                        onClick={() => update({ path: 'employers/me', event_name: 'current_employer' }, Employer(this.state.employer).validate().serialize()).catch(e => Notify.error(e.message || e))}
+                        onClick={() => {update({ path: 'employers/me', event_name: 'current_employer' }, Employer(this.state.employer).validate().serialize()).catch(e => Notify.error(e.message || e)); this.setState({stepIndex: 8});}}
                     >Save</button>
                 </div>
             </form>

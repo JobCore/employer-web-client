@@ -162,6 +162,7 @@ export class ManageLocations extends Flux.DashView {
     render() {
         if(this.state.firstSearch) return <p>Search for any location</p>;
         const allowLevels = (window.location.search != '');
+        console.log(this.state);
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({bar}) => (<span>

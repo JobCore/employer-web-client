@@ -24,7 +24,7 @@ export default class Home extends Flux.DashView {
             calendarLoading: true,
             steps: [
                 {
-                    content: <div><h2>Welcome to JobCore!</h2><p>Where employers can create their calendar shifts, recruit workers from our curated pool, communicate, schedule, pay and rate them quicky and efficiently.</p></div>,
+                    content: <div><h2>Welcome to JobCore!</h2><h4>{"Start the guide and let's get your account set up."}</h4></div>,
                     placement: "center",   
                     disableBeacon: true,
                     disableCloseOnEsc: true,
@@ -77,13 +77,14 @@ export default class Home extends Flux.DashView {
             <Theme.Consumer>
                 {({ bar }) =>
                     <div>
-                        <Wizard continuous
+                        <Wizard 
                             steps={this.state.steps}
                             run={this.state.runTutorial}
                             callback={(data) => this.callback(data)}
                             disableCloseOnEsc={true}
                             disableOverlayClose={true}
                             disableScrollParentFix={true}
+                            continuous={true}
                         />
                         <div className="row" >
                             <div className="col-8">

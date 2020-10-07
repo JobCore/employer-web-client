@@ -311,6 +311,7 @@ export class ManageShifts extends Flux.DashView {
                 steps={this.state.steps}
                 run={this.state.runTutorial}
                 callback={callback}
+                showProgress
             />
             <h1 className="float-left"><span id="shift-details-header">Shift Details</span></h1>
             {shiftsHTML.length == 0 && <div className="mt-5">No shifts have been found</div>}
