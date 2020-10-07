@@ -462,7 +462,8 @@ export const remove = (entity, data) => {
 
 export const updateProfileImage = (file) => PUTFiles('employers/me/image', [file])
     .then(function (incomingObject) {
-        const payload = Session.getPayload();
+        let payload = Session.getPayload().user.profile;
+        console.log(payload.user);
         const user = Object.assign(payload.user, { profile: incomingObject });
         Session.setPayload({ user });
         return user.profile.picture;
