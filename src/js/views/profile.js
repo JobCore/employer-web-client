@@ -344,7 +344,7 @@ export class Profile extends Flux.DashView {
                                 <br/>
                                 <Button onClick={() => this.setState({ editingImage: false, uploadCompanyLogo: null})} color="secondary">Cancel</Button>
                                 <Button id="company-logo-save" onClick={() => {
-                                    updateProfileImage(this.state.uploadCompanyLogo, this.state.runTutorial).then(picture => {
+                                    updateProfileImage(this.state.uploadCompanyLogo).then(picture => {
                                         this.setState(prevState => {
                                             let employer = Object.assign({}, prevState.employer);  
                                             employer.picture =  picture;                                   

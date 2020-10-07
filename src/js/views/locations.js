@@ -7,6 +7,7 @@ import Select from 'react-select';
 import queryString from 'query-string';
 import {hasTutorial } from '../utils/tutorial';
 import {Link} from "react-router-dom";
+import { Session } from 'bc-react-session';
 
 import {validator, ValidationError} from '../utils/validation';
 
@@ -89,6 +90,7 @@ export class ManageLocations extends Flux.DashView {
         super();
         this.state = {
             locations: [],
+            currentUser: Session.getPayload().user.profile,
             runTutorial: hasTutorial(),
             steps: [
                 {
@@ -308,7 +310,7 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
                                 {
                                     target: '#address',
                                     content: 'Enter your address',
-                                    placement: 'right',
+                                    placement: 'left',
                                     disableBeacon: true,
                                     styles: {
                                         options: {
@@ -318,12 +320,13 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
                                             display: "none"
                                         },
                                     },
+                                    spotlightClicks: true
 
                                 },
                                 {
                                     target: '#location_nickname',
                                     content: 'Enter your venue name',
-                                    placement: 'right',
+                                    placement: 'left',
                                     styles: {
                                         options: {
                                             zIndex: 10000
@@ -332,11 +335,12 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
                                             display: "none"
                                         },
                                     },
+                                    spotlightClicks: true
                                 },
                                 {
                                     target: '#location_details',
                                     content: 'Enter additional location details',
-                                    placement: 'right',
+                                    placement: 'left',
                                     styles: {
                                         options: {
                                             zIndex: 10000
@@ -345,11 +349,12 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
                                             display: "none"
                                         },
                                     },
+                                    spotlightClicks: true
                                 },
                                 {
                                     target: '#button_save',
                                     content: 'After you are done, click save',
-                                    placement: 'right',
+                                    placement: 'left',
                                     styles: {
                                         options: {
                                             zIndex: 10000

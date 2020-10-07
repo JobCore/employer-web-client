@@ -5,6 +5,7 @@ import { Notify } from 'bc-react-notifier';
 import { Shift } from './views/shifts.js';
 import { Talent } from './views/talents.js';
 import { Rating } from './views/ratings.js';
+
 import { Invite } from './views/invites.js';
 import { Clockin, PayrollPeriod } from './views/payroll.js';
 import moment from 'moment';
@@ -462,10 +463,10 @@ export const remove = (entity, data) => {
 
 export const updateProfileImage = (file) => PUTFiles('employers/me/image', [file])
     .then(function (incomingObject) {
-        let payload = Session.getPayload().user.profile;
-        console.log(payload.user);
+        const payload = Session.getPayload();
+ 
         const user = Object.assign(payload.user, { profile: incomingObject });
-        Session.setPayload({ user });
+        // Session.setPayload({ user });
         return user.profile.picture;
     })
     .catch(function (error) {
