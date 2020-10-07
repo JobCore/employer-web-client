@@ -156,9 +156,6 @@ export class Profile extends Flux.DashView {
                     styles: {
                         buttonClose: {
                             display: "none"
-                        },
-                        buttonNext:{
-                            display: "none"
                         }
                     },
                     spotlightClicks: true
@@ -170,6 +167,9 @@ export class Profile extends Flux.DashView {
                     placement: 'right',
                     styles: {
                         buttonClose: {
+                            display: "none"
+                        },
+                        buttonNext:{
                             display: "none"
                         }
                     },
