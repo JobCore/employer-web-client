@@ -350,7 +350,6 @@ export class PayrollSettings extends Flux.DashView {
 
     }
     callback = (data) => {
-        console.log('DATA', data);
      
         // if(data.action == 'next' && data.index == 0){
         //     this.props.history.push("/payroll");
@@ -1879,7 +1878,33 @@ export class PayrollReport extends Flux.DashView {
             this.setState({ employer });
         });
         this.subscribe(store, 'payroll-period-payments', (paymentInfo) => {
-            console.log(paymentInfo);
+            console.log('payment info', paymentInfo);
+            const payrollPaymentsWithDeductible = paymentInfo.payments.map((e,i)=>{
+                var temp = Object.assign({}, e);
+                // if(e.employee.w4_year == 2019 || e.employee.w4_year){
+                //     if(e.employee.filing_status == "SINGLE"){
+                        var federalWithholding = 0;
+                        if(Number(temp.earnings) < 73 ) federalWithholding = 0;
+                        else if(Number(temp.earnings) > 73 && Number(temp.earnings) < 263) federalWithholding = Math.round(0 + ((Number(temp.earnings) - 73) * 0.10));
+                        else if(Number(temp.earnings) > 263 && Number(temp.earnings) < 845) federalWithholding = Math.round(19.00 + ((Number(temp.earnings) - 263) * 0.12));
+                        else if(Number(temp.earnings) > 845 && Number(temp.earnings) < 1718) federalWithholding = Math.round(88.84 + ((Number(temp.earnings) - 845) * 0.22));
+                        else if(Number(temp.earnings) > 1718 && Number(temp.earnings) < 3213) federalWithholding = Math.round(280.90 + ((Number(temp.earnings) - 1718) * 0.24));
+                        else if(Number(temp.earnings) > 3213 && Number(temp.earnings) < 4061) federalWithholding = Math.round(639.70 + ((Number(temp.earnings) - 3213) * 0.32));
+                        else if(Number(temp.earnings) > 4061 && Number(temp.earnings) < 10042) federalWithholding = Math.round(911.06 + ((Number(temp.earnings) - 4061) * 0.35));
+                        else if(Number(temp.earnings) > 10042) federalWithholding = Math.round(3004.41 + ((Number(temp.earnings) - 10042) * 0.37));
+                        else federalWithholding = 0;
+                        temp.deduction_list.push({
+                            "name": "Federal Withholding",
+                            "amount": federalWithholding
+                        });
+                        temp["deductions"] = Math.round((temp["deductions"] + federalWithholding)*100)/100;
+                        temp["amount"] = Math.round((temp["earnings"] - temp["deductions"])*100)/100;
+                //     }
+                // }
+                return temp;
+            });
+            let newPaymentInfo = paymentInfo;
+            newPaymentInfo["payments"] = payrollPaymentsWithDeductible;
             this.setState({ paymentInfo });
         });
         this.subscribe(store, 'employee-payment', () => {
@@ -1959,6 +1984,8 @@ export class PayrollReport extends Flux.DashView {
         }
         const payrollPeriodLabel = this.state.singlePayrollPeriod ? `Payments From ${moment(this.state.singlePayrollPeriod.starting_at).format('MM-D-YY h:mm A')} to ${moment(this.state.singlePayrollPeriod.ending_at).format('MM-D-YY h:mm A')}` : '';
         //const allowLevels = (window.location.search != '');
+        console.log(this.state);
+
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({ bar }) => (<span>
