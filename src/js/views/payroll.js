@@ -1881,9 +1881,10 @@ export class PayrollReport extends Flux.DashView {
             console.log('payment info', paymentInfo);
             const payrollPaymentsWithDeductible = paymentInfo.payments.map((e,i)=>{
                 var temp = Object.assign({}, e);
-                // if(e.employee.w4_year == 2019 || e.employee.w4_year){
-                //     if(e.employee.filing_status == "SINGLE"){
-                        var federalWithholding = 0;
+                if(e.employee.w4_year == 2019 || !e.employee.w4_year){
+                    if(e.employee.filing_status == "SINGLE"){
+                        let federalWithholding = 0;
+
                         if(Number(temp.earnings) < 73 ) federalWithholding = 0;
                         else if(Number(temp.earnings) > 73 && Number(temp.earnings) < 263) federalWithholding = Math.round(0 + ((Number(temp.earnings) - 73) * 0.10));
                         else if(Number(temp.earnings) > 263 && Number(temp.earnings) < 845) federalWithholding = Math.round(19.00 + ((Number(temp.earnings) - 263) * 0.12));
@@ -1893,14 +1894,149 @@ export class PayrollReport extends Flux.DashView {
                         else if(Number(temp.earnings) > 4061 && Number(temp.earnings) < 10042) federalWithholding = Math.round(911.06 + ((Number(temp.earnings) - 4061) * 0.35));
                         else if(Number(temp.earnings) > 10042) federalWithholding = Math.round(3004.41 + ((Number(temp.earnings) - 10042) * 0.37));
                         else federalWithholding = 0;
+
                         temp.deduction_list.push({
                             "name": "Federal Withholding",
                             "amount": federalWithholding
                         });
                         temp["deductions"] = Math.round((temp["deductions"] + federalWithholding)*100)/100;
                         temp["amount"] = Math.round((temp["earnings"] - temp["deductions"])*100)/100;
-                //     }
-                // }
+                    }else if(e.employee.filing_status == "MARRIED_JOINTLY"){
+                        let federalWithholding = 0;
+
+                        if(Number(temp.earnings) < 229 ) federalWithholding = 0;
+                        else if(Number(temp.earnings) > 229 && Number(temp.earnings) < 609) federalWithholding = Math.round(0 + ((Number(temp.earnings) - 229) * 0.10));
+                        else if(Number(temp.earnings) > 609 && Number(temp.earnings) < 1772 ) federalWithholding = Math.round(38.00 + ((Number(temp.earnings) - 609) * 0.12));
+                        else if(Number(temp.earnings) > 1772 && Number(temp.earnings) < 3518 ) federalWithholding = Math.round(177.56 + ((Number(temp.earnings) - 1772) * 0.22));
+                        else if(Number(temp.earnings) > 3518 && Number(temp.earnings) < 6510) federalWithholding = Math.round(561.68 + ((Number(temp.earnings) - 3518) * 0.24));
+                        else if(Number(temp.earnings) > 6510 && Number(temp.earnings) < 8204 ) federalWithholding = Math.round(1279.76 + ((Number(temp.earnings) - 6510) * 0.32));
+                        else if(Number(temp.earnings) > 8204 && Number(temp.earnings) < 12191 ) federalWithholding = Math.round(1,821.84 + ((Number(temp.earnings) - 8204) * 0.35));
+                        else if(Number(temp.earnings) > 12191) federalWithholding = Math.round(3217.29 + ((Number(temp.earnings) - 12191) * 0.37));
+                        else federalWithholding = 0;
+                        temp.deduction_list.push({
+                            "name": "Federal Withholding",
+                            "amount": federalWithholding
+                        });
+                        temp["deductions"] = Math.round((temp["deductions"] + federalWithholding)*100)/100;
+                        temp["amount"] = Math.round((temp["earnings"] - temp["deductions"])*100)/100;
+                    }
+                }else if(e.employee.w4_year == 2020){
+                    if(e.employee.filing_status == "MARRIED_JOINTLY"){
+                        if(!e.step2c_checked){
+                            let federalWithholding = 0;
+
+                            if(Number(temp.earnings) < 477 ) federalWithholding = 0;
+                            else if(Number(temp.earnings) > 477 && Number(temp.earnings) < 857) federalWithholding = Math.round(0 + ((Number(temp.earnings) - 477) * 0.10));
+                            else if(Number(temp.earnings) > 857 && Number(temp.earnings) < 2020) federalWithholding = Math.round(38.00 + ((Number(temp.earnings) - 857) * 0.12));
+                            else if(Number(temp.earnings) > 2020 && Number(temp.earnings) < 3766) federalWithholding = Math.round(177.56 + ((Number(temp.earnings) - 2020) * 0.22));
+                            else if(Number(temp.earnings) > 3766 && Number(temp.earnings) < 6758) federalWithholding = Math.round(561.68 + ((Number(temp.earnings) - 3766) * 0.24));
+                            else if(Number(temp.earnings) > 6758 && Number(temp.earnings) < 8452) federalWithholding = Math.round(1279.76 + ((Number(temp.earnings) - 6758) * 0.32));
+                            else if(Number(temp.earnings) > 8452 && Number(temp.earnings) < 12439) federalWithholding = Math.round(1821.84 + ((Number(temp.earnings) - 8452) * 0.35));
+                            else if(Number(temp.earnings) > 12439) federalWithholding = Math.round(3004.41 + ((Number(temp.earnings) - 12439) * 0.37));
+                            else federalWithholding = 0;
+                            temp.deduction_list.push({
+                                "name": "Federal Withholding",
+                                "amount": federalWithholding
+                            });
+                            temp["deductions"] = Math.round((temp["deductions"] + federalWithholding)*100)/100;
+                            temp["amount"] = Math.round((temp["earnings"] - temp["deductions"])*100)/100;
+                        }else{
+                            let federalWithholding = 0;
+
+                            if(Number(temp.earnings) < 238 ) federalWithholding = 0;
+                            else if(Number(temp.earnings) > 238 && Number(temp.earnings) < 428) federalWithholding = Math.round(0 + ((Number(temp.earnings) - 238) * 0.10));
+                            else if(Number(temp.earnings) > 428 && Number(temp.earnings) < 1010) federalWithholding = Math.round(19.00 + ((Number(temp.earnings) - 428) * 0.12));
+                            else if(Number(temp.earnings) > 1010 && Number(temp.earnings) < 1883) federalWithholding = Math.round(88.84 + ((Number(temp.earnings) - 1010) * 0.22));
+                            else if(Number(temp.earnings) > 1883 && Number(temp.earnings) < 3379) federalWithholding = Math.round(280.90 + ((Number(temp.earnings) - 1883) * 0.24));
+                            else if(Number(temp.earnings) > 3379 && Number(temp.earnings) < 4226) federalWithholding = Math.round(639.94 + ((Number(temp.earnings) - 3379) * 0.32));
+                            else if(Number(temp.earnings) > 4226 && Number(temp.earnings) < 6220) federalWithholding = Math.round(910.98 + ((Number(temp.earnings) - 4226) * 0.35));
+                            else if(Number(temp.earnings) > 6220) federalWithholding = Math.round(1608.88 + ((Number(temp.earnings) - 6220) * 0.37));
+                            else federalWithholding = 0;
+                            temp.deduction_list.push({
+                                "name": "Federal Withholding",
+                                "amount": federalWithholding
+                            });
+                            temp["deductions"] = Math.round((temp["deductions"] + federalWithholding)*100)/100;
+                            temp["amount"] = Math.round((temp["earnings"] - temp["deductions"])*100)/100;
+                        }
+                    }else if(e.employee.filing_status == "SINGLE" || e.employee.filing_status == "MARRIED_SEPARATELY"){
+                        if(e.step2c_checked){
+                            let federalWithholding = 0;
+
+                            if(Number(temp.earnings) < 119 ) federalWithholding = 0;
+                            else if(Number(temp.earnings) > 119 && Number(temp.earnings) < 214) federalWithholding = Math.round(0 + ((Number(temp.earnings) - 119) * 0.10));
+                            else if(Number(temp.earnings) > 214 && Number(temp.earnings) < 505) federalWithholding = Math.round(9.50 + ((Number(temp.earnings) - 214) * 0.12));
+                            else if(Number(temp.earnings) > 505 && Number(temp.earnings) < 942) federalWithholding = Math.round(44.42 + ((Number(temp.earnings) - 505) * 0.22));
+                            else if(Number(temp.earnings) > 942 && Number(temp.earnings) < 1689) federalWithholding = Math.round(140.56 + ((Number(temp.earnings) - 942) * 0.24));
+                            else if(Number(temp.earnings) > 1689 && Number(temp.earnings) < 2113) federalWithholding = Math.round(319.84 + ((Number(temp.earnings) - 1689) * 0.32));
+                            else if(Number(temp.earnings) > 2113 && Number(temp.earnings) < 5104) federalWithholding = Math.round(455.52 + ((Number(temp.earnings) - 2113) * 0.35));
+                            else if(Number(temp.earnings) > 5104) federalWithholding = Math.round(1502.37 + ((Number(temp.earnings) - 5104) * 0.37));
+                            else federalWithholding = 0;
+                            temp.deduction_list.push({
+                                "name": "Federal Withholding",
+                                "amount": federalWithholding
+                            });
+                            temp["deductions"] = Math.round((temp["deductions"] + federalWithholding)*100)/100;
+                            temp["amount"] = Math.round((temp["earnings"] - temp["deductions"])*100)/100;
+                        }else{
+                            let federalWithholding = 0;
+
+                            if(Number(temp.earnings) < 238 ) federalWithholding = 0;
+                            else if(Number(temp.earnings) > 238 && Number(temp.earnings) < 428) federalWithholding = Math.round(0 + ((Number(temp.earnings) - 238) * 0.10));
+                            else if(Number(temp.earnings) > 428 && Number(temp.earnings) < 1010) federalWithholding = Math.round(19.00 + ((Number(temp.earnings) - 428) * 0.12));
+                            else if(Number(temp.earnings) > 1010 && Number(temp.earnings) < 1883) federalWithholding = Math.round(88.84 + ((Number(temp.earnings) - 1010) * 0.22));
+                            else if(Number(temp.earnings) > 1883 && Number(temp.earnings) < 3379) federalWithholding = Math.round(280.90 + ((Number(temp.earnings) - 1883) * 0.24));
+                            else if(Number(temp.earnings) > 3379 && Number(temp.earnings) < 4226) federalWithholding = Math.round(639.94 + ((Number(temp.earnings) - 3379) * 0.32));
+                            else if(Number(temp.earnings) > 4226 && Number(temp.earnings) < 10208) federalWithholding = Math.round(910.98 + ((Number(temp.earnings) - 4226) * 0.35));
+                            else if(Number(temp.earnings) > 10208) federalWithholding = Math.round(3004.68 + ((Number(temp.earnings) - 10208) * 0.37));
+                            else federalWithholding = 0;
+                            temp.deduction_list.push({
+                                "name": "Federal Withholding",
+                                "amount": federalWithholding
+                            });
+                            temp["deductions"] = Math.round((temp["deductions"] + federalWithholding)*100)/100;
+                            temp["amount"] = Math.round((temp["earnings"] - temp["deductions"])*100)/100;
+                        }
+                    }else if(e.employee.filing_status == "HEAD"){
+                        if(e.step2c_checked){
+                            let federalWithholding = 0;
+
+                            if(Number(temp.earnings) < 179 ) federalWithholding = 0;
+                            else if(Number(temp.earnings) > 179 && Number(temp.earnings) < 315) federalWithholding = Math.round(0 + ((Number(temp.earnings) - 179) * 0.10));
+                            else if(Number(temp.earnings) > 315 && Number(temp.earnings) < 696) federalWithholding = Math.round(13.60 + ((Number(temp.earnings) - 315) * 0.12));
+                            else if(Number(temp.earnings) > 696 && Number(temp.earnings) < 1001) federalWithholding = Math.round(59.32 + ((Number(temp.earnings) - 696) * 0.22));
+                            else if(Number(temp.earnings) > 1001 && Number(temp.earnings) < 1750) federalWithholding = Math.round(126.42 + ((Number(temp.earnings) - 1001) * 0.24));
+                            else if(Number(temp.earnings) > 1750 && Number(temp.earnings) < 2173) federalWithholding = Math.round(306.18 + ((Number(temp.earnings) - 1750) * 0.32));
+                            else if(Number(temp.earnings) > 2173 && Number(temp.earnings) < 5164) federalWithholding = Math.round(441.54 + ((Number(temp.earnings) - 2173) * 0.35));
+                            else if(Number(temp.earnings) > 5164) federalWithholding = Math.round(1488.39 + ((Number(temp.earnings) - 5164) * 0.37));
+                            else federalWithholding = 0;
+                            temp.deduction_list.push({
+                                "name": "Federal Withholding",
+                                "amount": federalWithholding
+                            });
+                            temp["deductions"] = Math.round((temp["deductions"] + federalWithholding)*100)/100;
+                            temp["amount"] = Math.round((temp["earnings"] - temp["deductions"])*100)/100;
+                        }else{
+                            let federalWithholding = 0;
+
+                            if(Number(temp.earnings) < 359 ) federalWithholding = 0;
+                            else if(Number(temp.earnings) > 359 && Number(temp.earnings) < 630) federalWithholding = Math.round(0 + ((Number(temp.earnings) - 359) * 0.10));
+                            else if(Number(temp.earnings) > 630 && Number(temp.earnings) < 1391) federalWithholding = Math.round(27.00 + ((Number(temp.earnings) - 630) * 0.12));
+                            else if(Number(temp.earnings) > 1391 && Number(temp.earnings) < 2003) federalWithholding = Math.round(118.42 + ((Number(temp.earnings) - 1391) * 0.22));
+                            else if(Number(temp.earnings) > 2003 && Number(temp.earnings) < 3499) federalWithholding = Math.round(253.06 + ((Number(temp.earnings) - 2003) * 0.24));
+                            else if(Number(temp.earnings) > 3499 && Number(temp.earnings) < 4346) federalWithholding = Math.round(612.10 + ((Number(temp.earnings) - 3499) * 0.32));
+                            else if(Number(temp.earnings) > 4346 && Number(temp.earnings) < 10328) federalWithholding = Math.round(883.14 + ((Number(temp.earnings) - 4346) * 0.35));
+                            else if(Number(temp.earnings) > 10328) federalWithholding = Math.round(2976.84 + ((Number(temp.earnings) - 10328) * 0.37));
+                            else federalWithholding = 0;
+                            temp.deduction_list.push({
+                                "name": "Federal Withholding",
+                                "amount": federalWithholding
+                            });
+                            temp["deductions"] = Math.round((temp["deductions"] + federalWithholding)*100)/100;
+                            temp["amount"] = Math.round((temp["earnings"] - temp["deductions"])*100)/100;
+                        }
+                    }
+                }
                 return temp;
             });
             let newPaymentInfo = paymentInfo;
@@ -1986,7 +2122,7 @@ export class PayrollReport extends Flux.DashView {
         //const allowLevels = (window.location.search != '');
         console.log(this.state);
 
-        return (<div className="p-1 listcontents">
+        return (<div className="p-1" style={{maxWidth: '1000px'}}>
             <Theme.Consumer>
                 {({ bar }) => (<span>
                     {(!this.state.paymentInfo) ? '' :
@@ -2024,14 +2160,17 @@ export class PayrollReport extends Flux.DashView {
                                 {/* {this.state.singlePayrollPeriod.status == "OPEN" &&
                                     <Redirect from={'/payroll/report/' + this.state.singlePayrollPeriod.id} to={'/payroll/rating/' + this.state.singlePayrollPeriod.id} />
                                 } */}
-                                <table className="table table-striped payroll-summary">
+                                <table className="table table-striped payroll-summary text-center">
                                     <thead>
                                         <tr>
-                                            <th scope="col">Staff</th>
+                                            <th scope="col-2" className="text-left">Staff</th>
                                             <th scope="col">Regular Hrs</th>
                                             <th scope="col">Over Time</th>
                                             <th scope="col">Total Hrs</th>
                                             <th scope="col">Earnings</th>
+                                            <th scope="col">Federal Withholding</th>
+                                            <th scope="col">Social Security</th>
+                                            <th scope="col">Medicare</th>
                                             <th scope="col">Taxes</th>
                                             <th scope="col">Amount</th>
                                             <th scope="col"></th>
@@ -2043,7 +2182,7 @@ export class PayrollReport extends Flux.DashView {
                                         ).map(pay => {
 
                                             return <tr key={pay.employee.id}>
-                                                <td>
+                                                <td className="text-left">
                                                     {pay.employee.last_name}, {pay.employee.first_name}
                                                     <p className="m-0 p-0"><span className="badge">{pay.paid ? "paid" : "unpaid"}</span></p>
                                                 </td>
@@ -2051,7 +2190,10 @@ export class PayrollReport extends Flux.DashView {
                                                 <td>{Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100) / 100 > 40 ? Math.round((Number(pay.regular_hours) + Number(pay.over_time)- 40) * 100 )  / 100  : "-" }</td>
                                                 <td>{Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100) / 100}</td>
                                                 <td>{pay.earnings}</td> 
-                                                <td>{pay.deductions}</td>
+                                                <td>{pay.deduction_list.find(e => e.name == "Federal Withholding").amount > 0 ? "-" + pay.deduction_list.find(e => e.name == "Federal Withholding").amount: 0}</td> 
+                                                <td>{"-" + pay.deduction_list.find(e => e.name == "Social Security").amount}</td> 
+                                                <td>{"-" + pay.deduction_list.find(e => e.name == "Medicare").amount}</td> 
+                                                <td>{"-" + pay.deductions}</td>
                                                 <td>{pay.amount}</td>
                                                 <td>
                                                     <Button 

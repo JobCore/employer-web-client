@@ -6,8 +6,8 @@ import { Page, Image, Text, View, Document, StyleSheet, PDFDownloadLink } from '
 
 const BORDER_COLOR = '#000000';
 const BORDER_STYLE = 'solid';
-const COL1_WIDTH = 20;
-const COLN_WIDTH = (100 - COL1_WIDTH) / 6;
+const COL1_WIDTH = 10;
+const COLN_WIDTH = (100 - COL1_WIDTH) / 9;
 
 const styles = StyleSheet.create({
     body: {
@@ -39,7 +39,8 @@ const styles = StyleSheet.create({
     },
     tableRow: {
         margin: "auto",
-        flexDirection: "row"
+        flexDirection: "row",
+        textAlign: 'center'
     },
     tableCol1Header: {
         width: COL1_WIDTH + '%',
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
 
 const PayrollPeriodReport = ({ period, employer, payments }) => {
     return <Document>
-        <Page style={styles.body}>
+        <Page orientation={"landscape"} style={styles.body}>
             <View style={styles.section}>
                 <Image src={JobCoreLogo} style={styles.image} />
             </View>
@@ -122,6 +123,15 @@ const PayrollPeriodReport = ({ period, employer, payments }) => {
                         <Text style={styles.tableCellHeader}>EARNINGS</Text>
                     </View>
                     <View style={styles.tableColHeader}>
+                        <Text style={styles.tableCellHeader}>FEDERAL</Text>
+                    </View>
+                    <View style={styles.tableColHeader}>
+                        <Text style={styles.tableCellHeader}>SSN</Text>
+                    </View>
+                    <View style={styles.tableColHeader}>
+                        <Text style={styles.tableCellHeader}>MEDICARE</Text>
+                    </View>
+                    <View style={styles.tableColHeader}>
                         <Text style={styles.tableCellHeader}>TAXES</Text>
                     </View>
                     <View style={styles.tableColHeader}>
@@ -148,6 +158,16 @@ const PayrollPeriodReport = ({ period, employer, payments }) => {
                         <View style={styles.tableCol}>
                             <Text style={styles.tableCell}>{pay.earnings && parseFloat(pay.earnings).toFixed(2)}</Text>
                         </View>
+                        <View style={styles.tableCol}>                                      
+                            <Text style={styles.tableCell}>{pay.deduction_list.find(e => e.name == "Federal Withholding").amount > 0 ? "-" + pay.deduction_list.find(e => e.name == "Federal Withholding").amount: 0}</Text>
+                        </View>
+                        <View style={styles.tableCol}>
+                            <Text style={styles.tableCell}>{"-" + pay.deduction_list.find(e => e.name == "Social Security").amount}</Text>
+                        </View>
+                        <View style={styles.tableCol}>
+                            <Text style={styles.tableCell}>{"-" + pay.deduction_list.find(e => e.name == "Medicare").amount}</Text>
+                        </View>
+
                         <View style={styles.tableCol}>
                             <Text style={styles.tableCell}>${pay.deductions && parseFloat(pay.deductions).toFixed(2)}</Text>
                         </View>
