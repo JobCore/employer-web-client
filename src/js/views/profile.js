@@ -269,10 +269,11 @@ export class Profile extends Flux.DashView {
                             run={this.state.runTutorial}
                             callback={(data) => this.callback(data)}
                             stepIndex={this.state.stepIndex}
-                            disableCloseOnEsc={true}
-                            disableOverlayClose={true}
-                            hideBackButton={true}
-                            disableScrollParentFix={true}
+                            // disableCloseOnEsc={true}
+                            // disableOverlayClose={true}
+                            // hideBackButton={true}
+                            // disableScrolling={true}
+                            // disableScrollParentFix={true}
                             styles={{
                                 options: {
                                     width: 600  ,
