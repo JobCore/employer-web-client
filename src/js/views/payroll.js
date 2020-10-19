@@ -890,8 +890,24 @@ export const PayrollPeriodDetails = ({ match, history }) => {
         groupedPayments[pay.employee.id].payments.push(pay);
     }
     groupedPayments = Object.keys(groupedPayments).map(id => groupedPayments[id]);
-    function parseToTime(num) {
-        return ('0' + Math.floor(num) % 24).slice(-2) + ':' + ((num % 1)*60 + '0').slice(0, 2);
+
+    function parseToTime(num){
+        var decimalTimeString = num;
+        var decimalTime = parseFloat(decimalTimeString);
+        decimalTime = decimalTime * 60 * 60;
+        var hours = Math.floor((decimalTime / (60 * 60)));
+        decimalTime = decimalTime - (hours * 60 * 60);
+        var minutes = Math.floor((decimalTime / 60));
+
+        if(hours < 10)
+        {
+            hours = "0" + hours;
+        }
+        if(minutes < 10)
+        {
+            minutes = "0" + minutes;
+        }
+        return ("" + hours + ":" + minutes);
     }
     return <div className="p-1 listcontents">
         <p className="text-right">
@@ -941,7 +957,6 @@ export const PayrollPeriodDetails = ({ match, history }) => {
             ).map(pay => {
                 const total_hours = pay.payments.filter(p => p.status === "APPROVED" || p.status === "PAID").reduce((total, { regular_hours, over_time, breaktime_minutes}) => total + Number(regular_hours) + Number(over_time), 0);
                 const total_amount = pay.payments.filter(p => p.status === "APPROVED" || p.status === "PAID").reduce((total, { regular_hours, over_time, hourly_rate, breaktime_minutes }) => total + (Number(regular_hours) + Number(over_time))*Number(hourly_rate) , 0);
-                console.log('total_amount', total_amount);
                 return <table key={pay.employee.id} className="table table-striped payroll-summary">
                     <thead>
                         <tr>
@@ -1045,7 +1060,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                 }
                             </td>
                             <td colSpan={3} className="text-right">
-                                Total: {!isNaN(total_hours) ? parseToTime(total_hours) : 0}
+                                Total: {!isNaN(total_hours) ? Math.round(total_hours * 100) / 100 : 0} hr
                                 {!isNaN(total_hours) && Math.round(total_hours * 100) / 100 > 40 ? (
                                     <Tooltip placement="bottom" trigger={['hover']} overlay={<small>This employee has {Math.round((total_hours - 40) * 100) / 100  }hr overtime </small>}>
                                         <i className="fas fa-stopwatch text-danger fa-xs mr-2"></i>
@@ -1053,10 +1068,10 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                 )
                                 : null}
                                 
-                                <small className="d-block">{!isNaN(total_amount) && !isNaN(total_hours) && Math.round(total_hours * 100) / 100 < 40 ? '$'+ total_amount.toFixed(2) : null}</small>
+                                <small className="d-block">{!isNaN(total_amount) && !isNaN(total_hours) && Math.round(total_hours * 100) / 100 < 40 ? '$'+ Math.round(total_amount * 100) / 100 : null}</small>
                                 {!isNaN(total_hours) && Math.round(total_hours * 100) / 100 > 40 ? (
                                     <div>
-                                        <small className="d-block">Reg: ${!isNaN(total_amount) ? Math.round(total_amount * 100) / 100 : total_amount.toFixed(2)}</small>
+                                        <small className="d-block">Reg: ${!isNaN(total_amount) ? Math.round(total_amount * 100) / 100 : total_amount}</small>
                                         <small className="d-block">OT: ${((((Math.round(total_amount * 100) / 100)/(Math.round(total_hours * 100) / 100))*0.5)*Math.round((total_hours - 40) * 100) / 100).toFixed(2)}</small>
                                         <small className="d-block">Total: $
                                             {((((Math.round(total_amount * 100) / 100)/(Math.round(total_hours * 100) / 100))*0.5)*Math.round((total_hours - 40) * 100) / 100 + Math.round(total_amount * 100) / 100).toFixed(2)}
@@ -1183,8 +1198,8 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
     
     let shiftStartingTimeNoSeconds = moment(shift.starting_at).format('YYYY-MM-DDTHH:mm');
     let shiftEndingTimeNoSeconds = moment(shift.ending_at).format('YYYY-MM-DDTHH:mm');
-    const approvedClockin = payment.approved_clockin_time ? moment(payment.approved_clockin_time).startOf('minute') : clockin.started_at ? clockin.started_at : shift.starting_at;
-    const approvedClockout = payment.approved_clockout_time ? moment(payment.approved_clockout_time).startOf('minute') : clockin.ended_at ? clockin.ended_at : shift.ending_at;
+    const approvedClockin = payment.approved_clockin_time ? moment(payment.approved_clockin_time) : clockin.started_at ? clockin.started_at : shift.starting_at;
+    const approvedClockout = payment.approved_clockout_time ? moment(payment.approved_clockout_time) : clockin.ended_at ? clockin.ended_at : shift.ending_at;
     const [approvedTimes, setApprovedTimes] = useState({ in: approvedClockin, out: approvedClockout });
  
     const clockInDuration = moment.duration(approvedTimes.out.diff(approvedTimes.in));
@@ -1196,10 +1211,8 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
     const shiftNextDay = shift.ending_at.isBefore(shift.starting_at);
     const shiftDuration = moment.duration(moment(shiftEndingTimeNoSeconds).diff(moment(shiftStartingTimeNoSeconds)));
     const plannedHours = Math.round(shiftDuration.asHours() * 100) / 100;
-    // console.log('clockInDuration', clockInDuration);
 
     const clockInDurationAfterBreak = clockInDuration.subtract(breaktime, "minute");
-    console.log(clockInDuration.asHours());
     const clockInTotalHoursAfterBreak = !clockInDurationAfterBreak ? 0 : clockInDurationAfterBreak.asHours().toFixed(5);
 
     const diff = Math.round((Number(clockInTotalHoursAfterBreak) - Number(plannedHours)) * 100) / 100;
@@ -1229,10 +1242,6 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
         };
 
     }, []);
-
-    function parseToTime(num) {
-        return ('0' + Math.floor(num) % 24).slice(-2) + ':' + ((num % 1)*60 + '0').slice(0, 2);
-    }
 
     return <tr id={"paymemt" + payment.id}>
         {
@@ -1387,7 +1396,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                 <small>minutes</small>
             </td>
         }
-        <td>{parseToTime(clockInTotalHoursAfterBreak)}</td>
+        <td>{Number(clockInTotalHoursAfterBreak).toFixed(2)}</td>
         <td>{clockin.shift || !readOnly ? diff : "-"}</td>
         {readOnly ?
             <td className="text-center">
@@ -1406,8 +1415,6 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                     size="small"
                     icon="check"
                     onClick={(value) => {
-                       
-                        console.log('REGULAR HOURS', (plannedHours > parseFloat(clockInTotalHoursAfterBreak) || plannedHours === 0) ? clockInTotalHoursAfterBreak : plannedHours);
                         if (payment.status === "NEW") {
                             if (shift.id === undefined) Notify.error("You need to specify a shift for all the new clockins");
                             else onApprove({
