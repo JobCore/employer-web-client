@@ -1198,8 +1198,8 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
     
     let shiftStartingTimeNoSeconds = moment(shift.starting_at).format('YYYY-MM-DDTHH:mm');
     let shiftEndingTimeNoSeconds = moment(shift.ending_at).format('YYYY-MM-DDTHH:mm');
-    const approvedClockin = payment.approved_clockin_time ? moment(payment.approved_clockin_time) : clockin.started_at ? clockin.started_at : shift.starting_at;
-    const approvedClockout = payment.approved_clockout_time ? moment(payment.approved_clockout_time) : clockin.ended_at ? clockin.ended_at : shift.ending_at;
+    const approvedClockin = payment.approved_clockin_time ? moment(payment.approved_clockin_time).startOf('minute')  : clockin.started_at ? clockin.started_at : shift.starting_at;
+    const approvedClockout = payment.approved_clockout_time ? moment(payment.approved_clockout_time).startOf('minute')  : clockin.ended_at ? clockin.ended_at : shift.ending_at;
     const [approvedTimes, setApprovedTimes] = useState({ in: approvedClockin, out: approvedClockout });
  
     const clockInDuration = moment.duration(approvedTimes.out.diff(approvedTimes.in));
