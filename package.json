@@ -7,7 +7,7 @@
     "node": "10.x"
   },
   "scripts": {
-    "start": "API_HOST=https://8000-c50c6f93-a9bc-4720-bd98-2493535a5067.ws-us02.gitpod.io bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
+    "start": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
     "start:gitpod": "API_HOST=https://8000-c50c6f93-a9bc-4720-bd98-2493535a5067.ws-us02.gitpod.io bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
     "start:dev": "API_HOST=https://jobcore-test.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
     "start:prod": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
@@ -88,6 +88,7 @@
     "react": "^16.8.6",
     "react-ace": "^5.9.0",
     "react-calendar-timeline": "^0.22.0",
+    "react-cropper": "^2.1.4",
     "react-datetime": "^2.15.0",
     "react-device-detect": "^1.6.2",
     "react-dnd": "^9.3.4",

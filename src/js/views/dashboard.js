@@ -10,6 +10,7 @@ import { Session } from 'bc-react-session';
 import moment from 'moment';
 import { CalendarView } from "../components/calendar/index.js";
 import { Redirect } from 'react-router-dom';
+import logoURL from '../../img/logo.png';
 
 export default class Home extends Flux.DashView {
     constructor() {
@@ -24,13 +25,14 @@ export default class Home extends Flux.DashView {
             calendarLoading: true,
             steps: [
                 {
-                    content: <div><h2>Welcome to JobCore!</h2><h4>{"Start the guide and let's get your account set up."}</h4></div>,
+                    content: <div><img src={logoURL} style={{width:"300px", marginBottom: "30px"}}/><h2>Welcome to JobCore!</h2><h4>{"Join us in this tutorial and let's get your account set up!"}</h4></div>,
                     placement: "center",   
                     disableBeacon: true,
                     disableCloseOnEsc: true,
                     styles: {
                         options: {
-                            zIndex: 10000
+                            zIndex: 10000,
+                            width: 600
                         },
                         buttonClose: {
                             display: "none"
@@ -85,6 +87,11 @@ export default class Home extends Flux.DashView {
                             disableOverlayClose={true}
                             disableScrollParentFix={true}
                             continuous={true}
+                            styles={{
+                                options: {
+                                  primaryColor: '#000',
+                                }
+                              }}
                         />
                         <div className="row" >
                             <div className="col-8">

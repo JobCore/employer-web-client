@@ -13,6 +13,8 @@ import PropTypes from "prop-types";
 import Select from 'react-select';
 import { GET } from '../utils/api_wrapper';
 import {hasTutorial } from '../utils/tutorial';
+import Cropper from "react-cropper";
+import "cropperjs/dist/cropper.css";
 
 import Tooltip from 'rc-tooltip';
 import 'rc-tooltip/assets/bootstrap_white.css';
@@ -66,7 +68,7 @@ export class Profile extends Flux.DashView {
             stepIndex: 0,
             steps: [
                 {
-                    content: <div className="text-left"><h1>Your Profile</h1><h5>This is where you edit your company information (company logo, company name, company website and the bio) </h5><h5>Manage Subscription and view company rating</h5></div>,
+                    content: <div className="text-left"><h1>Your Profile</h1><p>Here you will edit your company information. You can also manage subscription and view your company rating</p></div>,
                     placement: "center",   
 
                     styles: {
@@ -83,7 +85,7 @@ export class Profile extends Flux.DashView {
                     },
                 {
                     target: '#company-logo-circle',
-                    content: 'Click the pencil button inside the circle to upload a new company logo',
+                    content: 'Click here to upload your company logo',
                     placement: 'right',
                     styles: {
                         buttonClose: {
@@ -112,7 +114,7 @@ export class Profile extends Flux.DashView {
                 },
                 {
                     target: '#company-logo-save',
-                    content: 'To save the company logo, click save',
+                    content: 'Click save to update your logo',
                     placement: 'right',
                     styles: {
                         buttonClose: {
@@ -127,7 +129,7 @@ export class Profile extends Flux.DashView {
                 },
                 {
                     target: '#company_title',
-                    content: 'Edit company title',
+                    content: 'Edit company name',
                     placement: 'right',
                     styles: {
                         buttonClose: {
@@ -151,7 +153,7 @@ export class Profile extends Flux.DashView {
                 },
                 {
                     target: '#company_bio',
-                    content: 'Edit company bio',
+                    content: 'Tell future employees about your business',
                     placement: 'right',
                     styles: {
                         buttonClose: {
@@ -163,7 +165,7 @@ export class Profile extends Flux.DashView {
                 },
                 {
                     target: '#button_save',
-                    content: 'When done, save company information',
+                    content: 'Save all your progress',
                     placement: 'right',
                     styles: {
                         buttonClose: {
@@ -179,7 +181,7 @@ export class Profile extends Flux.DashView {
             
                 {
                     target: '#manage_locations',
-                    content: 'Manage your company locations. You will need at least one company address in order to send shift to future employees',
+                    content: 'Edit your company locations. This is how your employee will know where to report. You will need at least one company address in order to send shifts to future employees',
                     placement: 'right',
                     styles: {
                         buttonClose: {
@@ -220,6 +222,14 @@ export class Profile extends Flux.DashView {
             this.setState({ employer });
         });
 
+    }
+    _crop() {
+        // image in dataUrl
+        console.log(this.cropper.getCroppedCanvas().toDataURL());
+    }
+ 
+    onCropperInit(cropper) {
+        this.cropper = cropper;
     }
     callback = (data) => {
         console.log('DATA', data);
@@ -277,6 +287,7 @@ export class Profile extends Flux.DashView {
                             styles={{
                                 options: {
                                     width: 600  ,
+                                    primaryColor: '#000',
                                     zIndex: 1000
                                 }
                             }}
@@ -329,20 +340,26 @@ export class Profile extends Flux.DashView {
                             :
                             <div>
                                 {this.state.uploadCompanyLogo ? <div className="company-logo" style={{backgroundImage:`url(${URL.createObjectURL(this.state.uploadCompanyLogo)})`}}> <Button color="primary" size="small" onClick={() => this.setState({ editingImage: false, uploadCompanyLogo: null })} icon="times" /></div> : 
-                                <Dropzone onDrop={acceptedFiles => this.setState({ uploadCompanyLogo: acceptedFiles[0],  stepIndex: 3 })}>
-                                    {({ getRootProps, getInputProps }) => {
-                                            return(<section className="upload-zone">
-                                                <div {...getRootProps()}>
-                                                    <input {...getInputProps()} />
-                                                    <p>Drop your company logo here, or click me to open the file browser</p>
-                                                </div>
-                                            </section>);
-                                    }}
-                                </Dropzone>                               
+                                <div>
+
+                                
+                                    <Dropzone onDrop={acceptedFiles => this.setState({ uploadCompanyLogo: acceptedFiles[0], stepIndex: 3 })}>
+                                        {({ getRootProps, getInputProps }) => {
+                                                return(<section className="upload-zone">
+                                                    <div {...getRootProps()}>
+                                                        <input {...getInputProps()} />
+                                                        <p>Drop your company logo here, or click me to open the file browser</p>
+                                                    </div>
+                                                </section>);
+                                        }}
+                                    </Dropzone>  
+                                </div>                             
                                 
                                 }
 
                                 <br/>
+                         
+
                                 <Button onClick={() => this.setState({ editingImage: false, uploadCompanyLogo: null})} color="secondary">Cancel</Button>
                                 <Button id="company-logo-save" onClick={() => {
                                     updateProfileImage(this.state.uploadCompanyLogo).then(picture => {
