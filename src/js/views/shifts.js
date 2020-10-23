@@ -652,7 +652,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
             },
             {
                 target: '#how-many',
-                content: 'Total number of talents for the shift',
+                content: 'Edit the total numbers of talents needed for this shift',
                 placement: 'left',
                 allowClicksThruHole: true,
                 disableOverlay: true,
@@ -666,7 +666,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
             },
             {
                 target: '#price',
-                content: 'Hourly rate for the shift',
+                content: 'Edit how much you are willing to pay per hour',
                 placement: 'left',
                 allowClicksThruHole: true,
                 disableOverlay: true,
@@ -680,7 +680,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
             },
             {
                 target: '#date-shift',
-                content: 'The date of the shift. and click more if you want to create more than one shift',
+                content: 'Enter the data. Click more to add additional dates',
                 placement: 'left',
                 allowClicksThruHole: true,
                 spotlightClicks: true,
@@ -694,7 +694,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
             },
             {
                 target: '#from-to-date',
-                content: 'Time of the shift',
+                content: 'Edit the starting time and ending time of the shift',
                 placement: 'left',
                 allowClicksThruHole: true,
                 disableOverlay: true,
@@ -708,7 +708,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
             },
             {
                 target: '#location',
-                content: 'You can add the location of where the shift is taking place. If you need to add a new location click in the option "Add a location"',
+                content: "Select the location for which the shift it's taking. You can add a new location by selecting add new location option",
                 placement: 'left',
                 allowClicksThruHole: true,
                 disableOverlay: true,
@@ -722,7 +722,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
             },
             {
                 target: '#who-can-apply',
-                content: 'Here you can select who can apply for this shift. If a shift has an expired date, you cannot invite anyone but you can still use it for payroll purposes.',
+                content: 'Select who can apply for this shift or broadcast this shift for all qualified employees in JobCore.',
                 placement: 'left',
                 allowClicksThruHole: true,
                 disableOverlay: true,
@@ -736,7 +736,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
             },
             {
                 target: '#publish',
-                content: 'When you are done click publish and they will receive a notification to all qualified employees',
+                content: 'Publish your shift notify invited talents',
                 placement: 'left',
                 allowClicksThruHole: true,
                 disableOverlay: true,
@@ -783,6 +783,11 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
         run={tutorial}
         callback={callback}
         disableBeacon={true}
+        styles={{
+            options: {
+              primaryColor: '#000',
+            }
+          }}
         />
 
             <form>

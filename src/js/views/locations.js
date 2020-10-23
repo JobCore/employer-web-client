@@ -94,7 +94,7 @@ export class ManageLocations extends Flux.DashView {
             runTutorial: hasTutorial(),
             steps: [
                 {
-                    content: <div><h2>Location page</h2><p>Company venues will be listed here, also in here you will be able to create a new location.</p></div>,
+                    content: <div><h2>Location page</h2><p>Here you will find all your company locations. You always can add new locations later.</p></div>,
                     placement: "center",   
                     disableBeacon: true,
 
@@ -113,7 +113,7 @@ export class ManageLocations extends Flux.DashView {
                     },
                 {
                     target: '#create_location',
-                    content: 'Create a new venue for your company',
+                    content: "Let's start by creating your new location",
                     placement: 'right',
                     styles: {
                         buttonClose: {
@@ -172,7 +172,11 @@ export class ManageLocations extends Flux.DashView {
                             steps={this.state.steps}
                             run={this.state.runTutorial}
                             callback={callback}
-
+                            styles={{
+                                options: {
+                                  primaryColor: '#000',
+                                }
+                              }}
                         />
                     <h1><span id="talent_search_header">Location Search</span></h1>
                     {this.state.locations.map((l,i) => (
@@ -309,7 +313,7 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
                             steps={ [
                                 {
                                     target: '#address',
-                                    content: 'Enter your address',
+                                    content: 'Start by entering your first address here. This is where your employee will report to work. Note employees will be able to clock in/out within a certain radius of this location.',
                                     placement: 'left',
                                     disableBeacon: true,
                                     styles: {
@@ -325,7 +329,7 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
                                 },
                                 {
                                     target: '#location_nickname',
-                                    content: 'Enter your venue name',
+                                    content: 'Add a nickname for your location. Note this only for your reference employee will not see the nickname.',
                                     placement: 'left',
                                     styles: {
                                         options: {
@@ -339,7 +343,7 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
                                 },
                                 {
                                     target: '#location_details',
-                                    content: 'Enter additional location details',
+                                    content: 'Finalize location detail',
                                     placement: 'left',
                                     styles: {
                                         options: {
@@ -353,7 +357,7 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
                                 },
                                 {
                                     target: '#button_save',
-                                    content: 'After you are done, click save',
+                                    content: "Save your location information",
                                     placement: 'left',
                                     styles: {
                                         options: {
@@ -372,6 +376,11 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
                             run={hasTutorial()}
                             callback={callback}
                             spotlightClicks={true}
+                            styles={{
+                                options: {
+                                  primaryColor: '#000',
+                                }
+                              }}
 
                         />  
             <div className="col-12" id="address">

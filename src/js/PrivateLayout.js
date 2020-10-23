@@ -456,7 +456,7 @@ class PrivateLayout extends Flux.DashView {
                                         </div>
                                         <div className="col-xs-6 pl-4 my-auto" >
                                             <h1><u>{this.state.employer? this.state.employer.title.toUpperCase(): ""}</u></h1>
-
+                                            <span>Company ID: {this.state.employer && this.state.employer.id}</span>
                                         </div>
                                     </div>
                                 ): null}

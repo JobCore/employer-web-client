@@ -243,7 +243,7 @@ export class PayrollSettings extends Flux.DashView {
             runTutorial: hasTutorial(),
             steps: [
                 {
-                    content: <div><h2>This is your payroll setting page</h2><p>In here you can update when do you want the payroll to start </p></div>,
+                    content: <div><h2>This is your payroll setting page</h2><p>Lets start by updating your preferences </p></div>,
                     placement: "center",   
 
                     styles: {
@@ -260,7 +260,7 @@ export class PayrollSettings extends Flux.DashView {
                     },
                 {
                     target: '#payroll_run',
-                    content: 'Enter the day and time you want the payroll to be process',
+                    content: 'Edit the company payroll period. When it will begin and when it ends',
                     placement: 'right',
                     styles: {
                         buttonClose: {
@@ -271,7 +271,7 @@ export class PayrollSettings extends Flux.DashView {
                 },
                 {
                     target: '#payroll_clockin',
-                    content: 'Here you can decide the time in minutes for employees to start clock in and out',
+                    content: 'Edit the amount of time you like to give your employees before/after to clokin. This option will help to prevent early clock ins.',
                     placement: 'right',
                     styles: {
                         buttonClose: {
@@ -293,21 +293,10 @@ export class PayrollSettings extends Flux.DashView {
                     spotlightClicks: true
 
                 },
-                {
-                    target: '#payroll_deduction',
-                    content: 'Add, edit or delete deduction',
-                    placement: 'right',
-                    styles: {
-                        buttonClose: {
-                            display: "none"
-                        }
-                    },
-                    spotlightClicks: true
-
-                },
+           
                 {
                     target: '#button_save',
-                    content: 'Click save to complete the payroll set-up',
+                    content: 'Save your progress',
                     placement: 'right',
                     styles: {
                         buttonClose: {
@@ -390,6 +379,11 @@ export class PayrollSettings extends Flux.DashView {
                             disableCloseOnEsc={true}
                             disableOverlayClose={true}
                             disableScrollParentFix={true}
+                            styles={{
+                                options: {
+                                  primaryColor: '#000',
+                                }
+                              }}
 
                         />
                     <h1><span id="company_details">Your Payroll Settings</span></h1>
@@ -1060,7 +1054,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                 }
                             </td>
                             <td colSpan={3} className="text-right">
-                                Total: {!isNaN(total_hours) ? Math.round(total_hours * 100) / 100 : 0} hr
+                                Total: {!isNaN(total_hours) ? total_hours  : 0} hr
                                 {!isNaN(total_hours) && Math.round(total_hours * 100) / 100 > 40 ? (
                                     <Tooltip placement="bottom" trigger={['hover']} overlay={<small>This employee has {Math.round((total_hours - 40) * 100) / 100  }hr overtime </small>}>
                                         <i className="fas fa-stopwatch text-danger fa-xs mr-2"></i>
