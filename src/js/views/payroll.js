@@ -359,6 +359,7 @@ export class PayrollSettings extends Flux.DashView {
             const profile = Object.assign(session.payload.user.profile, { show_tutorial: false });
             const user = Object.assign(session.payload.user, { profile });
             Session.setPayload({ user });
+            this.props.history.push("/dashboard");
         }
         
     };
@@ -495,7 +496,7 @@ export class PayrollSettings extends Flux.DashView {
                                 </div>
                             }
                         </div>
-                        <div className="row mt-2">
+                        {/* <div className="row mt-2">
                             <div className="col-12" id="payroll_deduction">
                                 <label>Deductions</label>
                                 <div className="p-1 listcontents">
@@ -549,7 +550,7 @@ export class PayrollSettings extends Flux.DashView {
                                     Add Deduction
                                 </Button>
                             </div>
-                        </div>
+                        </div> */}
                         <div className="mt-4 text-right">
                             <button
                                 id="button_save"
@@ -1054,7 +1055,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                 }
                             </td>
                             <td colSpan={3} className="text-right">
-                                Total: {!isNaN(total_hours) ? total_hours  : 0} hr
+                                Total: {!isNaN(total_hours) ? total_hours.toFixed(2)  : 0} hr
                                 {!isNaN(total_hours) && Math.round(total_hours * 100) / 100 > 40 ? (
                                     <Tooltip placement="bottom" trigger={['hover']} overlay={<small>This employee has {Math.round((total_hours - 40) * 100) / 100  }hr overtime </small>}>
                                         <i className="fas fa-stopwatch text-danger fa-xs mr-2"></i>
@@ -2185,7 +2186,7 @@ export class PayrollReport extends Flux.DashView {
                                             <th scope="col">Federal Withholding</th>
                                             <th scope="col">Social Security</th>
                                             <th scope="col">Medicare</th>
-                                            <th scope="col">Taxes</th>
+                                            {/* <th scope="col">Taxes</th> */}
                                             <th scope="col">Amount</th>
                                             <th scope="col"></th>
                                         </tr>
@@ -2207,7 +2208,7 @@ export class PayrollReport extends Flux.DashView {
                                                 <td>{pay.deduction_list.find(e => e.name == "Federal Withholding").amount > 0 ? "-" + pay.deduction_list.find(e => e.name == "Federal Withholding").amount: 0}</td> 
                                                 <td>{"-" + pay.deduction_list.find(e => e.name == "Social Security").amount}</td> 
                                                 <td>{"-" + pay.deduction_list.find(e => e.name == "Medicare").amount}</td> 
-                                                <td>{"-" + pay.deductions}</td>
+                                                {/* <td>{"-" + pay.deductions}</td> */}
                                                 <td>{pay.amount}</td>
                                                 <td>
                                                     <Button 
