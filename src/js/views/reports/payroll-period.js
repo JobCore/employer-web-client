@@ -174,10 +174,10 @@ const PayrollPeriodReport = ({ period, employer, payments }) => {
                             <Text style={styles.tableCell}>{"-" + pay.deduction_list.find(e => e.name == "Social Security").amount}</Text>
                         </View>
                         <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>{"-" + pay.deduction_list.find(e => e.name == "Medicare").amount}</Text>
+                            <Text style={styles.tableCell}>{"-" + pay.deduction_list.find(e => e.name == "Social Security").amount}</Text>
                         </View>
                         <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>{"-" + pay.deduction_list.find(e => e.name == "Social Security").amount}</Text>
+                            <Text style={styles.tableCell}>{"-" + pay.deduction_list.find(e => e.name == "Medicare").amount}</Text>
                         </View>
                         <View style={styles.tableCol}>
                             <Text style={styles.tableCell}>{"-" + pay.deduction_list.find(e => e.name == "Medicare").amount}</Text>
