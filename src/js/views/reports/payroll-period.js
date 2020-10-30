@@ -7,7 +7,7 @@ import { Page, Image, Text, View, Document, StyleSheet, PDFDownloadLink } from '
 const BORDER_COLOR = '#000000';
 const BORDER_STYLE = 'solid';
 const COL1_WIDTH = 10;
-const COLN_WIDTH = (100 - COL1_WIDTH) / 9;
+const COLN_WIDTH = (100 - COL1_WIDTH) / 11;
 
 const styles = StyleSheet.create({
     body: {
@@ -111,31 +111,37 @@ const PayrollPeriodReport = ({ period, employer, payments }) => {
                         <Text style={styles.tableCellHeader}>STAFF</Text>
                     </View>
                     <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>REGULAR HRS</Text>
+                        <Text style={styles.tableCellHeader}>REG</Text>
                     </View>
                     <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>OVER TIME</Text>
+                        <Text style={styles.tableCellHeader}>OT</Text>
                     </View>
                     <View style={styles.tableColHeader}>
                         <Text style={styles.tableCellHeader}>TOTAL HRS</Text>
                     </View>
                     <View style={styles.tableColHeader}>
+                        <Text style={styles.tableCellHeader}>RATE PAY</Text>
+                    </View>
+                    <View style={styles.tableColHeader}>
                         <Text style={styles.tableCellHeader}>EARNINGS</Text>
                     </View>
                     <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>FEDERAL</Text>
+                        <Text style={styles.tableCellHeader}>FED WITHHOLDING</Text>
                     </View>
                     <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>SSN</Text>
+                        <Text style={styles.tableCellHeader}>SS EMPLOYEE</Text>
                     </View>
                     <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>MEDICARE</Text>
+                        <Text style={styles.tableCellHeader}>SS COMPANY</Text>
                     </View>
                     <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>TAXES</Text>
+                        <Text style={styles.tableCellHeader}>MED EMPLOYEE</Text>
                     </View>
                     <View style={styles.tableColHeader}>
-                        <Text style={styles.tableCellHeader}>AMOUNT</Text>
+                        <Text style={styles.tableCellHeader}>MED COMPANY</Text>
+                    </View>
+                    <View style={styles.tableColHeader}>
+                        <Text style={styles.tableCellHeader}>NET AMOUNT</Text>
                     </View>
                 </View>
 
@@ -156,6 +162,9 @@ const PayrollPeriodReport = ({ period, employer, payments }) => {
                             <Text style={styles.tableCell}>{(parseFloat(pay.regular_hours) + parseFloat(pay.over_time)).toFixed(2)}</Text>
                         </View>
                         <View style={styles.tableCol}>
+                            <Text style={styles.tableCell}>{(Math.round((pay.earnings/(Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100)/100)) * 2) / 2).toFixed(2)}</Text>
+                        </View>
+                        <View style={styles.tableCol}>
                             <Text style={styles.tableCell}>{pay.earnings && parseFloat(pay.earnings).toFixed(2)}</Text>
                         </View>
                         <View style={styles.tableCol}>                                      
@@ -165,12 +174,18 @@ const PayrollPeriodReport = ({ period, employer, payments }) => {
                             <Text style={styles.tableCell}>{"-" + pay.deduction_list.find(e => e.name == "Social Security").amount}</Text>
                         </View>
                         <View style={styles.tableCol}>
+                            <Text style={styles.tableCell}>{"-" + pay.deduction_list.find(e => e.name == "Social Security").amount}</Text>
+                        </View>
+                        <View style={styles.tableCol}>
+                            <Text style={styles.tableCell}>{"-" + pay.deduction_list.find(e => e.name == "Medicare").amount}</Text>
+                        </View>
+                        <View style={styles.tableCol}>
                             <Text style={styles.tableCell}>{"-" + pay.deduction_list.find(e => e.name == "Medicare").amount}</Text>
                         </View>
 
-                        <View style={styles.tableCol}>
+                        {/* <View style={styles.tableCol}>
                             <Text style={styles.tableCell}>${pay.deductions && parseFloat(pay.deductions).toFixed(2)}</Text>
-                        </View>
+                        </View> */}
                         <View style={styles.tableCol}>
                             <Text style={styles.tableCell}>${pay.amount && parseFloat(pay.amount).toFixed(2)}</Text>
                         </View>
