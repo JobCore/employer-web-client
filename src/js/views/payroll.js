@@ -359,7 +359,7 @@ export class PayrollSettings extends Flux.DashView {
             const profile = Object.assign(session.payload.user.profile, { show_tutorial: false });
             const user = Object.assign(session.payload.user, { profile });
             Session.setPayload({ user });
-            this.props.history.push("/dashboard");
+            this.props.history.push("/");
         }
         
     };

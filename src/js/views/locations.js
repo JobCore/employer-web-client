@@ -343,7 +343,7 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
                                 },
                                 {
                                     target: '#location_details',
-                                    content: 'Finalize location detail',
+                                    content: 'Finalize location details',
                                     placement: 'left',
                                     styles: {
                                         options: {
