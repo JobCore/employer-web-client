@@ -348,7 +348,7 @@ export class Profile extends Flux.DashView {
                                                 return(<section className="upload-zone">
                                                     <div {...getRootProps()}>
                                                         <input {...getInputProps()} />
-                                                        <p>Drop your company logo here, or click me to open the file browser</p>
+                                                        <strong style={{textDecoration:"underline",cursor:"pointer", fontSize: '20px'}}>Drop your company logo here, or click me to open the file browser</strong>
                                                     </div>
                                                 </section>);
                                         }}
