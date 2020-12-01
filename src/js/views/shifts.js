@@ -721,6 +721,20 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                 locale: { skip: "Skip Tutorial" },
             },
             {
+                target: '#instruction',
+                content: "Add instruction or any information about the shift if necessary that could help the employees",
+                placement: 'left',
+                allowClicksThruHole: true,
+                disableOverlay: true,
+                spotlightClicks: true,
+                styles: {
+                    options: {
+                        zIndex: 10000
+                    }
+                },
+                locale: { skip: "Skip Tutorial" },
+            },
+            {
                 target: '#who-can-apply',
                 content: 'Select who can apply for this shift or broadcast this shift for all qualified employees in JobCore.',
                 placement: 'left',
@@ -775,7 +789,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
     if(formData.employer && isNaN(formData.employer )) formData.employer = formData.employer.id;
     if(!formData.shift && !isNaN(formData.id)) formData.shift = formData.id;
     if(formData.required_badges) delete formData.required_badges;
-    console.log(formData);
+    if(description) formData.description = description;
     return (
         <div>
             <Wizard continuous
@@ -1010,6 +1024,18 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                                 else onChange({ venue: selection.value.toString(), has_sensitive_updates: true });
                             }}
                         />
+                    </div>
+                </div>
+                <div className="row" id="instruction">
+                    <div className="col-12">
+                        <label>Shift Instructions (optional)</label>
+                        <TextareaAutosize minRows={4} style={{ width: '100%'}} placeholder="Dressing code, location instructions, parking instruction etc.."
+                        onChange={event => setDescriptionContent(event.target.value)}
+                        value={description}
+                        />
+                        <p>
+                            {description.length}/{300}
+                        </p>
                     </div>
                 </div>
 

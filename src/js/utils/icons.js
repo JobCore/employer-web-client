@@ -25,6 +25,7 @@ import faUndo from '@fortawesome/fontawesome-free-solid/faUndo';
 import faUserCog from '@fortawesome/fontawesome-free-solid/faUserCog';
 import faUserEdit from '@fortawesome/fontawesome-free-solid/faUserEdit';
 import faPlusCircle from '@fortawesome/fontawesome-free-solid/faPlusCircle';
+import faBell from '@fortawesome/fontawesome-free-solid/faBell';
 
 //import faHandPaper from '@fortawesome/fontawesome-free-solid/faHandPaper';
 
@@ -40,5 +41,5 @@ fontawesome.library.add(
     faStar, faStarHalf, faEmptyStar, faTimesCircle, faCheckCircle, faAngleDoubleRight, faUserCheck, faClock,
     faTrashAlt, faQuestion, faPencilAlt, faPlus, faUsers, faExclamationTriangle, faDollarSign, faClipboardList,
     faForward, faBackward, faSync, faEnvelope, faCircle, faMapMarkerAlt, faUndo, faUserCog, faUserEdit,
-    faPlusCircle, faStopwatch
+    faPlusCircle, faStopwatch, faBell
 );
