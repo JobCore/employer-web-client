@@ -1038,6 +1038,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                         </p>
                     </div>
                 </div>
+
                 <div className="row mt-3" >
                     <div className="col-12" id="who-can-apply">
                         <h4>Who can apply to this shift?</h4>
