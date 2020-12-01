@@ -37,7 +37,8 @@
   .top-head-dropdown {
     .dropdown-menu {
      width: 350px;
-      height:300px;
+      min-height:75px;
+      max-height:300px;
       overflow:auto;
     }
     
