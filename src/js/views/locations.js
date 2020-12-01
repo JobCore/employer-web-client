@@ -1,7 +1,7 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import {store, searchMe, remove} from '../actions.js';
+import {store, searchMe, remove,updateProfileMe} from '../actions.js';
 import { GenericCard, Theme, Button,Wizard } from '../components/index';
 import Select from 'react-select';
 import queryString from 'query-string';
@@ -172,6 +172,9 @@ export class ManageLocations extends Flux.DashView {
                             steps={this.state.steps}
                             run={this.state.runTutorial}
                             callback={callback}
+                            allowClicksThruHole= {true}
+                            disableOverlay= {true}
+                            spotlightClicks= {true}
                             styles={{
                                 options: {
                                   primaryColor: '#000',
@@ -279,6 +282,14 @@ function callback (data) {
     //     const user = Object.assign(session.payload.user, { profile });
     //     Session.setPayload({ user });
     // }
+    if(data.action == 'skip'){
+        const session = Session.get();
+        updateProfileMe({show_tutorial: false});
+        
+        const profile = Object.assign(session.payload.user.profile, { show_tutorial: false });
+        const user = Object.assign(session.payload.user, { profile });
+        Session.setPayload({ user });
+    }
 }
 /**
  * Add a Location

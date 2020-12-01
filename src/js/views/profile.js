@@ -204,7 +204,7 @@ export class Profile extends Flux.DashView {
     }
 
     componentDidMount() {
-
+   
         const users = store.getState('users');
         this.subscribe(store, 'users', (_users) => {
             const user = _users.filter(e => e.profile.id ==Session.getPayload().user.profile.id )[0];
@@ -223,6 +223,8 @@ export class Profile extends Flux.DashView {
         });
 
     }
+
+ 
     _crop() {
         // image in dataUrl
         console.log(this.cropper.getCroppedCanvas().toDataURL());
@@ -261,34 +263,36 @@ export class Profile extends Flux.DashView {
         }
      
 
-        if(data.type == 'skip'){
+        if(data.action == 'skip'){
             const session = Session.get();
             updateProfileMe({show_tutorial: false});
             
             const profile = Object.assign(session.payload.user.profile, { show_tutorial: false });
             const user = Object.assign(session.payload.user, { profile });
             Session.setPayload({ user });
+            this.setState({runTutorial: false});
+            document.getElementById("profilelink").style.backgroundColor = "";
+
         }
     };
 
     render() {
         console.log(this.state);
+  
         return (<div className="p-1 listcontents company-profile">
             <Wizard continuous
                             steps={this.state.steps}
                             run={this.state.runTutorial}
                             callback={(data) => this.callback(data)}
                             stepIndex={this.state.stepIndex}
-                            // disableCloseOnEsc={true}
-                            // disableOverlayClose={true}
-                            // hideBackButton={true}
-                            // disableScrolling={true}
-                            // disableScrollParentFix={true}
+                            allowClicksThruHole= {true}
+                            disableOverlay= {true}
+                            spotlightClicks= {true}
                             styles={{
                                 options: {
                                     width: 600  ,
                                     primaryColor: '#000',
-                                    zIndex: 1000
+                                    zIndex: 1000,
                                 }
                             }}
 

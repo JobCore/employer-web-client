@@ -380,6 +380,7 @@ export class PayrollSettings extends Flux.DashView {
                             disableCloseOnEsc={true}
                             disableOverlayClose={true}
                             disableScrollParentFix={true}
+                            
                             styles={{
                                 options: {
                                   primaryColor: '#000',

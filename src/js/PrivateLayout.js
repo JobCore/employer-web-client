@@ -33,6 +33,9 @@ import { EngineComponent } from "./utils/write_engine";
 import EmployerBankAccounts from "../js/views/employerBankAccounts";
 import { CreateDeduction, Deduction, UpdateDeduction } from "./views/deductions";
 import { MakePayment, Payment } from "./views/payments";
+import '../styles/_notification.scss';
+import 'jquery/dist/jquery.min.js';
+import 'bootstrap/dist/js/bootstrap.min.js';
 
 class PrivateLayout extends Flux.DashView {
 
@@ -47,6 +50,7 @@ class PrivateLayout extends Flux.DashView {
             userStatus: null,
             sideBarLevels: [],
             employer: null,
+            applications: [],
             catalog: {
                 positions: [],
                 venues: [],
@@ -311,6 +315,8 @@ class PrivateLayout extends Flux.DashView {
         }
         else searchMe('users');
 
+        // searchMe('applications').then((res) => this.setState({applications: res}));
+
         this.subscribe(store, 'current_employer', (employer) => this.setState({ employer }));
         fetchTemporal('employers/me', 'current_employer');
         fetchAll([
@@ -320,8 +326,10 @@ class PrivateLayout extends Flux.DashView {
         this.subscribe(store, 'venues', (venues) => this.setCatalog({ venues: reduce(venues) }));
         this.subscribe(store, 'positions', (positions) => this.setCatalog({ positions: reduce(positions) }));
         this.subscribe(store, 'badges', (badges) => this.setCatalog({ badges: reduce(badges) }));
+        this.subscribe(store, 'applications', (applications) => {if(applications)this.setState({applications:applications});
+        else searchMe('applications').then((res) => this.setState({applications: res})); });
         this.subscribe(store, 'favlists', (favlists) => {
-
+        
             let favoriteEmployees = [];
             let favoriteEmployeesIds = [];
             if (Array.isArray(favlists)) {
@@ -392,13 +400,14 @@ class PrivateLayout extends Flux.DashView {
     showPayroll(){
         if(this.state.user){
             if(this.state.user.profile.employer_role == "SUPERVISOR"){
-                return(<li className="mt-2" style={{cursor: "pointer"}}onClick={() => Notify.error("Only admins and managers are allowed to use the payroll system.")
-            }><i id="payroll" className="icon icon-shifts"></i>Payroll</li>);
+                return(<li onClick={() => Notify.error("Only admins and managers are allowed to use the payroll system.")
+            }><NavLink><i id="payroll" className="icon icon-shifts"></i>Payroll</NavLink></li>);
             }else return <li><NavLink to="/payroll"><i id="payroll" className="icon icon-shifts"></i>Payroll</NavLink></li>;
         }
     }
     render() {
         const Logo = () => (<span className="svg_img" style={{ backgroundImage: `url(${logoURL})` }} />);
+        console.log('this state', this.state);
         return (
             <Theme.Provider value={{ bar: this.state.bar }}>
                 <LoadBar component={() => <img src={loadingURL} />} style={{ position: "fixed", left: "50vw", top: "50vh" }} />
@@ -410,7 +419,7 @@ class PrivateLayout extends Flux.DashView {
                             <li><NavLink to="/favorites"><i className="icon icon-favorite"></i>Favorites</NavLink></li>
                             <li><NavLink to="/applicants"><i className="icon icon-applications"></i>Applicants</NavLink></li>
                             {this.showPayroll()}
-                            <li><NavLink to="/profile"><i className="icon icon-companyprofile"></i>Your Profile</NavLink></li>
+                            <li><NavLink to="/profile" id="profilelink"><i className="icon icon-companyprofile"></i>Your Profile</NavLink></li>
                             <li>
                                 <a
                                     href="#"
@@ -447,7 +456,7 @@ class PrivateLayout extends Flux.DashView {
                         }
                         <Notifier />
                         <div className="row">
-                            <div className="col-12">
+                            <div className="col-6">
                                 <Logo />
                                 {this.state.employer ? (
                                     <div className="row no-gutters mb-4">        
@@ -461,6 +470,118 @@ class PrivateLayout extends Flux.DashView {
                                     </div>
                                 ): null}
             
+                            </div>
+                            <div className="col-2 pt-3 mx-auto">
+                                
+                                <div className="panel panel-default">
+                                    <div className="panel-body">
+                                        <div className="btn-group pull-right top-head-dropdown">
+                                            <button type="button" style={{
+                                                border:"none",
+                                                outline: "none",
+                                                backgroundColor:"transparent",
+                                                color:"#27666F"
+                                            }}  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" onClick={() => {
+                                                // searchMe('applications').then((res) => this.setState({applications: res}));
+                                                console.log('clicked');
+                                            }}>
+                                                <i className="fas fa-bell" style={{fontSize: '26px'}}></i>
+                                            </button>
+                                            {this.state.applications.length > 0 && (
+                                                <span style={{
+                                                        padding: "3px 5px 2px",
+                                                        position: "absolute",
+                                                        top: "1px",
+                                                        right: "-6px",
+                                                        display: "inline-block",
+                                                        minWidth: "10px",
+                                                        fontSize: "12px",
+                                                        fontWeight: "bold",
+                                                        color: "#ffffff",
+                                                        lineHeight: "1",
+                                                        verticalAlign: "baseline",
+                                                        whiteSpace: "nowrap",
+                                                        textAlign: "center",
+                                                        borderRadius: "10px",
+                                                        backgroundColor:"#db5565"
+                                                }}>{this.state.applications.length}</span>
+                                            )}
+                                            {this.state.applications.length > 0 ? (
+
+                                                <ul className="dropdown-menu dropdown-menu-right">
+                                                    {this.state.applications.map((emp,i) => {
+                                                        return(
+                                                            <li key={i}>
+                                                                <a href="#" className="top-text-block">
+                                                                    <div className="row mb-1">
+                                                                        <div className="col-2 my-auto pl-2 pr-0">
+                                                                            <div className="top-text-heading">{emp.employee.user.profile.picture ? (
+                                                                                <div style={{
+                                                                                    width:"35px",
+                                                                                    height:"35px",
+                                                                                    backgroundRepeat:"no-repeat",
+                                                                                    backgroundPosition:"center",
+                                                                                    backgroundColor: "#eaffe6",
+                                                                                    backgroundSize: "cover",
+                                                                                    backgroundImage: `url(${emp.employee.user.profile.picture})`,
+                                                                                    borderRadius: "100%",
+                                                                                }}/>
+
+                                                                            ) : (
+                                                                                <div style={{
+                                                                                    width:"35px",
+                                                                                    height:"35px",
+                                                                                    backgroundRepeat:"no-repeat",
+                                                                                    backgroundPosition:"center",
+                                                                                    backgroundColor: "#eaffe6",
+                                                                                    backgroundSize: "cover",
+                                                                                    backgroundImage: `url(${'https://res.cloudinary.com/hq02xjols/image/upload/v1560365062/static/default_profile2.png'})`,
+                                                                                    borderRadius: "100%",
+                                                                                }}/>
+                                                                            )
+                                                                            }
+                                                                        
+                                                                            
+                                                                            </div>
+
+                                                                        </div>
+                                                                        <div className="col pl-0 my-auto">
+                                                                            <span style={{fontSize:"12px"}}>{" " + emp.employee.user.first_name + " " + emp.employee.user.last_name} <b>applied</b> to shift <span style={{color:"#B3519E"}}>{emp.shift.position.title}</span> @ {emp.shift.venue.title} {emp.shift.starting_at.format('ll')} from {emp.shift.starting_at.format('LT')} to {emp.shift.ending_at.format('LT')}  {
+                                                                                (typeof emp.shift.price == 'string') ?
+                                                                                    <span className="shift-price"> ${emp.shift.price}</span>
+                                                                                    :
+                                                                                    <span className="shift-price"> {emp.shift.price.currencySymbol}{emp.shift.price.amount}</span>
+                                                                            }
+                                                                            </span>
+
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="top-text-light">{moment(emp.created_at).fromNow()}</div>
+                                                                </a> 
+                                                            </li>
+                                                        );
+                                                    })}
+                                                
+                                                </ul>
+                                            ): (
+                                            
+                                                <ul className="dropdown-menu dropdown-menu-right" style={{height:"50px", paddingTop: "0", paddingBottom:"0"}}>
+                                                    <li style={{height:"100%"}}>
+                                                        <div className="row text-center justify-content-center mt-2">
+                                                            <div className="col my-auto">
+                                                                <span style={{verticalAlign:"middle",color:"#999"}}>There is no activity at the moment.</span>
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                             
+                                                </ul>
+                                            )
+                                            
+                                            }
+                                        </div>
+                                    </div>
+                                </div>  
+
                             </div>
                         </div>
                         <Switch>
