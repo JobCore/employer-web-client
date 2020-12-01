@@ -315,8 +315,6 @@ class PrivateLayout extends Flux.DashView {
         }
         else searchMe('users');
 
-        // searchMe('applications').then((res) => this.setState({applications: res}));
-
         this.subscribe(store, 'current_employer', (employer) => this.setState({ employer }));
         fetchTemporal('employers/me', 'current_employer');
         fetchAll([
@@ -400,14 +398,13 @@ class PrivateLayout extends Flux.DashView {
     showPayroll(){
         if(this.state.user){
             if(this.state.user.profile.employer_role == "SUPERVISOR"){
-                return(<li onClick={() => Notify.error("Only admins and managers are allowed to use the payroll system.")
-            }><NavLink><i id="payroll" className="icon icon-shifts"></i>Payroll</NavLink></li>);
+                return(<li className="mt-2" style={{cursor: "pointer"}}onClick={() => Notify.error("Only admins and managers are allowed to use the payroll system.")
+            }><i id="payroll" className="icon icon-shifts"></i>Payroll</li>);
             }else return <li><NavLink to="/payroll"><i id="payroll" className="icon icon-shifts"></i>Payroll</NavLink></li>;
         }
     }
     render() {
         const Logo = () => (<span className="svg_img" style={{ backgroundImage: `url(${logoURL})` }} />);
-        console.log('this state', this.state);
         return (
             <Theme.Provider value={{ bar: this.state.bar }}>
                 <LoadBar component={() => <img src={loadingURL} />} style={{ position: "fixed", left: "50vw", top: "50vh" }} />
