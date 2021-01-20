@@ -234,11 +234,29 @@ class PrivateLayout extends Flux.DashView {
                             break;
                         case 'review_talent':
                             option.title = "Review Talent";
+                            console.log("option", option);
                             this.showRightBar(ReviewTalent, option, {
 
                                 formData: Rating({
                                     comments: '',
                                     employees: option.data.employees,
+                                    shift: option.data.shift,
+                                    created_at: NOW(),
+                                    rating: 0
+                                }).getFormData()
+                            });
+                            break;
+                        case 'review_single_talent':
+                            option.title = "Review Talent";
+                            option.data.employees_to_rate = [{
+                                user: option.data.sender.user,
+                                id: option.data.sender.employee
+                            }];
+                            this.showRightBar(ReviewTalent, option, {
+                                formData: Rating({
+                                    comments: '',
+                                    employees: option.data.employees_to_rate,
+                                    employees_to_rate: option.data.employees_to_rate,
                                     shift: option.data.shift,
                                     created_at: NOW(),
                                     rating: 0
@@ -326,6 +344,8 @@ class PrivateLayout extends Flux.DashView {
         this.subscribe(store, 'badges', (badges) => this.setCatalog({ badges: reduce(badges) }));
         this.subscribe(store, 'applications', (applications) => {if(applications)this.setState({applications:applications});
         else searchMe('applications').then((res) => this.setState({applications: res})); });
+        searchMe('clockins', `?updated=True`).then((res) => this.setState({applications: this.state.applications.concat(res)}));
+
         this.subscribe(store, 'favlists', (favlists) => {
         
             let favoriteEmployees = [];
@@ -359,6 +379,7 @@ class PrivateLayout extends Flux.DashView {
             if (this.currentPath != e.pathname) this.closeRightBar('all');
             this.currentPath = e.pathname;
         });
+
     }
 
     componentWillUnmount() {
@@ -405,6 +426,8 @@ class PrivateLayout extends Flux.DashView {
     }
     render() {
         const Logo = () => (<span className="svg_img" style={{ backgroundImage: `url(${logoURL})` }} />);
+        console.log(this.state);
+
         return (
             <Theme.Provider value={{ bar: this.state.bar }}>
                 <LoadBar component={() => <img src={loadingURL} />} style={{ position: "fixed", left: "50vw", top: "50vh" }} />
@@ -506,10 +529,10 @@ class PrivateLayout extends Flux.DashView {
                                             {this.state.applications.length > 0 ? (
 
                                                 <ul className="dropdown-menu dropdown-menu-right">
-                                                    {this.state.applications.map((emp,i) => {
+                                                    {this.state.applications.sort((a,b) => (b.updated_at < a.updated_at) ? -1 : ((b.updated_at > a.updated_at) ? 1 : 0)).map((emp,i) => {
                                                         return(
                                                             <li key={i}>
-                                                                <a href="#" className="top-text-block">
+                                                                <a href="#" className="top-text-block" onClick={()=> this.state.bar && this.state.bar.show({ slug: "shift_details", data: emp.shift, title: "Shift Details" })}>
                                                                     <div className="row mb-1">
                                                                         <div className="col-2 my-auto pl-2 pr-0">
                                                                             <div className="top-text-heading">{emp.employee.user.profile.picture ? (
@@ -542,16 +565,30 @@ class PrivateLayout extends Flux.DashView {
                                                                             </div>
 
                                                                         </div>
-                                                                        <div className="col pl-0 my-auto">
-                                                                            <span style={{fontSize:"12px"}}>{" " + emp.employee.user.first_name + " " + emp.employee.user.last_name} <b>applied</b> to shift <span style={{color:"#B3519E"}}>{emp.shift.position.title}</span> @ {emp.shift.venue.title} {emp.shift.starting_at.format('ll')} from {emp.shift.starting_at.format('LT')} to {emp.shift.ending_at.format('LT')}  {
-                                                                                (typeof emp.shift.price == 'string') ?
-                                                                                    <span className="shift-price"> ${emp.shift.price}</span>
-                                                                                    :
-                                                                                    <span className="shift-price"> {emp.shift.price.currencySymbol}{emp.shift.price.amount}</span>
-                                                                            }
-                                                                            </span>
+                                                                        {emp.author ? (
+                                                                            <div className="col pl-0 my-auto">
+                                                                                <span style={{fontSize:"12px"}}>{" " + emp.employee.user.first_name + " " + emp.employee.user.last_name} <b>{emp.ended_at ? "clock out at " + moment(emp.ended_at).format('MM/DD/YYYY, hh:mm A') : "clock in at " + moment(emp.started_at).format('MM/DD/YYYY, hh:mm A')}</b> to shift <span style={{color:"#B3519E"}}>{emp.shift.position.title}</span> @ {emp.shift.venue.title} {moment(emp.shift.starting_at).format('ll')} from {moment(emp.shift.starting_at).format('LT')} to {moment(emp.shift.ending_at).format('LT')}  {
+                                                                                    (typeof emp.shift.price == 'string') ?
+                                                                                        <span className="shift-price"> ${emp.shift.price}</span>
+                                                                                        :
+                                                                                        <span className="shift-price"> {"$"}{emp.shift.minimum_hourly_rate}</span>
+                                                                                }
+                                                                                </span>
 
-                                                                        </div>
+                                                                            </div>
+                                                                        ): (
+                                                                            <div className="col pl-0 my-auto">
+                                                                                <span style={{fontSize:"12px"}}>{" " + emp.employee.user.first_name + " " + emp.employee.user.last_name} <b>applied</b> to shift <span style={{color:"#B3519E"}}>{emp.shift.position.title}</span> @ {emp.shift.venue.title} {moment(emp.shift.starting_at).format('ll')} from {moment(emp.shift.starting_at).format('LT')} to {moment(emp.shift.ending_at).format('LT')}  {
+                                                                                    (typeof emp.shift.price == 'string') ?
+                                                                                        <span className="shift-price"> ${emp.shift.price}</span>
+                                                                                        :
+                                                                                        <span className="shift-price"> {"$"}{emp.shift.minimum_hourly_rate}</span>
+                                                                                }
+                                                                                </span>
+
+                                                                            </div>
+
+                                                                        )}
                                                                     </div>
                                                                     <div className="top-text-light">{moment(emp.created_at).fromNow()}</div>
                                                                 </a> 

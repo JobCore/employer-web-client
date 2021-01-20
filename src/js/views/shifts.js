@@ -769,10 +769,155 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
     const [payrates, setPayrates] = useState();
     const [description, setDescription] = useState('');
     const [tutorial, setTutorial] = useState(false);
+    const [recurrent, setRecurrent] = useState(false);
+    const [recurrentDates, setRecurrentDates] = useState({
+        starting_at: moment(),
+        ending_at: moment().add(1,"M")
+    });
+    const [totalShift, setTotalShift] = useState(0);
 
+    const [recurrentTimes, setRecurrentTimes] = useState({
+        sunday:{
+            active: false,
+            starting_at: null,
+            ending_at: null
+        },
+        monday: {
+            active: true,
+            starting_at: null,
+            ending_at: null
+        },
+        tuesday: {
+            active: true,
+            starting_at: null,
+            ending_at: null
+        },
+        wednesday: {
+            active: true,
+            starting_at: null,
+            ending_at: null
+        },
+        thursday: {
+            active: true,
+            starting_at: null,
+            ending_at: null
+        },
+        friday: {
+            active: true,
+            starting_at: null,
+            ending_at: null
+        },
+        saturday:{
+            active: false,
+            starting_at: null,
+            ending_at: null
+        },
+     
+    });
+    const [multipleRecurrentShift, setMultipleRecurrentShift] = useState([]);
+ 
     const setDescriptionContent = description => {
         description.length > 300 ? setDescription(description.slice(0, 300)) : setDescription(description);
       };
+
+    const getRecurrentShifts = async function getRecurrentDates(){
+        var startDate = recurrentDates.starting_at;
+        var endDate = recurrentDates.ending_at;
+
+        const start = startDate.startOf('days'); 
+        const end = endDate.startOf('days'); 
+
+        let weekDays = Object.values([recurrentTimes][0]) ;
+      
+        const dailyInfo = weekDays;
+        let totalDays = 0;
+        var multipleShifts = [];
+        dailyInfo.forEach((info, index) => {
+        if (info.active === true && info.starting_at && info.ending_at ) {
+            let current = start.clone();
+            if (current.isoWeekday() <= index) {
+              current = current.isoWeekday(index);
+            } else {
+              current.add(1, 'weeks').isoWeekday(index);
+            }
+            while (current.isSameOrBefore(end)) {
+             
+              current.day(7 + index);
+              totalDays += 1;
+              const starting = moment(current.format("MM-DD-YYYY") + " " + info.starting_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+              const ending = moment(current.format("MM-DD-YYYY") + " " + info.ending_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+              multipleShifts.push({"starting_at": starting, "ending_at": ending});
+       
+            }
+          }
+        });
+            setTotalShift(totalDays);
+            setMultipleRecurrentShift(multipleShifts);
+
+            return;
+        };
+    const saveRecurrentDates = async function saveRecurrentDates(){
+        await getRecurrentShifts;
+        const noti = Notify.info(`Are you sure to publish a total of ${totalShift}? (
+            ${
+                multipleRecurrentShift.map(s => {
+                    return s.starting_at + " - " + s.ending_at;
+                })
+            }
+        )`, (answer) => {
+            if (answer){
+                formData.multiple_dates = multipleRecurrentShift;
+
+                onSave({
+                    executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
+                    status: 'OPEN'
+                });
+            }
+            noti.remove();
+        });
+    };
+    const datescalculator = _callback => {
+        var startDate = recurrentDates.starting_at;
+        var endDate = recurrentDates.ending_at;
+
+        const start = startDate.startOf('days'); 
+        const end = endDate.startOf('days'); 
+
+        let weekDays = Object.values([recurrentTimes][0]) ;
+      
+        const dailyInfo = weekDays;
+        let totalDays = 0;
+        var multipleShifts = [];
+        dailyInfo.forEach((info, index) => {
+        if (info.active === true && info.starting_at && info.ending_at ) {
+            let current = start.clone();
+            if (current.isoWeekday() <= index) {
+              current = current.isoWeekday(index);
+            } else {
+              current.add(1, 'weeks').isoWeekday(index);
+            }
+            while (current.isSameOrBefore(end)) {
+             
+              current.day(7 + index);
+              totalDays += 1;
+              const starting = moment(current.format("MM-DD-YYYY") + " " + info.starting_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+              const ending = moment(current.format("MM-DD-YYYY") + " " + info.ending_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+              multipleShifts.push({"starting_at": starting, "ending_at": ending});
+       
+            }
+          }
+        });
+            setTotalShift(totalDays);
+            setMultipleRecurrentShift(multipleShifts);
+
+            // formData.multiple_dates = multipleShifts;
+            
+            // onSave({
+            //     executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
+            //     status: 'OPEN'
+            // });
+
+    };
 
     useEffect(() => {
         const venues = store.getState('venues');
@@ -790,383 +935,1060 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
     if(!formData.shift && !isNaN(formData.id)) formData.shift = formData.id;
     if(formData.required_badges) delete formData.required_badges;
     if(description) formData.description = description;
+
     return (
         <div>
-            <Wizard continuous
-        steps={steps}
-        run={tutorial}
-        callback={callback}
-        disableBeacon={true}
-        styles={{
-            options: {
-              primaryColor: '#000',
-            }
-          }}
-        />
-
-            <form>
-                <div className="row">
-                    <div className="col-12 text-right">
-                        <button type="button" className="btn btn-primary p-1 text-right" onClick={()=>setTutorial(true)}><strong>HELP ?</strong></button>
-                    </div>
-                </div>
-                <div className="row">
-                    <div className="col-12">
-                        {formData.hide_warnings === true ? null : (formData.status == 'DRAFT' && !error) ?
-                            <div className="alert alert-warning d-inline"><i className="fas fa-exclamation-triangle"></i> This shift is a draft</div>
-                            : (formData.status != 'UNDEFINED' && !error) ?
-                                <div className="alert alert-success">This shift is published, therefore <strong>it needs to be unpublished</strong> before it can be updated</div>
-                                : ''
-                        }
-                    </div>
-                </div>
-           
-                <div className="row" id="looking-for">
-                    <div className="col-12">
-                        <label>Looking for</label>
-                    
-                        <Select
-                            placeholder="Select a position"
-                            value={catalog.positions.find((pos) => pos.value == formData.position.id || pos.value == formData.position)}
-                            onChange={(selection) => {
-                                onChange({ position: selection.value.toString(), has_sensitive_updates: true });
-                          
-                            }}
-                            options={catalog.positions}
-                        />
-                    </div>
-                </div>
-                <div className="row">
-                    <div className="col-6"  id="how-many">
-                        <label>How many?</label>
-                        <input type="number" className="form-control"
-                            value={formData.maximum_allowed_employees}
-                            onChange={(e) => {
-                                if (parseInt(e.target.value, 10) > 0) {
-                                    if (oldShift && oldShift.employees.length > parseInt(e.target.value, 10)) Notify.error(`${oldShift.employees.length} talents are scheduled to work on this shift already, delete scheduled employees first.`);
-                                    else onChange({ maximum_allowed_employees: e.target.value });
-                                }
-                            }}
-                        />
-                    </div>
-                    <div className="col-6" id="price">
-                        <label>Price / hour</label>
-                        <input type="number" className="form-control"
-                            value={formData.minimum_hourly_rate}
-                            onChange={(e) => onChange({
-                                minimum_hourly_rate: e.target.value,
-                                has_sensitive_updates: true
-                            })}
-                        />
-                    </div>
-                </div>
-                <div className="row" id="date-shift">
-                    <div className="col-12">
-                        <label className="mb-1">Dates</label>
-                        {formData.multiple_dates && <p className="mb-1 mt-0">
-                            {formData.multiple_dates.map((d, i) => (
-                                <span key={i} className="badge">{d.starting_at.format('MM-DD-YYYY')}
-                                    <i
-                                        className="fas fa-trash-alt ml-1 pointer"
-                                        onClick={() => onChange({
-                                            multiple_dates: !formData.multiple_dates ? [] : formData.multiple_dates.filter(dt => !dt.starting_at.isSame(d.starting_at)),
-                                            has_sensitive_updates: true
-                                        })}
-                                    />
-                                </span>
-                            ))}
-                        </p>}
-                        <div className="input-group" >
-                            <DateTime
-                                timeFormat={false}
-                                className="shiftdate-picker"
-                                closeOnSelect={true}
-                                value={formData.starting_at}
-                                isValidDate={(current) => {
-                                    return formData.multiple_dates !== undefined && formData.multiple_dates.length > 0 ? current.isAfter(YESTERDAY) : true;
-                                }}
-                                renderInput={(properties) => {
-                                    const { value, ...rest } = properties;
-                                    return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
-                                }}
-                                onChange={(value) => {
-
-
-                                    const getRealDate = (start, end) => {
-                                        if (typeof start == 'string') value = moment(start);
-
-                                        const starting = moment(start.format("MM-DD-YYYY") + " " + start.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-
-                                        var ending = moment(start.format("MM-DD-YYYY") + " " + end.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-                                        if (typeof starting !== 'undefined' && starting.isValid()) {
-                                            if (ending.isBefore(starting)) {
-                                                ending = ending.add(1, 'days');
-                                            }
-
-                                            return { starting_at: starting, ending_at: ending };
-                                        }
-                                        return null;
-                                    };
-
-                                    const mainDate = getRealDate(value, formData.ending_at);
-
-                                    const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
-                                    onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
-
-
-                                }}
-
-
-                            />
-                            <div className="input-group-append" onClick={() => {
-                                if (expired) Notify.error("Shifts with and expired starting or ending times cannot have multiple dates or be recurrent");
-                                else onChange({
-                                    multiple_dates: !formData.multiple_dates ?
-                                        [{ starting_at: formData.starting_at, ending_at: formData.ending_at }]
-                                        :
-                                        formData.multiple_dates.filter(dt => !dt.starting_at.isSame(formData.starting_at)).concat(
-                                            { starting_at: formData.starting_at, ending_at: formData.ending_at }
-                                        ),
-                                    has_sensitive_updates: true
-                                });
-                            }}>
-                                <span className="input-group-text pointer">More <i className="fas fa-plus ml-1"></i></span>
-                            </div>
-                        
-                        </div>
-                    </div>
-                </div>
-          
-                <div className="row" id="from-to-date">
-                    <div className="col-6">
-                        <label>From</label>
-                        <DateTime
-                            dateFormat={false}
-                            timeFormat={DATETIME_FORMAT}
-                            closeOnTab={true}
-                            timeConstraints={{ minutes: { step: 15 } }}
-                            value={formData.starting_at}
-                            renderInput={(properties) => {
-                                const { value, ...rest } = properties;
-                                return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
-                            }}
-                            onChange={(value) => {
-                                if (typeof value == 'string') value = moment(value);
-
-                                const getRealDate = (start, end) => {
-                                    const starting = moment(start.format("MM-DD-YYYY") + " " + value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-                                  
-                                    var ending = moment(end);
-                                    if (typeof starting !== 'undefined' && starting.isValid()) {
-                                        if (ending.isBefore(starting)) {
-                                            ending = ending.add(1, 'days');
-                                        }
-                                          
-                                        return { starting_at: starting, ending_at: ending };
-                                    }
-                                    return null;
-                                };
-
-                                const mainDate = getRealDate(formData.starting_at, formData.ending_at);
-                                const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
-                                onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
-
-
-                            }}
-                        />
-                    </div>
-                    <div className="col-6">
-                        <label>To {(formData.ending_at.isBefore(formData.starting_at)) && "(next day)"}</label>
-                        <DateTime
-                            className="picker-left"
-                            dateFormat={false}
-                            timeFormat={DATETIME_FORMAT}
-                            timeConstraints={{ minutes: { step: 15 } }}
-                            value={formData.ending_at}
-                            renderInput={(properties) => {
-                                const { value, ...rest } = properties;
-                                return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
-                            }}
-                            onChange={(value) => {
-                                if (typeof value == 'string') value = moment(value);
-
-                                const getRealDate = (start, end) => {
-
-                                    const starting = start;
-                                    var ending = moment(start.format("MM-DD-YYYY") + " " + value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-
-                                    if (typeof starting !== 'undefined' && starting.isValid()) {
-                                        if (ending.isBefore(starting)) {
-                                            ending = ending.add(1, 'days');
-                                        }
-
-                                        return { starting_at: starting, ending_at: ending };
-                                    }
-                                    return null;
-                                };
-
-                                const mainDate = getRealDate(formData.starting_at, formData.ending_at);
-                                const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
-                                onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
-
-                            }}
-                        />
-                    </div>
-                </div>
-                <div className="row" id="location">
-                    <div className="col-12">
-                        <label>Location</label>
-                        <Select
-                            value={catalog.venues.find((ven) => ven.value == formData.venue.id || ven.value == formData.venue)}
-                            options={[{ label: "Add a location", value: 'new_venue', component: AddOrEditLocation }].concat(catalog.venues)}
-                            onChange={(selection) => {
-                                if (selection.value == 'new_venue') bar.show({ slug: "create_location", allowLevels: true });
-                                else onChange({ venue: selection.value.toString(), has_sensitive_updates: true });
-                            }}
-                        />
-                    </div>
-                </div>
-                <div className="row" id="instruction">
-                    <div className="col-12">
-                        <label>Shift Instructions (optional)</label>
-                        <TextareaAutosize minRows={4} style={{ width: '100%'}} placeholder="Dressing code, location instructions, parking instruction etc.."
-                        onChange={event => setDescriptionContent(event.target.value)}
-                        value={description}
-                        />
-                        <p>
-                            {description.length}/{300}
-                        </p>
-                    </div>
-                </div>
-
-                <div className="row mt-3" >
-                    <div className="col-12" id="who-can-apply">
-                        <h4>Who can apply to this shift?</h4>
-                    </div>
-                </div>
-                <div className="row">
-                    <div className="col-12">
-                        {expired ?
-                            <div className="alert alert-warning">This shift has an expired date, therefore you cannot invite anyone but you can still use it for payroll purposes.</div>
-                            :
-                            <Select
-                                value={catalog.applicationRestrictions.find((a) => a.value == formData.application_restriction)}
-                                onChange={(selection) => onChange({ application_restriction: selection.value.toString() })}
-                                options={catalog.applicationRestrictions}
-                            />
-                        }
-                    </div>
-                </div>
-                {
-                    (!expired && formData.application_restriction == "FAVORITES") ?
-                        <div className="row">
-                            <div className="col-12">
-                                <label>From these favorite lists</label>
-                                <Select isMulti
-                                    value={formData.allowedFavlists}
-                                    onChange={(opt) => onChange({ allowedFavlists: opt })}
-                                    options={catalog.favlists}
-                                >
-                                </Select>
-                            </div>
-                        </div>
-                        : (!expired && formData.application_restriction == "ANYONE") ?
-                            <div className="row mt-3">
-                                <div className="col-5">
-                                    <label className="mt-2">Minimum rating</label>
-                                </div>
-                                <div className="col-7">
-                                    <Select
-                                        value={catalog.stars.find((s) => s.value == formData.minimum_allowed_rating)}
-                                        onChange={(selection) => onChange({ minimum_allowed_rating: selection.value })}
-                                        options={catalog.stars}
-                                    />
-                                </div>
-                            </div>
-                            : !expired &&
-                            <div className="row">
-                                <div className="col-12">
-                                    <label>Search people in JobCore:</label>
-                                    <SearchCatalogSelect
-                                        isMulti={true}
-                                        value={formData.pending_invites}
-                                        onChange={(selections) => {
-                                            const invite = selections.find(opt => opt.value == 'invite_talent_to_jobcore');
-                                            if (invite) bar.show({
-                                                allowLevels: true,
-                                                slug: "invite_talent_to_jobcore",
-                                                onSave: (emp) => onChange({ pending_jobcore_invites: formData.pending_jobcore_invites.concat(emp) })
-                                            });
-                                            else onChange({ pending_invites: selections });
-                                        }}
-                                        searchFunction={(search) => new Promise((resolve, reject) =>
-                                            GET('catalog/employees?full_name=' + search)
-                                                .then(talents => resolve([
-                                                    { label: `${(talents.length == 0) ? 'No one found: ' : ''}Invite "${search}" to jobcore`, value: 'invite_talent_to_jobcore' }
-                                                ].concat(talents)))
-                                                .catch(error => reject(error))
-                                        )}
-                                    />
-                                </div>
-                            </div>
+            {/* <Wizard continuous
+            steps={steps}
+            run={tutorial}
+            callback={callback}
+            disableBeacon={true}
+            styles={{
+                options: {
+                primaryColor: '#000',
                 }
-                {(formData.pending_jobcore_invites.length > 0) ?
+            }}
+            /> */}
+      
+            <div style={{
+            overflowY:"auto",
+            overflowX: 'hidden',
+            height: "calc(100vh - 75px)"
+            }}>
+      
+                <form>
+                    {/* <div className="row">
+                        <div className="col-12 text-right">
+                            <button type="button" className="btn btn-primary p-1 text-right" onClick={()=>setTutorial(true)}><strong>HELP ?</strong></button>
+                        </div>
+                    </div> */}
                     <div className="row">
                         <div className="col-12">
-                            <p className="m-0 p-0">The following people will be invited to this shift after they accept your invitation to jobcore:</p>
-                            {formData.pending_jobcore_invites.map((emp, i) => (
-                                <span key={i} className="badge">{emp.first_name} {emp.last_name} <i className="fas fa-trash-alt"></i></span>
-                            ))}
+                            {formData.hide_warnings === true ? null : (formData.status == 'DRAFT' && !error) ?
+                                <div className="alert alert-warning d-inline"><i className="fas fa-exclamation-triangle"></i> This shift is a draft</div>
+                                : (formData.status != 'UNDEFINED' && !error) ?
+                                    <div className="alert alert-success">This shift is published, therefore <strong>it needs to be unpublished</strong> before it can be updated</div>
+                                : ''
+                            }
                         </div>
-                    </div> : ''
-                }
-                <div className="btn-bar">
-                    {(formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ? // create shift
-                        <button type="button" className="btn btn-primary" onClick={() => onSave({
-                            executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
-                            status: 'DRAFT'
-                        })}>Save as draft</button> : ''
+                    </div>
+            
+                    <div className="row" id="looking-for">
+                        <div className="col-12">
+                            <label>Looking for</label>
+                        
+                            <Select
+                                placeholder="Select a position"
+                                value={catalog.positions.find((pos) => pos.value == formData.position.id || pos.value == formData.position)}
+                                onChange={(selection) => {
+                                    onChange({ position: selection.value.toString(), has_sensitive_updates: true });
+                            
+                                }}
+                                options={catalog.positions}
+                            />
+                        </div>
+                    </div>
+                    <div className="row">
+                        <div className="col-6"  id="how-many">
+                            <label>How many?</label>
+                            <input type="number" className="form-control"
+                                value={formData.maximum_allowed_employees}
+                                onChange={(e) => {
+                                    if (parseInt(e.target.value, 10) > 0) {
+                                        if (oldShift && oldShift.employees.length > parseInt(e.target.value, 10)) Notify.error(`${oldShift.employees.length} talents are scheduled to work on this shift already, delete scheduled employees first.`);
+                                        else onChange({ maximum_allowed_employees: e.target.value });
+                                    }
+                                }}
+                            />
+                        </div>
+                        <div className="col-6" id="price">
+                            <label>Price / hour</label>
+                            <input type="number" className="form-control"
+                                value={formData.minimum_hourly_rate}
+                                onChange={(e) => onChange({
+                                    minimum_hourly_rate: e.target.value,
+                                    has_sensitive_updates: true
+                                })}
+                            />
+                        </div>
+                    </div>
+                    <div className="row mt-3 mb-1" id="date-shift">
+                        <div className="col-12">
+                            <label className="mb-1">Create recurrent shifts?</label>
+                            <div className="form-check form-check-inline ml-2">
+                                <input className="form-check-input" type="radio" name="recurrentShifts" id="recurrentYes" value={recurrent} style={{verticalAlign:"middle"}} checked={recurrent} onChange={()=>
+                                    setRecurrent(true)
+                                }/>
+                                <span className="form-check-label" htmlFor="recurrentYes">Yes</span>
+                            </div>
+                            <div className="form-check form-check-inline">
+                                <input className="form-check-input" type="radio" name="recurrentShifts" id="recurrentNo" value={recurrent} checked={!recurrent} onChange={() => 
+                                    setRecurrent(false)
+                                }/>
+                                <span className="form-check-label" htmlFor="recurrentNo">No</span>
+                            </div>
+                            
+                        </div>
+                        {recurrent && (
+
+                        <div className="col-12 mt-2">
+                            <div className="row text-center">
+                                <div className="col"/>
+                                <div className="col">
+                                    <span>From</span>
+                                </div>
+                                <div className="col">
+                                    <span>To</span>
+                                </div>
+                            </div>
+                            <div className="row mb-1" id="from-to-date">
+                                <div className="col my-auto">
+                                    <div className="form-check">
+                                        <input className="form-check-input" type="checkbox" value={recurrentTimes.monday.active} checked={recurrentTimes.monday.active} onChange={()=>setRecurrentTimes({
+                                            ...recurrentTimes, monday: {
+                                                active: !recurrentTimes.monday.active,
+                                                starting_at: recurrentTimes.monday.starting_at,
+                                                ending_at: recurrentTimes.monday.ending_at
+                                            }
+                                        })} id="defaultCheck1"/>
+                                        <span className="form-check-label" htmlFor="defaultCheck1">
+                                            Monday
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="col">
+                                    <DateTime
+                                        dateFormat={false}
+                                        timeFormat={DATETIME_FORMAT}
+                                        closeOnTab={true}
+                                        timeConstraints={{ minutes: { step: 15 } }}
+                                        value={recurrentTimes.monday.starting_at}
+                                        inputProps={{
+                                            disabled: !recurrentTimes.monday.active,
+                                            placeholder: "0:00 am"
+                                        }}
+                                        renderInput={(properties) => {
+                                            const { value, ...rest } = properties;
+                                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                                        }}
+                                        onChange={(value) => {
+                                            if (typeof value == 'string') value = moment(value);
+                                            setRecurrentTimes({
+                                                ...recurrentTimes, monday: {
+                                                    active: recurrentTimes.monday.active,
+                                                    starting_at: value,
+                                                    ending_at: recurrentTimes.monday.ending_at
+                                                }
+                                            });
+                                        }}
+                                    />
+                                </div>
+                                <div className="col">
+                                    {/* <label>To {(formData.ending_at.isBefore(formData.starting_at)) && "(next day)"}</label> */}
+                                    <DateTime
+                                        className="picker-left"
+                                        dateFormat={false}
+                                        timeFormat={DATETIME_FORMAT}
+                                        inputProps={{
+                                            disabled: !recurrentTimes.monday.active,
+                                            placeholder: "0:00 am"
+
+                                        }}
+                                        timeConstraints={{ minutes: { step: 15 } }}
+                                        value={recurrentTimes.monday.ending_at}
+                                        renderInput={(properties) => {
+                                            const { value, ...rest } = properties;
+                                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                                        }}
+                                        onChange={(value) => {
+                                            if (typeof value == 'string') value = moment(value);
+                                            setRecurrentTimes({
+                                                ...recurrentTimes, monday: {
+                                                    active: recurrentTimes.monday.active,
+                                                    starting_at: recurrentTimes.monday.starting_at,
+                                                    ending_at: value
+                                                }
+                                            });
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                            <div className="row mb-1" id="from-to-date">
+                                <div className="col my-auto">
+                                    <div className="form-check">
+                                        <input className="form-check-input" type="checkbox" value={recurrentTimes.tuesday.active} checked={recurrentTimes.tuesday.active} onChange={()=>setRecurrentTimes({
+                                            ...recurrentTimes, tuesday: {
+                                                active: !recurrentTimes.tuesday.active,
+                                                starting_at: recurrentTimes.tuesday.starting_at,
+                                                ending_at: recurrentTimes.tuesday.ending_at
+                                            }
+                                        })} id="defaultCheck1"/>
+                                        <span className="form-check-label" htmlFor="defaultCheck1">
+                                            Tuesday
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="col">
+                                    <DateTime
+                                        dateFormat={false}
+                                        timeFormat={DATETIME_FORMAT}
+                                        inputProps={{
+                                            disabled: !recurrentTimes.tuesday.active,
+                                            placeholder: "0:00 am"
+
+                                        }}
+                                        closeOnTab={true}
+                                        timeConstraints={{ minutes: { step: 15 } }}
+                                        value={recurrentTimes.tuesday.starting_at}
+                                        renderInput={(properties) => {
+                                            const { value, ...rest } = properties;
+                                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                                        }}
+                                        onChange={(value) => {
+                                            if (typeof value == 'string') value = moment(value);
+                                            setRecurrentTimes({
+                                                ...recurrentTimes, tuesday: {
+                                                    active: recurrentTimes.tuesday.active,
+                                                    starting_at: value,
+                                                    ending_at: recurrentTimes.tuesday.ending_at
+                                                }
+                                            });
+                                        }}
+                                    />
+                                </div>
+                                <div className="col">
+                                    {/* <label>To {(formData.ending_at.isBefore(formData.starting_at)) && "(next day)"}</label> */}
+                                    <DateTime
+                                        className="picker-left"
+                                        dateFormat={false}
+                                        timeFormat={DATETIME_FORMAT}
+                                        inputProps={{
+                                            disabled: !recurrentTimes.tuesday.active,
+                                            placeholder: "0:00 am"
+                                        }}
+                                        timeConstraints={{ minutes: { step: 15 } }}
+                                        value={recurrentTimes.tuesday.ending_at}
+                                        renderInput={(properties) => {
+                                            const { value, ...rest } = properties;
+                                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                                        }}
+                                        onChange={(value) => {
+                                            if (typeof value == 'string') value = moment(value);
+                                            setRecurrentTimes({
+                                                ...recurrentTimes, tuesday: {
+                                                    active: recurrentTimes.tuesday.active,
+                                                    starting_at: recurrentTimes.tuesday.starting_at,
+                                                    ending_at: value
+                                                }
+                                            });
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                            <div className="row mb-1" id="from-to-date">
+                                <div className="col my-auto">
+                                    <div className="form-check">
+                                        <input className="form-check-input" type="checkbox" value={recurrentTimes.wednesday.active} checked={recurrentTimes.wednesday.active} onChange={()=>setRecurrentTimes({
+                                            ...recurrentTimes, wednesday: {
+                                                active: !recurrentTimes.wednesday.active,
+                                                starting_at: recurrentTimes.wednesday.starting_at,
+                                                ending_at: recurrentTimes.wednesday.ending_at
+                                            }
+                                        })} id="defaultCheck1"/>
+                                        <span className="form-check-label" htmlFor="defaultCheck1">
+                                            Wednesday
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="col">
+                                    <DateTime
+                                        dateFormat={false}
+                                        timeFormat={DATETIME_FORMAT}
+                                        inputProps={{
+                                            disabled: !recurrentTimes.wednesday.active,
+                                            placeholder: "0:00 am"
+
+                                        }}
+                                        closeOnTab={true}
+                                        timeConstraints={{ minutes: { step: 15 } }}
+                                        value={recurrentTimes.wednesday.starting_at}
+                                        renderInput={(properties) => {
+                                            const { value, ...rest } = properties;
+                                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                                        }}
+                                        onChange={(value) => {
+                                            if (typeof value == 'string') value = moment(value);
+                                            setRecurrentTimes({
+                                                ...recurrentTimes, wednesday: {
+                                                    active: recurrentTimes.wednesday.active,
+                                                    starting_at: value,
+                                                    ending_at: recurrentTimes.wednesday.ending_at
+                                                }
+                                            });
+                                        }}
+                                    />
+                                </div>
+                                <div className="col">
+                                    {/* <label>To {(formData.ending_at.isBefore(formData.starting_at)) && "(next day)"}</label> */}
+                                    <DateTime
+                                        className="picker-left"
+                                        dateFormat={false}
+                                        timeFormat={DATETIME_FORMAT}
+                                        inputProps={{
+                                            disabled: !recurrentTimes.wednesday.active,
+                                            placeholder: "0:00 am"
+
+                                        }}
+                                        timeConstraints={{ minutes: { step: 15 } }}
+                                        value={recurrentTimes.wednesday.ending_at}
+                                        renderInput={(properties) => {
+                                            const { value, ...rest } = properties;
+                                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                                        }}
+                                        onChange={(value) => {
+                                            if (typeof value == 'string') value = moment(value);
+                                            setRecurrentTimes({
+                                                ...recurrentTimes, wednesday: {
+                                                    active: recurrentTimes.wednesday.active,
+                                                    starting_at: recurrentTimes.wednesday.starting_at,
+                                                    ending_at: value
+                                                }
+                                            });
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                            <div className="row mb-1" id="from-to-date">
+                                <div className="col my-auto">
+                                    <div className="form-check">
+                                        <input className="form-check-input" type="checkbox" value={recurrentTimes.thursday.active} checked={recurrentTimes.thursday.active} onChange={()=>setRecurrentTimes({
+                                            ...recurrentTimes, thursday: {
+                                                active: !recurrentTimes.thursday.active,
+                                                starting_at: recurrentTimes.thursday.starting_at,
+                                                ending_at: recurrentTimes.thursday.ending_at
+                                            }
+                                        })} id="defaultCheck1"/>
+                                        <span className="form-check-label" htmlFor="defaultCheck1">
+                                            Thursday
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="col">
+                                    <DateTime
+                                        dateFormat={false}
+                                        timeFormat={DATETIME_FORMAT}
+                                        inputProps={{
+                                            disabled: !recurrentTimes.thursday.active,
+                                            placeholder: "0:00 am"
+
+                                        }}
+                                        closeOnTab={true}
+                                        timeConstraints={{ minutes: { step: 15 } }}
+                                        value={recurrentTimes.thursday.starting_at}
+                                        renderInput={(properties) => {
+                                            const { value, ...rest } = properties;
+                                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                                        }}
+                                        onChange={(value) => {
+                                            if (typeof value == 'string') value = moment(value);
+                                            setRecurrentTimes({
+                                                ...recurrentTimes, thursday: {
+                                                    active: recurrentTimes.thursday.active,
+                                                    starting_at: value,
+                                                    ending_at: recurrentTimes.thursday.ending_at
+                                                }
+                                            });
+                                        }}
+                                    />
+                                </div>
+                                <div className="col">
+                                    {/* <label>To {(formData.ending_at.isBefore(formData.starting_at)) && "(next day)"}</label> */}
+                                    <DateTime
+                                        className="picker-left"
+                                        dateFormat={false}
+                                        inputProps={{
+                                            disabled: !recurrentTimes.thursday.active,
+                                            placeholder: "0:00 am"
+
+                                        }}
+                                        timeFormat={DATETIME_FORMAT}
+                                        timeConstraints={{ minutes: { step: 15 } }}
+                                        value={recurrentTimes.thursday.ending_at}
+                                        renderInput={(properties) => {
+                                            const { value, ...rest } = properties;
+                                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                                        }}
+                                        onChange={(value) => {
+                                            if (typeof value == 'string') value = moment(value);
+                                            setRecurrentTimes({
+                                                ...recurrentTimes, thursday: {
+                                                    active: recurrentTimes.thursday.active,
+                                                    ending_at: value,
+                                                    starting_at: recurrentTimes.thursday.starting_at
+                                                }
+                                            });
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                            <div className="row mb-1" id="from-to-date">
+                                <div className="col my-auto">
+                                    <div className="form-check">
+                                        <input className="form-check-input" type="checkbox" value={recurrentTimes.friday.active} checked={recurrentTimes.friday.active} onChange={()=>setRecurrentTimes({
+                                            ...recurrentTimes, friday: {
+                                                active: !recurrentTimes.friday.active,
+                                                starting_at: recurrentTimes.friday.starting_at,
+                                                ending_at: recurrentTimes.friday.ending_at
+                                            }
+                                        })} id="defaultCheck1"/>
+                                        <span className="form-check-label" htmlFor="defaultCheck1">
+                                            Friday
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="col">
+                                    <DateTime
+                                        dateFormat={false}
+                                        timeFormat={DATETIME_FORMAT}
+                                        inputProps={{
+                                            disabled: !recurrentTimes.friday.active,
+                                            placeholder: "0:00 am"
+
+                                        }}
+                                        closeOnTab={true}
+                                        timeConstraints={{ minutes: { step: 15 } }}
+                                        value={recurrentTimes.friday.starting_at}
+                                        renderInput={(properties) => {
+                                            const { value, ...rest } = properties;
+                                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                                        }}
+                                        onChange={(value) => {
+                                            if (typeof value == 'string') value = moment(value);
+                                            setRecurrentTimes({
+                                                ...recurrentTimes, friday: {
+                                                    active: recurrentTimes.friday.active,
+                                                    starting_at: value,
+                                                    ending_at: recurrentTimes.friday.ending_at
+                                                }
+                                            });
+                                        }}
+                                    />
+                                </div>
+                                <div className="col">
+                                    {/* <label>To {(formData.ending_at.isBefore(formData.starting_at)) && "(next day)"}</label> */}
+                                    <DateTime
+                                        className="picker-left"
+                                        dateFormat={false}
+                                        timeFormat={DATETIME_FORMAT}
+                                        inputProps={{
+                                            disabled: !recurrentTimes.friday.active,
+                                            placeholder: "0:00 am"
+
+                                        }}
+                                        timeConstraints={{ minutes: { step: 15 } }}
+                                        value={recurrentTimes.friday.ending_at}
+                                        renderInput={(properties) => {
+                                            const { value, ...rest } = properties;
+                                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                                        }}
+                                        onChange={(value) => {
+                                            if (typeof value == 'string') value = moment(value);
+                                            setRecurrentTimes({
+                                                ...recurrentTimes, friday: {
+                                                    active: recurrentTimes.friday.active,
+                                                    ending_at: value,
+                                                    starting_at: recurrentTimes.friday.starting_at
+                                                }
+                                            });
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                            <div className="row mb-1" id="from-to-date">
+                                <div className="col my-auto">
+                                    <div className="form-check">
+                                        <input className="form-check-input" type="checkbox" value={recurrentTimes.saturday.active} checked={recurrentTimes.saturday.active} onChange={()=>setRecurrentTimes({
+                                            ...recurrentTimes, saturday: {
+                                                active: !recurrentTimes.saturday.active,
+                                                starting_at: recurrentTimes.saturday.starting_at,
+                                                ending_at: recurrentTimes.saturday.ending_at
+                                            }
+                                        })} id="defaultCheck1"/>
+                                        <span className="form-check-label" htmlFor="defaultCheck1">
+                                            Saturday
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="col">
+                                    <DateTime
+                                        dateFormat={false}
+                                        timeFormat={DATETIME_FORMAT}
+                                        inputProps={{
+                                            disabled: !recurrentTimes.saturday.active,
+                                            placeholder: "0:00 am"
+
+                                        }}
+                                        closeOnTab={true}
+                                        timeConstraints={{ minutes: { step: 15 } }}
+                                        value={recurrentTimes.saturday.starting_at}
+                                        renderInput={(properties) => {
+                                            const { value, ...rest } = properties;
+                                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                                        }}
+                                        onChange={(value) => {
+                                            if (typeof value == 'string') value = moment(value);
+                                            setRecurrentTimes({
+                                                ...recurrentTimes, saturday: {
+                                                    active: recurrentTimes.saturday.active,
+                                                    starting_at: value,
+                                                    ending_at: recurrentTimes.saturday.ending_at
+                                                }
+                                            });
+                                        }}
+                                    />
+                                </div>
+                                <div className="col">
+                                    {/* <label>To {(formData.ending_at.isBefore(formData.starting_at)) && "(next day)"}</label> */}
+                                    <DateTime
+                                        className="picker-left"
+                                        dateFormat={false}
+                                        timeFormat={DATETIME_FORMAT}
+                                        inputProps={{
+                                            disabled: !recurrentTimes.saturday.active,
+                                            placeholder: "0:00 am"
+
+                                        }}
+                                        timeConstraints={{ minutes: { step: 15 } }}
+                                        value={recurrentTimes.saturday.ending_at}
+                                        renderInput={(properties) => {
+                                            const { value, ...rest } = properties;
+                                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                                        }}
+                                        onChange={(value) => {
+                                            if (typeof value == 'string') value = moment(value);
+                                            setRecurrentTimes({
+                                                ...recurrentTimes, saturday: {
+                                                    active: recurrentTimes.saturday.active,
+                                                    ending_at: value,
+                                                    starting_at: recurrentTimes.saturday.starting_at
+                                                }
+                                            });
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                            <div className="row mb-1" id="from-to-date">
+                                <div className="col my-auto">
+                                    <div className="form-check">
+                                        <input className="form-check-input" type="checkbox" value={recurrentTimes.sunday.active} checked={recurrentTimes.sunday.active} onChange={()=>setRecurrentTimes({
+                                            ...recurrentTimes, sunday: {
+                                                active: !recurrentTimes.sunday.active,
+                                                starting_at: recurrentTimes.sunday.starting_at,
+                                                ending_at: recurrentTimes.sunday.ending_at
+                                            }
+                                        })} id="defaultCheck1"/>
+                                        <span className="form-check-label" htmlFor="defaultCheck1">
+                                            Sunday
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="col">
+                                    <DateTime
+                                        dateFormat={false}
+                                        timeFormat={DATETIME_FORMAT}
+                                        inputProps={{
+                                            disabled: !recurrentTimes.sunday.active,
+                                            placeholder: "0:00 am"
+
+                                        }}
+                                        closeOnTab={true}
+                                        timeConstraints={{ minutes: { step: 15 } }}
+                                        value={recurrentTimes.sunday.starting_at}
+                                        renderInput={(properties) => {
+                                            const { value, ...rest } = properties;
+                                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                                        }}
+                                        onChange={(value) => {
+                                            if (typeof value == 'string') value = moment(value);
+                                            setRecurrentTimes({
+                                                ...recurrentTimes, sunday: {
+                                                    active: recurrentTimes.sunday.active,
+                                                    starting_at: value,
+                                                    ending_at: recurrentTimes.sunday.ending_at
+                                                }
+                                            });
+                                        }}
+                                    />
+                                </div>
+                                <div className="col-4">
+                                    {/* <label>To {(formData.ending_at.isBefore(formData.starting_at)) && "(next day)"}</label> */}
+                                    <DateTime
+                                        className="picker-left"
+                                        dateFormat={false}
+                                        timeFormat={DATETIME_FORMAT}
+                                        inputProps={{
+                                            disabled: !recurrentTimes.sunday.active,
+                                            placeholder: "0:00 am"
+
+                                        }}
+                                        timeConstraints={{ minutes: { step: 15 } }}
+                                        value={recurrentTimes.sunday.ending_at}
+                                        renderInput={(properties) => {
+                                            const { value, ...rest } = properties;
+                                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                                        }}
+                                        onChange={(value) => {
+                                            if (typeof value == 'string') value = moment(value);
+                                            setRecurrentTimes({
+                                                ...recurrentTimes, sunday: {
+                                                    active: recurrentTimes.sunday.active,
+                                                    ending_at: value,
+                                                    starting_at: recurrentTimes.sunday.starting_at
+                                                }
+                                            });
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                            <div className="row" id="date-shift">
+                                <div className="col-6">
+                                    <label className="mb-1">Starting Date</label>
+                            
+                                    <div className="input-group" >
+                                        <DateTime
+                                            timeFormat={false}
+                                            className="shiftdate-picker"
+                                            closeOnSelect={true}
+                                            value={recurrentDates.starting_at}
+                                            isValidDate={(current) => {
+                                                return current.isAfter(YESTERDAY) ?  true : false;
+                                            }}
+                                            renderInput={(properties) => {
+                                                const { value, ...rest } = properties;
+                                                return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
+                                            }}
+                                            onChange={(value) => {
+                                                if (typeof value == 'string') value = moment(value);
+                                                console.log('starting value', value);
+                                                const getRealDate = (start, end) => {
+                                                    const starting = moment(value.format("MM-DD-YYYY"), "MM-DD-YYYY");
+                                                    var ending = moment(end);
+                                                    if (typeof starting !== 'undefined' && starting.isValid()) {
+                                                        if (ending.isBefore(starting)) {
+                                                            ending = ending.add(1, 'days');
+                                                        }
+                                                        console.log('starting', starting);
+                                                        console.log('ending', ending);
+
+                                                        return setRecurrentDates({
+                                                            starting_at: starting,
+                                                            ending_at: ending
+                                                        });
+                                                    }
+                                                    return null;
+                                                };
+        
+                                                getRealDate(recurrentDates.starting_at, recurrentDates.ending_at);
+        
+        
+                                            }}
+
+
+                                        />
+
+                                    
+                                    </div>
+                                </div>
+                                <div className="col-12"/>
+                                <div className="col-6">
+                                    <label className="mb-1">Ending Date</label>
+                                    <div className="input-group">
+                                        <DateTime
+                                            timeFormat={false}
+                                            className="shiftdate-picker"
+                                            closeOnSelect={true}
+                                            value={recurrentDates.ending_at}
+                                            isValidDate={(current) => {
+                                                return current.isAfter(YESTERDAY) && current.isBefore(moment().add(3, 'M'))? true : false; 
+                                            }}
+                                            renderInput={(properties) => {
+                                                const { value, ...rest } = properties;
+                                                return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
+                                            }}
+                                            onChange={(value) => {
+                                                if (typeof value == 'string') value = moment(value);
+
+                                                const getRealDate = (start, end) => {
+                                                    const starting = start;
+                                                    var ending = moment(value.format("MM-DD-YYYY"), "MM-DD-YYYY");
+
+                                                    if (typeof starting !== 'undefined' && starting.isValid()) {
+                                                        if (ending.isBefore(starting)) {
+                                                            ending = ending.add(1, 'days');
+                                                        }
+                                                        
+                                                        return setRecurrentDates({
+                                                            starting_at: starting,
+                                                            ending_at: ending
+                                                        });
+                                                    }
+                                                    return null;
+                                                };
+        
+                                                getRealDate(recurrentDates.starting_at, recurrentDates.ending_at);
+                                            }}
+
+
+                                        />
+
+                                    
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        )} 
+                    </div>
+                    {!recurrent && (
+                        <div>
+                            
+                            <div className="row" id="date-shift">
+                                <div className="col-12">
+                                    <label className="mb-1">Dates</label>
+                                    {formData.multiple_dates && <p className="mb-1 mt-0">
+                                        {formData.multiple_dates.map((d, i) => (
+                                            <span key={i} className="badge">{d.starting_at.format('MM-DD-YYYY')}
+                                                <i
+                                                    className="fas fa-trash-alt ml-1 pointer"
+                                                    onClick={() => onChange({
+                                                        multiple_dates: !formData.multiple_dates ? [] : formData.multiple_dates.filter(dt => !dt.starting_at.isSame(d.starting_at)),
+                                                        has_sensitive_updates: true
+                                                    })}
+                                                />
+                                            </span>
+                                        ))}
+                                    </p>}
+                                    <div className="input-group" >
+                                        <DateTime
+                                            timeFormat={false}
+                                            className="shiftdate-picker"
+                                            closeOnSelect={true}
+                                            value={formData.starting_at}
+                                            isValidDate={(current) => {
+                                                return formData.multiple_dates !== undefined && formData.multiple_dates.length > 0 ? current.isAfter(YESTERDAY) : true;
+                                            }}
+                                            renderInput={(properties) => {
+                                                const { value, ...rest } = properties;
+                                                return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
+                                            }}
+                                            onChange={(value) => {
+
+
+                                                const getRealDate = (start, end) => {
+                                                    if (typeof start == 'string') value = moment(start);
+
+                                                    const starting = moment(start.format("MM-DD-YYYY") + " " + start.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+
+                                                    var ending = moment(start.format("MM-DD-YYYY") + " " + end.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                                                    if (typeof starting !== 'undefined' && starting.isValid()) {
+                                                        if (ending.isBefore(starting)) {
+                                                            ending = ending.add(1, 'days');
+                                                        }
+
+                                                        return { starting_at: starting, ending_at: ending };
+                                                    }
+                                                    return null;
+                                                };
+
+                                                const mainDate = getRealDate(value, formData.ending_at);
+
+                                                const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
+                                                onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
+
+
+                                            }}
+
+
+                                        />
+                                        <div className="input-group-append" onClick={() => {
+                                            if (expired) Notify.error("Shifts with and expired starting or ending times cannot have multiple dates or be recurrent");
+                                            else onChange({
+                                                multiple_dates: !formData.multiple_dates ?
+                                                    [{ starting_at: formData.starting_at, ending_at: formData.ending_at }]
+                                                    :
+                                                    formData.multiple_dates.filter(dt => !dt.starting_at.isSame(formData.starting_at)).concat(
+                                                        { starting_at: formData.starting_at, ending_at: formData.ending_at }
+                                                    ),
+                                                has_sensitive_updates: true
+                                            });
+                                        }}>
+                                            <span className="input-group-text pointer">More <i className="fas fa-plus ml-1"></i></span>
+                                        </div>
+                                    
+                                    </div>
+                                </div>
+                            </div>
+                    
+                            <div className="row" id="from-to-date">
+                                <div className="col-6">
+                                    <label>From</label>
+                                    <DateTime
+                                        dateFormat={false}
+                                        timeFormat={DATETIME_FORMAT}
+                                        closeOnTab={true}
+                                        timeConstraints={{ minutes: { step: 15 } }}
+                                        value={formData.starting_at}
+                                        renderInput={(properties) => {
+                                            const { value, ...rest } = properties;
+                                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                                        }}
+                                        onChange={(value) => {
+                                            if (typeof value == 'string') value = moment(value);
+
+                                            const getRealDate = (start, end) => {
+                                                const starting = moment(start.format("MM-DD-YYYY") + " " + value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                                            
+                                                var ending = moment(end);
+                                                if (typeof starting !== 'undefined' && starting.isValid()) {
+                                                    if (ending.isBefore(starting)) {
+                                                        ending = ending.add(1, 'days');
+                                                    }
+                                                    
+                                                    return { starting_at: starting, ending_at: ending };
+                                                }
+                                                return null;
+                                            };
+
+                                            const mainDate = getRealDate(formData.starting_at, formData.ending_at);
+                                            const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
+                                            onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
+
+
+                                        }}
+                                    />
+                                </div>
+                                <div className="col-6">
+                                    <label>To {(formData.ending_at.isBefore(formData.starting_at)) && "(next day)"}</label>
+                                    <DateTime
+                                        className="picker-left"
+                                        dateFormat={false}
+                                        timeFormat={DATETIME_FORMAT}
+                                        timeConstraints={{ minutes: { step: 15 } }}
+                                        value={formData.ending_at}
+                                        renderInput={(properties) => {
+                                            const { value, ...rest } = properties;
+                                            return <input value={value.match(/\d{1,2}:\d{1,2}\s?[ap]m/gm)} {...rest} />;
+                                        }}
+                                        onChange={(value) => {
+                                            if (typeof value == 'string') value = moment(value);
+
+                                            const getRealDate = (start, end) => {
+
+                                                const starting = start;
+                                                var ending = moment(start.format("MM-DD-YYYY") + " " + value.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+
+                                                if (typeof starting !== 'undefined' && starting.isValid()) {
+                                                    if (ending.isBefore(starting)) {
+                                                        ending = ending.add(1, 'days');
+                                                    }
+
+                                                    return { starting_at: starting, ending_at: ending };
+                                                }
+                                                return null;
+                                            };
+
+                                            const mainDate = getRealDate(formData.starting_at, formData.ending_at);
+                                            const multipleDates = !Array.isArray(formData.multiple_dates) ? [] : formData.multiple_dates.map(d => getRealDate(d.starting_at, d.ending_at));
+                                            onChange({ ...mainDate, multiple_dates: multipleDates, has_sensitive_updates: true });
+
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    <div className="row" id="location">
+                        <div className="col-12">
+                            <label>Location</label>
+                            <Select
+                                value={catalog.venues.find((ven) => ven.value == formData.venue.id || ven.value == formData.venue)}
+                                options={[{ label: "Add a location", value: 'new_venue', component: AddOrEditLocation }].concat(catalog.venues)}
+                                onChange={(selection) => {
+                                    if (selection.value == 'new_venue') bar.show({ slug: "create_location", allowLevels: true });
+                                    else onChange({ venue: selection.value.toString(), has_sensitive_updates: true });
+                                }}
+                            />
+                        </div>
+                    </div>
+                    <div className="row" id="instruction">
+                        <div className="col-12">
+                            <label>Shift Instructions (optional)</label>
+                            <TextareaAutosize minRows={4} style={{ width: '100%'}} placeholder="Dressing code, location instructions, parking instruction etc.."
+                            onChange={event => setDescriptionContent(event.target.value)}
+                            value={description}
+                            />
+                            <p>
+                                {description.length}/{300}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="row mt-3" >
+                        <div className="col-12" id="who-can-apply">
+                            <h4>Who can apply to this shift?</h4>
+                        </div>
+                    </div>
+                    <div className="row">
+                        <div className="col-12">
+                            {expired ?
+                                <div className="alert alert-warning">This shift has an expired date, therefore you cannot invite anyone but you can still use it for payroll purposes.</div>
+                                :
+                                <Select
+                                    value={catalog.applicationRestrictions.find((a) => a.value == formData.application_restriction)}
+                                    onChange={(selection) => onChange({ application_restriction: selection.value.toString() })}
+                                    options={catalog.applicationRestrictions}
+                                />
+                            }
+                        </div>
+                    </div>
+                    {
+                        (!expired && formData.application_restriction == "FAVORITES") ?
+                            <div className="row">
+                                <div className="col-12">
+                                    <label>From these favorite lists</label>
+                                    <Select isMulti
+                                        value={formData.allowedFavlists}
+                                        onChange={(opt) => onChange({ allowedFavlists: opt })}
+                                        options={catalog.favlists}
+                                    >
+                                    </Select>
+                                </div>
+                            </div>
+                            : (!expired && formData.application_restriction == "ANYONE") ?
+                                <div className="row mt-3">
+                                    <div className="col-5">
+                                        <label className="mt-2">Minimum rating</label>
+                                    </div>
+                                    <div className="col-7">
+                                        <Select
+                                            value={catalog.stars.find((s) => s.value == formData.minimum_allowed_rating)}
+                                            onChange={(selection) => onChange({ minimum_allowed_rating: selection.value })}
+                                            options={catalog.stars}
+                                        />
+                                    </div>
+                                </div>
+                                : !expired &&
+                                <div className="row">
+                                    <div className="col-12">
+                                        <label>Search people in JobCore:</label>
+                                        <SearchCatalogSelect
+                                            isMulti={true}
+                                            value={formData.pending_invites}
+                                            onChange={(selections) => {
+                                                const invite = selections.find(opt => opt.value == 'invite_talent_to_jobcore');
+                                                if (invite) bar.show({
+                                                    allowLevels: true,
+                                                    slug: "invite_talent_to_jobcore",
+                                                    onSave: (emp) => onChange({ pending_jobcore_invites: formData.pending_jobcore_invites.concat(emp) })
+                                                });
+                                                else onChange({ pending_invites: selections });
+                                            }}
+                                            searchFunction={(search) => new Promise((resolve, reject) =>
+                                                GET('catalog/employees?full_name=' + search)
+                                                    .then(talents => resolve([
+                                                        { label: `${(talents.length == 0) ? 'No one found: ' : ''}Invite "${search}" to jobcore`, value: 'invite_talent_to_jobcore' }
+                                                    ].concat(talents)))
+                                                    .catch(error => reject(error))
+                                            )}
+                                        />
+                                    </div>
+                                </div>
                     }
-                    {(formData.status == 'DRAFT') ?
-                        <button type="button" className="btn btn-success" onClick={() => {
-                            if (!formData.has_sensitive_updates && !isNaN(formData.id)) onSave({ executed_action: 'update_shift', status: 'OPEN' });
-                            else {
-                                const noti = Notify.info("Are you sure? All talents will have to apply again the shift because the information was updated.", (answer) => {
-                                    if (answer) onSave({
+                    {(formData.pending_jobcore_invites.length > 0) ?
+                        <div className="row">
+                            <div className="col-12">
+                                <p className="m-0 p-0">The following people will be invited to this shift after they accept your invitation to jobcore:</p>
+                                {formData.pending_jobcore_invites.map((emp, i) => (
+                                    <span key={i} className="badge">{emp.first_name} {emp.last_name} <i className="fas fa-trash-alt"></i></span>
+                                ))}
+                            </div>
+                        </div> : ''
+                    }
+                    <div className="btn-bar">
+                        {(formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ? // create shift
+                            <button type="button" className="btn btn-primary" onClick={() => {
+                            if(recurrent) formData.multiple_dates = multipleRecurrentShift;
+                            onSave({
+                                executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
+                                status: 'DRAFT'
+                            })
+                            ;
+                        }
+                        }>Save as draft</button> : ''
+                        }
+                        {(formData.status == 'DRAFT') ?
+                            <button type="button" className="btn btn-success" onClick={() => {
+                                if (!formData.has_sensitive_updates && !isNaN(formData.id)) onSave({ executed_action: 'update_shift', status: 'OPEN' });
+                                else {
+                                    const noti = Notify.info("Are you sure? All talents will have to apply again the shift because the information was updated.", (answer) => {
+                                        if (answer) onSave({
+                                            executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
+                                            status: 'OPEN'
+                                        });
+                                        noti.remove();
+                                    });
+                                }
+                            }}>Publish</button>
+                            : (formData.status != 'UNDEFINED') ?
+                                <button type="button" className="btn btn-primary" onClick={() => {
+                        
+                                    const noti = Notify.info("Are you sure you want to unpublish this shift?", (answer) => {
+                                        if (answer) onSave({ executed_action: 'update_shift', status: 'DRAFT' });
+                                        noti.remove();
+                                    }, 9999999999999);
+                                }}>Unpublish shift</button>
+                                :
+                                <button type="button" id="publish" className="btn btn-success" onClick={() =>{
+
+                                    if(recurrent) {
+                                        const noti = Notify.info(`Are you sure to publish a total of ${totalShift}? (
+                                            ${
+                                                multipleRecurrentShift.map(s => {
+                                                    return s.starting_at + " - " + s.ending_at;
+                                                })
+                                            }
+                                        )`, (answer) => {
+                                            if (answer) {
+                                                datescalculator();
+                                                window.location.reload();
+                                            }
+                                            noti.remove();
+                                        });
+                                    }else{
+                                        onSave({
                                         executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
                                         status: 'OPEN'
                                     });
+
+                                    }
+                                    
+                                }
+                            }>Save and publish</button>
+                        
+                        }
+                        {(formData.status != 'UNDEFINED') ?
+                            <button type="button" className="btn btn-danger" onClick={() => {
+                                const noti = Notify.info("Are you sure you want to cancel this shift?", (answer) => {
+                                    if (answer) onSave({ executed_action: 'update_shift', status: 'CANCELLED' });
                                     noti.remove();
                                 });
-                            }
-                        }}>Publish</button>
-                        : (formData.status != 'UNDEFINED') ?
-                            <button type="button" className="btn btn-primary" onClick={() => {
-                      
-                                const noti = Notify.info("Are you sure you want to unpublish this shift?", (answer) => {
-                                    if (answer) onSave({ executed_action: 'update_shift', status: 'DRAFT' });
-                                    noti.remove();
-                                }, 9999999999999);
-                            }}>Unpublish shift</button>
-                            :
-                            <button type="button" id="publish" className="btn btn-success" onClick={() => onSave({
-                                executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
-                                status: 'OPEN'
-                            })}>Save and publish</button>
-                      
-                    }
-                    {(formData.status != 'UNDEFINED') ?
-                        <button type="button" className="btn btn-danger" onClick={() => {
-                            const noti = Notify.info("Are you sure you want to cancel this shift?", (answer) => {
-                                if (answer) onSave({ executed_action: 'update_shift', status: 'CANCELLED' });
-                                noti.remove();
-                            });
-                        }}>Delete</button> : ''
-                    }
-                
-                </div>
-            </form>
+                            }}>Delete</button> : ''
+                        }
+                    
+                    </div>
+                </form>
+            </div>
         </div>
+    
     );
 };
 EditOrAddShift.propTypes = {

@@ -448,6 +448,7 @@ export class PayrollSettings extends Flux.DashView {
                                     className="form-control" style={{ width: "100px", display: "inline-block" }}
                                     onChange={(e) => this.setEmployer({ maximum_clockin_delta_minutes: isNaN(e.target.value) ? null : e.target.value, timeclock_warning: true })}
                                 >
+                                    <option value={0}>Select</option>
                                     <option value={5}>5 min</option>
                                     <option value={10}>10 min</option>
                                     <option value={15}>15 min</option>
@@ -1502,7 +1503,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
         <div className="top-bar">
             <Button
                 icon="sync" color="primary" size="small" rounded={true}
-                onClick={() => processPendingPayrollPeriods().then(_periods => onChange({ periods: periods.concat(_periods) }))}
+                onClick={() => processPendingPayrollPeriods().then(_periods => onChange(setPeriods(periods.concat(_periods))))}
                 note={note}
                 notePosition="left"
             />

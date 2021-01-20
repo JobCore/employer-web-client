@@ -384,7 +384,6 @@ export const searchMe = (entity, queryString, mergeResults = false) => new Promi
 export const create = (entity, data, status = WEngine.modes.LIVE) => new Promise((resolve, reject) => {
     POST('employers/me/' + (entity.url || entity), data)
         .then(function (incoming) {
-
             if (typeof entity.url === 'string' && typeof entity.slug === 'undefined') throw Error('Missing entity slug on the create method');
 
             //fisrt check if I have any of this on the store
@@ -774,14 +773,18 @@ export const makeEmployeePayment = (
     employeePaymentId,
     paymentType,
     employer_bank_account_id,
-    employee_bank_account_id
+    employee_bank_account_id,
+    deductions_list,
+    deductions
     ) => new Promise((resolve, reject) => {
         const data = {
             payment_type: paymentType,
             payment_data: paymentType === "CHECK" ? {} : {
                 employer_bank_account_id: employer_bank_account_id,
                 employee_bank_account_id: employee_bank_account_id
-            }
+            },
+            deductions_list: deductions_list,
+            deductions: deductions
         };
 
         POST(`employers/me/employee-payment/${employeePaymentId}`, data)

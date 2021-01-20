@@ -34,8 +34,6 @@ class RightBar extends React.Component {
         try{
             switch (data.executed_action || this.props.option.slug) {
                 case 'create_shift':
-                    console.log('right bar shift',this.state.formData);
-                    console.log('pos',Shift(this.state.formData).validate().withStatus(data.status).serialize());
                     create('shifts', Shift(this.state.formData).validate().withStatus(data.status).serialize());
                     this.props.onClose();
                 break;
@@ -226,6 +224,7 @@ class RightBar extends React.Component {
     render(){
         const View = this.props.component;
         const styles = { width: this.props.width , right: (this.props.level * (this.props.width/3))};
+     
         return (<div className={"right-bar"+(!this.props.isCollapsable ? " collapsed" : '')} style={styles}>
             <span className="backdrop" onClick={() => this.props.onBackdropClick() } />
             {
