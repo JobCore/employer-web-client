@@ -55,6 +55,8 @@ export class MakePayment extends Flux.DashView {
         console.log('MakePayment pay: ', pay);
         console.log('MakePayment error: ', error);
         console.log('MakePayment paymentInfo: ', paymentInfo);
+
+        console.log("formdata", pay.deduction_list);
         return (
         <>
             {paymentInfo && pay
@@ -70,19 +72,19 @@ export class MakePayment extends Flux.DashView {
                     {/* <p className="m-0 p-0"><span className="badge">{formData.total.status.toLowerCase()}</span></p> */}
                 </div>
                 <div className="col-12">
-                    <label>Regular hours:</label>{` ${pay.regular_hours}`}
+                    <label>Regular hours:</label>{` ${Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100) / 100 > 40 ? 40 : Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100)/100}`}
                 </div>
                 <div className="col-12">
-                    <label>Over time:</label>{` ${pay.over_time}`}
+                    <label>Over time:</label>{` ${Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100) / 100 > 40 ? Math.round((Number(pay.regular_hours) + Number(pay.over_time)- 40) * 100 )  / 100  : "-" }`}
                 </div>
                 <div className="col-12">
                     <label>Earnings:</label>{` ${pay.earnings}`}
                 </div>
                 <div className="col-12">
-                    <label>Taxes:</label>{` ${pay.deductions}`}
+                    <label>Taxes:</label>{` ${pay.deductions.toFixed(2)}`}
                 </div>
                 <div className="col-12">
-                    <label>Amount:</label>{` ${pay.amount}`}
+                    <label>Amount:</label>{` ${pay.amount.toFixed(2)}`}
                 </div>
             </div>
             {!pay.paid
@@ -104,6 +106,8 @@ export class MakePayment extends Flux.DashView {
                                                     "CHECK", 
                                                     "", 
                                                     "",
+                                                    pay.deduction_list,
+                                                    pay.deductions
                                                     );
                                                 noti.remove();
                                                 bar.close();
@@ -135,6 +139,8 @@ export class MakePayment extends Flux.DashView {
                                                                 "ELECTRONIC TRANSFERENCE",
                                                                 bankaccount.id, 
                                                                 pay.employee.bank_accounts[0].id,
+                                                                pay.deduction_list,
+                                                                pay.deductions
                                                                 );
                                                             noti.remove();
                                                             bar.close();

@@ -41,10 +41,12 @@ export class PaymentsReport extends Flux.DashView {
         ? [
             { label: "All", value: null },
             ...payrollPeriods.map((period) => {
-                return { label: period.label, value: period.id };
+                return { label: "From " + moment(period.starting_at).format('MMM DD, YYYY') + " to "  + moment(period.ending_at).format('MMM DD, YYYY') , value: period.id };
             })
         ] 
         : [];
+
+        console.log('payment reports', paymentReport);
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({ bar }) => (<span>
@@ -80,9 +82,9 @@ export class PaymentsReport extends Flux.DashView {
                                     <tr>
                                         <th scope="col">Employee</th>
                                         <th scope="col">Payment date</th>
-                                        <th scope="col">Amount</th>
+                                        <th scope="col">Gross Earnings</th>
                                         <th scope="col">Deductions</th>
-                                        <th scope="col">Taxes</th>
+                                        <th scope="col">Net Earnings</th>
                                         <th scope="col">Payment method</th>
                                     </tr>
                                 </thead>
@@ -94,10 +96,10 @@ export class PaymentsReport extends Flux.DashView {
                                                 {/* <p className="m-0 p-0"><span className="badge">{pay.status.toLowerCase()}</span></p> */}
                                             </td>
                                             <td>{pay.payment_date}</td>
-                                            <td>{pay.amount}</td>
-                                            <td>{pay.deductions}</td>
-                                            <td>{pay.taxes}</td>
-                                            <td>{pay.payment_source}</td>
+                                            <td>{"$" + pay.earnings}</td>
+                                            <td>{"-$" + pay.deductions}</td>
+                                            <td>{"$" + pay.amount}</td>
+                                            <td>{pay.payment_source || "CHECK"}</td>
                                         </tr>;
                                     })}
                                 </tbody>

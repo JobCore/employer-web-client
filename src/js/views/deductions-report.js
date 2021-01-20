@@ -44,19 +44,21 @@ export class DeductionsReport extends Flux.DashView {
         ? [
             {label: "All", value: null},
             ...payrollPeriods.map((period) => {
-                return { label: period.label, value: period.id };
+                return { label: "From " + moment(period.starting_at).format('MMM DD, YYYY') + " to "  + moment(period.ending_at).format('MMM DD, YYYY') , value: period.id };
             })
         ] 
         : [];
-        return (<div className="p-1 listcontents">
+
+        console.log(deductionsReport);
+        return (<div className="p-1 listcontents" style={{maxWidth: "1100px"}}>
             <Theme.Consumer>
                 {({ bar }) => (<span>
                     <div>
-                        <p className="text-right">
+                        <p className="text-left">
                             <h2>Deductions reports</h2>
                         </p>
                         <div className="row mb-4">
-                            <div className="col-6">
+                            <div className="col-4">
                                 <label>Periods</label>
                                 <Select
                                     options={options}
@@ -84,17 +86,21 @@ export class DeductionsReport extends Flux.DashView {
                                         <th scope="col">Employee</th>
                                         <th scope="col">Payment date</th>
                                         <th scope="col">Deductions</th>
+                                        <th scope="col">Gross Earnings</th>
                                         <th scope="col">Deductions Amount</th>
+                                        <th scope="col">Net Earnings</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {deductionsReport.map((deduction, i) => {
+                                    {deductionsReport.sort( (left, right) => {
+                                        return moment.utc(right.payment_date).diff(moment.utc(left.payment_date));
+                                    }).map((deduction, i) => {
                                         const array = !this.state[`deduction${i}`] 
-                                        ? deduction.deduction_list.slice(0, 2) 
+                                        ? deduction.deduction_list.slice(0, 3) 
                                         : deduction.deduction_list;
-                                        const icon = !this.state[`deduction${i}`] 
-                                        ? arrowDown
-                                        : arrowUp;
+                                        // const icon = !this.state[`deduction${i}`] 
+                                        // ? arrowDown
+                                        // : arrowUp;
                                         return <tr key={i}>
                                             <td>
                                                 {deduction.employee}
@@ -106,17 +112,19 @@ export class DeductionsReport extends Flux.DashView {
                                                     {deduction.deduction_list && deduction.deduction_list.length > 0 
                                                 ? array.map((deduction, i) => {
                                                     return (
-                                                        <p key={i}>{deduction.name}:{` ${deduction.amount}`}</p>
+                                                        <p className="m-0" key={i}>{deduction.name}:{` ${deduction.amount}`}</p>
                                                     );
                                                 }
                                                 )
                                             : 'No deductions'}
-                                                    <div style={{ textAlign: 'center' }}>
+                                                    {/* <div style={{ textAlign: 'center' }}>
                                                         <SVG className="deduction-svg" width="24px" svg={icon} onClick={() => this.setState({ [`deduction${i}`]: !this.state[`deduction${i}`] })} />
-                                                    </div>
+                                                    </div> */}
                                                 </div>
                                             </td>
-                                            <td>{deduction.deduction_amount}</td>
+                                            <td>{"$" + deduction.earnings}</td>
+                                            <td>{"-$" +  deduction.deduction_amount}</td>
+                                            <td>{"$" + Math.floor((deduction.earnings - deduction.deduction_amount)*100)/100}</td>
                                         </tr>;
                                     })}
                                 </tbody>

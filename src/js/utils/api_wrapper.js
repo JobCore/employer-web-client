@@ -215,6 +215,7 @@ const parseError = (error) => new Promise(function (resolve, reject) {
     let errorMsg = '';
     for (let type in json) {
       if (Array.isArray(json[type])) errorMsg += json[type].join(',');
+      else if (typeof json[type] === 'object' && json[type] !== null) errorMsg += Object.values(json[type]).join(',');
       else errorMsg += json[type];
     }
     reject(errorMsg);

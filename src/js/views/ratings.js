@@ -139,6 +139,7 @@ export class ManageRating extends Flux.DashView {
     }
 
     render() {
+        console.log('state',this.state);
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({ bar }) => (<span>
@@ -161,7 +162,7 @@ export class ManageRating extends Flux.DashView {
                     <div className="row">
                         <div className="col-12">
                             <h3>Recent Ratings</h3>
-                            {this.state.ratings.filter(emp => !emp.employee).map((rate, i) => (
+                            {this.state.ratings.filter(emp => !emp.employee && emp.shift).map((rate, i) => (
                                 <GenericCard key={i} hover={true} onClick={() => bar.show({ slug: "show_single_rating", data: rate, allowLevels: false })}>
                                     <Avatar url={rate.sender.picture} />
                                     <Stars className="float-left" rating={Number(rate.rating)} />
@@ -184,7 +185,7 @@ export class ManageRating extends Flux.DashView {
 export const RatingDetails = (props) => {
     const { formData } = props;
     const { shift } = formData;
-    
+   
     return (<Theme.Consumer>
         {({ bar }) =>
             (<li className="aplication-details">
@@ -204,7 +205,7 @@ export const RatingDetails = (props) => {
                         <span className="shift-date"> {shift.starting_at.format('ll')} from {shift.starting_at.format('LT')} to {shift.ending_at.format('LT')} </span>
                     </div>
                 }
-                <Button color="primary" onClick={() => bar.show({ slug: "review_talent", data: formData.sender, allowLevels: false })}>Rate talent back</Button>
+                <Button color="primary" onClick={() => bar.show({ slug: "review_single_talent", data: formData, allowLevels: false })}>Rate talent back</Button>
             </li>)}
     </Theme.Consumer>);
 };
@@ -399,8 +400,11 @@ UnratingEmployees.propTypes = {
 
 
 export const ReviewTalent = ({ onSave, onCancel, onChange, catalog, formData, error }) => {
+
+    console.log(formData);
+
     const [shifts, setShifts] = useState([]);
-    const [rating, setRating] = useState('');
+    const [rating, setRating] = useState(0);
     const [comments, setComments] = useState('');
     const [employeesToRate, setEmployeesToRate] = useState(formData.employees_to_rate.map(e => (
         {
@@ -408,7 +412,7 @@ export const ReviewTalent = ({ onSave, onCancel, onChange, catalog, formData, er
             value: e.id
         }
     )));
-
+ 
     return (<Theme.Consumer>
         {({ bar }) => (
             < form >
