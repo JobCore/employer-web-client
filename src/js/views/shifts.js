@@ -832,16 +832,22 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
         const dailyInfo = weekDays;
         let totalDays = 0;
         var multipleShifts = [];
+
         dailyInfo.forEach((info, index) => {
         if (info.active === true && info.starting_at && info.ending_at ) {
             let current = start.clone();
             if (current.isoWeekday() <= index) {
               current = current.isoWeekday(index);
-            } else {
+              const firstStarting = moment(current.format("MM-DD-YYYY") + " " + info.starting_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+              const firstEnding = moment(current.format("MM-DD-YYYY") + " " + info.ending_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+              multipleShifts.push({"starting_at": firstStarting, "ending_at": firstEnding });
+            } 
+            else {
               current.add(1, 'weeks').isoWeekday(index);
             }
+            console.log('current new', current);
             while (current.isSameOrBefore(end)) {
-             
+                
               current.day(7 + index);
               totalDays += 1;
               const starting = moment(current.format("MM-DD-YYYY") + " " + info.starting_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
@@ -854,27 +860,33 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
             setTotalShift(totalDays);
             setMultipleRecurrentShift(multipleShifts);
 
-            return;
+            return (multipleShifts);
         };
     const saveRecurrentDates = async function saveRecurrentDates(){
-        await getRecurrentShifts;
-        const noti = Notify.info(`Are you sure to publish a total of ${totalShift}? (
-            ${
-                multipleRecurrentShift.map(s => {
-                    return s.starting_at + " - " + s.ending_at;
-                })
-            }
-        )`, (answer) => {
-            if (answer){
-                formData.multiple_dates = multipleRecurrentShift;
-
-                onSave({
-                    executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
-                    status: 'OPEN'
+        await getRecurrentShifts().then(res => {
+            if(res && Array.isArray(res)){
+                const noti = Notify.info(`Are you sure to publish a total of ${res.length}? (
+                    ${
+                        res.map(s => {
+                            return s.starting_at.format("MM-DD-YYYY hh:mm a") + " - " + s.ending_at.format("MM-DD-YYYY hh:mm a") + " ";
+                        })
+                    }
+                )`, (answer) => {
+                    if (answer){
+                        formData.multiple_dates = multipleRecurrentShift;
+        
+                        onSave({
+                            executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
+                            status: 'OPEN'
+                        });
+                        window.location.reload();
+                    }
+                    noti.remove();
                 });
+                return noti;
             }
-            noti.remove();
         });
+        
     };
     const datescalculator = _callback => {
         var startDate = recurrentDates.starting_at;
@@ -936,6 +948,8 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
     if(formData.required_badges) delete formData.required_badges;
     if(description) formData.description = description;
 
+    console.log(totalShift);
+    console.log(multipleRecurrentShift);
     return (
         <div>
             {/* <Wizard continuous
@@ -1609,7 +1623,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                                             closeOnSelect={true}
                                             value={recurrentDates.ending_at}
                                             isValidDate={(current) => {
-                                                return current.isAfter(YESTERDAY) && current.isBefore(moment().add(3, 'M'))? true : false; 
+                                                return current.isAfter(YESTERDAY) && current.isBefore(moment().add(36, 'M'))? true : false; 
                                             }}
                                             renderInput={(properties) => {
                                                 const { value, ...rest } = properties;
@@ -1950,19 +1964,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                                 <button type="button" id="publish" className="btn btn-success" onClick={() =>{
 
                                     if(recurrent) {
-                                        const noti = Notify.info(`Are you sure to publish a total of ${totalShift}? (
-                                            ${
-                                                multipleRecurrentShift.map(s => {
-                                                    return s.starting_at + " - " + s.ending_at;
-                                                })
-                                            }
-                                        )`, (answer) => {
-                                            if (answer) {
-                                                datescalculator();
-                                                window.location.reload();
-                                            }
-                                            noti.remove();
-                                        });
+                                        saveRecurrentDates();
                                     }else{
                                         onSave({
                                         executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
