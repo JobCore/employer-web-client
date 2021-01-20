@@ -821,6 +821,8 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
       };
 
     const getRecurrentShifts = async function getRecurrentDates(){
+
+
         var startDate = recurrentDates.starting_at;
         var endDate = recurrentDates.ending_at;
 
@@ -837,22 +839,24 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
         if (info.active === true && info.starting_at && info.ending_at ) {
             let current = start.clone();
             if (current.isoWeekday() <= index) {
-              current = current.isoWeekday(index);
-              const firstStarting = moment(current.format("MM-DD-YYYY") + " " + info.starting_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-              const firstEnding = moment(current.format("MM-DD-YYYY") + " " + info.ending_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-              multipleShifts.push({"starting_at": firstStarting, "ending_at": firstEnding });
+                
+                current = current.isoWeekday(index);
             } 
             else {
               current.add(1, 'weeks').isoWeekday(index);
+
             }
-            console.log('current new', current);
+            console.log('current', current.format("MM-DD-YYYY"));
+            console.log('end -', end.format("MM-DD-YYYY"));
             while (current.isSameOrBefore(end)) {
-                
-              current.day(7 + index);
-              totalDays += 1;
-              const starting = moment(current.format("MM-DD-YYYY") + " " + info.starting_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-              const ending = moment(current.format("MM-DD-YYYY") + " " + info.ending_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-              multipleShifts.push({"starting_at": starting, "ending_at": ending});
+                console.log('final current', current.format("MM-DD-YYYY"));
+                const starting = moment(current.format("MM-DD-YYYY") + " " + info.starting_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+                const ending = moment(current.format("MM-DD-YYYY") + " " + info.ending_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+
+                multipleShifts.push({"starting_at": starting, "ending_at": ending});      
+                current.day(7 + index);
+                totalDays += 1;
+
        
             }
           }
@@ -888,48 +892,6 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
         });
         
     };
-    const datescalculator = _callback => {
-        var startDate = recurrentDates.starting_at;
-        var endDate = recurrentDates.ending_at;
-
-        const start = startDate.startOf('days'); 
-        const end = endDate.startOf('days'); 
-
-        let weekDays = Object.values([recurrentTimes][0]) ;
-      
-        const dailyInfo = weekDays;
-        let totalDays = 0;
-        var multipleShifts = [];
-        dailyInfo.forEach((info, index) => {
-        if (info.active === true && info.starting_at && info.ending_at ) {
-            let current = start.clone();
-            if (current.isoWeekday() <= index) {
-              current = current.isoWeekday(index);
-            } else {
-              current.add(1, 'weeks').isoWeekday(index);
-            }
-            while (current.isSameOrBefore(end)) {
-             
-              current.day(7 + index);
-              totalDays += 1;
-              const starting = moment(current.format("MM-DD-YYYY") + " " + info.starting_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-              const ending = moment(current.format("MM-DD-YYYY") + " " + info.ending_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
-              multipleShifts.push({"starting_at": starting, "ending_at": ending});
-       
-            }
-          }
-        });
-            setTotalShift(totalDays);
-            setMultipleRecurrentShift(multipleShifts);
-
-            // formData.multiple_dates = multipleShifts;
-            
-            // onSave({
-            //     executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
-            //     status: 'OPEN'
-            // });
-
-    };
 
     useEffect(() => {
         const venues = store.getState('venues');
@@ -948,8 +910,6 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
     if(formData.required_badges) delete formData.required_badges;
     if(description) formData.description = description;
 
-    console.log(totalShift);
-    console.log(multipleRecurrentShift);
     return (
         <div>
             {/* <Wizard continuous
@@ -1964,7 +1924,8 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                                 <button type="button" id="publish" className="btn btn-success" onClick={() =>{
 
                                     if(recurrent) {
-                                        saveRecurrentDates();
+                                        if(!totalShift) alert('Invalid Dates/Times. Please try again.');
+                                        else saveRecurrentDates();
                                     }else{
                                         onSave({
                                         executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
