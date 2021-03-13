@@ -959,6 +959,7 @@ class _Store extends Flux.DashStore {
         //     });
         // });
         this.addEvent('payroll-periods');
+        this.addEvent('previos-employee-shifts');
         this.addEvent("employee-expired-shifts"); //temporal, just used on the payroll report
 
         //temporal storage (for temporal views, information that is read only)

@@ -27,6 +27,7 @@ export default class SearchCatalogSelect extends React.Component {
                     if(Array.isArray(selection)){
                         found = selection.find(s => s.value === 'start_typing');
                         if(!found && selection.length > 0) this.props.onChange(selection);
+                        if(!found && selection.length == 0) this.props.onChange(selection);
                     }
                     else if(selection){
                         found = selection.value === 'start_typing';

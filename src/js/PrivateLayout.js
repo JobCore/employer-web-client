@@ -502,7 +502,6 @@ class PrivateLayout extends Flux.DashView {
                                                 color:"#27666F"
                                             }}  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" onClick={() => {
                                                 // searchMe('applications').then((res) => this.setState({applications: res}));
-                                                console.log('clicked');
                                             }}>
                                                 <i className="fas fa-bell" style={{fontSize: '26px'}}></i>
                                             </button>
@@ -566,7 +565,7 @@ class PrivateLayout extends Flux.DashView {
                                                                         </div>
                                                                         {emp.author ? (
                                                                             <div className="col pl-0 my-auto">
-                                                                                <span style={{fontSize:"12px"}}>{" " + emp.employee.user.first_name + " " + emp.employee.user.last_name} <b>{emp.ended_at ? "clock out at " + moment(emp.ended_at).format('MM/DD/YYYY, hh:mm A') : "clock in at " + moment(emp.started_at).format('MM/DD/YYYY, hh:mm A')}</b> to shift <span style={{color:"#B3519E"}}>{emp.shift.position.title}</span> @ {emp.shift.venue.title} {moment(emp.shift.starting_at).format('ll')} from {moment(emp.shift.starting_at).format('LT')} to {moment(emp.shift.ending_at).format('LT')}  {
+                                                                                <span style={{fontSize:"12px"}}>{" " + emp.employee.user.first_name + " " + emp.employee.user.last_name} <b>{emp.ended_at ? "clocked out at " + moment(emp.ended_at).format('MM/DD/YYYY, hh:mm A') : "clocked in at " + moment(emp.started_at).format('MM/DD/YYYY, hh:mm A')}</b> to shift <span style={{color:"#B3519E"}}>{emp.shift.position.title}</span> @ {emp.shift.venue.title} {moment(emp.shift.starting_at).format('ll')} from {moment(emp.shift.starting_at).format('LT')} to {moment(emp.shift.ending_at).format('LT')}  {
                                                                                     (typeof emp.shift.price == 'string') ?
                                                                                         <span className="shift-price"> ${emp.shift.price}</span>
                                                                                         :

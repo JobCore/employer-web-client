@@ -44,7 +44,7 @@ export const Shift = (data) => {
         allowed_from_list: [],
         allowedFavlists: [],
         allowedTalents: [],
-        minimum_allowed_rating: '1',
+        minimum_allowed_rating: '0',
         venue: '',
         status: 'UNDEFINED',
         withStatus: function (newStatus) {
@@ -591,11 +591,10 @@ ShiftEmployees.propTypes = {
  */
 export const ShiftInvites = ({ onCancel, onSave, formData }) => {
     const { bar } = useContext(Theme.Context);
-
     const status = {
-        "PENDING": "waiting for reponse",
-        "APPLIED": "the talent applied",
-        "REJECTED": "the talent reject it"
+        "PENDING": "Waiting for reponse",
+        "APPLIED": "The talent applied",
+        "REJECTED": "The talent reject it"
     };
     //formData.shift.maximum_allowed_employees
     //formData.shift.status != "OPEN"
@@ -605,7 +604,7 @@ export const ShiftInvites = ({ onCancel, onSave, formData }) => {
             className="pr-2"
             onClick={() => bar.show({ slug: "show_single_talent", data: invite.employee, allowLevels: true })}
         >
-            <Avatar url={invite.employee.user.profile.picture} />
+            <Avatar url={invite.employee.user.profile ?  invite.employee.user.profile.picture : "https://res.cloudinary.com/hq02xjols/image/upload/v1560365062/static/default_profile1.png"} />
             <p><b>{invite.employee.user.first_name + ' ' + invite.employee.user.last_name}</b></p>
             <p className="mr-2 my-0">Sent {moment(invite.created_at).fromNow()} and <span className="badge">{status[invite.status]}</span></p>
         </GenericCard>)
@@ -766,7 +765,6 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
             
         ]
     );
-    const [payrates, setPayrates] = useState();
     const [description, setDescription] = useState('');
     const [tutorial, setTutorial] = useState(false);
     const [recurrent, setRecurrent] = useState(false);
@@ -815,11 +813,14 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
      
     });
     const [multipleRecurrentShift, setMultipleRecurrentShift] = useState([]);
+    const [previousShifts, setPreviousShifts] = useState([]);
  
     const setDescriptionContent = description => {
         description.length > 300 ? setDescription(description.slice(0, 300)) : setDescription(description);
       };
 
+
+ 
     const getRecurrentShifts = async function getRecurrentDates(){
 
 
@@ -892,13 +893,15 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
         });
         
     };
+    async function getPreviousShift(emp){
+        let response = await GET('employers/me/shifts?employee=' + emp + "&limit=10").then(res => res.filter((v,i,a)=>a.findIndex(t=>(t.position.id === v.position.id))===i && v.position.id == parseInt(formData.position)));
+        setPreviousShifts(response);
+        return response;
+    }
 
     useEffect(() => {
         const venues = store.getState('venues');
         const favlists = store.getState('favlists');
-        const payrate = store.getState('payrates');
-        if(!payrate) searchMe('payrates').then(payrate => setPayrates(payrate));
-        else setPayrates(payrate);
         if (!venues || !favlists) fetchAllMe(['venues', 'favlists']);
     }, []);
     const expired = moment(formData.starting_at).isBefore(NOW()) || moment(formData.ending_at).isBefore(NOW());
@@ -956,6 +959,9 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                                 value={catalog.positions.find((pos) => pos.value == formData.position.id || pos.value == formData.position)}
                                 onChange={(selection) => {
                                     onChange({ position: selection.value.toString(), has_sensitive_updates: true });
+                                    if(Array.isArray(formData.pending_invites) && formData.pending_invites.length == 1 && formData.position){
+                                        getPreviousShift(formData.pending_invites[0].value);
+                                    }else setPreviousShifts([]);
                             
                                 }}
                                 options={catalog.positions}
@@ -984,6 +990,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                                     has_sensitive_updates: true
                                 })}
                             />
+                            {Array.isArray(previousShifts) && previousShifts.length == 1 ?  <span className="badge badge-primary" style={{cursor: "pointer"}} onClick={()=> onChange({minimum_hourly_rate: parseFloat(previousShifts[0]["minimum_hourly_rate"])})}>Previous $/hr: ${parseFloat(previousShifts[0]["minimum_hourly_rate"]).toFixed(2)}</span> : null}
                         </div>
                     </div>
                     <div className="row mt-3 mb-1" id="date-shift">
@@ -1865,6 +1872,9 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                                                     onSave: (emp) => onChange({ pending_jobcore_invites: formData.pending_jobcore_invites.concat(emp) })
                                                 });
                                                 else onChange({ pending_invites: selections });
+                                                if(Array.isArray(formData.pending_invites) && formData.pending_invites.length == 1 && formData.position){
+                                                    getPreviousShift(formData.pending_invites[0].value);
+                                                }else setPreviousShifts([]);
                                             }}
                                             searchFunction={(search) => new Promise((resolve, reject) =>
                                                 GET('catalog/employees?full_name=' + search)
