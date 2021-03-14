@@ -106,9 +106,14 @@ export const signup = (formData, history) => new Promise((resolve, reject) => PO
     username: formData.email,
     first_name: formData.first_name,
     last_name: formData.last_name,
-    password: formData.password
+    password: formData.password,
+    business_name: formData.business_name,
+    business_website: formData.business_website,
+    about_business: formData.about_business,
+    phone: formData.phone
 })
     .then(function (data) {
+        console.log('data: ', data);
         Notify.success("You have signed up successfully, proceed to log in");
         history.push(`/login?type=${formData.account_type}`);
         resolve();

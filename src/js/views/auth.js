@@ -98,7 +98,7 @@ export class Login extends React.Component{
                                     <button type="submit" className="btn btn-primary form-control">Sign In</button>
                                 }
                                 <div className="extra-actions">
-                                    <a href="https://jobcore.co/pricing/" className="float-left ml-4 mt-2">Sign Up</a>
+                                    <Link to="/signup" className="float-left ml-4 mt-2">Sign Up</Link>
                                     <Link to="/forgot" className="float-right mr-4 mt-2">Forgot Password</Link>
                                 </div>
                             </form>
@@ -116,10 +116,34 @@ export class Signup extends React.Component{
     constructor(props){
         super(props);
         const urlVariables = qs.parse(props.location.search);
-        this.state = { email: '', password: '', first_name: '', last_name:'', company: urlVariables.company || urlVariables.employer || 1, loading: false, errors: [], token: urlVariables.token || null };
+        this.state = { email: '', password: '', first_name: '', phone:"", last_name:'', company: urlVariables.company || urlVariables.employer || 1, business_name: "", business_website: "", about_business: "",  loading: false, errors: [], token: urlVariables.token || null };
     }
+    getFormattedPhoneNum( input ) {
+        let output = "(";
+        input.replace( /^\D*(\d{0,3})\D*(\d{0,3})\D*(\d{0,4})/, function( match, g1, g2, g3 )
+            {
+              if ( g1.length ) {
+                output += g1;
+                if ( g1.length == 3 ) {
+                    output += ")";
+                    if ( g2.length ) {
+                        output += " " + g2; 
+                        if ( g2.length == 3 ) {
+                            output += " - ";
+                            if ( g3.length ) {
+                                output += g3;
+                            }
+                        }
+                    }
+                 }
+              }
+            }       
+          );        
+        return output;
+    }      
     validate(formData){
         let errors = [];
+        console.log('validate formdata', formData);
         if(!validator.isEmail(formData.email)) errors.push('Invalid email');
         if(validator.isEmpty(formData.first_name)) errors.push('The first name cannot be empty');
         if(!validator.isLength(formData.first_name, { min: 0, max: 50 })) errors.push('The first name can have a max of 50 characters');
@@ -128,11 +152,16 @@ export class Signup extends React.Component{
         if(validator.isEmpty(formData.last_name)) errors.push('The last name cannot be empty');
         if(validator.isEmpty(formData.password)) errors.push('The password cannot be empty');
         if(!validator.isLength(formData.password, { min: 8, max: 50 })) errors.push('Password must have between 8 and 50 characters');
+        if(validator.isEmpty(formData.phone)) errors.push('The company phone cannot be empty');
+        if(validator.isEmpty(formData.business_name)) errors.push('The company name cannot be empty');
+        if(validator.isEmpty(formData.business_website)) errors.push('The company website cannot be empty');
+        if(validator.isEmpty(formData.about_business)) errors.push('The company type cannot be empty');
 
         this.setState({ errors, loading: false });
         return errors.length == 0;
     }
     render(){
+        console.log('this.state', this.state);
         return (
             <div className="public_view login_view">
                 <img className="banner" src={loginBanner} />
@@ -154,7 +183,13 @@ export class Signup extends React.Component{
                             password: this.state.password,
                             first_name: this.state.first_name,
                             last_name: this.state.last_name,
-                            company: this.state.company,
+                            // company: this.state.company,
+                            username: this.state.email,
+                            phone: this.state.phone,
+                            business_name: this.state.business_name,
+                            business_website: this.state.business_website,
+                            about_business: this.state.about_business,
+                            employer_role: "ADMIN",
                             account_type: 'employer'
                         };
                         if(this.validate(formData)) actions.signup(formData, this.props.history)
@@ -162,22 +197,27 @@ export class Signup extends React.Component{
                             .catch(() => this.setState({loading: false}));
                     }}
                 >
-                    <div className="form-group">
-                        <input type="text" className="form-control rounded" aria-describedby="emailHelp" placeholder="Company Name"
-                            value="Fetes & Events" readOnly={true}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <input type="text" className="form-control rounded" aria-describedby="fHelp" placeholder="First Name"
-                            value={this.state.first_name}
-                            onChange={(e) => this.setState({first_name: e.target.value})}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <input type="text" className="form-control rounded" aria-describedby="lHelp" placeholder="Last Name"
-                            value={this.state.last_name}
-                            onChange={(e) => this.setState({last_name: e.target.value})}
-                        />
+         
+
+                    <div className="row">
+                        <div className="col">
+                            <div className="form-group">
+                                <input type="text" className="form-control rounded" aria-describedby="fHelp" placeholder="First Name"
+                                    value={this.state.first_name}
+                                    onChange={(e) => this.setState({first_name: e.target.value})}
+                                />
+                            </div>
+                            
+                        </div>
+                        <div className="col">
+                            <div className="form-group">
+                                <input type="text" className="form-control rounded" aria-describedby="lHelp" placeholder="Last Name"
+                                    value={this.state.last_name}
+                                    onChange={(e) => this.setState({last_name: e.target.value})}
+                                />
+                            </div>
+
+                        </div>
                     </div>
                     <div className="form-group">
                         <input type="email" className="form-control rounded" aria-describedby="emailHelp" placeholder="Email"
@@ -186,16 +226,79 @@ export class Signup extends React.Component{
                         />
                     </div>
                     <div className="form-group">
+                        <input type="text" className="form-control rounded" aria-describedby="emailHelp" placeholder="Phone"
+                            value={this.state.phone}
+                            onChange={(e) => {
+                                if (e.target.value.length < 13) {
+                                    var cleaned = ("" + e.target.value).replace(/\D/g, "");
+                  
+                                    let normValue = `${cleaned.substring(0, 3)}${
+                                      cleaned.length > 3 ? "-" : ""
+                                    }${cleaned.substring(3, 6)}${
+                                      cleaned.length > 6 ? "-" : ""
+                                    }${cleaned.substring(6, 11)}`;
+                  
+                                    this.setState({phone: normValue});
+                                  }
+                            }}
+                        />
+                    </div>
+                    <div className="form-group">
                         <input type="password" className="form-control rounded" id="exampleInputPassword1" placeholder="Password"
                              onChange={(e) => this.setState({password: e.target.value})} value={this.state.password}
                         />
                     </div>
+               
+
+                    <div className="row">
+                        <div className="col">
+                            <div className="form-group">
+                                <input type="text" className="form-control rounded" aria-describedby="fHelp" placeholder="Company Name"
+                                    value={this.state.business_name}
+                                    onChange={(e) => this.setState({business_name: e.target.value})}
+                                />
+                            </div>
+                            
+                        </div>
+                        <div className="col">
+                            <div className="form-group">
+                                <input type="text" className="form-control rounded" aria-describedby="lHelp" placeholder="Company Website"
+                                    value={this.state.business_website}
+                                    onChange={(e) => this.setState({business_website: e.target.value})}
+                                />
+                            </div>
+
+                        </div>
+                    </div>                    
+                    <div className="row">
+                        <div className="col">
+                            <div className="form-group">
+                                <select style={{background:"none"}} className="form-control rounded" aria-describedby="fHelp" placeholder="Type of business"
+                                    value={this.state.about_business}
+                                    onChange={(e) => this.setState({about_business: e.target.value})}
+                                >   
+                                    <option value="">Select...</option>
+                                    <option value="Restaurants">Restaurants</option>
+                                    <option value="Catering">Catering</option>
+                                    <option value="Cruises">Cruises</option>
+                                    <option value="Bars">Bars</option>
+                                    <option value="Hotels">Hotels</option>
+                                    <option value="Janitorial">Janitorial</option>
+                                    <option value="Warehouse">Warehouse</option>
+                                </select>    
+                            </div>
+                            
+                        </div>
+           
+                    </div>                    
                     {(this.state.loading) ?
                         <button type="submit" className="btn btn-default form-control" disabled>Loading...</button>
                     :
                         <button type="submit" className="btn btn-primary form-control">Sign Up</button>
                     }
-                    <div className="extra-actions">
+
+                    <span>By clicking sign up, you agree to the Terms of use and have read our Privacy policy</span>
+                    <div className="extra-actions mt-3">
                         <Link to="/login" className="float-left ml-4 mt-2">Log In</Link>
                         <Link to="/forgot" className="float-right mr-4 mt-2">Forgot Password</Link>
                     </div>
@@ -226,7 +329,12 @@ export class Forgot extends React.Component{
                             .then(() => this.setState({loading: false}))
                             .catch(() => this.setState({loading: false}));
                     }}
-                >
+                >   
+                    <div className="mb-4">
+                        <span>Enter the email address associated with your account to reset your password. You may need to check your spam/junk folder.</span>
+
+                    </div>
+
                     <div className="form-group">
                         <input type="email" className="form-control rounded" aria-describedby="emailHelp" placeholder="Email"
                             value={this.state.email}
@@ -236,7 +344,7 @@ export class Forgot extends React.Component{
                     {(this.state.loading) ?
                         <button type="submit" className="btn btn-default form-control" disabled>Loading...</button>
                     :
-                        <button type="submit" className="btn btn-primary form-control">Send remind link</button>
+                        <button type="submit" className="btn btn-primary form-control">Send Reset Link</button>
                     }
                     <div className="extra-actions">
                         <Link to="/login" className="float-left ml-4 mt-2">Back to login</Link>
