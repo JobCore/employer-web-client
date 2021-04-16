@@ -997,6 +997,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                             <th>Break</th>
                             <th>With <br /> Break</th>
                             <th>Diff</th>
+                            <th style={{ minWidth: "80px" }}>Message</th>
                             <th style={{ minWidth: "80px" }}></th>
                         </tr>
                     </thead>
@@ -1056,7 +1057,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                     }}>Add new clockin</Button>
                                 }
                             </td>
-                            <td colSpan={3} className="text-right">
+                            <td colSpan={4} className="text-right">
                                 Total: {!isNaN(total_hours) ? total_hours.toFixed(2)  : 0} hr
                                 {!isNaN(total_hours) && Math.round(total_hours * 100) / 100 > 40 ? (
                                     <Tooltip placement="bottom" trigger={['hover']} overlay={<small>This employee has {Math.round((total_hours - 40) * 100) / 100  }hr overtime </small>}>
@@ -1079,6 +1080,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
 
                             </td>
                         </tr>
+                     
                     </tbody>
                 </table>;
             })}
@@ -1187,7 +1189,6 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
     if (!employee || employee.id === "new") return <p className="px-3 py-1">⬆ Search an employee from the list above...</p>;
 
     const [clockin, setClockin] = useState(Clockin(payment.clockin).defaults().unserialize());
-
     const [shift, setShift] = useState(Shift(payment.shift).defaults().unserialize());
     const [possibleShifts, setPossibleShifts] = useState(null);
 
@@ -1198,7 +1199,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
     const approvedClockin = payment.approved_clockin_time ? moment(payment.approved_clockin_time).startOf('minute')  : clockin.started_at ? clockin.started_at : shift.starting_at;
     const approvedClockout = payment.approved_clockout_time ? moment(payment.approved_clockout_time).startOf('minute')  : clockin.ended_at ? clockin.ended_at : shift.ending_at;
     const [approvedTimes, setApprovedTimes] = useState({ in: approvedClockin, out: approvedClockout });
- 
+   
     const clockInDuration = moment.duration(approvedTimes.out.diff(approvedTimes.in));
 
     // const clockinHours = !clockInDuration ? 0 : clockin.shift || !readOnly ? Math.round(clockInDuration.asHours() * 100) / 100 : "-";
@@ -1214,6 +1215,14 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
 
     const diff = Math.round((Number(clockInTotalHoursAfterBreak) - Number(plannedHours)) * 100) / 100;
     // const overtime = clockInTotalHoursAfterBreak > 40 ? clockInTotalHoursAfterBreak - 40 : 0;
+
+    const lateClockin = (clockin && shift && clockin.started_at.diff(shift.starting_at, 'minutes') >= 15) ? true : false;
+    const lateClockout = (clockin && shift && clockin.ended_at.diff(shift.ending_at, 'minutes') >= 30) ? true : false;
+    const earlyClockin = (clockin && shift && clockin.started_at.diff(shift.starting_at, 'minutes') <= -30) ? true : false;
+    const earlyClockout = (clockin && shift && clockin.ended_at.diff(shift.ending_at, 'minutes') <= -30) ? true : false; 
+
+
+
     useEffect(() => {
         let subs = null;
         if (payment.status === "NEW") {
@@ -1395,6 +1404,23 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
         }
         <td>{Number(clockInTotalHoursAfterBreak).toFixed(2)}</td>
         <td>{clockin.shift || !readOnly ? diff : "-"}</td>
+        <td>{
+            <div>
+                {(clockin && clockin.automatically_closed)  && <span style={{display:"block"}}>{"Forgot to clockout"}</span>}
+                {(earlyClockin) && <span style={{display:"block"}}>{"Early clockin"}</span>}
+                {(earlyClockout) && <span style={{display:"block"}}>{"Early clockout"}</span>}
+                {(lateClockin) && <span style={{display:"block"}}>{"Late clockin"}</span>}
+                {(lateClockout) && <span style={{display:"block"}}>{"Late clockout"}</span>}
+                {(clockin && clockin.distance_in_miles > 0.2) && <span style={{display:"block"}}>{"Did not clockin on-site"}</span> }
+                {(clockin && clockin.distance_out_miles > 0.2) && <span style={{display:"block"}}>{"Did not clockout on-site"}</span> }
+                {(Number(diff) > 0.30) &&  <span style={{display:"block"}}>{"Worked more than the planned hours"}</span> }
+                {(readOnly && payment.breaktime_minutes > 30) &&   <span style={{display:"block"}}>{"Long break time"}</span> }
+                {(!earlyClockin && !earlyClockout && !lateClockout && !lateClockin && !clockin.automatically_closed && clockin.distance_in_miles < 0.2 && clockin.distance_out_miles < 0.2 && Number(diff) < 0.30 && (readOnly && payment.breaktime_minutes < 30)) &&   <span style={{display:"block"}}>{"-"}</span> }
+              
+            </div>
+            }
+        </td>
+        
         {readOnly ?
             <td className="text-center">
                 {payment.status === "APPROVED" ? <span><i className="fas fa-check-circle"></i></span>
