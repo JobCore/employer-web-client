@@ -1,7 +1,7 @@
 import React from 'react';
 import Flux from '@4geeksacademy/react-flux-dash';
 import { Route, Switch, NavLink } from 'react-router-dom';
-import { logout, fetchAll, fetchSingle, fetchAllMe, searchMe, store, resendValidationLink, fetchTemporal } from './actions';
+import { logout, fetchAll, fetchSingle, fetchAllMe, searchMe, store, resendValidationLinkCurrent, fetchTemporal } from './actions';
 import Dashboard from './views/dashboard.js';
 import ButtonBar from './views/ButtonBar';
 import { Session } from 'bc-react-session';
@@ -26,7 +26,7 @@ import { Profile, ManageUsers, InviteUserToCompanyJobcore } from './views/profil
 import { NOW } from './components/utils.js';
 import { Notifier, Notify } from 'bc-react-notifier';
 import log from './utils/log';
-import logoURL from '../img/logo.png';
+import logoURL from '../img/logo1.png';
 import loadingURL from '../img/loading2.gif';
 import moment from 'moment';
 import { EngineComponent } from "./utils/write_engine";
@@ -234,7 +234,6 @@ class PrivateLayout extends Flux.DashView {
                             break;
                         case 'review_talent':
                             option.title = "Review Talent";
-                            console.log("option", option);
                             this.showRightBar(ReviewTalent, option, {
 
                                 formData: Rating({
@@ -426,7 +425,6 @@ class PrivateLayout extends Flux.DashView {
     }
     render() {
         const Logo = () => (<span className="svg_img" style={{ backgroundImage: `url(${logoURL})` }} />);
-
         return (
             <Theme.Provider value={{ bar: this.state.bar }}>
                 <LoadBar component={() => <img src={loadingURL} />} style={{ position: "fixed", left: "50vw", top: "50vh" }} />
@@ -460,14 +458,15 @@ class PrivateLayout extends Flux.DashView {
                     </div>
                     <div className="right_pane bc-scrollbar">
                         {this.state.profileStatus == 'PENDING_EMAIL_VALIDATION' && <div className="alert alert-warning p-2 text-center mb-0" style={{ marginLeft: "-15px" }}>You need to validate your email to receive notifications
-                            <button className="btn btn-success btn-sm ml-2" onClick={() => resendValidationLink(this.state.user.email, this.state.employer.id)}>
+                            <button className="btn btn-success btn-sm ml-2" onClick={() => resendValidationLinkCurrent(this.state.user.email)}>
+                                {/* <button className="btn btn-success btn-sm ml-2" onClick={() => resendValidationLinkCurrent(this.state.user.email, this.state.employer.id)}> */}
                                 Resend validation link
                             </button>
                         </div>
                         }
                         {
-                            this.state.employer && this.state.employer.active_subscription && this.state.employer.active_subscription.unique_name === "demo" && 
-                                <div className="alert alert-warning p-2 text-center mb-0" style={{ marginLeft: "-15px" }}>You are currently on a limited demo plan
+                            this.state.employer && this.state.employer.active_subscription && !this.state.employer.active_subscription && 
+                                <div className="alert alert-warning p-2 text-center mb-0" style={{ marginLeft: "-15px" }}>You are currently on a limited free plan
                                     <button className="btn btn-success btn-sm ml-2" onClick={() => this.props.history.push('/profile/subscription')}>
                                         Upgrade my plan
                                     </button>
@@ -542,7 +541,7 @@ class PrivateLayout extends Flux.DashView {
                                                                                     backgroundColor: "#eaffe6",
                                                                                     backgroundSize: "cover",
                                                                                     backgroundImage: `url(${emp.employee.user.profile.picture})`,
-                                                                                    borderRadius: "100%",
+                                                                                    borderRadius: "100%"
                                                                                 }}/>
 
                                                                             ) : (
@@ -554,7 +553,7 @@ class PrivateLayout extends Flux.DashView {
                                                                                     backgroundColor: "#eaffe6",
                                                                                     backgroundSize: "cover",
                                                                                     backgroundImage: `url(${'https://res.cloudinary.com/hq02xjols/image/upload/v1560365062/static/default_profile2.png'})`,
-                                                                                    borderRadius: "100%",
+                                                                                    borderRadius: "100%"
                                                                                 }}/>
                                                                             )
                                                                             }
