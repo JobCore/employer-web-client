@@ -53,26 +53,25 @@ export const autoLogin = (token = '') => {
 export const login = (email, password, keep, history,id) => new Promise((resolve, reject) => POST('login', {
     username_or_email: email,
     password: password,
-    employer_id: Number(id),
+    // employer_id: Number(id),
     exp_days: keep ? 30 : 1
 })
     .then(function (data) {
-
-        if (Number(data.user.profile.employer) != Number(id)) {
+        // if (Number(data.user.profile.employer) != Number(id)) {
        
-            let company = data.user.profile.other_employers.find(emp => emp.employer == Number(id) );
+        //     let company = data.user.profile.other_employers.find(emp => emp.employer == Number(id) );
 
-            updateCompanyUser({id: company.profile_id, employer: company.employer, employer_role: company.employer_role}, { 'Authorization': 'JWT ' + data.token });
+        //     updateCompanyUser({id: company.profile_id, employer: company.employer, employer_role: company.employer_role}, { 'Authorization': 'JWT ' + data.token });
 
-            Session.start({
-                payload: {
-                    user: data.user, access_token: data.token
-                }
-            });
-            history.push('/');
-            resolve();
-        }
-        else if (!data.user.profile.employer) {
+        //     Session.start({
+        //         payload: {
+        //             user: data.user, access_token: data.token
+        //         }
+        //     });
+        //     history.push('/');
+        //     resolve();
+        // }
+        if (!data.user.profile.employer) {
             Notify.error("Only employers are allowed to login into this application");
             reject("Only employers are allowed to login into this application");
         }
@@ -86,7 +85,9 @@ export const login = (email, password, keep, history,id) => new Promise((resolve
                     user: data.user, access_token: data.token
                 }
             });
-            history.push('/');
+            console.log('data login', data);
+            if(!data.user.profile.employer.active_subscription) history.push('/subscribe');
+            else history.push('/');
             resolve();
         }
     })
@@ -113,7 +114,6 @@ export const signup = (formData, history) => new Promise((resolve, reject) => PO
     phone: formData.phone
 })
     .then(function (data) {
-        console.log('data: ', data);
         Notify.success("You have signed up successfully, proceed to log in");
         history.push(`/login?type=${formData.account_type}`);
         resolve();
@@ -156,6 +156,19 @@ export const resetPassword = (formData, history) => new Promise((resolve, reject
 );
 
 
+export const resendValidationLinkCurrent = (email, employer) => new Promise((resolve, reject) => POST('user/email/validate/send/' + email, {
+    email: email
+})
+    .then(function (data) {
+        resolve();
+        Notify.success("We have sent you a validation link, check your email!");
+    })
+    .catch(function (error) {
+        Notify.error(error.message || error);
+        reject(error.message || error);
+        log.error(error);
+    })
+);
 export const resendValidationLink = (email, employer) => new Promise((resolve, reject) => POST('user/email/validate/send/' + email + '/' + employer, {
     email: email,
     employer: employer
@@ -503,12 +516,13 @@ export const updateProfileMe = (data) => {
         });
 };
 
-export const createSubscription = (data) => {
+export const createSubscription = (data, history) => {
     const employer = store.getState('current_employer');
     POST(`employers/me/subscription`, data)
         .then(function (active_subscription) {
             Flux.dispatchEvent('current_employer', { ...employer, active_subscription });
             Notify.success("The subscription was changed successfully");
+            history.push('/home');
         })
         .catch(function (error) {
             Notify.error(error.message || error);
@@ -964,6 +978,7 @@ class _Store extends Flux.DashStore {
         //     });
         // });
         this.addEvent('payroll-periods');
+        this.addEvent('w4-form');
         this.addEvent('previos-employee-shifts');
         this.addEvent("employee-expired-shifts"); //temporal, just used on the payroll report
 

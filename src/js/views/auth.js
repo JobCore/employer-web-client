@@ -1,18 +1,23 @@
-import React from 'react';
+import React, { Fragment, useState, useContext, useEffect } from 'react';
 import {Link} from 'react-router-dom';
 import PropTypes from 'prop-types';
 import qs from 'query-string';
 import * as actions from '../actions';
 import {Notifier} from 'bc-react-notifier';
 import loginBanner from '../../img/login-banner.png';
+import { Session } from 'bc-react-session';
+import { useHistory } from "react-router-dom";
+
 import {validator, onlyLetters} from '../utils/validation';
 import { Notify } from 'bc-react-notifier';
-
+import Billing from '../components/billing';
 import { BrowserView, MobileView } from "react-device-detect";
+import logoURL from '../../img/logo.png';
 
 import googleIcon from '../../img/icons/google-play.svg';
 import appleIcon from '../../img/icons/apple-store.svg';
 import SVG from 'react-svg-inline';
+import {StripeProvider, Elements, injectStripe, CardElement} from 'react-stripe-elements';
 
 export class Login extends React.Component{
     constructor(props){
@@ -60,32 +65,35 @@ export class Login extends React.Component{
                                 onSubmit={(e)=> {
                                     e.preventDefault();
                                     this.setState({loading: true});
-                                    if(this.state.id != "" && this.state.id != "0" ){
-                                        actions.login(this.state.email, this.state.password,this.state.keep, this.props.history,this.state.id)
+                                    // if(this.state.id != "" && this.state.id != "0" ){
+                                        actions.login(this.state.email, this.state.password,this.state.keep, this.props.history)
                                             .then(() => this.setState({loading: false}))
                                             .catch(() => this.setState({loading: false}));
-                                    }else{
-                                        Notify.error("Please enter a valid Company ID");
-                                        this.setState({loading: false});
-                                    }
+                                    // }else{
+                                    //     Notify.error("Please enter a valid Company ID");
+                                    //     this.setState({loading: false});
+                                    // }
                                 }}
                             >
                                 <div className="form-group">
-                                    <input type="email" autoComplete="new-email" className="form-control rounded" aria-describedby="emailHelp" placeholder="Email"
+                                    <label className="text-left">Email</label>
+                                    <input type="email" autoComplete="new-email" className="form-control rounded" aria-describedby="emailHelp" placeholder="Enter email"
                                         value={this.state.email}
                                         onChange={(e) => this.setState({email: e.target.value})}
                                     />
                                 </div>
                                 <div className="form-group">
+                                    <label>Password</label>
+
                                     <input type="password" autoComplete="new-password" className="form-control rounded" id="exampleInputPassword1" placeholder="Password"
                                         onChange={(e) => this.setState({password: e.target.value})} value={this.state.password}
                                     />
                                 </div>
-                                <div className="form-group mb-0">
+                                {/* <div className="form-group mb-0">
                                     <input name="Company ID" type="text" autoComplete="new-company-id-pass" className="form-control rounded" id="exampleInputID" placeholder="Company ID"
                                         onChange={(e) => this.setState({id: e.target.value})} value={this.state.id}
                                     />
-                                </div>
+                                </div> */}
                                 <div className="form-group text-left">
                                     <input type="checkbox" className="mr-1"
                                         onChange={(e) => this.setState({keep: !this.state.keep})} checked={this.state.keep}
@@ -112,6 +120,51 @@ Login.propTypes = {
     history: PropTypes.object,
     location: PropTypes.object
 };
+
+
+const Subscribe = (props) => {
+    const [user, setUser] = useState("");
+    
+    useEffect(() => {
+        const session = Session.get();
+        if (typeof session == 'undefined' || typeof session.active == 'undefined' || session.active == false) props.history.push('/login');
+        else setUser(session.payload.user);
+      }, []);
+
+    return (
+        <div className="container mt-4">
+            <span className="svg_img" style={{ backgroundImage: `url(${logoURL})` }} />
+            <StripeProvider apiKey="pk_test_WO5dHVGGqxwtXAWP2T8jhPnR00tBqNpUR5">
+                <Elements>
+                    <Billing user={user} history={props.history} />
+                </Elements>
+            </StripeProvider>
+
+
+        </div>
+      );
+
+};
+export default Subscribe;
+
+// export class Subscribe extends React.Component{
+//     constructor(props){
+//         super(props);
+//         const urlVariables = qs.parse(props.location.search);
+//         this.state = { email: '', password: '', id: '', type: urlVariables.type || 'company', loading: false, keep: true };
+//     }
+//     render(){
+//         return (
+//             <div className="container">
+//                 <ShippingAddress shippingAddress={shippingAddress} setShippingAddress={setShippingAddress}/>
+//             </div>
+//         );
+//     }
+// }
+// Subscribe.propTypes = {
+//     history: PropTypes.object,
+//     location: PropTypes.object
+// };
 export class Signup extends React.Component{
     constructor(props){
         super(props);
@@ -143,7 +196,6 @@ export class Signup extends React.Component{
     }      
     validate(formData){
         let errors = [];
-        console.log('validate formdata', formData);
         if(!validator.isEmail(formData.email)) errors.push('Invalid email');
         if(validator.isEmpty(formData.first_name)) errors.push('The first name cannot be empty');
         if(!validator.isLength(formData.first_name, { min: 0, max: 50 })) errors.push('The first name can have a max of 50 characters');
@@ -161,7 +213,6 @@ export class Signup extends React.Component{
         return errors.length == 0;
     }
     render(){
-        console.log('this.state', this.state);
         return (
             <div className="public_view login_view">
                 <img className="banner" src={loginBanner} />
@@ -371,7 +422,6 @@ export class ResetPassword extends React.Component{
         };
     }
     render(){
-        console.log(this.state);
         return (
             <div className="row mt-5">
                 <div className="col-12 col-sm-10 col-md-9 col-lg-8 col-xl-6 mx-auto">
@@ -387,7 +437,7 @@ export class ResetPassword extends React.Component{
                                 this.setState({ loading: true });
                                 actions.resetPassword({
                                     new_password: this.state.password,
-                                    token: this.state.token,
+                                    token: this.state.token
                                 }, this.props.history)
                                     .then(() => this.setState({loading: false, error: null }))
                                     .catch((error) => this.setState({loading: false, error }));
@@ -462,7 +512,7 @@ export class Invite extends React.Component{
                                     token: this.state.token,
                                     employer: this.state.employer || undefined,
                                     employer_role: this.state.employer_role || undefined,
-                                    account_type: this.state.employer ? 'employer' : 'employee',
+                                    account_type: this.state.employer ? 'employer' : 'employee'
                                 }, this.props.history)
                                     .then(() => this.setState({loading: false, error: null }))
                                     .catch((error) => this.setState({loading: false, error }));
@@ -512,6 +562,11 @@ export class Invite extends React.Component{
     }
 }
 Invite.propTypes = {
+    history: PropTypes.object,
+    location: PropTypes.object
+};
+
+Subscribe.propTypes = {
     history: PropTypes.object,
     location: PropTypes.object
 };

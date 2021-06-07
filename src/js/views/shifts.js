@@ -647,7 +647,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                         zIndex: 10000
                     }
                 },
-                locale: { skip: "Skip Tutorial" },
+                locale: { skip: "Skip Tutorial" }
             },
             {
                 target: '#how-many',
@@ -661,7 +661,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                         zIndex: 10000
                     }
                 },
-                locale: { skip: "Skip Tutorial" },
+                locale: { skip: "Skip Tutorial" }
             },
             {
                 target: '#price',
@@ -675,7 +675,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                         zIndex: 10000
                     }
                 },
-                locale: { skip: "Skip Tutorial" },
+                locale: { skip: "Skip Tutorial" }
             },
             {
                 target: '#date-shift',
@@ -689,7 +689,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                         zIndex: 10000
                     }
                 },
-                locale: { skip: "Skip Tutorial" },
+                locale: { skip: "Skip Tutorial" }
             },
             {
                 target: '#from-to-date',
@@ -703,7 +703,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                         zIndex: 10000
                     }
                 },
-                locale: { skip: "Skip Tutorial" },
+                locale: { skip: "Skip Tutorial" }
             },
             {
                 target: '#location',
@@ -717,7 +717,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                         zIndex: 10000
                     }
                 },
-                locale: { skip: "Skip Tutorial" },
+                locale: { skip: "Skip Tutorial" }
             },
             {
                 target: '#instruction',
@@ -731,7 +731,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                         zIndex: 10000
                     }
                 },
-                locale: { skip: "Skip Tutorial" },
+                locale: { skip: "Skip Tutorial" }
             },
             {
                 target: '#who-can-apply',
@@ -745,7 +745,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                         zIndex: 10000
                     }
                 },
-                locale: { skip: "Skip Tutorial" },
+                locale: { skip: "Skip Tutorial" }
             },
             {
                 target: '#publish',
@@ -759,7 +759,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                         zIndex: 10000
                     }
                 },
-                locale: { skip: "Skip Tutorial" },
+                locale: { skip: "Skip Tutorial" }
             }
    
             
@@ -809,7 +809,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
             active: false,
             starting_at: null,
             ending_at: null
-        },
+        }
      
     });
     const [multipleRecurrentShift, setMultipleRecurrentShift] = useState([]);
@@ -831,7 +831,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
         const end = endDate.startOf('days'); 
 
         let weekDays = Object.values([recurrentTimes][0]) ;
-      
+        
         const dailyInfo = weekDays;
         let totalDays = 0;
         var multipleShifts = [];
@@ -847,12 +847,11 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
               current.add(1, 'weeks').isoWeekday(index);
 
             }
-            console.log('current', current.format("MM-DD-YYYY"));
-            console.log('end -', end.format("MM-DD-YYYY"));
+         
             while (current.isSameOrBefore(end)) {
-                console.log('final current', current.format("MM-DD-YYYY"));
                 const starting = moment(current.format("MM-DD-YYYY") + " " + info.starting_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
                 const ending = moment(current.format("MM-DD-YYYY") + " " + info.ending_at.format("hh:mm a"), "MM-DD-YYYY hh:mm a");
+               
 
                 multipleShifts.push({"starting_at": starting, "ending_at": ending});      
                 current.day(7 + index);
@@ -862,9 +861,9 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
             }
           }
         });
+
             setTotalShift(totalDays);
             setMultipleRecurrentShift(multipleShifts);
-
             return (multipleShifts);
         };
     const saveRecurrentDates = async function saveRecurrentDates(){
@@ -879,7 +878,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                 )`, (answer) => {
                     if (answer){
                         formData.multiple_dates = multipleRecurrentShift;
-        
+                        
                         onSave({
                             executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
                             status: 'OPEN'
@@ -912,6 +911,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
     if(!formData.shift && !isNaN(formData.id)) formData.shift = formData.id;
     if(formData.required_badges) delete formData.required_badges;
     if(description) formData.description = description;
+
 
     return (
         <div>
@@ -1934,8 +1934,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                                 <button type="button" id="publish" className="btn btn-success" onClick={() =>{
 
                                     if(recurrent) {
-                                        if(!totalShift) alert('Invalid Dates/Times. Please try again.');
-                                        else saveRecurrentDates();
+                                        saveRecurrentDates();
                                     }else{
                                         onSave({
                                         executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
