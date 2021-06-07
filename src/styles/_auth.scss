@@ -10,3 +10,23 @@
         form{margin-top: 50px;}
     }
 }
+
+.radio-select .custom-control-label{
+    cursor: pointer;
+  }
+  .radio-select-content {
+    border: 1px solid #9da9bb;
+    color: #5e6e82;
+    transition: all .2s ease-in-out;
+    display: block;
+    padding: 1rem;
+    font-weight: normal;
+    border-radius: .25rem;
+    margin-top: 1rem * 0.5;
+  }
+  .radio-select-link { color: inherit; }
+  .radio-select .custom-control-input:checked + .custom-control-label .radio-select-content {
+    border: 1px solid #00d27a;
+    color: black;
+  }
+  

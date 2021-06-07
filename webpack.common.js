@@ -5,7 +5,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: [
-    './src/js/index.js',
+    './src/js/index.js'
   ],
   output: {
     filename: '[name].bundle.js',
@@ -46,7 +46,7 @@ module.exports = {
           }]
         }, //css only files
         {
-          test: /\.(png|jpg|gif)$/, use: {
+          test: /\.(pdf|png|jpg|gif)$/, use: {
             loader: 'file-loader',
             options: { name: '[name].[ext]' }
           }
@@ -59,7 +59,7 @@ module.exports = {
     ]
   },
   resolve: {
-    extensions: ['*', '.js', '.jsx'],
+    extensions: ['*', '.js', '.jsx']
   },
   plugins: [
     new webpack.HotModuleReplacementPlugin(),

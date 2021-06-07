@@ -143,7 +143,7 @@ export const YourSubscription = (props) => {
                     {/* <FeatureIndicator boolean={p.feature_quickbooks_integration} /> */}
                     { (!employer.active_subscription || employer.active_subscription.id !== p.id) &&
                         <Button className="w-100 mt-2" onClick={() => {
-                            const noti = Notify.info("Are you sure? You will loose any other subscription you may have", (answer) => {
+                            const noti = Notify.info("Are you sure? You will lose any other subscription you may have", (answer) => {
                                 if (answer) createSubscription({ subscription: p.id });
                                 noti.remove();
                             });
