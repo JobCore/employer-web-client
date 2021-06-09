@@ -26,7 +26,7 @@ import { Profile, ManageUsers, InviteUserToCompanyJobcore } from './views/profil
 import { NOW } from './components/utils.js';
 import { Notifier, Notify } from 'bc-react-notifier';
 import log from './utils/log';
-import logoURL from '../img/logo1.png';
+import logoURL from '../img/jobcore-logo.png';
 import loadingURL from '../img/loading2.gif';
 import moment from 'moment';
 import { EngineComponent } from "./utils/write_engine";
