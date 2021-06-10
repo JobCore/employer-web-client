@@ -925,7 +925,8 @@ export const PayrollPeriodDetails = ({ match, history }) => {
         const data = {
             w4form: w4form[0],
             i9form: i9form[0],
-            employeeDocument: employeeDocument[0]
+            employeeDocument: employeeDocument[0],
+            employeeDocument2: employeeDocument[1] || ''
         };
         fillForm(data);
         fillFormI9(data);
@@ -1030,11 +1031,17 @@ export const PayrollPeriodDetails = ({ match, history }) => {
           const pngImageBytes = await fetch(pngUrl).then((res) => res.arrayBuffer());
           const pdfDoc = await PDFDocument.load(formPdfBytes);
           const pngImage = await pdfDoc.embedPng(pngImageBytes);
-
+          console.log(data.employeeDocument.document);
           const document = data.employeeDocument.document;
           const documentBytes = await fetch(document).then((res) => res.arrayBuffer());
           const documentImage = await pdfDoc.embedJpg(documentBytes);
-
+          
+          var document2Image = null;
+          if(data.employeeDocument2){
+            const document2 = data.employeeDocument2.document;
+            const document2Bytes = await fetch(document2).then((res) => res.arrayBuffer());
+            document2Image = await pdfDoc.embedJpg(document2Bytes);              
+          }
           const newPage = pdfDoc.addPage();
        
           const pages = pdfDoc.getPages();
@@ -1045,8 +1052,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
           const form = pdfDoc.getForm();
 
           const pngDims = pngImage.scale(0.1);
-          const documentDims = documentImage.scale(0.3);
-   
+
           const lastname = form.getTextField('topmostSubform[0].Page1[0].Last_Name_Family_Name[0]');
           const name = form.getTextField('topmostSubform[0].Page1[0].First_Name_Given_Name[0]');
           const middle = form.getTextField('topmostSubform[0].Page1[0].Middle_Initial[0]');
@@ -1136,12 +1142,20 @@ export const PayrollPeriodDetails = ({ match, history }) => {
           middle2.setText(data.i9form.middle_initial);
 
           pages[3].drawImage(documentImage, {
-            x: newPage.getWidth() / 2 - documentDims.width / 2,
-            y: newPage.getHeight() / 2 - documentDims.height / 2,
-            height: documentDims.height,
-            width: documentDims.width
+            height: 325,
+            width: 275,
+            x: 50,  
+            y: 790 - 325
           });
-
+        
+          if(document2Image){
+            pages[3].drawImage(document2Image, {
+                height: 325,
+                width: 275,
+                x: 50,  
+                y: 790 - 325 - 350
+              });              
+          }
           firstPage.drawText(moment(data.w4form.created_at).format("MM/DD/YYYY"), {
             x: 375 ,
             y: 257,
@@ -1150,7 +1164,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
           });
           firstPage.drawImage(pngImage, {
             x: 115,
-            y: 250,
+            y: 240,
             width: pngDims.width,
             height: pngDims.height
           });
@@ -1211,7 +1225,6 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                     b.employee.id === "new" ? 1 :
                         a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
             ).map(pay => {
-                console.log('PAY', pay);
                 const total_hours = pay.payments.filter(p => p.status === "APPROVED" || p.status === "PAID").reduce((total, { regular_hours, over_time, breaktime_minutes}) => total + Number(regular_hours) + Number(over_time), 0);
                 const total_amount = pay.payments.filter(p => p.status === "APPROVED" || p.status === "PAID").reduce((total, { regular_hours, over_time, hourly_rate, breaktime_minutes }) => total + (Number(regular_hours) + Number(over_time))*Number(hourly_rate) , 0);
                 return <table key={pay.employee.id} className="table table-striped payroll-summary">

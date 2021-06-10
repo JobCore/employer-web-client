@@ -16,6 +16,8 @@ php_errorlog
 !webpack.development.js
 !.env.example
 !.github/
+!fw4.pdf
+!i92.pdf
 
 # track readme.md in the root (i.e. do NOT ignore it)
 !README.md
