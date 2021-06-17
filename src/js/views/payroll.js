@@ -925,9 +925,10 @@ export const PayrollPeriodDetails = ({ match, history }) => {
         const data = {
             w4form: w4form[0],
             i9form: i9form[0],
-            employeeDocument: employeeDocument[0],
+            employeeDocument: employeeDocument[0] || '',
             employeeDocument2: employeeDocument[1] || ''
         };
+
         fillForm(data);
         fillFormI9(data);
         
@@ -938,20 +939,29 @@ export const PayrollPeriodDetails = ({ match, history }) => {
           const signature = data.w4form.employee_signature;
           const png = `data:image/png;base64,${signature}`;
           const formUrl = fw4;
-          const formPdfBytes = await fetch(formUrl).then(res => res.arrayBuffer());
+          console.log('formUrl', fw4);
 
+          const formPdfBytes = await fetch(formUrl).then(res => res.arrayBuffer());
+          console.log('formPdfBytes', formPdfBytes);
           const pngUrl = png;
-          const pngImageBytes = await fetch(pngUrl).then((res) => res.arrayBuffer());
-          const pdfDoc = await PDFDocument.load(formPdfBytes);
-          const pngImage = await pdfDoc.embedPng(pngImageBytes);
-       
+          
+          var pngImageBytes;
+          var pdfDoc = await PDFDocument.load(formPdfBytes);
+          var pngImage;
+          if(signature){
+               pngImageBytes = await fetch(pngUrl).then((res) => res.arrayBuffer());
+               
+               pngImage = await pdfDoc.embedPng(pngImageBytes);
+          }
           const pages = pdfDoc.getPages();
           const firstPage = pages[0];
     
           const { width, height } = firstPage.getSize();
     
           const form = pdfDoc.getForm();
-          const pngDims = pngImage.scale(0.18);
+
+          var pngDims;
+          if(pngImage) pngDims = pngImage.scale(0.18);
    
           const nameField = form.getTextField('topmostSubform[0].Page1[0].Step1a[0].f1_01[0]');
           const lastNameField = form.getTextField('topmostSubform[0].Page1[0].Step1a[0].f1_02[0]');
@@ -1005,12 +1015,15 @@ export const PayrollPeriodDetails = ({ match, history }) => {
             size: 14,
             color: rgb(0,0,0)
           });
-          firstPage.drawImage(pngImage, {
-            x: firstPage.getWidth() / 7 - pngDims.width / 2 + 75,
-            y: firstPage.getHeight() / 4.25 - pngDims.height,
-            width: pngDims.width,
-            height: pngDims.height
-          });
+
+          if(pngImage){
+              firstPage.drawImage(pngImage, {
+                x: firstPage.getWidth() / 7 - pngDims.width / 2 + 75,
+                y: firstPage.getHeight() / 4.25 - pngDims.height,
+                width: pngDims.width,
+                height: pngDims.height
+              });
+          }
        
           const pdfBytes = await pdfDoc.save();
           var blob = new Blob([pdfBytes], {type: "application/pdf"});
@@ -1026,16 +1039,24 @@ export const PayrollPeriodDetails = ({ match, history }) => {
           const png = `data:image/png;base64,${signature}`;
           const formUrl = i9form;
           const formPdfBytes = await fetch(formUrl).then(res => res.arrayBuffer());
-
-          const pngUrl = png;
-          const pngImageBytes = await fetch(pngUrl).then((res) => res.arrayBuffer());
-          const pdfDoc = await PDFDocument.load(formPdfBytes);
-          const pngImage = await pdfDoc.embedPng(pngImageBytes);
-          console.log(data.employeeDocument.document);
-          const document = data.employeeDocument.document;
-          const documentBytes = await fetch(document).then((res) => res.arrayBuffer());
-          const documentImage = await pdfDoc.embedJpg(documentBytes);
           
+          const pngUrl = png;
+          var pngImageBytes;
+          var pngImage;
+          const pdfDoc = await PDFDocument.load(formPdfBytes);
+          if(signature){
+               pngImageBytes = await fetch(pngUrl).then((res) => res.arrayBuffer());
+               pngImage = await pdfDoc.embedPng(pngImageBytes);
+          }
+
+          const document = data.employeeDocument.document;
+          var documentBytes;
+          var documentImage;
+          if(document){
+              documentBytes = await fetch(document).then((res) => res.arrayBuffer());
+              documentImage = await pdfDoc.embedJpg(documentBytes);
+
+          }
           var document2Image = null;
           if(data.employeeDocument2){
             const document2 = data.employeeDocument2.document;
@@ -1051,7 +1072,9 @@ export const PayrollPeriodDetails = ({ match, history }) => {
     
           const form = pdfDoc.getForm();
 
-          const pngDims = pngImage.scale(0.1);
+          var pngDims;
+          
+          if(pngImage) pngDims= pngImage.scale(0.1);
 
           const lastname = form.getTextField('topmostSubform[0].Page1[0].Last_Name_Family_Name[0]');
           const name = form.getTextField('topmostSubform[0].Page1[0].First_Name_Given_Name[0]');
@@ -1141,12 +1164,15 @@ export const PayrollPeriodDetails = ({ match, history }) => {
           firstname2.setText(data.i9form.first_name);
           middle2.setText(data.i9form.middle_initial);
 
-          pages[3].drawImage(documentImage, {
-            height: 325,
-            width: 275,
-            x: 50,  
-            y: 790 - 325
-          });
+          if(documentImage){
+              pages[3].drawImage(documentImage, {
+                height: 325,
+                width: 275,
+                x: 50,  
+                y: 790 - 325
+              });
+
+          }
         
           if(document2Image){
             pages[3].drawImage(document2Image, {
@@ -1162,12 +1188,16 @@ export const PayrollPeriodDetails = ({ match, history }) => {
             size: 10,
             color: rgb(0,0,0)
           });
-          firstPage.drawImage(pngImage, {
-            x: 115,
-            y: 240,
-            width: pngDims.width,
-            height: pngDims.height
-          });
+
+          if(pngImage){
+
+              firstPage.drawImage(pngImage, {
+                x: 115,
+                y: 240,
+                width: pngDims.width,
+                height: pngDims.height
+              });
+          }
        
           const pdfBytes = await pdfDoc.save();
           var blob = new Blob([pdfBytes], {type: "application/pdf"});

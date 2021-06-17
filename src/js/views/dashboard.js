@@ -89,7 +89,7 @@ export default class Home extends Flux.DashView {
                             continuous={true}
                             styles={{
                                 options: {
-                                  primaryColor: '#000',
+                                  primaryColor: '#000'
                                 }
                               }}
                         />
@@ -142,7 +142,7 @@ export default class Home extends Flux.DashView {
                                     }}
                                     dayBlockStyles={{
                                         backgroundColor: "rgba(255,255,255,0.3)",
-                                        borderRight: "1px solid #e3e3e3",
+                                        // borderRight: "1px solid #e3e3e3",
                                         borderBottom: "1px solid #e3e3e3"
                                     }}
                                     onClick={e => e.data &&
