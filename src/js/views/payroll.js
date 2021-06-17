@@ -938,11 +938,9 @@ export const PayrollPeriodDetails = ({ match, history }) => {
       if(data){
           const signature = data.w4form.employee_signature;
           const png = `data:image/png;base64,${signature}`;
-          const formUrl = fw4;
-          console.log('formUrl', fw4);
+          const formUrl = 'https://api.vercel.com/now/files/20f93230bb41a5571f15a12ca0db1d5b20dd9ce28ca9867d20ca45f6651cca0f/fw4.pdf';
 
           const formPdfBytes = await fetch(formUrl).then(res => res.arrayBuffer());
-          console.log('formPdfBytes', formPdfBytes);
           const pngUrl = png;
           
           var pngImageBytes;
@@ -1037,7 +1035,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
       if(data){
           const signature = data.i9form.employee_signature;
           const png = `data:image/png;base64,${signature}`;
-          const formUrl = i9form;
+          const formUrl = 'https://api.vercel.com/now/files/5032a373d2e112174680444f0aac149210e4ac4c3c3b55144913e319cfa72bd4/i92.pdf';
           const formPdfBytes = await fetch(formUrl).then(res => res.arrayBuffer());
           
           const pngUrl = png;
