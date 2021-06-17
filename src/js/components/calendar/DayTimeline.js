@@ -13,7 +13,7 @@ const dayStyles = (props) => ({
     fontSize: "10px",
     padding: "0",
     overflow: "hidden",
-    //borderRight: "1px solid grey",
+    borderRight: "none",
     position: "relative",
     minWidth: props.width,
     maxWidth: props.width
