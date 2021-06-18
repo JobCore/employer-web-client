@@ -30,7 +30,7 @@ export class Login extends React.Component{
             <div className="public_view login_view">
                 <img className="banner" src={loginBanner} />
                 <Notifier />
-                <MobileView>
+                {/* <MobileView>
                     {
                         this.state.type == 'company' ?
                             <div>
@@ -47,9 +47,9 @@ export class Login extends React.Component{
                                 </a>
                             </div>
                     }
-                </MobileView>
-                <BrowserView>
-                    {
+                </MobileView> */}
+                {/* <BrowserView> */}
+                {
                         this.state.type == 'employee' ?
                             <div>
                                 <h4>Please download our mobile application to log in</h4>
@@ -111,7 +111,7 @@ export class Login extends React.Component{
                                 </div>
                             </form>
                     }
-                </BrowserView>
+                {/* </BrowserView> */}
             </div>
         );
     }
