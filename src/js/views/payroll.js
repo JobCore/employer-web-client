@@ -24,7 +24,7 @@ import { Shift, EditOrAddShift } from './shifts.js';
 import { Employer } from './profile.js';
 import { ManageLocations, AddOrEditLocation, Location } from './locations.js';
 import { EmployeeExtendedCard, ShiftOption, ShiftCard, DeductionExtendedCard, Theme, Button, ShiftOptionSelected, GenericCard, SearchCatalogSelect, Avatar, Toggle, Wizard, StarRating, ListCard } from '../components/index';
-import queryString from 'query-string';
+import queryString, { parse } from 'query-string';
 
 import TimePicker from 'rc-time-picker';
 import 'rc-time-picker/assets/index.css';
@@ -1253,6 +1253,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                     b.employee.id === "new" ? 1 :
                         a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
             ).map(pay => {
+                console.log(pay.payments);
                 const total_hours = pay.payments.filter(p => p.status === "APPROVED" || p.status === "PAID").reduce((total, { regular_hours, over_time, breaktime_minutes}) => total + Number(regular_hours) + Number(over_time), 0);
                 const total_amount = pay.payments.filter(p => p.status === "APPROVED" || p.status === "PAID").reduce((total, { regular_hours, over_time, hourly_rate, breaktime_minutes }) => total + (Number(regular_hours) + Number(over_time))*Number(hourly_rate) , 0);
                 return <table key={pay.employee.id} className="table table-striped payroll-summary">
@@ -1283,7 +1284,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                     />
                                     :
                                     <div className="row">
-                                        <div className="col-9 pr-0">
+                                        <div className="col-10 pr-0">
 
                                             <EmployeeExtendedCard
                                         className="pr-2"
@@ -1296,7 +1297,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                         </div>
                                         {
                                             pay.employee.employment_verification_status === "APPROVED" && (
-                                            <div className="col-3 my-auto pl-0">
+                                            <div className="col-2 my-auto pl-0">
                                                 <i style={{fontSize:"16px", cursor:"pointer", color:'#27666F'}}className="fas fa-file-alt" onClick={() => getEmployeeDocumet(pay)}></i>
                                             </div>
                                             )
@@ -1525,8 +1526,8 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
     const plannedHours = Math.round(shiftDuration.asHours() * 100) / 100;
 
     const clockInDurationAfterBreak = clockInDuration.subtract(breaktime, "minute");
-    const clockInTotalHoursAfterBreak = !clockInDurationAfterBreak ? 0 : clockInDurationAfterBreak.asHours().toFixed(5);
-
+    const clockInTotalHoursAfterBreak = !clockInDurationAfterBreak ? 0 : clockInDurationAfterBreak.asHours().toFixed(2);
+    const clockInTotalHoursAfterBreakCost = (Number(shift.price.amount) * Number(clockInTotalHoursAfterBreak)).toFixed(2);
     const diff = Math.round((Number(clockInTotalHoursAfterBreak) - Number(plannedHours)) * 100) / 100;
     // const overtime = clockInTotalHoursAfterBreak > 40 ? clockInTotalHoursAfterBreak - 40 : 0;
 
@@ -1716,7 +1717,10 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                 <small>minutes</small>
             </td>
         }
-        <td>{Number(clockInTotalHoursAfterBreak).toFixed(2)}</td>
+        <td>
+            <p className="mt-1" style={{ marginBottom: "7px" }}>{Number(clockInTotalHoursAfterBreak)}</p>
+            <small className="d-block my-0">(${clockInTotalHoursAfterBreakCost})</small>
+        </td>
         <td>{clockin.shift || !readOnly ? diff : "-"}</td>
         <td>{
             <div>
