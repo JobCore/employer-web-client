@@ -148,6 +148,8 @@ const PayrollPeriodReport = ({ period, employer, payments }) => {
                 {payments.sort((a, b) =>
                     a.employee.last_name.toLowerCase() > b.employee.last_name.toLowerCase() ? 1 : -1
                 ).map(pay => {
+                    const totalHour = Math.round((parseFloat(pay.regular_hours) + parseFloat(pay.over_time)) * 100) / 100;
+                    const payRate = pay.earnings/totalHour;
                     return <View key={pay.employee.id} style={styles.tableRow}>
                         <View style={styles.tableCol1}>
                             <Text style={styles.tableCell}>{pay.employee.last_name}, {pay.employee.first_name}</Text>
@@ -162,10 +164,10 @@ const PayrollPeriodReport = ({ period, employer, payments }) => {
                             <Text style={styles.tableCell}>{(parseFloat(pay.regular_hours) + parseFloat(pay.over_time)).toFixed(2)}</Text>
                         </View>
                         <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>{(Math.round((pay.earnings/(Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100)/100)) * 2) / 2).toFixed(2)}</Text>
+                            <Text style={styles.tableCell}>{"$" + (Math.floor(payRate* 100) / 100).toFixed(2)}</Text>
                         </View>
                         <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>{pay.earnings && parseFloat(pay.earnings).toFixed(2)}</Text>
+                            <Text style={styles.tableCell}>{"$" + pay.earnings && parseFloat(pay.earnings).toFixed(2)}</Text>
                         </View>
                         <View style={styles.tableCol}>                                      
                             <Text style={styles.tableCell}>{pay.deduction_list.find(e => e.name == "Federal Withholding").amount > 0 ? "-" + pay.deduction_list.find(e => e.name == "Federal Withholding").amount: 0}</Text>

@@ -853,6 +853,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
     const [period, setPeriod] = useState(null);
     const [w4Form, setW4Form] = useState('');
     const [payments, setPayments] = useState([]);
+    const [formLoading, setFormLoading] = useState(false);
     const { bar } = useContext(Theme.Context);
     useEffect(() => {
         const employerSub = store.subscribe('current_employer', (employer) => setEmployer(employer));
@@ -916,8 +917,10 @@ export const PayrollPeriodDetails = ({ match, history }) => {
         return ("" + hours + ":" + minutes);
     }
 
-    async function getEmployeeDocumet(emp) {
+    async function getEmployeeDocumet(emp, type) {
+        setFormLoading(true);
         const id = emp.employee.id;
+
         const w4form = await GET('employers/me/' + 'w4-form' + '/' + id);
         const i9form = await GET('employers/me/' + 'i9-form' + '/' + id);
         const employeeDocument = await GET('employers/me/' + 'employee-documents' + '/' + id);
@@ -929,8 +932,9 @@ export const PayrollPeriodDetails = ({ match, history }) => {
             employeeDocument2: employeeDocument[1] || ''
         };
 
-        fillForm(data);
-        fillFormI9(data);
+        if(type === 'w4')fillForm(data);
+        else if(type === 'i9')fillFormI9(data);
+        
         
     }
 
@@ -1025,8 +1029,13 @@ export const PayrollPeriodDetails = ({ match, history }) => {
        
           const pdfBytes = await pdfDoc.save();
           var blob = new Blob([pdfBytes], {type: "application/pdf"});
-    
-          saveAs(blob, `${data.i9form.first_name + "_" + data.i9form.last_name+"_W4"}.pdf`);
+        
+          const fileURL = URL.createObjectURL(blob);
+          window.open(fileURL);
+          setFormLoading(false);
+          
+        //   window.open(blob);
+        //   saveAs(blob, `${data.i9form.first_name + "_" + data.i9form.last_name+"_W4"}.pdf`);
 
       }
 
@@ -1199,8 +1208,10 @@ export const PayrollPeriodDetails = ({ match, history }) => {
        
           const pdfBytes = await pdfDoc.save();
           var blob = new Blob([pdfBytes], {type: "application/pdf"});
-    
-          saveAs(blob, `${data.i9form.first_name + "_" + data.i9form.last_name+"_I9"+moment().format("MMDDYYYY")}.pdf`);
+          const fileURL = URL.createObjectURL(blob);
+          window.open(fileURL);
+          setFormLoading(false);
+        //   saveAs(blob, `${data.i9form.first_name + "_" + data.i9form.last_name+"_I9"+moment().format("MMDDYYYY")}.pdf`);
 
       }
 
@@ -1253,7 +1264,6 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                     b.employee.id === "new" ? 1 :
                         a.employee.user.last_name.toLowerCase() > b.employee.user.last_name.toLowerCase() ? 1 : -1
             ).map(pay => {
-                console.log(pay.payments);
                 const total_hours = pay.payments.filter(p => p.status === "APPROVED" || p.status === "PAID").reduce((total, { regular_hours, over_time, breaktime_minutes}) => total + Number(regular_hours) + Number(over_time), 0);
                 const total_amount = pay.payments.filter(p => p.status === "APPROVED" || p.status === "PAID").reduce((total, { regular_hours, over_time, hourly_rate, breaktime_minutes }) => total + (Number(regular_hours) + Number(over_time))*Number(hourly_rate) , 0);
                 return <table key={pay.employee.id} className="table table-striped payroll-summary">
@@ -1284,7 +1294,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                     />
                                     :
                                     <div className="row">
-                                        <div className="col-10 pr-0">
+                                        <div className="col-12 pr-0">
 
                                             <EmployeeExtendedCard
                                         className="pr-2"
@@ -1295,16 +1305,45 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                         onClick={() => null}
                                     />
                                         </div>
-                                        {
+                                        {/* {
                                             pay.employee.employment_verification_status === "APPROVED" && (
                                             <div className="col-2 my-auto pl-0">
                                                 <i style={{fontSize:"16px", cursor:"pointer", color:'#27666F'}}className="fas fa-file-alt" onClick={() => getEmployeeDocumet(pay)}></i>
                                             </div>
                                             )
-                                        }
-                                       
+                                        } */}
+                                     
                                     </div>
                                 }
+                                <div className="row" style={{marginLeft: '40px'}}>
+                                    <div className="col-6 pr-0">
+                                        {
+                                            pay.employee.employment_verification_status === "APPROVED" ? (
+                                                <span style={{textDecoration: "underline", cursor: "pointer"}} onClick={() => {
+                                                    if(!formLoading) getEmployeeDocumet(pay, 'w4');
+                                                   
+                                                }}><i style={{fontSize:"16px",color:'#27666F'}}className="fas fa-file-alt mr-1"></i>{!formLoading ? "W-4 Form" : "Loading"}</span>
+                                            ) : (
+                                                <span className="text-muted"><i className="fas fa-exclamation-circle text-danger mr-1"></i>W-4 Form</span>
+                                            )
+                                        }
+                                        
+
+                                    </div>
+                                    <div className="col-6">
+                                        {
+                                            pay.employee.employment_verification_status === "APPROVED" ? (
+                                                <span style={{textDecoration: "underline", cursor: "pointer"}} onClick={() => {
+                                                    if(!formLoading) getEmployeeDocumet(pay, 'i9');
+                                                   
+                                                }}><i style={{fontSize:"16px",color:'#27666F'}}className="fas fa-file-alt mr-1"></i>{!formLoading ? "I-9 Form" : "Loading"}</span>
+                                            ) : (
+                                                <span className="text-muted"><i className="fas fa-exclamation-circle text-danger mr-1"></i>I-9 Form</span>
+                                            )
+                                        }
+
+                                    </div>
+                                </div>
                             </th>
                             <th>In</th>
                             <th>Out</th>
@@ -2485,7 +2524,7 @@ export class PayrollReport extends Flux.DashView {
         //const allowLevels = (window.location.search != '');
         console.log(this.state);
 
-        return (<div className="p-1" style={{maxWidth: '1000px'}}>
+        return (<div className="p-1" style={{maxWidth: '1200px'}}>
             <Theme.Consumer>
                 {({ bar }) => (<span>
                     {(!this.state.paymentInfo) ? '' :
@@ -2530,6 +2569,7 @@ export class PayrollReport extends Flux.DashView {
                                             <th scope="col">Regular Hrs</th>
                                             <th scope="col">Over Time</th>
                                             <th scope="col">Total Hrs</th>
+                                            <th scope="col">Pay Rate</th>
                                             <th scope="col">Earnings</th>
                                             <th scope="col">Federal Withholding</th>
                                             <th scope="col">Social Security</th>
@@ -2543,7 +2583,8 @@ export class PayrollReport extends Flux.DashView {
                                         {this.state.paymentInfo.payments.sort((a, b) =>
                                             a.employee.last_name.toLowerCase() > b.employee.last_name.toLowerCase() ? 1 : -1
                                         ).map(pay => {
-
+                                            const totalHour = Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100) / 100;
+                                            const payRate = pay.earnings/totalHour;
                                             return <tr key={pay.employee.id}>
                                                 <td className="text-left">
                                                     {pay.employee.last_name}, {pay.employee.first_name}
@@ -2552,6 +2593,7 @@ export class PayrollReport extends Flux.DashView {
                                                 <td>{Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100) / 100 > 40 ? 40 : Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100)/100}</td>
                                                 <td>{Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100) / 100 > 40 ? Math.round((Number(pay.regular_hours) + Number(pay.over_time)- 40) * 100 )  / 100  : "-" }</td>
                                                 <td>{Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100) / 100}</td>
+                                                <td>{"$" + Math.floor(payRate* 100) / 100}</td>
                                                 <td>{pay.earnings}</td> 
                                                 <td>{pay.deduction_list.find(e => e.name == "Federal Withholding").amount > 0 ? "-" + pay.deduction_list.find(e => e.name == "Federal Withholding").amount: 0}</td> 
                                                 <td>{"-" + pay.deduction_list.find(e => e.name == "Social Security").amount}</td> 
