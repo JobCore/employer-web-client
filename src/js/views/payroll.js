@@ -9,7 +9,7 @@ import { PDFDocument, rgb} from 'pdf-lib';
 import { saveAs } from 'file-saver';
 import fw4 from '../../img/fw4.pdf';
 import i9form from '../../img/i92.pdf';
-
+import loadingURL from '../../img/loading2.gif';
 
 
 import DateTime from 'react-datetime';
@@ -35,7 +35,7 @@ import 'rc-tooltip/assets/bootstrap_white.css';
 import GoogleMapReact from 'google-map-react';
 
 import { PDFDownloadLink } from '@react-pdf/renderer';
-
+import { Document, Page } from 'react-pdf';
 import TextareaAutosize from 'react-textarea-autosize';
 import {PayrollPeriodReport} from "./reports/index.js";
 
@@ -851,9 +851,12 @@ export const ManagePayroll = () => {
 export const PayrollPeriodDetails = ({ match, history }) => {
     const [employer, setEmployer] = useState(store.getState('current_employer'));
     const [period, setPeriod] = useState(null);
-    const [w4Form, setW4Form] = useState('');
+    const [form, setForm] = useState('');
     const [payments, setPayments] = useState([]);
     const [formLoading, setFormLoading] = useState(false);
+    const [open, setOpen] = useState(true);
+
+
     const { bar } = useContext(Theme.Context);
     useEffect(() => {
         const employerSub = store.subscribe('current_employer', (employer) => setEmployer(employer));
@@ -919,6 +922,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
 
     async function getEmployeeDocumet(emp, type) {
         setFormLoading(true);
+        setForm(null);
         const id = emp.employee.id;
 
         const w4form = await GET('employers/me/' + 'w4-form' + '/' + id);
@@ -1031,7 +1035,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
           var blob = new Blob([pdfBytes], {type: "application/pdf"});
         
           const fileURL = URL.createObjectURL(blob);
-          window.open(fileURL);
+          setForm(fileURL);
           setFormLoading(false);
           
         //   window.open(blob);
@@ -1209,16 +1213,44 @@ export const PayrollPeriodDetails = ({ match, history }) => {
           const pdfBytes = await pdfDoc.save();
           var blob = new Blob([pdfBytes], {type: "application/pdf"});
           const fileURL = URL.createObjectURL(blob);
-          window.open(fileURL);
+          setForm(fileURL);
           setFormLoading(false);
         //   saveAs(blob, `${data.i9form.first_name + "_" + data.i9form.last_name+"_I9"+moment().format("MMDDYYYY")}.pdf`);
 
       }
 
     }
-   
+ 
     return <div className="p-1 listcontents">
-     
+        {/* {open && (
+        <div className="modal d-block show fade" id="exampleModalCenter" tabIndex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div className="modal-dialog modal-dialog-centered" role="document">
+                <div className="modal-content">
+                    <iframe src={form || 'http://www.africau.edu/images/default/sample.pdf'} style={{width: "800px", height:"900px"}} frameBorder="0"></iframe>
+
+            
+                </div>
+            </div>
+        </div>
+
+        )} */}
+      
+
+        <div className="modal fade" id="exampleModalCenter" tabIndex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div className="modal-dialog modal-dialog-centered" role="document">
+                <div className="modal-content">
+                    {form ? (
+
+                        <iframe src={form} style={{width: "800px", height:"900px"}} frameBorder="0"></iframe>
+                    ): (
+                        <div className="spinner-border text-center mx-auto" role="status">
+                            <span className="sr-only">Loading...</span>
+                        </div>
+                    )}
+
+                </div>
+            </div>
+        </div>
         <p className="text-right">
             {period.status != "OPEN" ?
 
@@ -1319,7 +1351,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                     <div className="col-6 pr-0">
                                         {
                                             pay.employee.employment_verification_status === "APPROVED" ? (
-                                                <span style={{textDecoration: "underline", cursor: "pointer"}} onClick={() => {
+                                                <span style={{cursor: "pointer"}}  data-toggle="modal" data-target="#exampleModalCenter" onClick={() => {
                                                     if(!formLoading) getEmployeeDocumet(pay, 'w4');
                                                    
                                                 }}><i style={{fontSize:"16px",color:'#27666F'}}className="fas fa-file-alt mr-1"></i>{!formLoading ? "W-4 Form" : "Loading"}</span>
@@ -1333,7 +1365,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                     <div className="col-6">
                                         {
                                             pay.employee.employment_verification_status === "APPROVED" ? (
-                                                <span style={{textDecoration: "underline", cursor: "pointer"}} onClick={() => {
+                                                <span style={{cursor: "pointer"}}   data-toggle="modal" data-target="#exampleModalCenter" onClick={() => {
                                                     if(!formLoading) getEmployeeDocumet(pay, 'i9');
                                                    
                                                 }}><i style={{fontSize:"16px",color:'#27666F'}}className="fas fa-file-alt mr-1"></i>{!formLoading ? "I-9 Form" : "Loading"}</span>
