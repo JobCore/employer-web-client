@@ -448,6 +448,7 @@ FilterShifts.propTypes = {
  * ShiftApplicants
  */
 export const ShiftApplicants = (props) => {
+    console.log('LOS PAPLICATION PROPS', props);
     const { onCancel, onSave, catalog } = props;
     return (<Theme.Consumer>
         {({ bar }) => (<div className="sidebar-applicants">
@@ -531,7 +532,7 @@ export const ShiftEmployees = (props) => {
                     </button>
                 </div>
             }
-            <h3>Shift Scheduled Employees:</h3>
+            <h3>Scheduled Employees:</h3>
             {
                 catalog.shift.employees.length > 0 ?
                     catalog.shift.employees.map((emp, i) => (
@@ -883,7 +884,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                             executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
                             status: 'OPEN'
                         });
-                        window.location.reload();
+                        // window.location.reload();
                     }
                     noti.remove();
                 });
@@ -1550,7 +1551,6 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                                             }}
                                             onChange={(value) => {
                                                 if (typeof value == 'string') value = moment(value);
-                                                console.log('starting value', value);
                                                 const getRealDate = (start, end) => {
                                                     const starting = moment(value.format("MM-DD-YYYY"), "MM-DD-YYYY");
                                                     var ending = moment(end);
@@ -1558,8 +1558,6 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                                                         if (ending.isBefore(starting)) {
                                                             ending = ending.add(1, 'days');
                                                         }
-                                                        console.log('starting', starting);
-                                                        console.log('ending', ending);
 
                                                         return setRecurrentDates({
                                                             starting_at: starting,
@@ -1899,7 +1897,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                     }
                     <div className="btn-bar">
                         {(formData.status == 'DRAFT' || formData.status == 'UNDEFINED') ? // create shift
-                            <button type="button" className="btn btn-primary" onClick={() => {
+                            <button type="button" className="btn btn-secondary" onClick={() => {
                             if(recurrent) formData.multiple_dates = multipleRecurrentShift;
                             onSave({
                                 executed_action: isNaN(formData.id) ? 'create_shift' : 'update_shift',
@@ -2001,7 +1999,7 @@ export const ShiftDetails = (props) => {
                                     <Button
                                         icon="candidates" color="primary" size="small" rounded={true}
                                         onClick={() => bar.show({ slug: "show_shift_applications", data: shift, title: "Shift Applicants", allowLevels: true })}
-                                        note={shift.candidates.length > 0 ? "There shift has applications that have not been reviewed" : "Shift Applicants"}
+                                        note={shift.candidates.length > 0 ? "The shift has applications that have not been reviewed" : "Shift Applicants"}
                                         withAlert={shift.candidates.length > 0}
                                         notePosition="left"
                                     />
@@ -2060,7 +2058,7 @@ const ShowShift = ({ shift, bar }) => {
             (shift.status == 'DRAFT') ?
                 <span href="#" className="badge badge-secondary">draft</span> :
                 (openVacancys == 0) ?
-                    <span href="#" className="badge">filled</span> :
+                    <span href="#" className="badge" style={{background: "#5cb85c"}}>{totalEmployees} Filled</span> :
                     <span href="#" className="badge badge-danger">{totalCandidates}/{openVacancys}</span>
         }
         <a href="#" className="shift-position">{shift.position.title}</a> @
@@ -2076,8 +2074,8 @@ const ShowShift = ({ shift, bar }) => {
         <div> 
             <ShiftEmployees catalog={{shift: shift, showShift: true}}/>
         </div>
-        <hr/>
-        <ShiftApplicants catalog={{shift: shift, applicants: shift.candidates, showShift: true}}/>
+        {/* <hr/>
+        <ShiftApplicants catalog={{shift: shift, applicants: shift.candidates, showShift: true}}/> */}
     </div>);
 };
 ShowShift.propTypes = {

@@ -28,7 +28,7 @@ export class Login extends React.Component{
     render(){
         return (
             <div className="public_view login_view">
-                <img className="banner" src={loginBanner} />
+                <img className="banner" src={"https://res.cloudinary.com/hq02xjols/image/upload/v1626700274/logo1.png"} width={230} />
                 <Notifier />
                 {/* <MobileView>
                     {
@@ -61,7 +61,7 @@ export class Login extends React.Component{
                                 </a>
                             </div>
                             :
-                            <form className="col-10 col-sm-5 col-md-4 col-lg-3 mx-auto"
+                            <form className="col-10 col-sm-5 col-md-4 col-lg-3 mx-auto mt-4"
                                 onSubmit={(e)=> {
                                     e.preventDefault();
                                     this.setState({loading: true});
@@ -76,16 +76,16 @@ export class Login extends React.Component{
                                 }}
                             >
                                 <div className="form-group">
-                                    <label className="text-left">Email</label>
-                                    <input type="email" autoComplete="new-email" className="form-control rounded" aria-describedby="emailHelp" placeholder="Enter email"
+                                    <label className="text-left" style={{fontSize: 18}}>Email</label>
+                                    <input style={{fontSize: 18}} type="email" autoComplete="new-email" className="form-control" aria-describedby="emailHelp" placeholder="Enter email"
                                         value={this.state.email}
                                         onChange={(e) => this.setState({email: e.target.value})}
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Password</label>
+                                    <label style={{fontSize: 18}}>Password</label>
 
-                                    <input type="password" autoComplete="new-password" className="form-control rounded" id="exampleInputPassword1" placeholder="Password"
+                                    <input style={{fontSize: 18}} type="password" autoComplete="new-password" className="form-control" id="exampleInputPassword1" placeholder="Password"
                                         onChange={(e) => this.setState({password: e.target.value})} value={this.state.password}
                                     />
                                 </div>
@@ -94,20 +94,20 @@ export class Login extends React.Component{
                                         onChange={(e) => this.setState({id: e.target.value})} value={this.state.id}
                                     />
                                 </div> */}
-                                <div className="form-group text-left">
+                                <div className="form-group text-left mt-4" style={{fontSize: 18}}>
                                     <input type="checkbox" className="mr-1"
                                         onChange={(e) => this.setState({keep: !this.state.keep})} checked={this.state.keep}
                                     />
                                     Keep Me Logged In
                                 </div>
                                 {(this.state.loading) ?
-                                    <button type="submit" className="btn btn-default form-control" disabled>Loading...</button>
+                                    <button type="submit" className="btn btn-default w-100 mt-2" style={{fontSize: 18, fontWeight: 900}} disabled>Loading...</button>
                                 :
-                                    <button type="submit" className="btn btn-primary form-control">Sign In</button>
+                                    <button type="submit" className="btn btn-primary w-100 mt-2" style={{fontSize: 18, fontWeight: 900}}><span>Sign In</span></button>
                                 }
-                                <div className="extra-actions">
-                                    <Link to="/signup" className="float-left ml-4 mt-2">Sign Up</Link>
-                                    <Link to="/forgot" className="float-right mr-4 mt-2">Forgot Password</Link>
+                                <div className="extra-actions mt-4">
+                                    <Link to="/signup" className="float-left ml-4 mt-2" style={{fontSize: 18, textDecoration: "underline"}}>Sign Up</Link>
+                                    <Link to="/forgot" className="float-right mr-4 mt-2" style={{fontSize: 18, textDecoration: "underline"}}>Forgot Password</Link>
                                 </div>
                             </form>
                     }
@@ -215,7 +215,7 @@ export class Signup extends React.Component{
     render(){
         return (
             <div className="public_view login_view">
-                <img className="banner" src={loginBanner} />
+                <img className="banner" src={"https://res.cloudinary.com/hq02xjols/image/upload/v1626700274/logo1.png"} width={230} />
                 <Notifier />
                 {(this.state.errors.length>0) ?
                     <div className="alert alert-danger">
@@ -253,7 +253,7 @@ export class Signup extends React.Component{
                     <div className="row">
                         <div className="col">
                             <div className="form-group">
-                                <input type="text" className="form-control rounded" aria-describedby="fHelp" placeholder="First Name"
+                                <input type="text" className="form-control" aria-describedby="fHelp" placeholder="First Name" style={{fontSize: 18}} 
                                     value={this.state.first_name}
                                     onChange={(e) => this.setState({first_name: e.target.value})}
                                 />
@@ -262,7 +262,7 @@ export class Signup extends React.Component{
                         </div>
                         <div className="col">
                             <div className="form-group">
-                                <input type="text" className="form-control rounded" aria-describedby="lHelp" placeholder="Last Name"
+                                <input type="text" className="form-control" aria-describedby="lHelp" placeholder="Last Name" style={{fontSize: 18}} 
                                     value={this.state.last_name}
                                     onChange={(e) => this.setState({last_name: e.target.value})}
                                 />
@@ -271,13 +271,13 @@ export class Signup extends React.Component{
                         </div>
                     </div>
                     <div className="form-group">
-                        <input type="email" className="form-control rounded" aria-describedby="emailHelp" placeholder="Email"
+                        <input type="email" className="form-control" aria-describedby="emailHelp" placeholder="Email" style={{fontSize: 18}} 
                             value={this.state.email}
                             onChange={(e) => this.setState({email: e.target.value})}
                         />
                     </div>
                     <div className="form-group">
-                        <input type="text" className="form-control rounded" aria-describedby="emailHelp" placeholder="Phone"
+                        <input type="text" className="form-control" aria-describedby="emailHelp" placeholder="Phone" style={{fontSize: 18}} 
                             value={this.state.phone}
                             onChange={(e) => {
                                 if (e.target.value.length < 13) {
@@ -295,7 +295,7 @@ export class Signup extends React.Component{
                         />
                     </div>
                     <div className="form-group">
-                        <input type="password" className="form-control rounded" id="exampleInputPassword1" placeholder="Password"
+                        <input type="password" className="form-control" id="exampleInputPassword1" placeholder="Password" style={{fontSize: 18}} 
                              onChange={(e) => this.setState({password: e.target.value})} value={this.state.password}
                         />
                     </div>
@@ -304,7 +304,7 @@ export class Signup extends React.Component{
                     <div className="row">
                         <div className="col">
                             <div className="form-group">
-                                <input type="text" className="form-control rounded" aria-describedby="fHelp" placeholder="Company Name"
+                                <input type="text" className="form-control" aria-describedby="fHelp" placeholder="Company Name" style={{fontSize: 18}} 
                                     value={this.state.business_name}
                                     onChange={(e) => this.setState({business_name: e.target.value})}
                                 />
@@ -313,7 +313,7 @@ export class Signup extends React.Component{
                         </div>
                         <div className="col">
                             <div className="form-group">
-                                <input type="text" className="form-control rounded" aria-describedby="lHelp" placeholder="Company Website"
+                                <input type="text" className="form-control" aria-describedby="lHelp" placeholder="Company Website" style={{fontSize: 18}} 
                                     value={this.state.business_website}
                                     onChange={(e) => this.setState({business_website: e.target.value})}
                                 />
@@ -321,10 +321,10 @@ export class Signup extends React.Component{
 
                         </div>
                     </div>                    
-                    <div className="row">
+                    <div className="row" style={{fontSize: 18}}>
                         <div className="col">
                             <div className="form-group">
-                                <select style={{background:"none"}} className="form-control rounded" aria-describedby="fHelp" placeholder="Type of business"
+                                <select style={{background:"none", fontSize: 18}} className="form-control" aria-describedby="fHelp" placeholder="Type of business" 
                                     value={this.state.about_business}
                                     onChange={(e) => this.setState({about_business: e.target.value})}
                                 >   
@@ -343,15 +343,15 @@ export class Signup extends React.Component{
            
                     </div>                    
                     {(this.state.loading) ?
-                        <button type="submit" className="btn btn-default form-control" disabled>Loading...</button>
+                        <button type="submit" className="btn btn-default w-100" style={{fontSize: 18, fontWeight: 900}} disabled>Loading...</button>
                     :
-                        <button type="submit" className="btn btn-primary form-control">Sign Up</button>
+                        <button type="submit" className="btn btn-primary w-100" style={{fontSize: 18, fontWeight: 900}}>Sign Up</button>
                     }
 
-                    <span>By clicking sign up, you agree to the Terms of use and have read our Privacy policy</span>
+                    <span style={{fontSize: 14}}>By clicking sign up, you agree to the Terms of use and have read our Privacy policy</span>
                     <div className="extra-actions mt-3">
-                        <Link to="/login" className="float-left ml-4 mt-2">Log In</Link>
-                        <Link to="/forgot" className="float-right mr-4 mt-2">Forgot Password</Link>
+                        <Link to="/login" className="float-left ml-4 mt-2" style={{fontSize: 18, textDecoration: 'underline'}}>Log In</Link>
+                        <Link to="/forgot" className="float-right mr-4 mt-2" style={{fontSize: 18, textDecoration: 'underline'}}>Forgot Password</Link>
                     </div>
                 </form>
             </div>
@@ -370,7 +370,7 @@ export class Forgot extends React.Component{
     render(){
         return (
             <div className="public_view login_view">
-                <img className="banner" src={loginBanner} />
+                <img className="banner" src={"https://res.cloudinary.com/hq02xjols/image/upload/v1626700274/logo1.png"} width={230} />
                 <Notifier />
                 <form className="col-10 col-sm-5 col-md-4 col-lg-3 mx-auto"
                     onSubmit={(e)=> {
@@ -381,24 +381,24 @@ export class Forgot extends React.Component{
                             .catch(() => this.setState({loading: false}));
                     }}
                 >   
-                    <div className="mb-4">
+                    <div className="mb-4" style={{fontSize: 18}}>
                         <span>Enter the email address associated with your account to reset your password. You may need to check your spam/junk folder.</span>
 
                     </div>
 
                     <div className="form-group">
-                        <input type="email" className="form-control rounded" aria-describedby="emailHelp" placeholder="Email"
+                        <input type="email" style={{fontSize: 18}} className="form-control rounded" aria-describedby="emailHelp" placeholder="Email"
                             value={this.state.email}
                             onChange={(e) => this.setState({email: e.target.value})}
                         />
                     </div>
                     {(this.state.loading) ?
-                        <button type="submit" className="btn btn-default form-control" disabled>Loading...</button>
+                        <button type="submit" className="btn btn-default w-100" style={{fontSize: 18, fontWeight: 900}} disabled>Loading...</button>
                     :
-                        <button type="submit" className="btn btn-primary form-control">Send Reset Link</button>
+                        <button type="submit" className="btn btn-primary w-100" style={{fontSize: 18, fontWeight: 900}}>Send Reset Link</button>
                     }
-                    <div className="extra-actions">
-                        <Link to="/login" className="float-left ml-4 mt-2">Back to login</Link>
+                    <div className="extra-actions mt-4">
+                        <Link to="/login" className="float-left mt-2" style={{fontSize: 18, textDecoration: "underline"}}>Back to login</Link>
                     </div>
                 </form>
             </div>
@@ -497,7 +497,7 @@ export class Invite extends React.Component{
                 <div className="col-12 col-sm-10 col-md-9 col-lg-8 col-xl-6 mx-auto">
                     <p className="m-0 text-center"><img className="banner w-75 mx-auto" src={loginBanner} /></p>
                     <h2 className="my-4 text-center">Sign Up to Jobcore and start making money with dozens of job offers every day</h2>
-                    <form className="col-12 col-lg-10 mx-auto"
+                    <form className="col-12 col-lg-10 mx-auto" 
                         onSubmit={(e)=> {
                             e.preventDefault();
                             this.setState({ error: null });
@@ -522,28 +522,28 @@ export class Invite extends React.Component{
                     >
                         { this.state.error && <div className="alert alert-danger">{this.state.error}</div> }
                         <div className="form-group">
-                            <input type="text" className="form-control rounded" aria-describedby="emailHelp" placeholder="First Name"
+                            <input type="text" style={{fontSize: 18}}  className="form-control rounded" aria-describedby="emailHelp" placeholder="First Name"
                                 onChange={(e) => this.setState({first_name: e.target.value, error: null})}
                             />
                         </div>
                         <div className="form-group">
-                            <input type="text" className="form-control rounded" aria-describedby="emailHelp" placeholder="Last Name"
+                            <input type="text" style={{fontSize: 18}}  className="form-control rounded" aria-describedby="emailHelp" placeholder="Last Name"
                                 onChange={(e) => this.setState({last_name: e.target.value, error: null})}
                             />
                         </div>
                         <div className="form-group">
-                            <input type="email" className="form-control rounded" aria-describedby="emailHelp" placeholder="Email"
+                            <input type="email" style={{fontSize: 18}}  className="form-control rounded" aria-describedby="emailHelp" placeholder="Email"
                                 value={this.state.email}
                                 onChange={(e) => this.setState({email: e.target.value, error: null})}
                             />
                         </div>
                         <div className="form-group">
-                            <input type="password" className="form-control rounded" id="exampleInputPassword1" placeholder="Password"
+                            <input type="password" style={{fontSize: 18}}  className="form-control rounded" id="exampleInputPassword1" placeholder="Password"
                                  onChange={(e) => this.setState({password: e.target.value, error: null })} value={this.state.password}
                             />
                         </div>
                         <div className="form-group">
-                            <input type="password" className="form-control rounded" id="exampleInputPassword1" placeholder="Repeat your password"
+                            <input type="password" style={{fontSize: 18}} className="form-control rounded" id="exampleInputPassword1" placeholder="Repeat your password"
                                  onChange={(e) => this.setState({repPassword: e.target.value, error: null})} value={this.state.repPassword}
                             />
                         </div>

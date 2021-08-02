@@ -40,7 +40,7 @@ class ButtonBar extends React.Component {
                     { slug: "payroll_by_timesheet", title: 'Search by Timesheet', to: '/payroll'},
                     { slug: "payroll_settings", title: 'Payroll Settings', to: '/payroll/settings'},
                     { slug: "payroll_payments_report", title: 'Payments Report', to: '/payroll/payments-report'},
-                    { slug: "payroll_deductions_report", title: 'Deductions Report', to: '/payroll/deductions-report'},
+                    { slug: "payroll_deductions_report", title: 'Deductions Report', to: '/payroll/deductions-report'}
                     // { slug: "payroll_by_shift", title: 'Search by Shift', to: 'payroll'},
                 ],
                 "profile/*": [
@@ -50,7 +50,7 @@ class ButtonBar extends React.Component {
                     { slug: "company_users", title: 'Company Users', to: '/profile/users'}
                 ],
                 "calendar": [
-                    { slug: "create_shift", title: 'Create shifts', to: 'shifts'},
+                    { slug: "create_shift", title: 'Create shifts', to: 'shifts'}
                 ]
             },
             currentButtons: []
@@ -85,7 +85,7 @@ class ButtonBar extends React.Component {
 
     render(){
         const buttons = this.state.currentButtons.map((btn,i) => (<li key={i}>
-            <button id={btn.slug} className="btn btn-primary mb-3"
+            <button id={btn.slug} className="btn btn-primary mb-3" style={{fontSize: "14px", fontWeight: "700"}}
                 onClick={() => this.props.onClick(btn)}>{btn.title}</button></li>
         ));
         return (<div className="buttonbar">

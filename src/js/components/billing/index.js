@@ -161,7 +161,7 @@ const BillingContent = (props) => {
                     maxLength={16}
                     onChange={({ target }) => setCardNumber(target.value)}
                   /> */}
-                                  <div id="card-element" className="form-control" style={{background: "white", color:"#27666F", border:"1px solid #27666F", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
+                                  <div id="card-element" className="form-control" style={{background: "white", color:"#000000", border:"1px solid #000000", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
 
                                       <CardNumberElement
                       placeholder="XXXX XXXX XXXX XXXX"
@@ -240,7 +240,7 @@ const BillingContent = (props) => {
                     value={expDate}
                     onChange={({ target }) => setExpDate(target.value)}
                 /> */}
-                                  <div id="card-element" className="form-control" style={{background: "white", color:"#27666F", border:"1px solid #27666F", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
+                                  <div id="card-element" className="form-control" style={{background: "white", color:"#000000", border:"1px solid #000000", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
                                       <CardExpiryElement 
                             placeholder="14/25"
                             onChange={e => {
@@ -275,7 +275,7 @@ const BillingContent = (props) => {
                     value={cvv}
                     onChange={({ target }) => setCvv(target.value)}
                   /> */}
-                                  <div id="card-element" className="form-control" style={{background: "white", color:"#27666F", border:"1px solid #27666F", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
+                                  <div id="card-element" className="form-control" style={{background: "white", color:"#000000", border:"1px solid #000000", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
 
                                       <CardCvcElement
                       onChange={e => {
@@ -526,7 +526,7 @@ const Billing = (props) => {
                     maxLength={16}
                     onChange={({ target }) => setCardNumber(target.value)}
                   /> */}
-                                      <div id="card-element" className="form-control" style={{background: "white", color:"#27666F", border:"1px solid #27666F", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
+                                      <div id="card-element" className="form-control" style={{background: "white", color:"#000000", border:"1px solid #000000", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
 
                                           <CardNumberElement
                       placeholder="XXXX XXXX XXXX XXXX"
@@ -605,7 +605,7 @@ const Billing = (props) => {
                     value={expDate}
                     onChange={({ target }) => setExpDate(target.value)}
                 /> */}
-                                      <div id="card-element" className="form-control" style={{background: "white", color:"#27666F", border:"1px solid #27666F", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
+                                      <div id="card-element" className="form-control" style={{background: "white", color:"#000000", border:"1px solid #000000", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
                                           <CardExpiryElement 
                             placeholder="14/25"
                             onChange={e => {
@@ -640,7 +640,7 @@ const Billing = (props) => {
                     value={cvv}
                     onChange={({ target }) => setCvv(target.value)}
                   /> */}
-                                      <div id="card-element" className="form-control" style={{background: "white", color:"#27666F", border:"1px solid #27666F", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
+                                      <div id="card-element" className="form-control" style={{background: "white", color:"#000000", border:"1px solid #000000", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
 
                                           <CardCvcElement
                       onChange={e => {

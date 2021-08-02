@@ -1340,7 +1340,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                         {/* {
                                             pay.employee.employment_verification_status === "APPROVED" && (
                                             <div className="col-2 my-auto pl-0">
-                                                <i style={{fontSize:"16px", cursor:"pointer", color:'#27666F'}}className="fas fa-file-alt" onClick={() => getEmployeeDocumet(pay)}></i>
+                                                <i style={{fontSize:"16px", cursor:"pointer", color:'#000000'}}className="fas fa-file-alt" onClick={() => getEmployeeDocumet(pay)}></i>
                                             </div>
                                             )
                                         } */}
@@ -1354,7 +1354,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                                 <span style={{cursor: "pointer"}}  data-toggle="modal" data-target="#exampleModalCenter" onClick={() => {
                                                     if(!formLoading) getEmployeeDocumet(pay, 'w4');
                                                    
-                                                }}><i style={{fontSize:"16px",color:'#27666F'}}className="fas fa-file-alt mr-1"></i>{!formLoading ? "W-4 Form" : "Loading"}</span>
+                                                }}><i style={{fontSize:"16px",color:'#000000'}}className="fas fa-file-alt mr-1"></i>{!formLoading ? "W-4 Form" : "Loading"}</span>
                                             ) : (
                                                 <span className="text-muted"><i className="fas fa-exclamation-circle text-danger mr-1"></i>W-4 Form</span>
                                             )
@@ -1368,7 +1368,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                                                 <span style={{cursor: "pointer"}}   data-toggle="modal" data-target="#exampleModalCenter" onClick={() => {
                                                     if(!formLoading) getEmployeeDocumet(pay, 'i9');
                                                    
-                                                }}><i style={{fontSize:"16px",color:'#27666F'}}className="fas fa-file-alt mr-1"></i>{!formLoading ? "I-9 Form" : "Loading"}</span>
+                                                }}><i style={{fontSize:"16px",color:'#000000'}}className="fas fa-file-alt mr-1"></i>{!formLoading ? "I-9 Form" : "Loading"}</span>
                                             ) : (
                                                 <span className="text-muted"><i className="fas fa-exclamation-circle text-danger mr-1"></i>I-9 Form</span>
                                             )

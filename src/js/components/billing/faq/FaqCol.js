@@ -74,7 +74,7 @@ const FaqCol = () => {
           </CardBody>
           <CardFooter className="text-center py-4">
               <h6 className="fs-0 font-weight-normal">Have more questions?</h6>
-              <Button color="border-0" size="sm" onClick={toggleModal} style={{fontWeight:"bolder", fontSize:"16px", color:"#27666F"}}>
+              <Button color="border-0" size="sm" onClick={toggleModal} style={{fontWeight:"bolder", fontSize:"16px", color:"#000000"}}>
           Ask us anything
               </Button>
               <Modal isOpen={isOpen} toggle={toggleModal} centered>

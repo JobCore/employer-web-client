@@ -15,12 +15,12 @@
         .header-title{
             width: 100%;
             border: 1px solid $green-600;
-            // border-radius: 30px;
+            // border-radius: 0px;
             padding: 5px 5px 5px 10px;
 
             .badge{
                 margin: 3px;
-                background: #27666F;
+                background: #000000;
                 color: white;
                 padding: 5px 15px;
                 border-radius: 10px;
@@ -33,7 +33,7 @@
         border-radius: 50%;
         background: $green-600;
         color: white;
-        padding: 15px 14px;
+        padding-top: 14px;
         margin: 0px auto 15px auto;
         width: 50px;
         height: 50px;

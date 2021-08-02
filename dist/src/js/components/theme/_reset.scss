@@ -11,9 +11,9 @@ ul{
 .btn{
     background: none;
     border: $green-600 1px solid;
-    border-radius: 30px;
     padding: 10px 50px;
     font-size: 80%;
+    font-weight: 500;
     padding: 10px 30px;
     &.btn-primary{
         background: $green-600;

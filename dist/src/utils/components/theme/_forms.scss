@@ -10,7 +10,7 @@ input.form-control, select.form-control, .Select-control{
 input.form-control.rounded{
     background: none;
     border: $green-600 1px solid;
-    border-radius: 30px;
+    border-radius: 0px;
     padding: 15px;
     &:focus{
         background: none;

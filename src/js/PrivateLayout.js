@@ -419,8 +419,8 @@ class PrivateLayout extends Flux.DashView {
         if(this.state.user){
             if(this.state.user.profile.employer_role == "SUPERVISOR"){
                 return(<li className="mt-2" style={{cursor: "pointer"}}onClick={() => Notify.error("Only admins and managers are allowed to use the payroll system.")
-            }><i id="payroll" className="icon icon-shifts"></i>Payroll</li>);
-            }else return <li><NavLink to="/payroll"><i id="payroll" className="icon icon-shifts"></i>Payroll</NavLink></li>;
+            }><i id="payroll" className="icon icon-shifts"></i><span style={{ fontSize: 16, fontWeight:500}}>Payroll</span></li>);
+            }else return <li><NavLink to="/payroll"><i id="payroll" className="icon icon-shifts"></i><span style={{ fontSize: 16, fontWeight:500}}>Payroll</span></NavLink></li>;
         }
     }
     render() {
@@ -431,12 +431,12 @@ class PrivateLayout extends Flux.DashView {
                 <div className="row sidebar">
                     <div className="left_pane">
                         <ul>
-                            <li><NavLink to="/home"><i className="icon icon-dashboard"></i>Dashboard</NavLink></li>
-                            <li><NavLink to="/talents"><i className="icon icon-talents"></i>Talent Search</NavLink></li>
-                            <li><NavLink to="/favorites"><i className="icon icon-favorite"></i>Favorites</NavLink></li>
-                            <li><NavLink to="/applicants"><i className="icon icon-applications"></i>Applicants</NavLink></li>
+                            <li><NavLink to="/home"><i className="icon icon-dashboard"></i><span style={{ fontSize: 16, fontWeight:500}}>Dashboard</span></NavLink></li>
+                            <li><NavLink to="/talents"><i className="icon icon-talents"></i><span style={{ fontSize: 16, fontWeight:500}}>Talent Search</span></NavLink></li>
+                            <li><NavLink to="/favorites"><i className="icon icon-favorite"></i><span style={{ fontSize: 16, fontWeight:500}}>Favorites</span></NavLink></li>
+                            <li><NavLink to="/applicants"><i className="icon icon-applications"></i><span style={{ fontSize: 16, fontWeight:500}}>Applicants</span></NavLink></li>
                             {this.showPayroll()}
-                            <li><NavLink to="/profile" id="profilelink"><i className="icon icon-companyprofile"></i>Your Profile</NavLink></li>
+                            <li><NavLink to="/profile" id="profilelink"><i className="icon icon-companyprofile"></i><span style={{ fontSize: 16, fontWeight:500}}>Profile</span></NavLink></li>
                             <li>
                                 <a
                                     href="#"
@@ -449,10 +449,10 @@ class PrivateLayout extends Flux.DashView {
                                             noty.remove();
                                         });
                                     }}>
-                                    <i className="icon icon-logout icon-sm"></i>Logout
+                                    <i className="icon icon-logout icon-sm"></i><span style={{ fontSize: 16, fontWeight:500}}>Logout</span>
                                 </a>
                             </li>
-                            <li style={{paddingTop: "9.19px"}}><a href="https://jobcore.co/contact" target="_blank" rel="noopener noreferrer"><i className="fas fa-question" style={{fontSize: "40px", color:"#D4EBF1"}}></i><br/>Help</a></li>
+                            {/* <li style={{paddingTop: "9.19px"}}><a href="https://jobcore.co/contact" target="_blank" rel="noopener noreferrer"><i className="fas fa-question" style={{fontSize: "40px", color:"black"}}></i><br/>Help</a></li> */}
 
                         </ul>
                     </div>
@@ -498,7 +498,7 @@ class PrivateLayout extends Flux.DashView {
                                                 border:"none",
                                                 outline: "none",
                                                 backgroundColor:"transparent",
-                                                color:"#27666F"
+                                                color:"#000000"
                                             }}  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" onClick={() => {
                                                 // searchMe('applications').then((res) => this.setState({applications: res}));
                                             }}>

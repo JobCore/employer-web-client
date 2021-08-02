@@ -30,7 +30,7 @@ const timeStyles = (props) => ({
 });
 const Time = (props) => <tr style={timeStyles(props)}>{props.children}</tr>;
 Time.propTypes = {
-    children: PropTypes.node,
+    children: PropTypes.node
 };
 
 const generateAxis = (events, viewMode) => {
@@ -86,7 +86,7 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
         time: rest.timeDirection
     });
     const previousEventsRef = useRef(events);
-
+    console.log(rest);
     useEffect(() => {
         if(previousEventsRef.current !== events || calendarEvents === null){
             previousEventsRef.current = events;
@@ -116,7 +116,7 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
         let end = moment(start).add(rest.timeBlockMinutes, "minutes");
         return {
             startTime: start,
-            endTime: end,
+            endTime: end
         };
     });
 
@@ -201,7 +201,7 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
                                         timesToShow={times}
                                         events={calendarEvents}
                                         yAxis={rest.viewMode !== "month" ? yAxis : [yAxis.reduce((axis, current) => Object.assign(axis, { events: axis.events.concat(current.events) }), { events: [] })]}
-                                        width={(60 * 24) / rest.timeBlockMinutes * rest.blockPixelSize}
+                                        width={(60 * 24) / rest.timeBlockMinutes * rest.blockPixelSize + 0.5}
                                     />;
                                 })}
                             </table>

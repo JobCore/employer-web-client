@@ -79,7 +79,7 @@ export const DayTimeline = ({ events, date, isActive, width, timesToShow, yAxisL
             occupancy
         };
     });
-
+  
     if (!date) return "Loading...";
     return (
         <Day width={width} style={dayBlockStyles} active={isActive} direction={timeDirection}>
