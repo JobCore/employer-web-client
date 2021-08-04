@@ -3,7 +3,6 @@
     list-style: none;
     position: relative;
     padding: 5px 70px 5px 55px;
-    border-radius: 30px;
     p{margin: 0;}
     a,span{
         &.shift-position{color: $fuchsia;}
@@ -40,9 +39,9 @@
         }
         .btn{
             position: relative;
-            border-radius: 30px !important;
+            border-radius: 0px !important;
             padding: 5px 8px;
-            background: $green-400;
+            background: none;
             border: none;
             color: $green-600;
             margin: 0px 10px;

@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import React, { useState } from "react";
 import { SideBar, ButtonBar } from '../index';
 
@@ -16,7 +17,7 @@ const RightSideBar = ({ children, hidden, catalog }) => {
     return <div>
         <ButtonBar onClick={(option) => this.state.bar.show(option)} />
         <div>{children}</div>;
-    {!hidden && <SideBar
+        {!hidden && <SideBar
             sideBarLevels={sideBarLevels}
             catalog={catalog}
             onClose={() => closeRightBar()}
@@ -32,7 +33,6 @@ export const bar = {
         log.info("Right Bar Action: ", option.slug);
         switch (option.slug) {
             case 'create_shift':
-                console.log(option);
                 this.showRightBar(ShiftDetails, option, { formData: Shift(option.data).defaults() });
                 break;
             case 'create_expired_shift':

@@ -11,18 +11,19 @@ ul{
 .btn{
     background: none;
     border: $green-600 1px solid;
-    border-radius: 30px;
+    border-radius: 0px;
     padding: 10px 50px;
     font-size: 80%;
     padding: 10px 30px;
+    font-weight: 500;
     &.btn-primary{
-        background: $green-600;
+        background: '$green-600';
     }
     &.btn-secondary{
         background: grey;
     }
     &.btn-success{
-        background: $green-400;
+        background: green;
     }
     &.btn-lg{
         font-size: 100%;

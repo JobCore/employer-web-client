@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import JobCoreLogo from '../../../img/logo.png';
 import { Page, Image, Text, View, Document, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
 
-const BORDER_COLOR = '#27666F';
+const BORDER_COLOR = '#000000';
 const BORDER_STYLE = 'solid';
 const COL1_WIDTH = 10;
 const COLN_WIDTH = (100 - COL1_WIDTH) / 11;

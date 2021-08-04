@@ -18,6 +18,8 @@ export default class Home extends Flux.DashView {
 
         this.state = {
             shifts: [],
+            todayShifts : null,
+            clockins : null, 
             session: Session.get(),
             runTutorial: hasTutorial(),
             start: moment().subtract(1, 'weeks'),
@@ -52,11 +54,16 @@ export default class Home extends Flux.DashView {
     }
     componentDidMount() {
         const shifts = store.getState('shifts');
-        this.subscribe(store, 'shifts', (_shifts) => {
-           
+
+        this.subscribe(store, 'shifts', (_shifts) => {    
             this.setState({ shifts: _shifts, calendarLoading: false});
+            // if(!this.state.todayShifts) this.setState({todayShifts: _shifts});
         });
-   
+        this.subscribe(store, 'clockins', (_clockins) => { 
+            if(!this.state.clockins)this.setState({clockins: _clockins});
+        });
+       
+
         searchMe(`shifts`, `?limit=10000&end=${this.state.end.format('YYYY-MM-DD')}&start=${this.state.start.format('YYYY-MM-DD')}`);
     }
     callback = (data) => {
@@ -74,7 +81,52 @@ export default class Home extends Flux.DashView {
             Session.setPayload({ user });
         }
     };
+
+    scheduleHours = (shifts) => {
+        const today = moment();
+        if(shifts){
+            let scheduleHours =
+            Array.isArray(shifts) && shifts.length > 0 &&
+            shifts.filter(
+                e =>
+                today.isSame(e.starting_at, 'day') || today.isSame(e.ending_at, 'day')
+            ).reduce((total, { starting_at, ending_at}) => total + moment.duration(moment(ending_at).diff(moment(starting_at))).asHours(), 0);
+            
+            // console.log('scheduleHours', scheduleHours.reduce((total, { starting_at, ending_at}) => total + moment.duration(moment(ending_at).diff(moment(starting_at))).asHours(), 0));
+            let scheduleHoursFormatted = (Math.round(scheduleHours * 4) / 4).toFixed(2);
+    
+            return scheduleHoursFormatted;
+        }else return 0;     
+    };
+    
     render() {
+        const today = moment();
+        let shifts = this.state.shifts; 
+        let scheduleHours =
+        Array.isArray(shifts) && shifts.length > 0 &&
+        shifts.filter(
+            e =>
+            today.isSame(e.starting_at, 'day') || today.isSame(e.ending_at, 'day')
+        ).reduce((total, { starting_at, ending_at}) => total + moment.duration(moment(ending_at).diff(moment(starting_at))).asHours(), 0);
+
+        let scheduleHoursFormatted = (Math.round(scheduleHours * 4) / 4).toFixed(2);
+
+        let currentlyClockin =
+        Array.isArray(this.state.clockins) && this.state.clockins.length > 0 &&
+        this.state.clockins.filter(
+            e =>
+            !e.ended_at.isValid()
+        ).length;
+
+        let unfilledShifts =
+        Array.isArray(shifts) && shifts.length > 0 &&
+        shifts.filter(
+            e =>
+            e.employees.length === 0 && (today.isSame(e.starting_at, 'day') || today.isSame(e.ending_at, 'day'))
+        ).length; 
+
+
+        console.log('this state', this.state    );
         return (
             <Theme.Consumer>
                 {({ bar }) =>
@@ -102,7 +154,7 @@ export default class Home extends Flux.DashView {
                                     yAxisWidth={0}
                                     blockHoverIcon={false}
                                     ToolbarComponent={({ setCurrentDate, currentDate }) => <div className="text-right" style={{ position: "absolute", right: 0 }}>
-                                        {<Button size="small" disable={this.state.calendarLoading} onClick={() => {
+                                        {<Button size="small" disable={this.state.calendarLoading}  style={{background:"black", fontSize: 12, fontWeight: 500}} onClick={() => {
                                             const newEndDate = moment(currentDate).add(-1, 'days');
                                             if (newEndDate.isBefore(this.state.start)) {
                                                 this.setState({calendarLoading: true});
@@ -117,8 +169,8 @@ export default class Home extends Flux.DashView {
                                                 );
                                             }
                                             setCurrentDate(moment(currentDate).add(-1, 'day'));
-                                        }}>{'<<'}</Button>}
-                                        {<Button disable={this.state.calendarLoading} size="small" onClick={() => {
+                                        }}><i className="fas fa-chevron-left"></i></Button>}
+                                        {<Button className="ml-3" disable={this.state.calendarLoading} size="small"  style={{background:"black", fontSize: 12, fontWeight: 500}} onClick={() => {
                                             const newEndDate = moment(currentDate).add(1, 'days');
                                             if (this.state.end.isBefore(newEndDate)) {
                                                 this.setState({calendarLoading: true});
@@ -133,8 +185,8 @@ export default class Home extends Flux.DashView {
                                                 );
                                             }
                                             setCurrentDate(moment(currentDate).add(1, 'day'));
-                                        }}>{'>>'}</Button>}
-                                        <Button size="small" disable={this.state.calendarLoading} onClick={() => this.props.history.push('./calendar#start=' + moment(currentDate).add(-1, 'weeks').format('YYYY-MM-DD') + '&end=' + moment(currentDate).add(2, 'weeks').format('YYYY-MM-DD'))}>Go to calendar</Button>
+                                        }}><i className="fas fa-chevron-right"></i></Button>}
+                                        <Button size="small" className="ml-3" style={{background:"black", fontSize: 12, fontWeight: 500}} disable={this.state.calendarLoading} onClick={() => this.props.history.push('./calendar#start=' + moment(currentDate).add(-1, 'weeks').format('YYYY-MM-DD') + '&end=' + moment(currentDate).add(2, 'weeks').format('YYYY-MM-DD'))}>GO TO CALENDAR</Button>
                                     </div>
                                     }
                                     eventBoxStyles={{
@@ -159,7 +211,7 @@ export default class Home extends Flux.DashView {
                                             return ({
                                                 start: moment(s.starting_at),
                                                 end: moment(s.ending_at),
-                                                label: <span><ShiftBadge {...s} /> {s.position.title} - {s.venue.title}</span>,
+                                                label: <span><ShiftBadge {...s} /> {s.position.title || s.position.label} - {s.venue.title}</span>,
                                                 data: s
 
                                             }
@@ -168,6 +220,35 @@ export default class Home extends Flux.DashView {
 
                                     }}
                                 />
+                                <div className="row pt-2 mt-4 mb-4 pb-2">
+                                    <div className="col-12">
+                                        <div className="row">
+                                            <div className="col">
+                                                <div className="card" style={{border: "1px solid black", borderRadius: "0px"}}>
+                                                    <div className="card-body"  style={{borderBottom: "1px solid black"}}>
+                                                        <h1 className="m-0">{"Today's Activity:"}</h1>
+                                                    </div>
+                                                    <div className="row" style={{padding: "1.25rem"}}>
+                                                        <div className="col-4" style={{borderRight: "1px solid black"}}>
+                                                            <h3>Scheduled: {scheduleHoursFormatted || 0 } Hrs</h3>
+
+                                                        </div>
+                                                        <div className="col-4" style={{borderRight: "1px solid black"}}>
+                                                            <h3>Currently Clocked In: {currentlyClockin || 0}</h3>
+
+                                                        </div>
+                                                        <div className="col-4">
+                                                            <h3>Unfilled Open Shifts: {unfilledShifts || 0}</h3>
+
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                            
+                                    </div>
+                                </div>
                                 <div id="draft_shifts">
 
                                     <DashboardBox id="draft_shift"
@@ -205,6 +286,7 @@ export default class Home extends Flux.DashView {
                             
                        
                         </div>
+                     
                     </div>
                 }
             </Theme.Consumer>

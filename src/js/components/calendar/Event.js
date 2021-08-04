@@ -24,7 +24,7 @@ const eventBlockStyles = (props) => {
     overflow: props.isHover && !props.isDragging ? "initial" : "hidden",
     opacity: props.isDragging ? 0.4 : 0.95,
     width: props.timeBlockMinutes === 1439 ? "100%" : props.direction === "horizontal" ? props.size : "90%",
-    height: props.direction !== "horizontal" ? props.size : `${props.blockHeight}px`,
+    height: props.direction !== "horizontal" ? props.size : `${props.blockHeight}px`
 });
 };
 const EventBlock = React.forwardRef((props, ref) =>
@@ -57,7 +57,7 @@ EventBlock.defaultProps = {
 
 
 const EventLabel = (props) => <label style={{
-        fontSize: "12px",
+        fontSize: "14px",
         width: "max-content",
         position: "absolute",
         left: 0,
@@ -96,7 +96,7 @@ const horizonStyles = (props) => {
         width: ["top", "bottom"].includes(props.orientation) ? "100%" : "10px",
         height: !["top", "bottom"].includes(props.orientation) ? props.blockHeight : "10px",
         transform: `rotate(${["top", "bottom"].includes(props.orientation) ? "0" : "90"}deg)`,
-		cursor: ["top", "bottom"].includes(props.orientation) ? "ns-resize": "ew-resize",
+		cursor: ["top", "bottom"].includes(props.orientation) ? "ns-resize": "ew-resize"
         //background: "black",
         //opacity: 0.2,
     };
@@ -104,7 +104,7 @@ const horizonStyles = (props) => {
         right: "5px",
         left: "-10px",
         bottom: "5px",
-        top: "-10px",
+        top: "-10px"
     };
     result[props.orientation] = deltas[props.orientation];
     return result;
@@ -143,6 +143,7 @@ Horizon.propTypes = {
 };
 
 export const Event = ({ label, start, end, duration, index, isPreview, offset, data, allowResizeStart, allowResizeEnd }) => {
+
     const { timeDirection, blockPixelSize, timeBlockMinutes, toggleDragMode, eventBoxStyles, blockHeight, onClick, allowResize } = useContext(CalendarContext);
     const [hovered, setHovered] = useState(false);
     const [{ isDragging }, drag ] = useDrag({

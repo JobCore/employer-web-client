@@ -3,7 +3,6 @@
     list-style: none;
     position: relative;
     padding: 5px 70px 5px 55px;
-    border-radius: 30px;
     p{margin: 0;}
     a,span{
         &.shift-position{color: $fuchsia;}
@@ -40,9 +39,8 @@
         }
         .btn{
             position: relative;
-            border-radius: 30px !important;
             padding: 5px 8px;
-            background: $green-400;
+            background: '$green-400';
             border: none;
             color: $green-600;
             margin: 0px 10px;
@@ -63,7 +61,6 @@
         -moz-box-shadow: 1px 0px 25px 3px rgba(0,0,0,0.2);
         box-shadow: 1px 0px 25px 3px rgba(0,0,0,0.2);
         background: white;
-        border-radius: 20px;
         cursor: pointer;
         margin-bottom: 10px;
     }

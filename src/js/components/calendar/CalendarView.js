@@ -44,11 +44,11 @@ const _modes = {
         _yAxisWidth: 120,
         _dayDirection: 'vertical',
         _timeDirection: 'horizontal',
-        _blockHeight: 25,
-        _blockPixelSize: 20,
+        _blockHeight: 28,
+        _blockPixelSize: 25.75,
         _allowResize: true,
         _timeBlockStyles: {
-            borderRight: "1px solid #e3e3e3",
+            borderRight: "1px solid #e3e3e3"
         },
         _dayHeader: (day, active) => <h2 style={{ backgroundColor: active ? "yellow" : "inherit" }}>{day.format("dddd, MMM Do YYYY")}</h2>
     },
@@ -76,7 +76,7 @@ const _modes = {
 };
 const DayPicker = (props) => <div style={datePickerStyles}>{props.children}</div>;
 DayPicker.propTypes = {
-    children: PropTypes.node,
+    children: PropTypes.node
 };
 
 const CalendarView = ({

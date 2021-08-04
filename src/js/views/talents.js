@@ -193,9 +193,10 @@ export class ManageTalents extends Flux.DashView {
                     <h1><span id="talent_search_header">Talent Search</span></h1>
                     {this.state.employees.map((s,i) => (
                         <EmployeeExtendedCard key={i} employee={s} hover={true} positions={positions}
-                            onClick={() => bar.show({ slug: "show_single_talent", data: s })}>
-                            <Button icon="favorite" onClick={() => bar.show({ slug: "add_to_favlist", data: s, allowLevels })}><label>Favorites</label></Button>
-                            <Button icon="favorite" onClick={() => bar.show({ slug: "invite_talent_to_shift", data: s, allowLevels })}><label>Invite</label></Button>
+                        onClick={() => bar.show({ slug: "show_single_talent", data: s })}>
+
+                            <Button className="btn btn-outline-dark" onClick={() => bar.show({ slug: "add_to_favlist", data: s, allowLevels })}>Add to Favorites</Button>
+                            <Button className="btn btn-outline-dark" onClick={() => bar.show({ slug: "invite_talent_to_shift", data: s, allowLevels })}>Invite</Button>
                         </EmployeeExtendedCard>
                     ))}
                 </span>)}
