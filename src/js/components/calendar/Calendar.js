@@ -86,7 +86,6 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
         time: rest.timeDirection
     });
     const previousEventsRef = useRef(events);
-    console.log(rest);
     useEffect(() => {
         if(previousEventsRef.current !== events || calendarEvents === null){
             previousEventsRef.current = events;

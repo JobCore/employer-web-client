@@ -57,7 +57,7 @@ EventBlock.defaultProps = {
 
 
 const EventLabel = (props) => <label style={{
-        fontSize: "12px",
+        fontSize: "14px",
         width: "max-content",
         position: "absolute",
         left: 0,

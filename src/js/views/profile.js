@@ -80,7 +80,7 @@ export class Profile extends Flux.DashView {
                         }
                     },
                     locale: { skip: "Skip tutorial" },
-                    target: "body",
+                    target: "body"
                   
                     },
                 {
@@ -188,11 +188,11 @@ export class Profile extends Flux.DashView {
                             display: "none"
                         },
                         buttonNext: {
-                            display: 'none',
+                            display: 'none'
                         }
                     },
                     spotlightClicks: true
-                },
+                }
             
             ]
         };
@@ -292,7 +292,7 @@ export class Profile extends Flux.DashView {
                                 options: {
                                     width: 600  ,
                                     primaryColor: '#000',
-                                    zIndex: 1000,
+                                    zIndex: 1000
                                 }
                             }}
 
@@ -416,7 +416,7 @@ export class Profile extends Flux.DashView {
     }
 }
 Profile.propTypes = {
-    history: PropTypes.object,
+    history: PropTypes.object
 };
 
 export class ManageUsers extends Flux.DashView {
@@ -449,16 +449,16 @@ export class ManageUsers extends Flux.DashView {
     }
 
     showRole(profile){
-        if(profile.employer == this.state.currentUser.employer){
+        if(profile.employer.id === this.state.currentUser.employer.id){
             return profile.employer_role;
-        }else if(profile.employer != this.state.currentUser.employer){
+        }else if(profile.employer.id != this.state.currentUser.employer.id){
             const role = profile.other_employers.find(emp => emp.employer == this.state.currentUser.employer);
-            return role.employer_role;
+            if(role)return role.employer_role;
+            else return "";
         }else return "";
     }
     render() {
         const allowLevels = (window.location.search != '');
-        console.log(this.state);
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({ bar }) => (<span>
@@ -474,7 +474,7 @@ export class ManageUsers extends Flux.DashView {
                             <div className="btn-group">
                                 <Tooltip placement="bottom" trigger={['hover']} overlay={<small>Admin can create shifts, make payroll payments and change employers role.</small>}>
 
-                                    <Button onClick={() => {
+                                    <Button color="primary" style={{background:"white", color: "black" }}onClick={() => {
                                         if (this.state.currentUser.id === u.profile.id)  Notify.error('You cannot make yourself an admin');
                                         else if(this.state.currentUser.employer_role !='ADMIN'){
                                             Notify.error('You cannot change role if you are not ADMIN');
@@ -486,12 +486,12 @@ export class ManageUsers extends Flux.DashView {
                                             });
 
                                         }
-                                    }}>make admin</Button>
+                                    }}>Make Admin</Button>
                                 </Tooltip> 
 
                                 <Tooltip placement="bottom" trigger={['hover']} overlay={<small>Manager can create shifts and make payroll payments.</small>}>
 
-                                    <Button  onClick={() => {
+                                    <Button  style={{background:"white", color: "black" }} onClick={() => {
                                         if (this.state.currentUser.id === u.profile.id) Notify.error('You cannot make yourself an manager');
                                         else if(this.state.currentUser.employer_role !='ADMIN'){
                                             Notify.error('You cannot change role if you are not ADMIN');
@@ -503,11 +503,11 @@ export class ManageUsers extends Flux.DashView {
                                             });
 
                                         }
-                                    }}>make manager</Button>
+                                    }}>Make manager</Button>
                                 </Tooltip> 
 
                                 <Tooltip placement="bottom" trigger={['hover']} overlay={<small>Supervisor can create shifts and invite employees to work.</small>}>
-                                    <Button onClick={() => {
+                                    <Button style={{background:"white", color: "black" }} onClick={() => {
                                         if (this.state.currentUser.id === u.profile.id) Notify.error('You cannot make yourself an supervisor');
                                         else if(this.state.currentUser.employer_role !='ADMIN'){
                                             Notify.error('You cannot change role if you are not ADMIN');
@@ -519,13 +519,12 @@ export class ManageUsers extends Flux.DashView {
                                             });
 
                                         }
-                                    }}>make supervisor</Button>   
+                                    }}>Make Supervisor</Button>   
                            
                                 </Tooltip>                             
-                                <Button icon="trash" onClick={() => {
+                                <Button icon="trash" style={{background:"white", color: "red" }} onClick={() => {
                                     if (this.state.currentUser.id === u.profile.id) Notify.error('You cannot delete yourself');
                                     else if(this.state.currentUser.employer_role !='ADMIN'){
-                                        console.log(u.profile.employer_role);
                                         Notify.error('You cannot delete if you are not ADMIN');
                                     }
                                     else{

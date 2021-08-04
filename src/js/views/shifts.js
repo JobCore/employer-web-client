@@ -544,11 +544,11 @@ export const ShiftEmployees = (props) => {
                             onClick={() => bar.show({ slug: "show_single_talent", data: Talent(emp).defaults().unserialize(), allowLevels: true })}
                         >
                             <Button
-                                className="mt-0 text-white" icon="clock" label="Clockin log"
+                                className="mt-0 text-black" icon="clock" label="Clockin log"
                                 onClick={() => bar.show({ slug: "talent_shift_clockins", data: { employee: emp, shift: catalog.shift }, allowLevels: true })}
                             />
 
-                            {!catalog.shift.expired && <Button className="mt-0 text-danger" icon="trash" label="Delete" onClick={() => {
+                            {!catalog.shift.expired && <Button className="mt-0 text-black" icon="trash" label="Delete" onClick={() => {
                                 const noti = Notify.info("Are you sure? The Talent will be kicked out of this shift", (answer) => {
                                     if(catalog.showShift){
                                         if (answer) {
@@ -1929,7 +1929,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                                     }, 9999999999999);
                                 }}>Unpublish shift</button>
                                 :
-                                <button type="button" id="publish" className="btn btn-success" onClick={() =>{
+                                <button type="button" id="publish" className="btn btn-primary" onClick={() =>{
 
                                     if(recurrent) {
                                         saveRecurrentDates();

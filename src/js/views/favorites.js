@@ -63,7 +63,7 @@ export class ManageFavorites extends Flux.DashView {
     constructor() {
         super();
         this.state = {
-            lists: [],
+            lists: []
         
         };
     }
@@ -82,7 +82,7 @@ export class ManageFavorites extends Flux.DashView {
     render() {
         return (<div className="p-1 listcontents">
          
-            <h1><span id="your-favorites-heading">Your favorite lists</span></h1>
+            <h1><span id="your-favorites-heading">Your Favorite List:</span></h1>
             <Theme.Consumer>
                 {({ bar }) =>
                     (this.state.lists.length == 0) ?
@@ -92,14 +92,14 @@ export class ManageFavorites extends Flux.DashView {
                             <ListCard key={i} list={list} onClick={() =>
                                 bar.show({ slug: "favlist_employees", data: list, title: "List Details" })}
                             >
-                                <button type="button" className="btn btn-secondary"
+                                <button type="button" className="btn btn-secondary" style={{background:"transparent"}}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         bar.show({ slug: "update_favlist", data: list, title: "List Details" });
                                     }}>
                                     <i className="fas fa-pencil-alt"></i>
                                 </button>
-                                <button type="button" className="btn btn-secondary"
+                                <button type="button" className="btn btn-secondary" style={{background:"transparent"}}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         const noti = Notify.info("Are you sure?", (answer) => {

@@ -1821,7 +1821,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                 }
             </td>
             :
-            <td className="text-center">
+            <td className="">
                 <Button
                     color="success"
                     size="small"
@@ -1852,7 +1852,7 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                     }}
                 />
                 <Button
-                    className="mt-1"
+                    className="ml-1"
                     color="danger"
                     size="small"
                     icon={payment.status === "NEW" ? "trash" : "times"}

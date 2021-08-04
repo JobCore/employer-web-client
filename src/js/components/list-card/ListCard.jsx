@@ -9,7 +9,7 @@ const ListCard = (props) => {
         {({bar}) => 
             (<li className="list-card" onClick={() => (props.onClick) ? props.onClick() : null}>
                 <a href="#" className="shift-position">{props.list.title}</a>
-                <p href="#"> <span className="badge badge-warning">{employeeCount} talents</span></p>
+                <p href="#"> <span className="badge badge-primary">{employeeCount} talents</span></p>
                 <div className="btn-group" role="group" aria-label="Basic example">
                     {(props.children) ? props.children : null}
                 </div>

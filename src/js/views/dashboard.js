@@ -211,7 +211,7 @@ export default class Home extends Flux.DashView {
                                             return ({
                                                 start: moment(s.starting_at),
                                                 end: moment(s.ending_at),
-                                                label: <span><ShiftBadge {...s} /> {s.position.title} - {s.venue.title}</span>,
+                                                label: <span><ShiftBadge {...s} /> {s.position.title || s.position.label} - {s.venue.title}</span>,
                                                 data: s
 
                                             }

@@ -29,7 +29,7 @@ const DashboardBox = ({ defaultShifts, title, status, id, fetchData }) => {
         <div className="row header no-gutters">
             <div className="col-6" onClick={() => setCollapsed(!collapsed)}>
                 <h2 id={id} className="header-title">
-                    <span className="badge badge-light float-right">{shifts.count ? shifts.count : 0}</span>
+                    <span className="badge badge-light float-right" style={{borderRadius: '0px'}}>{shifts.count ? shifts.count : 0}</span>
                     {title}
                 </h2>
             </div>

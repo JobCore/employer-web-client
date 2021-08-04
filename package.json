@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
-    "start:gitpod": "API_HOST=https://8000-c50c6f93-a9bc-4720-bd98-2493535a5067.ws-us13.gitpod.io bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
+    "start:gitpod": "API_HOST=https://8000-c50c6f93-a9bc-4720-bd98-2493535a5067.ws-us14.gitpod.io bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
     "start:dev": "API_HOST=https://jobcore-test.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
     "start:prod": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
     "build": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack --config webpack.prod.js'",
