@@ -1851,8 +1851,9 @@ const PaymentRow = ({ payment, employee, onApprove, onReject, onUndo, readOnly, 
                         });
                     }}
                 />
+                <br/>
                 <Button
-                    className="ml-1"
+                    className="mt-1"
                     color="danger"
                     size="small"
                     icon={payment.status === "NEW" ? "trash" : "times"}
@@ -1915,7 +1916,11 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
         if (end.isBefore(TODAY())) note = "Payroll was generated until " + end.format("L");
     }
     // eslint-disable-next-line no-console
-    
+    console.log('periodos', periods);
+
+    const payments = periods.map(e => e.payments);
+    // .filter((value, index, self) => self.indexOf(value) === index);
+
     return (<div>
         <div className="top-bar">
             <Button
