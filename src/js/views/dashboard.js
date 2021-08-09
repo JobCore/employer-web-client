@@ -106,9 +106,10 @@ export default class Home extends Flux.DashView {
         Array.isArray(shifts) && shifts.length > 0 &&
         shifts.filter(
             e =>
-            today.isSame(e.starting_at, 'day') || today.isSame(e.ending_at, 'day')
+            today.isSame(e.starting_at, 'day') && e.status !== "EXPIRED"
         ).reduce((total, { starting_at, ending_at}) => total + moment.duration(moment(ending_at).diff(moment(starting_at))).asHours(), 0);
-
+        
+      
         let scheduleHoursFormatted = (Math.round(scheduleHours * 4) / 4).toFixed(2);
 
         let currentlyClockin =
