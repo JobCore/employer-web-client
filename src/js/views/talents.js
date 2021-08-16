@@ -1,7 +1,7 @@
 import React from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import {store, search,fetchAllMe} from '../actions.js';
+import {store, search, searchMe, fetchAllMe} from '../actions.js';
 import {callback, hasTutorial} from '../utils/tutorial';
 import {EmployeeExtendedCard, Avatar, Stars, Theme, Button, Wizard} from '../components/index';
 import Select from 'react-select';
@@ -128,6 +128,12 @@ export class ManageTalents extends Flux.DashView {
         this.state = {
             employees: [],
             runTutorial: hasTutorial(),
+            pagination: {
+                first: '',
+                last: '',
+                next: '',
+                previous: ''
+            },
             steps: [
                 {
                     target: '#talent_search_header',
@@ -172,12 +178,34 @@ export class ManageTalents extends Flux.DashView {
         this.setState({ runTutorial: true });
     }
 
-    filter(employees=null){
-        search('employees', window.location.search);
+    filter(url){
+        // search('employees', window.location.search);
+        let queries = window.location.search;
+
+        if(queries) queries = "&" + queries.substring(1);
+
+        if(url){
+            const page = url.split('employees')[1];
+            if(page){
+                search(`employees`, `${page + queries}`).then(data => {
+                    this.setState({ 
+                        employees: data.results,
+                        pagination: data
+                     });
+                }); 
+            }else null;
+        }else{
+            search(`employees`, `?envelope=true&limit=50${queries}`).then(data => {
+                this.setState({ 
+                    employees: data.results,
+                    pagination: data
+                 });
+            }); 
+        }
     }
 
 
-
+    
     render() {
         const positions = this.state.positions;
         if(this.state.firstSearch) return <p>Please search for an employee</p>;
@@ -199,6 +227,39 @@ export class ManageTalents extends Flux.DashView {
                             <Button className="btn btn-outline-dark" onClick={() => bar.show({ slug: "invite_talent_to_shift", data: s, allowLevels })}>Invite</Button>
                         </EmployeeExtendedCard>
                     ))}
+                    <div className="row mt-4 justify-content-center">
+                        <div className="col">
+                            <nav aria-label="Page navigation example">
+                                <ul className="pagination">
+                                    {this.state.pagination.first && (
+                                    <li className="page-item">
+                                        <span className="page-link" aria-label="Previous" style={{cursor:"pointer", color:"black"}} onClick={() => this.filter(this.state.pagination.first)}>
+                                            <span aria-hidden="true">{"<<"}</span>
+                                            <span className="sr-only">{"First"}</span>
+                                        </span>
+                                    </li>
+
+                                    )}
+                                    {this.state.pagination.previous && (
+                                        <li className="page-item"><span className="page-link" style={{cursor:"pointer", color:"black"}} onClick={() => this.filter(this.state.pagination.previous)}>{"<"}</span></li>
+                                    )}
+                                    {this.state.pagination.next && (
+                                        <li className="page-item"><span className="page-link" style={{cursor:"pointer", color:"black"}} onClick={() => this.filter(this.state.pagination.next)}>{">"}</span></li>
+                                    )}
+
+                                    {this.state.pagination.last && (
+                                    <li className="page-item">
+                                        <span className="page-link" onClick={() => this.filter(this.state.pagination.last)}  aria-label="Next" style={{cursor:"pointer", color:"black"}}>
+                                            <span aria-hidden="true">{">>"}</span>
+                                            <span className="sr-only">Last</span>
+                                        </span>
+                                    </li>
+                                    )}
+                                </ul>
+                            </nav>
+
+                        </div>
+                    </div>
                 </span>)}
             </Theme.Consumer>
         </div>);
@@ -284,7 +345,7 @@ FilterTalents.propTypes = {
  */
 export const TalentDetails = (props) => {
     const employee = props.catalog.employee;
-    console.log('employee', employee);
+    
     function reformatPhoneNumber(phoneNumberString){
         var cleaned = ('' + phoneNumberString).replace(/\D/g, '');
         var match = cleaned.match(/^(1|)?(\d{3})(\d{3})(\d{4})$/);

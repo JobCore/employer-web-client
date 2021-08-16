@@ -27,7 +27,6 @@ export const autoLogin = (token = '') => {
 
     return new Promise((resolve, reject) => GET('profiles/me', null, { 'Authorization': 'JWT ' + token })
         .then(function (profile) {
-            console.log(profile);
             if (!profile.employer) {
                 Notify.error("Only employers are allowed to login into this application");
                 reject("Only employers are allowed to login into this application");
@@ -370,6 +369,7 @@ export const fetchTemporal = async (url, event_name, callback = null) => {
 export const search = (entity, queryString = null) => new Promise((accept, reject) =>
     GET(entity, queryString)
         .then(function (list) {
+            console.log('list', list);
             if (typeof entity.callback == 'function') entity.callback();
             Flux.dispatchEvent(entity.slug || entity, list);
             accept(list);

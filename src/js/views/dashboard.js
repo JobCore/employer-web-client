@@ -127,7 +127,6 @@ export default class Home extends Flux.DashView {
         ).length; 
 
 
-        console.log('this state', this.state    );
         return (
             <Theme.Consumer>
                 {({ bar }) =>
