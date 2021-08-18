@@ -425,6 +425,7 @@ class PrivateLayout extends Flux.DashView {
     }
     render() {
         const Logo = () => (<span className="svg_img" style={{ backgroundImage: `url(${logoURL})` }} />);
+        console.log('estate', this.state);
         return (
             <Theme.Provider value={{ bar: this.state.bar }}>
                 <LoadBar component={() => <img src={loadingURL} />} style={{ position: "fixed", left: "50vw", top: "50vh" }} />
