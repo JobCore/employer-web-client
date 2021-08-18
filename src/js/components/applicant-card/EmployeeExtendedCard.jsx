@@ -15,9 +15,12 @@ const EmployeeExtendedCard = (props) => {
 
     const badgesHTML = !props.employee.badges ? [] : props.employee.badges.map((b, i) => (<span key={i} className="badge">{b.title}</span>));
     const favoriteCount = !Array.isArray(props.employee.favoritelist_set) ? 0 :props.employee.favoritelist_set.length;
+
+    const picture = props.employee && props.employee.user && props.employee.user.profile && props.employee.user.profile.picture ?props.employee.user.profile.picture : "" ; 
     return (<li className={`aplicantcard ${props.hoverEffect ? "aplicantcard-hover":""} ${props.showButtonsOnHover ? "show-hover":""} ${props.className}`} onClick={() => (props.onClick) ? props.onClick() : false}>
 
-        <Avatar url={props.employee.user.profile.picture} />
+        {/* <Avatar url={props.employee.user ? props.employee.user.profile.picture : ""} /> */}
+        <Avatar url={picture} />
         <div className="row">
             <div className="col">
                 <a href="#"><b>{props.employee.user.first_name + ' ' + props.employee.user.last_name}</b></a>

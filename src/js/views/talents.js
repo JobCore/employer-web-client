@@ -234,23 +234,23 @@ export class ManageTalents extends Flux.DashView {
                                     {this.state.pagination.first && (
                                     <li className="page-item">
                                         <span className="page-link" aria-label="Previous" style={{cursor:"pointer", color:"black"}} onClick={() => this.filter(this.state.pagination.first)}>
-                                            <span aria-hidden="true">{"<<"}</span>
+                                            <span aria-hidden="true"><i className="fas fa-chevron-left"></i><i className="fas fa-chevron-left"></i></span>
                                             <span className="sr-only">{"First"}</span>
                                         </span>
                                     </li>
 
                                     )}
                                     {this.state.pagination.previous && (
-                                        <li className="page-item"><span className="page-link" style={{cursor:"pointer", color:"black"}} onClick={() => this.filter(this.state.pagination.previous)}>{"<"}</span></li>
+                                        <li className="page-item"><span className="page-link" style={{cursor:"pointer", color:"black"}} onClick={() => this.filter(this.state.pagination.previous)}><i className="fas fa-chevron-left"></i></span></li>
                                     )}
                                     {this.state.pagination.next && (
-                                        <li className="page-item"><span className="page-link" style={{cursor:"pointer", color:"black"}} onClick={() => this.filter(this.state.pagination.next)}>{">"}</span></li>
+                                        <li className="page-item"><span className="page-link" style={{cursor:"pointer", color:"black"}} onClick={() => this.filter(this.state.pagination.next)}><i className="fas fa-chevron-right"></i></span></li>
                                     )}
 
                                     {this.state.pagination.last && (
                                     <li className="page-item">
                                         <span className="page-link" onClick={() => this.filter(this.state.pagination.last)}  aria-label="Next" style={{cursor:"pointer", color:"black"}}>
-                                            <span aria-hidden="true">{">>"}</span>
+                                            <span aria-hidden="true"><i className="fas fa-chevron-right"></i><i className="fas fa-chevron-right"></i></span>
                                             <span className="sr-only">Last</span>
                                         </span>
                                     </li>
