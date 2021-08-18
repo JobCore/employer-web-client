@@ -74,6 +74,7 @@ const _modes = {
         _dayLabel: (day, active) => <span style={{ position: "absolute", top: 0, left: 0, color: active ? "#a90089" : "inherit", fontWeight: 900 }}>{day.format("MMM DD")} {active && "(active)"}</span>
     }
 };
+
 const DayPicker = (props) => <div style={datePickerStyles}>{props.children}</div>;
 DayPicker.propTypes = {
     children: PropTypes.node
@@ -119,6 +120,7 @@ const CalendarView = ({
         daysToShow = getDaysOfMonth(currentDate);
     }
     const { _timeBlockMinutes, _yAxisWidth, _dayDirection, _timeDirection, _blockHeight, _blockPixelSize, _allowResize, _dayHeader, _dayLabel, _timeBlockStyles } = _modes[_viewMode];
+    
     return (
         <div className={className}>
             {
