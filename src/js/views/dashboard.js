@@ -102,12 +102,13 @@ export default class Home extends Flux.DashView {
     render() {
         const today = moment();
         let shifts = this.state.shifts; 
-        let scheduleHours =
-        Array.isArray(shifts) && shifts.length > 0 &&
+        let todayShifts = Array.isArray(shifts) && shifts.length > 0 &&
         shifts.filter(
             e =>
             today.isSame(e.starting_at, 'day') && e.status !== "EXPIRED"
-        ).reduce((total, { starting_at, ending_at}) => total + moment.duration(moment(ending_at).diff(moment(starting_at))).asHours(), 0);
+        ) || [];
+
+        let scheduleHours = todayShifts.reduce((total, { starting_at, ending_at}) => total + moment.duration(moment(ending_at).diff(moment(starting_at))).asHours(), 0);
         
       
         let scheduleHoursFormatted = (Math.round(scheduleHours * 4) / 4).toFixed(2);
@@ -230,7 +231,7 @@ export default class Home extends Flux.DashView {
                                                     </div>
                                                     <div className="row" style={{padding: "1.25rem"}}>
                                                         <div className="col-4" style={{borderRight: "1px solid black"}}>
-                                                            <h3>Scheduled: {scheduleHoursFormatted || 0 } Hrs</h3>
+                                                            <h3>Scheduled: {scheduleHoursFormatted || 0 } Hrs {" in " + todayShifts.length +" Shift(s)"}</h3>
 
                                                         </div>
                                                         <div className="col-4" style={{borderRight: "1px solid black"}}>
