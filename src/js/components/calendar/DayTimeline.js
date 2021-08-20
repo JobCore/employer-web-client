@@ -54,7 +54,6 @@ export const DayTimeline = ({ events, date, isActive, width, timesToShow, yAxisL
     //calculate the real day begginign and end based on the blocks
     const dayStart = moment(date).set({ h: timesToShow[0].startTime.hours(), m: timesToShow[0].startTime.minutes() });
     const dayEnd = moment(date).add(1,'days').set({ h: timesToShow[timesToShow.length-1].endTime.hours(), m: timesToShow[timesToShow.length-1].endTime.minutes()-1 });
-
     const times = timesToShow.map(({ startTime,  endTime, ...rest }, i) => {
         const start = moment(date).set({ h: startTime.hours(), m: startTime.minutes() });
         let end = moment(date).set({ h: endTime.hours(), m: endTime.minutes() });
@@ -84,8 +83,9 @@ export const DayTimeline = ({ events, date, isActive, width, timesToShow, yAxisL
     return (
         <Day width={width} style={dayBlockStyles} active={isActive} direction={timeDirection}>
             { dayLabel && dayLabel(date, isActive)}
-            {times.map(t => (
-                <TimeBlock
+            {times.map(t => {
+               
+                return <TimeBlock
                     key={t.index}
                     label={t.label}
                     start={t.start}
@@ -94,11 +94,18 @@ export const DayTimeline = ({ events, date, isActive, width, timesToShow, yAxisL
                     occupancy={t.occupancy}
                     blockHeight={(maxDayOccupancy * blockHeight) + eventOffset}
                 >
-                    {t.events.map(({ blockLevel, ...rest}, i) => (
-                        <Event key={i} allowResizeStart={dayStart.isBefore(rest.start)} allowResizeEnd={dayEnd.isAfter(rest.end)} offset={eventOffset + (blockHeight*blockLevel)} {...rest} />
-                    ))}
-                </TimeBlock>
-            ))}
+                    {t.events.map(({ blockLevel, ...rest}, i) => {
+                        // console.log('eventOffset', eventOffset);
+                        // console.log('blockHeight', blockHeight);
+                        // console.log('blockLevel', blockLevel);
+                        if(!rest.start.isSame(dayEnd, 'day')){
+                            var newDuration = moment.duration(rest.end.diff(dayStart)).asMinutes();
+                            rest.duration = newDuration;
+                        }
+                        return <Event key={i} allowResizeStart={dayStart.isBefore(rest.start)} allowResizeEnd={dayEnd.isAfter(rest.end)} offset={eventOffset + (blockHeight*blockLevel) - 20} {...rest} />;
+                    })}
+                </TimeBlock>;
+            })}
         </Day>
     );
 };
