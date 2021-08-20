@@ -10,9 +10,10 @@ export const ItemTypes = {
 };
 
 const eventBlockStyles = (props) => {
+    console.log('los props', props);
     return ({
     backgroundColor: props.isHover ? "rgb(112, 148, 152)" : "rgb(195, 240, 245)",
-    //border: "1px solid black",
+    // border: "1px solid black",
     position: "absolute",
     top: 0,
     left: 0,
@@ -27,6 +28,8 @@ const eventBlockStyles = (props) => {
     height: props.direction !== "horizontal" ? props.size : `${props.blockHeight}px`
 });
 };
+
+
 const EventBlock = React.forwardRef((props, ref) =>
     <div className="event-block"
         onClick={e => props.onClick(e)} ref={ref}
@@ -146,6 +149,7 @@ export const Event = ({ label, start, end, duration, index, isPreview, offset, d
 
     const { timeDirection, blockPixelSize, timeBlockMinutes, toggleDragMode, eventBoxStyles, blockHeight, onClick, allowResize } = useContext(CalendarContext);
     const [hovered, setHovered] = useState(false);
+    const [size, setSize] = useState(Math.floor((duration / timeBlockMinutes) * blockPixelSize));
     const [{ isDragging }, drag ] = useDrag({
         item: { type: ItemTypes.EVENT, index, duration, start, end, data },
         collect: monitor => {
@@ -156,6 +160,7 @@ export const Event = ({ label, start, end, duration, index, isPreview, offset, d
         begin: monitor => log("Begin dragging") || toggleDragMode(true)
     });
 
+    console.log('offset', offset);
     return (
         <EventBlock
             ref={drag}
@@ -170,7 +175,7 @@ export const Event = ({ label, start, end, duration, index, isPreview, offset, d
             style={eventBoxStyles}
             direction={timeDirection}
             blockHeight={blockHeight}
-            size={`${Math.floor((duration / timeBlockMinutes) * blockPixelSize)}px`}
+            size={`${size}px`}
             index={index}
             timeBlockMinutes={timeBlockMinutes}
             onMouseEnter={() => setHovered(true)}

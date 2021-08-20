@@ -120,7 +120,6 @@ const CalendarView = ({
         daysToShow = getDaysOfMonth(currentDate);
     }
     const { _timeBlockMinutes, _yAxisWidth, _dayDirection, _timeDirection, _blockHeight, _blockPixelSize, _allowResize, _dayHeader, _dayLabel, _timeBlockStyles } = _modes[_viewMode];
-    
     return (
         <div className={className}>
             {

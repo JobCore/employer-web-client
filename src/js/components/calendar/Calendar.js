@@ -44,7 +44,7 @@ const generateAxis = (events, viewMode) => {
       events: events[key].map((e, i) => {
         e.axisSlug = key;
         e.index = key + i;
-        e.blockLevel = null; //Number from 0 to X,  blockLevel avoids visual collition of events, if 2 evens collide they will be at different blockLevels
+        e.blockLevel = i; //Number from 0 to X,  blockLevel avoids visual collition of events, if 2 evens collide they will be at different blockLevels
         e.duration = moment.duration(e.end.diff(e.start)).asMinutes();
         e.isMultiday = !e.start.isSame(e.end, 'day');
         return e;
@@ -121,7 +121,6 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
     });
 
     const weeksCount = (rest.viewMode === "month" ? daysToShow.length / 7 : 1);
-
     if (!daysToShow) return "Loading...";
     return (
         <Layout direction={direction.days}>
