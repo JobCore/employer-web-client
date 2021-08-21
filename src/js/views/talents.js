@@ -162,7 +162,7 @@ export class ManageTalents extends Flux.DashView {
         }else this.setState({ positions });
 
         this.subscribe(store, 'employees', (employees) => {
-            this.setState({ employees });
+            if(Array.isArray(employees) && employees.length !== 0)  this.setState({ employees });
         });
         const lists = store.getState('favlists');
         // this.subscribe(store, 'favlists', (lists) => {
@@ -171,9 +171,8 @@ export class ManageTalents extends Flux.DashView {
         if(!lists) fetchAllMe(['favlists']);
 
         this.props.history.listen(() => {
-            if(this.props.history.location.pathname == "/talents") this.filter();
-            else console.log(this.props.history);
-            this.setState({ firstSearch: false });
+            if(this.props.history.location.pathname == "/talents") this.filter('l');
+            else this.setState({ firstSearch: false });
         });
         this.setState({ runTutorial: true });
     }
@@ -181,9 +180,7 @@ export class ManageTalents extends Flux.DashView {
     filter(url){
         // search('employees', window.location.search);
         let queries = window.location.search;
-
         if(queries) queries = "&" + queries.substring(1);
-
         if(url){
             const page = url.split('employees')[1];
             if(page){
@@ -210,6 +207,7 @@ export class ManageTalents extends Flux.DashView {
         const positions = this.state.positions;
         if(this.state.firstSearch) return <p>Please search for an employee</p>;
         const allowLevels = (window.location.search != '');
+
         return (<div className="p-1 listcontents">
             <Theme.Consumer>
                 {({bar}) => (<span>
@@ -221,7 +219,7 @@ export class ManageTalents extends Flux.DashView {
                     <h1><span id="talent_search_header">Talent Search</span></h1>
                     {this.state.employees.map((s,i) => (
                         <EmployeeExtendedCard key={i} employee={s} hover={true} positions={positions}
-                        onClick={() => bar.show({ slug: "show_single_talent", data: s })}>
+                        onClick={(e) => bar.show({ slug: "show_single_talent", data: s })}>
 
                             <Button className="btn btn-outline-dark" onClick={() => bar.show({ slug: "add_to_favlist", data: s, allowLevels })}>Add to Favorites</Button>
                             <Button className="btn btn-outline-dark" onClick={() => bar.show({ slug: "invite_talent_to_shift", data: s, allowLevels })}>Invite</Button>

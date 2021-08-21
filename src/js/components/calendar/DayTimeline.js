@@ -29,7 +29,7 @@ Day.propTypes = {
 const getCollidingEvents = (originalEv, events) => events.filter(
             e =>
             e.start.isBetween(originalEv.start, originalEv.end) ||
-            (e.start.isBefore(originalEv.start) && e.end.isAfter(originalEv.end)) ||
+            (e.end.isAfter(originalEv.end)) ||
             e.end.isBetween(originalEv.start, originalEv.end) ||
             (e.start.isSame(originalEv.start) && e.end.isSame(originalEv.end))
         );
@@ -84,7 +84,6 @@ export const DayTimeline = ({ events, date, isActive, width, timesToShow, yAxisL
         <Day width={width} style={dayBlockStyles} active={isActive} direction={timeDirection}>
             { dayLabel && dayLabel(date, isActive)}
             {times.map(t => {
-               
                 return <TimeBlock
                     key={t.index}
                     label={t.label}
@@ -95,14 +94,11 @@ export const DayTimeline = ({ events, date, isActive, width, timesToShow, yAxisL
                     blockHeight={(maxDayOccupancy * blockHeight) + eventOffset}
                 >
                     {t.events.map(({ blockLevel, ...rest}, i) => {
-                        // console.log('eventOffset', eventOffset);
-                        // console.log('blockHeight', blockHeight);
-                        // console.log('blockLevel', blockLevel);
                         if(!rest.start.isSame(dayEnd, 'day')){
                             var newDuration = moment.duration(rest.end.diff(dayStart)).asMinutes();
                             rest.duration = newDuration;
                         }
-                        return <Event key={i} allowResizeStart={dayStart.isBefore(rest.start)} allowResizeEnd={dayEnd.isAfter(rest.end)} offset={eventOffset + (blockHeight*blockLevel) - 20} {...rest} />;
+                        return <Event key={i} allowResizeStart={dayStart.isBefore(rest.start)} allowResizeEnd={dayEnd.isAfter(rest.end)} offset={eventOffset + (blockHeight*blockLevel)} {...rest} />;
                     })}
                 </TimeBlock>;
             })}
