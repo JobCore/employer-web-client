@@ -364,15 +364,17 @@ export const TalentDetails = (props) => {
                     />
                 </div>
                 <Avatar url={employee.user.profile.picture} />
-                <p style={{fontWeight: "bolder", fontSize: '24px'}}>{typeof employee.fullName == 'function' ? employee.fullName() : employee.first_name + ' ' + employee.last_name}</p>
-                <p>Email: {employee.user ?  employee.user.email : 'No email provided'}</p>
-                <p>Phone number: {employee.user && employee.user.profile.phone_number != "" ?  reformatPhoneNumber(employee.user.profile.phone_number) : 'none'}</p>
                 <p>
                     <Stars rating={Number(employee.rating)} jobCount={employee.total_ratings}  />
                 </p>
-                <p>${Number(employee.minimum_hourly_rate).toFixed(2)}/hr minimum expected rate</p>
+                <p style={{fontWeight: "bolder", fontSize: '24px'}}>{typeof employee.fullName == 'function' ? employee.fullName() : employee.first_name + ' ' + employee.last_name}</p>
+                <p><strong>Email:</strong> {employee.user ?  employee.user.email : 'No email provided'}</p>
+                <p><strong>Phone number:</strong> {employee.user && employee.user.profile.phone_number != "" ?  reformatPhoneNumber(employee.user.profile.phone_number) : 'none'}</p>
+                <p><strong>Position(s):</strong> {employee.positions.map(p => p.title).join(", ")}</p>
+                <p><strong>${Number(employee.minimum_hourly_rate).toFixed(2)}/hr minimum expected rate</strong></p>
                 <p>{employee.user.profile.bio}</p>
-                {employee.positions.length > 0 && <p>{employee.positions.map(p => <ul key={p.id}><li className="badge badge-success">{p.title}</li></ul>)}</p>}
+
+                {/* {employee.positions.length > 0 && <p>{employee.positions.map(p => <ul key={p.id}><li className="badge badge-primary" style={{columnCount: 3}}>{p.title}</li></ul>)}</p>} */}
                 {employee.badges.length > 0 && <p>{employee.badges.map(b => <span key={b.id} className="badge badge-secondary">{b.title}</span>)}</p>}
                 <div className="btn-bar">
                     <Button color="primary" onClick={() => bar.show({ slug: "invite_talent_to_shift", data: employee, allowLevels:true })}>Invite to shift</Button>
