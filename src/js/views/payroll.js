@@ -2883,7 +2883,7 @@ export class PayrollReport extends Flux.DashView {
               }, []);
               
             return (
-                <table className="table table-sm table-bordered">
+                <table className="table table-sm table-bordered" style={{fontSize: "12px", borderColor:"black"}}>
                     <thead style={{background:"transparent"}}>
                         <tr style={{background:"transparent", fontSize: "14px"}}>
                             <th scope="col">Position</th>
@@ -2895,7 +2895,7 @@ export class PayrollReport extends Flux.DashView {
                         { output.map((e,i) => 
                             <tr key={i} style={{background:"transparent"}}>
                                 <td>{e.position}</td>
-                                <td>{e.hours}</td>
+                                <td>{e.hours.toFixed(2)}</td>
                                 <td>{"$" + e.hourly_rate.toFixed(2)}</td>
                             </tr>
                         )}
@@ -2919,9 +2919,23 @@ export class PayrollReport extends Flux.DashView {
         const payrollPeriodLabel = this.state.singlePayrollPeriod ? `Payments From ${moment(this.state.singlePayrollPeriod.starting_at).format('MM-D-YY h:mm A')} to ${moment(this.state.singlePayrollPeriod.ending_at).format('MM-D-YY h:mm A')}` : '';
         //const allowLevels = (window.location.search != '');
         const formLoading = this.state.formLoading;
-
-        console.log('thiss state', this.state);
+        const form = this.state.form;
         return (<div className="p-1" style={{maxWidth: '1200px'}}>
+            <div className="modal fade" id="exampleModalCenter" tabIndex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                <div className="modal-dialog modal-dialog-centered" role="document">
+                    <div className="modal-content">
+                        {form ? (
+
+                            <iframe src={form} style={{width: "800px", height:"900px"}} frameBorder="0"></iframe>
+                    ): (
+                        <div className="spinner-border text-center mx-auto" role="status">
+                            <span className="sr-only">Loading...</span>
+                        </div>
+                    )}
+
+                    </div>
+                </div>
+            </div>
             <Theme.Consumer>
                 {({ bar }) => (<span>
                     {(!this.state.paymentInfo) ? '' :
@@ -2987,7 +3001,7 @@ export class PayrollReport extends Flux.DashView {
                                                 <td className="text-left">
                                                     {pay.employee.last_name}, {pay.employee.first_name}
                                                     <div className="row pt-1 pb-1">
-                                                        <div className="col-3 pr-0">
+                                                        <div className="col pr-0">
                                                             {
                                             pay.employee.employment_verification_status === "APPROVED" ? (
                                                 <span style={{cursor: "pointer"}}  data-toggle="modal" data-target="#exampleModalCenter" onClick={() => {
@@ -3001,7 +3015,7 @@ export class PayrollReport extends Flux.DashView {
                                         
 
                                                         </div>
-                                                        <div className="col-3">
+                                                        <div className="col">
                                                             {
                                             pay.employee.employment_verification_status === "APPROVED" ? (
                                                 <span style={{cursor: "pointer"}}   data-toggle="modal" data-target="#exampleModalCenter" onClick={() => {
@@ -3019,7 +3033,7 @@ export class PayrollReport extends Flux.DashView {
                                                 </td>
                                                 <td className="p-1">
                                                     <div className="row">
-                                                        <div className="col-12">
+                                                        <div className="col-12 pr-0 pl-0">
                                                             {this.getDifferentHours(pay.employee.id)}
 
                                                             {/* {Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100) / 100 > 40 ? 40 : Math.round((Number(pay.regular_hours) + Number(pay.over_time)) * 100)/100} */}
