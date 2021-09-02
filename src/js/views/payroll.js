@@ -1922,10 +1922,13 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
     const payments = periods.map(e => e.payments);
     // .filter((value, index, self) => self.indexOf(value) === index);
     function totalEmployees(payments) {
-        var employees = payments.map(e=> e.employee.id);
-        var uniqueEmployees = employees.filter(function(v,i) { return i==employees.lastIndexOf(v); });
-
-        return uniqueEmployees.length;
+        if(payments){
+            var employees = payments.map(e=> e.employee.id);
+            var uniqueEmployees = employees.filter(function(v,i) { return i==employees.lastIndexOf(v); });
+    
+            return ('Employees: ' + uniqueEmployees.length + " | ");
+            
+        }else return "";
     }
 
     return (<div>
@@ -1955,7 +1958,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
                                     }
                                 </div>
                                 From {moment(p.starting_at).format('MMM DD, YYYY')} to {moment(p.ending_at).format('MMM DD, YYYY')}
-                                <p className="my-0"><small className={`badge ${p.total_payments > 0 ? 'badge-secondary' : 'badge-info'}`}>{'Employees: ' + totalEmployees(p.payments) + " | " + "Payments: " + p.total_payments} </small></p>
+                                <p className="my-0"><small className={`badge ${p.total_payments > 0 ? 'badge-secondary' : 'badge-info'}`}>{totalEmployees(p.payments) + "Payments: " + p.total_payments} </small></p>
                             </GenericCard>
                         )}
                         {!noMorePeriods && Array.isArray(periods) && periods.length > 0 ? (

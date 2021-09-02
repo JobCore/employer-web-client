@@ -26,7 +26,7 @@ export class PaymentsReport extends Flux.DashView {
             this.setState({ payrollPeriods });
         });
         this.getPayments();
-        searchMe(`payroll-periods`);
+        searchMe(`payroll-periods`, '?payments=True');
     }
     
     getPayments = () => {
