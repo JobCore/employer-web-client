@@ -352,7 +352,7 @@ export class Profile extends Flux.DashView {
                                                 return(<section className="upload-zone">
                                                     <div {...getRootProps()}>
                                                         <input {...getInputProps()} />
-                                                        <strong style={{textDecoration:"underline",cursor:"pointer", fontSize: '20px'}}>Drop your company logo here, or click me to open the file browser</strong>
+                                                        <strong style={{textDecoration:"underline",cursor:"pointer", fontSize: '20px'}}>Drop your company logo here, or click here to open the file browser</strong>
                                                     </div>
                                                 </section>);
                                         }}
@@ -364,7 +364,7 @@ export class Profile extends Flux.DashView {
                                 <br/>
                          
 
-                                <Button onClick={() => this.setState({ editingImage: false, uploadCompanyLogo: null})} color="secondary">Cancel</Button>
+                                <Button className="mr-2" onClick={() => this.setState({ editingImage: false, uploadCompanyLogo: null})} color="secondary">Cancel</Button>
                                 <Button id="company-logo-save" onClick={() => {
                                     updateProfileImage(this.state.uploadCompanyLogo).then(picture => {
                                         this.setState(prevState => {
@@ -481,7 +481,7 @@ export class ManageUsers extends Flux.DashView {
                                         }
                                         else{
                                             const noti = Notify.info("Are you sure you want to make this person Admin?", (answer) => {
-                                                if (answer) updateUser({ id: u.profile.id, employer_id: this.state.currentUser.employer, employer_role: 'ADMIN' });
+                                                if (answer) updateUser({ id: u.profile.id, employer_id: this.state.currentUser.employer.id, employer_role: 'ADMIN' });
                                                 noti.remove();
                                             });
 
@@ -498,7 +498,7 @@ export class ManageUsers extends Flux.DashView {
                                         }
                                         else{
                                             const noti = Notify.info("Are you sure you want to make this person Manager?", (answer) => {
-                                                if (answer) updateUser({ id: u.profile.id, employer_id: this.state.currentUser.employer, employer_role: 'MANAGER' });
+                                                if (answer) updateUser({ id: u.profile.id, employer_id: this.state.currentUser.employer.id, employer_role: 'MANAGER' });
                                                 noti.remove();
                                             });
 
@@ -514,7 +514,7 @@ export class ManageUsers extends Flux.DashView {
                                         }
                                         else{
                                             const noti = Notify.info("Are you sure you want to make this person Supervisor?", (answer) => {
-                                                if (answer) updateUser({ id: u.profile.id, employer_id: this.state.currentUser.employer, employer_role: 'SUPERVISOR' });
+                                                if (answer) updateUser({ id: u.profile.id, employer_id: this.state.currentUser.employer.id, employer_role: 'SUPERVISOR' });
                                                 noti.remove();
                                             });
 

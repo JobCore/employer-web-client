@@ -37,6 +37,9 @@ class EmployerBankAccounts extends Flux.DashView {
 
     render() {
         const { bankAccounts } = this.state;
+        console.log('foefkof', process.env.PLAID_ENVIRONMENT);
+        console.log('wwceecw', process.env.PLAID_PUBLIC_KEY);
+
         return (
             <div>
                 <div className="row mt-2">

@@ -1945,7 +1945,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
                 <h2 className="mt-1">Select a timesheet:</h2>
                 <ul className="scroll" style={{ maxHeight: "600px", overflowY: "auto", padding: "10px", margin: "-10px" }}>
                     <div>
-                        {periods.length === 0 && <p>No previous payroll periods have been found</p>}
+                        {periods.length === 0 && <p>No previous payroll periods have been found. Please try clicking the icon above.</p>}
                         {periods.map(p =>
                             <GenericCard key={p.id}
                                 hover={true} className="pr-2"

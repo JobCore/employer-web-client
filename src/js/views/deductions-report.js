@@ -43,13 +43,12 @@ export class DeductionsReport extends Flux.DashView {
         const options = payrollPeriods && payrollPeriods.length > 0
         ? [
             {label: "All", value: null},
-            ...payrollPeriods.map((period) => {
+            ...payrollPeriods.filter(e => e.payments.length > 0).map((period) => {
                 return { label: "From " + moment(period.starting_at).format('MMM DD, YYYY') + " to "  + moment(period.ending_at).format('MMM DD, YYYY') , value: period.id };
             })
         ] 
         : [];
 
-        console.log(deductionsReport);
         return (<div className="p-1 listcontents" style={{maxWidth: "1100px"}}>
             <Theme.Consumer>
                 {({ bar }) => (<span>

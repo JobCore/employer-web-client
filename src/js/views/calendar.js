@@ -59,13 +59,14 @@ export const ShiftCalendar = ({ catalog }) => {
     
         if (moment.isMoment(_filters.start)) _filters.start = _filters.start.format('YYYY-MM-DD');
         if (moment.isMoment(_filters.end)) _filters.end = _filters.end.format('YYYY-MM-DD');
-        searchMe('shifts', '?limit=10000&' + queryString.stringify(_filters));
+        searchMe('shifts', '?limit=10000&' + queryString.stringify(_filters) + "&serializer=big");
     };
     const groupShifts = (sh, l = null) => {
         let _shifts = {};
-
+        
         if (l === null || l.value === "employees") {
             const employees = getEmployees(sh);
+            console.log('EMPLOYEES', employees);
             employees.forEach(emp => {
                 _shifts[`${typeof emp.user === "object" ? emp.user.first_name + " " + emp.user.last_name : "Loading..."}`] = sh.filter(s => s.employees.find(e => emp.id === e.id)).map(s => ({
                     start: moment(s.starting_at),
@@ -121,6 +122,7 @@ export const ShiftCalendar = ({ catalog }) => {
     }, [groupedLabel]);
 
     console.log('Shifts', shifts);
+    console.log('sort', groupedLabel);
 
     return <Theme.Consumer>
         {({ bar }) => <div className="row">
