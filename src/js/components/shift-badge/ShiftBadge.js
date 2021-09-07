@@ -24,7 +24,7 @@ const ShiftBadge = ({ candidates, maximum_allowed_employees, employees, clockin,
               }
           </span>;
         }
-      }else return <span className="text-danger">[<i className="fas fa-exclamation-circle"></i>{" Employee hasn't clocked in"}]</span>;
+      }else return <span className="badge badge-danger"><i className="fas fa-exclamation-circle"></i>{" No clocked in"}</span>;
     }
     else if(openVacancys <= 0) return <span className="badge" style={{background: "#5cb85c"}}>{totalEmployees} Filled</span>;
     else return <span className="badge badge-danger">{totalCandidates}/{openVacancys}</span>;

@@ -307,12 +307,12 @@ export class ManageShifts extends Flux.DashView {
 
         }
         return (<div className="p-1 listcontents">
-            <Wizard continuous
+            {/* <Wizard continuous
                 steps={this.state.steps}
                 run={this.state.runTutorial}
                 callback={callback}
                 showProgress
-            />
+            /> */}
             <h1 className="float-left"><span id="shift-details-header">Shift Details</span></h1>
             {shiftsHTML.length == 0 && <div className="mt-5">No shifts have been found</div>}
             {shiftsHTML}
@@ -380,8 +380,13 @@ return(<form>
                 renderInput={(properties) => {
                     const { value, ...rest } = properties;
                     return <input value={value.match(/\d{2}\/\d{2}\/\d{4}/gm)} {...rest} />;
+                    
                 }}
-                onChange={(value) =>  setDate(value.format("YYYY-MM-DD"))
+                onChange={(value) =>  {
+                if (typeof value == 'string'){
+                    value = moment(value);
+                    setDate(value.format("YYYY-MM-DD"));
+                }}
                 }
             />
         </div>
@@ -448,7 +453,6 @@ FilterShifts.propTypes = {
  * ShiftApplicants
  */
 export const ShiftApplicants = (props) => {
-    console.log('LOS PAPLICATION PROPS', props);
     const { onCancel, onSave, catalog } = props;
     return (<Theme.Consumer>
         {({ bar }) => (<div className="sidebar-applicants">
@@ -869,12 +873,12 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
         };
     const saveRecurrentDates = async function saveRecurrentDates(){
         await getRecurrentShifts().then(res => {
-            if(res && Array.isArray(res)){
+            if(res && Array.isArray(res) && res.length > 0){
                 const noti = Notify.info(`Are you sure to publish a total of ${res.length}? (
-                    ${
-                        res.map(s => {
-                            return s.starting_at.format("MM-DD-YYYY hh:mm a") + " - " + s.ending_at.format("MM-DD-YYYY hh:mm a") + " ";
-                        })
+                    ${'From ' + res[0].starting_at.format("MM-DD-YYYY") + " - " + res[res.length - 1].ending_at.format("MM-DD-YYYY") + " "
+                        // res.map(s => {
+                        //     return s.starting_at.format("MM-DD-YYYY hh:mm a") + " - " + s.ending_at.format("MM-DD-YYYY hh:mm a") + " ";
+                        // })
                     }
                 )`, (answer) => {
                     if (answer){
@@ -889,7 +893,7 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                     noti.remove();
                 });
                 return noti;
-            }
+            }else alert("Error: Please select recurrent dates.  ");
         });
         
     };
@@ -1578,13 +1582,13 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                                     
                                     </div>
                                 </div>
-                                <div className="col-12"/>
+                                {/* <div className="col-12"/> */}
                                 <div className="col-6">
                                     <label className="mb-1">Ending Date</label>
                                     <div className="input-group">
                                         <DateTime
                                             timeFormat={false}
-                                            className="shiftdate-picker"
+                                            className="picker-left"
                                             closeOnSelect={true}
                                             value={recurrentDates.ending_at}
                                             isValidDate={(current) => {
@@ -1801,13 +1805,10 @@ const EditOrAddShift = ({ onSave, onCancel, onChange, catalog, formData, error, 
                     <div className="row" id="instruction">
                         <div className="col-12">
                             <label>Shift Instructions (optional)</label>
-                            <TextareaAutosize minRows={4} style={{ width: '100%'}} placeholder="Dressing code, location instructions, parking instruction etc.."
+                            <TextareaAutosize minRows={2} style={{ width: '100%'}} placeholder="Dressing code, location instructions, parking instruction etc.."
                             onChange={event => setDescriptionContent(event.target.value)}
                             value={description}
                             />
-                            <p>
-                                {description.length}/{300}
-                            </p>
                         </div>
                     </div>
 

@@ -856,7 +856,6 @@ export const PayrollPeriodDetails = ({ match, history }) => {
     const [formLoading, setFormLoading] = useState(false);
     const [open, setOpen] = useState(true);
 
-
     const { bar } = useContext(Theme.Context);
     useEffect(() => {
         const employerSub = store.subscribe('current_employer', (employer) => setEmployer(employer));
@@ -899,7 +898,6 @@ export const PayrollPeriodDetails = ({ match, history }) => {
     }
     groupedPayments = Object.keys(groupedPayments).map(id => groupedPayments[id]);
 
-    console.log(groupedPayments);
 
 
     function parseToTime(num){
@@ -1467,10 +1465,15 @@ export const PayrollPeriodDetails = ({ match, history }) => {
 
                             </td>
                         </tr>
-                     
+                        {/* <tr> */}
+                        <td>
+                                efkewofkow
+                        </td>
+                        {/* </tr> */}
                     </tbody>
                 </table>;
             })}
+      
         <div className="btn-bar text-right">
             {period.status === 'OPEN' ?
                 <button type="button" className="btn btn-primary" onClick={() => {
@@ -1482,7 +1485,11 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                     if (Array.isArray(unapproved) && unapproved.length > 0) Notify.error("There are still some payments that need to be approved or rejected");
                     else if (Array.isArray(payments) && payments.length === 0) Notify.error("There are no clockins to review for this period");
                     // else {history.push('/payroll/rating/' + period.id);} 
-                   else update('payroll-periods', Object.assign(period, { status: 'FINALIZED' })).then(res => history.push('/payroll/report/' + period.id))
+                   else update('payroll-periods', Object.assign(period, { status: 'FINALIZED' })).then(res => {
+                    if(res){
+                        history.push('/payroll/rating/' + period.id);
+                    }   
+                })
                                 .catch(e => Notify.error(e.message || e));
                                 }}>Finalize Period</button>
                 //    else history.push('/payroll/rating/' + period.id);
@@ -1945,7 +1952,7 @@ export const SelectTimesheet = ({ catalog, formData, onChange, onSave, onCancel,
                 <h2 className="mt-1">Select a timesheet:</h2>
                 <ul className="scroll" style={{ maxHeight: "600px", overflowY: "auto", padding: "10px", margin: "-10px" }}>
                     <div>
-                        {periods.length === 0 && <p>No previous payroll periods have been found</p>}
+                        {periods.length === 0 && <p>No previous payroll periods have been found. Please try clicking the icon above.</p>}
                         {periods.map(p =>
                             <GenericCard key={p.id}
                                 hover={true} className="pr-2"
@@ -2184,7 +2191,6 @@ export class PayrollRating extends Flux.DashView {
 
 
     render() {
-        console.log(this.state);
         if (!this.state.employer) return "Loading...";
         else if (!this.state.employer.payroll_configured || !moment.isMoment(this.state.employer.payroll_period_starting_time)) {
             return <div className="p-1 listcontents text-center">
@@ -2193,7 +2199,7 @@ export class PayrollRating extends Flux.DashView {
             </div>;
         }
 
-        return (<div className="p-1 listcontents mx-auto">
+        return (<div className="p-1 listcontents">
             {/* {this.state.singlePayrollPeriod && this.state.singlePayrollPeriod.status == "FINALIZED" &&
                 <Redirect from={'/payroll/rating/' + this.state.singlePayrollPeriod.id} to={'/payroll/report/' + this.state.singlePayrollPeriod.id} />
             } */}
@@ -2202,8 +2208,8 @@ export class PayrollRating extends Flux.DashView {
                     {(!this.state.ratings) ? '' :
                         (this.state.singlePayrollPeriod) ?
                             <div>
-                                <p className="text-center">
-                                    <h2 className="mb-0">Please rate the talents for this period</h2>
+                                <p className="text-left">
+                                    <h2 className="mb-0">Please rate the talents for this period (optional):</h2>
                                     <h4 className="mt-0">{this.state.singlePayrollPeriod.label || ""}</h4>
                                 </p>
                             </div>
@@ -2267,11 +2273,11 @@ export class PayrollRating extends Flux.DashView {
 
                     }
 
-                    <div className="btn-bar text-center mt-3">
+                    <div className="btn-bar mt-3 pt-3">
 
                         <button type="button" className="btn btn-primary" onClick={() => {
                             const unrated = this.state.ratings.find(p => p.rating == null && p.shifts.length > 0);
-                            const rated = [].concat.apply([], this.state.ratings.filter(s => s.shifts.length > 0).map(p => {
+                            const rated = [].concat.apply([], this.state.ratings.filter(s => s.shifts.length > 0 && s.rating).map(p => {
                                 if (p.shifts.length > 1) {
                                     return p.shifts.map(s => ({
                                         employee: p.employee.id,
@@ -2291,15 +2297,18 @@ export class PayrollRating extends Flux.DashView {
                                     );
                                 }
                             }));
-                            if (unrated) Notify.error("There are still some employees that need to be rated");
-                            else {
-                                create('ratings', rated).then((res) => { if (res) update('payroll-periods', Object.assign(this.state.singlePayrollPeriod, { status: 'FINALIZED' })); })
-                                    .then((resp) => { this.props.history.push('/payroll/report/' + this.state.singlePayrollPeriod.id); })
-                                    .catch(e => Notify.error(e.message || e));
+                            // if (unrated) Notify.error("There are still some employees that need to be rated");
+                            // else {
+                                create('ratings', rated).then((res) => { 
+                                    this.props.history.push('/payroll/report/' + this.state.singlePayrollPeriod.id);
+                                    // if (res)update('payroll-periods', Object.assign(this.state.singlePayrollPeriod, { status: 'FINALIZED' })); 
+                                    });
+                                    // .then((resp) => { this.props.history.push('/payroll/report/' + this.state.singlePayrollPeriod.id); })
+                                    // .catch(e => Notify.error(e.message || e));
                                   
-                            }
+                            // }
 
-                        }}>Finalize Period</button>
+                        }}>Take me to the Payroll Report</button>
 
                     </div>
 

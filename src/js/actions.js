@@ -440,7 +440,8 @@ export const update = (entity, data, mode = WEngine.modes.LIVE) => new Promise((
             }
             else if (entity == 'payrates') data = incomingObject;
             else
-                Notify.success("The " + event_name + " was updated successfully");
+                if(event_name === "current_employer") Notify.success("The " + "payroll settings"+ " was updated successfully");
+                else Notify.success("The " + event_name + " was updated successfully");
             let entities = store.replaceMerged(event_name, data.id, data);
             Flux.dispatchEvent(event_name, entities);
             resolve(data);

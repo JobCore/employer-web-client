@@ -104,7 +104,7 @@ export class ManageLocations extends Flux.DashView {
                         },
                         buttonClose: {
                             display: "none"
-                        },
+                        }
                     },
                     locale: { skip: "Skip tutorial" },
                     target: "body",
@@ -120,7 +120,7 @@ export class ManageLocations extends Flux.DashView {
                             display: "none"
                         },
                         buttonNext: {
-                            display: 'none',
+                            display: 'none'
                         }
                     },
                     spotlightClicks: true
@@ -135,11 +135,11 @@ export class ManageLocations extends Flux.DashView {
                             display: "none"
                         },
                         buttonNext: {
-                            display: 'none',
+                            display: 'none'
                         }
                     },
                     spotlightClicks: true
-                },
+                }
             ]
         };
     }
@@ -177,7 +177,7 @@ export class ManageLocations extends Flux.DashView {
                             spotlightClicks= {true}
                             styles={{
                                 options: {
-                                  primaryColor: '#000',
+                                  primaryColor: '#000'
                                 }
                               }}
                         />
@@ -185,8 +185,8 @@ export class ManageLocations extends Flux.DashView {
                     {this.state.locations.map((l,i) => (
                         <GenericCard key={i} hover={true} onClick={() => bar.show({ slug: "update_location", data: l, allowLevels })}>
                             <div className="btn-group">
-                                <Button icon="pencil" onClick={() => bar.show({ slug: "update_location", data: l, allowLevels })}></Button>
-                                <Button icon="trash" onClick={() => {
+                                <Button  icon="pencil" onClick={() => bar.show({ slug: "update_location", data: l, allowLevels })}></Button>
+                                <Button  icon="trash" onClick={() => {
                                     const noti = Notify.info("Are you sure you want to delete this location?",(answer) => {
                                         if(answer) remove('venues', l);
                                         noti.remove();
@@ -333,7 +333,7 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
                                         },
                                         buttonClose: {
                                             display: "none"
-                                        },
+                                        }
                                     },
                                     spotlightClicks: true
 
@@ -348,7 +348,7 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
                                         },
                                         buttonClose: {
                                             display: "none"
-                                        },
+                                        }
                                     },
                                     spotlightClicks: true
                                 },
@@ -362,7 +362,7 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
                                         },
                                         buttonClose: {
                                             display: "none"
-                                        },
+                                        }
                                     },
                                     spotlightClicks: true
                                 },
@@ -378,7 +378,7 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
                                             display: "none"
                                         },
                                         buttonNext: {
-                                            display: 'none',
+                                            display: 'none'
                                         }
                                     },
                                      spotlightClicks: true
@@ -389,7 +389,7 @@ export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData
                             spotlightClicks={true}
                             styles={{
                                 options: {
-                                  primaryColor: '#000',
+                                  primaryColor: '#000'
                                 }
                               }}
 
