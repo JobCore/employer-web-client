@@ -1466,9 +1466,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                             </td>
                         </tr>
                         {/* <tr> */}
-                        <td>
-                                efkewofkow
-                        </td>
+                   
                         {/* </tr> */}
                     </tbody>
                 </table>;
