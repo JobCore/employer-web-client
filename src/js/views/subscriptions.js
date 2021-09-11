@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Flux from "@4geeksacademy/react-flux-dash";
 import PropTypes from 'prop-types';
-import {store, createSubscription } from '../actions.js';
+import {store, createSubscription, searchMe } from '../actions.js';
 import { Button } from '../components/index';
 import {Notify} from 'bc-react-notifier';
 import { GET } from "../utils/api_wrapper.js";
@@ -85,17 +85,36 @@ export const YourSubscription = (props) => {
 
     const [ employer, setEmployer ] = useState(store.getState('current_employer'));
     const [ plans, setPlans ] = useState([]);
+    const [ customer, setCustomer ] = useState('');
+    const [ subscription, setSubscription ] = useState('');
 
     useEffect(() => {
 
         const employerSubscription = store.subscribe('current_employer', (_employer) => setEmployer(_employer));
         GET('subscriptions').then(subs => setPlans(subs));
 
+        searchMe('subscription').then(res => {
+            if(Array.isArray(res) && res[1 - res.length]){
+               
+                const cus = res[1 - res.length]['stripe_cus'];
+                const sub = res[1 - res.length]['stripe_sub'];
+
+                if(cus){
+                    setCustomer(res[1 - res.length]['stripe_cus']);
+                }
+                if(sub){
+                    setSubscription(res[1 - res.length]['stripe_sub']);
+                }
+            }
+        });
+
         return () => {
             employerSubscription.unsubscribe();
         };
     }, []);
-
+    
+    
+    
     if(!employer) return "Loading";
     return (<div>
         <div className="row">
@@ -144,13 +163,16 @@ export const YourSubscription = (props) => {
                     { (!employer.active_subscription || employer.active_subscription.id !== p.id) &&
                         <Button className="w-100 mt-2" onClick={() => {
                             const noti = Notify.info("Are you sure? You will lose any other subscription you may have", (answer) => {
-                                if (answer) createSubscription({ subscription: p.id });
+                                if (answer) createSubscription({ subscription: p.id, stripe_cus: customer, stripe_sub: subscription }, props.history);
                                 noti.remove();
                             });
                         }}>Apply</Button>
                     }
                 </div>
             )}
+        </div>
+        <div className="mt-4 pt-4">
+            <em>If you wish to cancel your subscription please contact us at support@jobcore.co</em>
         </div>
     </div>);
 };

@@ -84,7 +84,6 @@ export const login = (email, password, keep, history,id) => new Promise((resolve
                     user: data.user, access_token: data.token
                 }
             });
-            console.log('data login', data);
             if(!data.user.profile.employer.active_subscription) history.push('/subscribe');
             else history.push('/');
             resolve();
@@ -522,8 +521,22 @@ export const createSubscription = (data, history) => {
     POST(`employers/me/subscription`, data)
         .then(function (active_subscription) {
             Flux.dispatchEvent('current_employer', { ...employer, active_subscription });
-            Notify.success("The subscription was changed successfully");
+            Notify.success("The subscription was created successfully");
             history.push('/home');
+        })
+        .catch(function (error) {
+            console.log("ERROR", error);
+            Notify.error(error.message || error);
+            log.error(error);
+        });
+};
+
+export const updateSubscription = (data, history) => {
+    const employer = store.getState('current_employer');
+    PUT(`employers/me/subscription`, data)
+        .then(function (active_subscription) {
+            Flux.dispatchEvent('current_employer', { ...employer, active_subscription });
+            Notify.success("The subscription was updated successfully");
         })
         .catch(function (error) {
             Notify.error(error.message || error);
@@ -979,6 +992,7 @@ class _Store extends Flux.DashStore {
         //     });
         // });
         this.addEvent('payroll-periods');
+        this.addEvent('subscription');
         this.addEvent('w4-form');
         this.addEvent('previos-employee-shifts');
         this.addEvent("employee-expired-shifts"); //temporal, just used on the payroll report
