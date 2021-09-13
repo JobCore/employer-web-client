@@ -12,7 +12,7 @@ import {validator, onlyLetters} from '../utils/validation';
 import { Notify } from 'bc-react-notifier';
 import Billing from '../components/billing';
 import { BrowserView, MobileView } from "react-device-detect";
-import logoURL from '../../img/logo.png';
+import logoURL from '../../img/jobcore-logo.png';
 
 import googleIcon from '../../img/icons/google-play.svg';
 import appleIcon from '../../img/icons/apple-store.svg';

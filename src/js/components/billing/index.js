@@ -91,10 +91,10 @@ const BillingBanner = (props) =>{
                                 </li>
                          
                             </ul>
-                            <p className="fs--2 mb-0">
-              See full list of features <a href="https://jobcore.co/pricing/">Here</a>
-                            </p>
                         </DropdownItem>
+                        <p className="fs--2 mb-0 mt-3 text-center">
+                            <a href="https://jobcore.co/pricing" style={{color:"blue", fontWeight:"700"}}>See full list of features. Here!</a>
+                        </p>
                     </div>
                 </DropdownMenu>
             </UncontrolledDropdown>
@@ -202,6 +202,7 @@ const BillingContent = (props) => {
                     id="country"
                     name="country"
                     value={country}
+                    style={{border: "1px solid black"}}
                     onChange={({ target }) => setCountry(target.value)}
                   >
                                       {isIterableArray(countries) &&
@@ -298,7 +299,7 @@ const BillingContent = (props) => {
 };
 
 const BillingAside = (props) => {
-
+  console.log('props', props);
   return (
       <Card className="h-100">
           <Header title="Billing" light={false} />
@@ -402,7 +403,7 @@ const Billing = (props) => {
     },
     description: "Purchased " + plan + " Subscription",
     email: props.user.email || "",
-    name: props.user.employer ? props.user.profile.employer.title : "",
+    name: cardName,
     phone: props.user.profile  ? props.user.profile.phone_number : "",
     source: null
   };
@@ -434,17 +435,16 @@ const Billing = (props) => {
         Once you start your trial, you will have 30 days to use JobCore
         for free. After 30 days you’ll be charged based on your selected plan.
                   </p>
-                  <Button color="primary" block onClick={(e) => {
+                  <Button color="primary" disabled={!loading ? false : true} block onClick={(e) => {
                               const noti = Notify.info("Are you sure?", (answer) => {
                                   if (answer){
                                       setLoading(true);
                                       props.stripe.createToken().then(res => {
-                                          if(res['error']) setLoading(false);
-                                          else if(!res['error']){
-                                              body['source'] = res.token;
-                                              actions.createSubscription(body, props.history);
-                                              setLoading(false);
-                                          }
+                                          if(res['token']){
+                                            body['source'] = res.token;
+                                            const result = actions.createSubscription(body, props.history).then(res => setLoading(false) );
+                                            
+                                          }else setLoading(false);
                                       });
                                   }
                                   noti.remove();
