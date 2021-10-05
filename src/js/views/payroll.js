@@ -2893,7 +2893,7 @@ export class PayrollReport extends Flux.DashView {
               }, []);
               
             return (
-                <table className="table table-sm table-bordered" style={{fontSize: "12px", borderColor:"black"}}>
+                <table className="table table-sm table-bordered" style={{fontSize: "12px", border:"1px solid black"}}>
                     <thead style={{background:"transparent"}}>
                         <tr style={{background:"transparent", fontSize: "14px"}}>
                             <th scope="col">Position</th>
@@ -3041,7 +3041,7 @@ export class PayrollReport extends Flux.DashView {
                                                     </div>
                                                     <p className="m-0 p-0"><span className="badge">{pay.paid ? "paid" : "unpaid"}</span></p>
                                                 </td>
-                                                <td className="p-1">
+                                                <td className="p-0">
                                                     <div className="row">
                                                         <div className="col-12 pr-0 pl-0">
                                                             {this.getDifferentHours(pay.employee.id)}
