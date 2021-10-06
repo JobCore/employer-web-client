@@ -4,7 +4,9 @@ import moment from "moment";
 import Select from "react-select";
 import { Theme } from "../components/index";
 import { StyleSheet } from "@react-pdf/renderer";
-import { store, getPaymentsReport, searchMe } from "../actions";
+import { store, getPaymentsReport, searchMe, fetchTemporal } from "../actions";
+import { GET } from "../utils/api_wrapper.js";
+
 export class PaymentsReport extends Flux.DashView {
   constructor() {
     super();
@@ -21,9 +23,10 @@ export class PaymentsReport extends Flux.DashView {
     this.subscribe(store, "payments-reports", (paymentReport) => {
       this.setState({ paymentReport });
     });
-    this.subscribe(store, "payroll-periods", (payrollPeriods) => {
-      this.setState({ payrollPeriods });
-    });
+
+    GET(`employers/me/payroll-periods?reports=True`).then((payrollPeriods) =>
+      this.setState({ payrollPeriods })
+    );
     this.getPayments();
     searchMe(`payroll-periods`, "?reports=True");
   };
@@ -45,7 +48,7 @@ export class PaymentsReport extends Flux.DashView {
         ? [
             { label: "All", value: null },
             ...payrollPeriods
-              .filter((e) => e.payments.length > 0)
+              //   .filter((e) => e.payments.length > 0)
               .map((period) => {
                 return {
                   label:
