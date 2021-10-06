@@ -8,6 +8,8 @@ import { store, getDeductionsReport, searchMe } from "../actions";
 import arrowDown from "../../img/icons/arrow_down.svg";
 import arrowUp from "../../img/icons/arrow_up.svg";
 import SVG from "react-svg-inline";
+import { GET } from "../utils/api_wrapper.js";
+
 export class DeductionsReport extends Flux.DashView {
   constructor() {
     super();
@@ -24,9 +26,10 @@ export class DeductionsReport extends Flux.DashView {
     this.subscribe(store, "deductions-reports", (deductionsReport) => {
       this.setState({ deductionsReport });
     });
-    this.subscribe(store, "payroll-periods", (payrollPeriods) => {
-      this.setState({ payrollPeriods });
-    });
+
+    GET(`employers/me/payroll-periods?reports=True`).then((payrollPeriods) =>
+      this.setState({ payrollPeriods })
+    );
     this.getDeductions();
     searchMe(`payroll-periods`, "?reports=True");
   };
@@ -48,7 +51,7 @@ export class DeductionsReport extends Flux.DashView {
         ? [
             { label: "All", value: null },
             ...payrollPeriods
-              .filter((e) => e.payments.length > 0)
+              //   .filter((e) => e.payments.length > 0)
               .map((period) => {
                 return {
                   label:
