@@ -2739,7 +2739,6 @@ const EditOrAddShift = ({
                 className="btn btn-primary"
                 onClick={() => {
                   if (recurrent) {
-                    alert("recurrent");
                     saveRecurrentDates();
                   } else {
                     onSave({
