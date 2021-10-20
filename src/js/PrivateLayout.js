@@ -711,7 +711,12 @@ class PrivateLayout extends Flux.DashView {
       <Theme.Provider value={{ bar: this.state.bar }}>
         <LoadBar
           component={() => <img src={loadingURL} />}
-          style={{ position: "fixed", left: "50vw", top: "50vh" }}
+          style={{
+            position: "fixed",
+            left: "50vw",
+            top: "50vh",
+            zIndex: "9999999",
+          }}
         />
         <div className="row sidebar">
           <div className="left_pane">
