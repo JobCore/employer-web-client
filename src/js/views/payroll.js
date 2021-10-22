@@ -1732,7 +1732,6 @@ export const PayrollPeriodDetails = ({ match, history }) => {
           </Button>
         )}
       </p>
-      {console.log("groupedPayments", groupedPayments)}
       {groupedPayments.length == 0 ? (
         <p>No clockins to review for this period</p>
       ) : (
@@ -3539,7 +3538,6 @@ export class PayrollReport extends Flux.DashView {
               );
             else federalWithholding = 0;
 
-            console.log("federalWithholding", federalWithholding);
             temp.deduction_list.push({
               name: "Federal Withholding",
               amount: federalWithholding,
