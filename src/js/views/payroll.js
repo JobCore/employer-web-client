@@ -1141,7 +1141,6 @@ export const PayrollPeriodDetails = ({ match, history }) => {
   const [formLoading, setFormLoading] = useState(false);
   const [open, setOpen] = useState(true);
 
-  console.log("PAYMENTS @@@- ", payments);
   const { bar } = useContext(Theme.Context);
   useEffect(() => {
     const employerSub = store.subscribe("current_employer", (employer) =>
