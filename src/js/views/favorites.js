@@ -111,49 +111,51 @@ export class ManageFavorites extends Flux.DashView {
                 to create your first
               </p>
             ) : (
-              this.state.lists.map((list, i) => (
-                <ListCard
-                  key={i}
-                  list={list}
-                  onClick={() =>
-                    bar.show({
-                      slug: "favlist_employees",
-                      data: list,
-                      title: "List Details",
-                    })
-                  }
-                >
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    style={{ background: "transparent" }}
-                    onClick={(e) => {
-                      e.stopPropagation();
+              this.state.lists
+                .sort((a, b) => a.title.localeCompare(b.title))
+                .map((list, i) => (
+                  <ListCard
+                    key={i}
+                    list={list}
+                    onClick={() =>
                       bar.show({
-                        slug: "update_favlist",
+                        slug: "favlist_employees",
                         data: list,
                         title: "List Details",
-                      });
-                    }}
+                      })
+                    }
                   >
-                    <i className="fas fa-pencil-alt"></i>
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    style={{ background: "transparent" }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const noti = Notify.info("Are you sure?", (answer) => {
-                        if (answer) remove("favlists", list);
-                        noti.remove();
-                      });
-                    }}
-                  >
-                    <i className="fas fa-trash-alt"></i>
-                  </button>
-                </ListCard>
-              ))
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{ background: "transparent" }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        bar.show({
+                          slug: "update_favlist",
+                          data: list,
+                          title: "List Details",
+                        });
+                      }}
+                    >
+                      <i className="fas fa-pencil-alt"></i>
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{ background: "transparent" }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const noti = Notify.info("Are you sure?", (answer) => {
+                          if (answer) remove("favlists", list);
+                          noti.remove();
+                        });
+                      }}
+                    >
+                      <i className="fas fa-trash-alt"></i>
+                    </button>
+                  </ListCard>
+                ))
             )
           }
         </Theme.Consumer>

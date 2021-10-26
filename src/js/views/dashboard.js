@@ -186,7 +186,7 @@ export default class Home extends Flux.DashView {
               }}
             />
             <div className="row">
-              <div className="col-8">
+              <div className="col-9">
                 <CalendarView
                   viewMode={"day"}
                   className="mb-2"
@@ -196,7 +196,7 @@ export default class Home extends Flux.DashView {
                   ToolbarComponent={({ setCurrentDate, currentDate }) => (
                     <div
                       className="text-right"
-                      style={{ position: "absolute", right: 0 }}
+                      style={{ position: "absolute", right: "0" }}
                     >
                       {
                         <Button
@@ -291,11 +291,11 @@ export default class Home extends Flux.DashView {
                           this.props.history.push(
                             "./calendar#start=" +
                               moment(currentDate)
-                                .add(-1, "weeks")
+                                .add(-1, "month")
                                 .format("YYYY-MM-DD") +
                               "&end=" +
                               moment(currentDate)
-                                .add(2, "weeks")
+                                .add(1, "month")
                                 .format("YYYY-MM-DD")
                           )
                         }
