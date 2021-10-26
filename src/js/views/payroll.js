@@ -2909,7 +2909,7 @@ export const SelectTimesheet = ({
           <ul
             className="scroll"
             style={{
-              maxHeight: "600px",
+              maxHeight: "800px",
               overflowY: "auto",
               padding: "10px",
               margin: "-10px",
@@ -2946,8 +2946,9 @@ export const SelectTimesheet = ({
                         p.total_payments > 0 ? "badge-secondary" : "badge-info"
                       }`}
                     >
-                      {totalEmployees(p.payments) +
-                        "Payments: " +
+                      {"Employees: " +
+                        p.employee_count +
+                        " | Payments: " +
                         p.total_payments}{" "}
                     </small>
                   </p>

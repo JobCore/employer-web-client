@@ -441,7 +441,7 @@ class PrivateLayout extends Flux.DashView {
                   searchMe(
                     `payroll-periods`,
                     `?end=${moment().format("YYYY-MM-DD")}&start=${moment()
-                      .subtract(1, "months")
+                      .subtract(3, "months")
                       .format("YYYY-MM-DD")}`
                   ).then((periods) =>
                     this.showRightBar(SelectTimesheet, option, {

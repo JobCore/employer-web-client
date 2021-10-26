@@ -16,26 +16,29 @@ const layoutStyles = (direction) => ({
   overflowY: "auto",
   display: "flex",
   justifyContent: "space-evenly",
-  flexDirection: direction == "horizontal" ? "row" : "column"
+  flexDirection: direction == "horizontal" ? "row" : "column",
 });
-const Layout = ({ direction, children }) => <div style={layoutStyles(direction)}>{children}</div>;
+const Layout = ({ direction, children }) => (
+  <div style={layoutStyles(direction)}>{children}</div>
+);
 Layout.propTypes = {
-    children: PropTypes.node,
-    direction: PropTypes.string
+  children: PropTypes.node,
+  direction: PropTypes.string,
 };
 
 const timeStyles = (props) => ({
-    fontSize: "12px",
-    background: "#b1b1b1"
+  fontSize: "12px",
+  background: "#b1b1b1",
 });
 const Time = (props) => <tr style={timeStyles(props)}>{props.children}</tr>;
 Time.propTypes = {
-    children: PropTypes.node
+  children: PropTypes.node,
 };
 
 const generateAxis = (events, viewMode) => {
   let axis = [];
-  if(typeof(events) !== "object") throw new Error('The events property must be an object');
+  if (typeof events !== "object")
+    throw new Error("The events property must be an object");
 
   for (let key in events) {
     validateEvents(events[key]);
@@ -46,9 +49,9 @@ const generateAxis = (events, viewMode) => {
         e.index = key + i;
         e.blockLevel = null; //Number from 0 to X,  blockLevel avoids visual collition of events, if 2 evens collide they will be at different blockLevels
         e.duration = moment.duration(e.end.diff(e.start)).asMinutes();
-        e.isMultiday = !e.start.isSame(e.end, 'day');
+        e.isMultiday = !e.start.isSame(e.end, "day");
         return e;
-      })
+      }),
     });
   }
 
@@ -56,160 +59,254 @@ const generateAxis = (events, viewMode) => {
 };
 
 const validateEvents = (events) => {
-    const total = events.length;
-    for(let i = 0; i<total; i++){
-        const c = events[i];
-        if(!moment(c.start).isValid()) throw new Error("Every event must have a 'start' property with the starting date of the event");
-        if(!moment(c.end).isValid()) throw new Error("Every event must have a 'end' property with the ending date of the event");
-        if(typeof c.label !== "string" && typeof c.label !== "object" ){
-            console.error(c);
-            throw new Error("Every event must have a label (string)");
-        } 
+  const total = events.length;
+  for (let i = 0; i < total; i++) {
+    const c = events[i];
+    if (!moment(c.start).isValid())
+      throw new Error(
+        "Every event must have a 'start' property with the starting date of the event"
+      );
+    if (!moment(c.end).isValid())
+      throw new Error(
+        "Every event must have a 'end' property with the ending date of the event"
+      );
+    if (typeof c.label !== "string" && typeof c.label !== "object") {
+      console.error(c);
+      throw new Error("Every event must have a label (string)");
     }
-    return true;
+  }
+  return true;
 };
 
 const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
+  //calendar active date
+  const activeDate = rest.activeDate
+    ? rest.activeDate
+    : moment().startOf("day");
 
-    //calendar active date
-    const activeDate = rest.activeDate ? rest.activeDate : moment().startOf("day");
-
-    const [calendarEvents, setCalendarEvents] = useState(null);
-    const [dragMode, setDragMode] = useState(false);
-    const [yAxis, setYAxis] = useState([]);
-    const [direction, setDirection] = useState({
-        days: rest.dayDirection,
-        time: rest.timeDirection
+  const [calendarEvents, setCalendarEvents] = useState(null);
+  const [dragMode, setDragMode] = useState(false);
+  const [yAxis, setYAxis] = useState([]);
+  const [direction, setDirection] = useState({
+    days: rest.dayDirection,
+    time: rest.timeDirection,
+  });
+  if (rest.timeDirection != direction.time)
+    setDirection({
+      days: rest.dayDirection,
+      time: rest.timeDirection,
     });
-    if(rest.timeDirection != direction.time) setDirection({
-        days: rest.dayDirection,
-        time: rest.timeDirection
-    });
-    const previousEventsRef = useRef(events);
+  const previousEventsRef = useRef(events);
 
-    useEffect(() => {
-        if(previousEventsRef.current !== events || calendarEvents === null){
-            previousEventsRef.current = events;
-            if (Array.isArray(events)) {
+  useEffect(() => {
+    if (previousEventsRef.current !== events || calendarEvents === null) {
+      previousEventsRef.current = events;
+      if (Array.isArray(events)) {
+        if (events.length > 0 && typeof events[0].index === "undefined")
+          validateEvents(events);
+        setCalendarEvents(
+          events.map((e, i) => ({
+            index: i,
+            blockLevel: null, // Number from 0 to X, blockLevel avoids visual collition of events, if 2 evens collide they will be at different blockLevels
+            duration: moment.duration(e.end.diff(e.start)).asMinutes(),
+            ...e,
+          }))
+        );
+      } else {
+        //The timeDirection set to horizontal because the events came as an object
+        // if (direction.days !== "vertical" || direction.time !== "horizontal")
+        // setDirection({ days: "vertical", time: "horizontal" });
+        // console.log("Calendar events", events);
+        setYAxis(generateAxis(events));
+      }
+    }
+  }, [events]);
+  const times = [...Array(Math.round((60 * 24) / rest.timeBlockMinutes))].map(
+    (n, i) => {
+      const start = moment()
+        .startOf("day")
+        .add(i * rest.timeBlockMinutes, "minutes");
 
-                if (events.length > 0 && typeof events[0].index === 'undefined')
-                    validateEvents(events);
-                    setCalendarEvents(events.map((e, i) => ({
-                        index: i,
-                        blockLevel: null,  // Number from 0 to X, blockLevel avoids visual collition of events, if 2 evens collide they will be at different blockLevels
-                        duration: moment.duration(e.end.diff(e.start)).asMinutes(),
-                        ...e
-                    })));
-            } else {
-                //The timeDirection set to horizontal because the events came as an object
-                // if (direction.days !== "vertical" || direction.time !== "horizontal")
-                // setDirection({ days: "vertical", time: "horizontal" });
-                // console.log("Calendar events", events);
-                setYAxis(generateAxis(events));
-            }
-        }
+      let end = moment(start).add(rest.timeBlockMinutes, "minutes");
+      return {
+        startTime: start,
+        endTime: end,
+      };
+    }
+  );
 
-    }, [ events ]);
+  const dayTimes = [
+    ...Array(Math.round((60 * 24) / rest.timeBlockMinutes)),
+  ].map((n, i) => {
+    const start = moment()
+      .startOf("day")
+      .add(7, "hour")
+      .add(i * rest.timeBlockMinutes, "minutes");
 
-    const times = [...Array(Math.round((60 * 24) / rest.timeBlockMinutes))].map((n, i) => {
-        const start = moment().startOf("day").add(i * rest.timeBlockMinutes, "minutes");
-        let end = moment(start).add(rest.timeBlockMinutes, "minutes");
-        return {
-            startTime: start,
-            endTime: end
-        };
-    });
+    let end = moment(start).add(rest.timeBlockMinutes, "minutes");
+    return {
+      startTime: start,
+      endTime: end,
+    };
+  });
 
-    const weeksCount = (rest.viewMode === "month" ? daysToShow.length / 7 : 1);
-    if (!daysToShow) return "Loading...";
-    return (
-        <Layout direction={direction.days}>
-            <DndProvider backend={HTML5Backend}>
-                <CalendarContext.Provider
-                    value={{
-                        ...rest,
-                        yAxis,
-                        timeDirection: direction.time,
-                        activeDate,
-                        dragMode,
-                        toggleDragMode: (value=null) => value ? setDragMode(value) : setDragMode(!dragMode),
-                        updateEvent: uEv => {
-                            const newEvents = yAxis.length === 0 ?
-                                calendarEvents.map(e => e.index === uEv.index ? { ...e, ...uEv } : e)
-                                :
-                                (() => {
-                                    let newEvents = {};
-                                    yAxis.forEach(key => {
-                                        newEvents[key.label] = key.events.map(e => e.index === uEv.index ? { ...e, ...uEv } : e);
-                                    });
-                                    return newEvents;
-                                })();
-                            //console.log("Update event", uEv);
-                            if (onChange) onChange(uEv);
-                            else{
-                                setCalendarEvents(newEvents);
-                                setYAxis(generateAxis(newEvents));
-                            }
-                        }
-                }}>
-                    {Array.isArray(calendarEvents) ? (
-                        <div className="vertical-day"><DayBlock timesToShow={times} days={daysToShow} events={calendarEvents} /></div>)
-                        :
-                        (<div>
-                            {/* Show the day labelS */}
+  const weeksCount = rest.viewMode === "month" ? daysToShow.length / 7 : 1;
+  if (!daysToShow) return "Loading...";
+  return (
+    <Layout direction={direction.days}>
+      <DndProvider backend={HTML5Backend}>
+        <CalendarContext.Provider
+          value={{
+            ...rest,
+            yAxis,
+            timeDirection: direction.time,
+            activeDate,
+            dragMode,
+            toggleDragMode: (value = null) =>
+              value ? setDragMode(value) : setDragMode(!dragMode),
+            updateEvent: (uEv) => {
+              const newEvents =
+                yAxis.length === 0
+                  ? calendarEvents.map((e) =>
+                      e.index === uEv.index ? { ...e, ...uEv } : e
+                    )
+                  : (() => {
+                      let newEvents = {};
+                      yAxis.forEach((key) => {
+                        newEvents[key.label] = key.events.map((e) =>
+                          e.index === uEv.index ? { ...e, ...uEv } : e
+                        );
+                      });
+                      return newEvents;
+                    })();
+              //console.log("Update event", uEv);
+              if (onChange) onChange(uEv);
+              else {
+                setCalendarEvents(newEvents);
+                setYAxis(generateAxis(newEvents));
+              }
+            },
+          }}
+        >
+          {Array.isArray(calendarEvents) ? (
+            <div className="vertical-day">
+              <DayBlock
+                timesToShow={dayTimes}
+                days={daysToShow}
+                events={calendarEvents}
+              />
+            </div>
+          ) : (
+            <div>
+              {/* Show the day labelS */}
 
-                            {  rest.dayHeader && <div className="d-flex" style={{ padding: rest.viewMode === "month" ? 0 : `0 0 0 ${rest.yAxisWidth}px`}}>
-                                    {daysToShow.filter((d,i) => i < 7).map((d,i) =>
-                                        <div style={{ flexGrow: 1 }} key={i}>
-                                            {rest.dayHeader(d, moment(activeDate).add(1, "day").isSame(d))}
-                                        </div>
-                                    )}
-                                </div>
-                            }
-                            <table style={{
-                                    borderLeft: "1px solid #b1b1b1", width: rest.viewMode === "day" ? ((60 * 24) / rest.timeBlockMinutes * rest.blockPixelSize) + 2 : `calc(100%)`,
-                                    display: rest.viewMode === "day" ? "block" : "inline-table",
-                                    ...rest.tableStyles
-                            }}>
-                                {/* Build the header with the times */}
-                                { rest.viewMode === "day" &&
-                                    <Time yAxisWidth={rest.yAxisWidth} width={(60 * 24) / rest.timeBlockMinutes * rest.blockPixelSize}>
-                                        <td colSpan={2} style={{padding: `0 0 0 ${rest.yAxisWidth}px`}}>
-                                            {times.map((t, i) =>
-                                                <div className="time_header" key={i} style={{
-                                                    width: rest.blockPixelSize+"px",
-                                                    display: "inline-block",
-                                                    listStyle: "none"
-                                                }}>
-                                                    {t.startTime.minutes() === 0 && t.startTime.format('ha')}
-                                                </div>
-                                            )}
-                                        </td>
-                                    </Time>
-                                }
-
-                                { Array.apply(null, Array(weeksCount)).map((x,weekNumber) => {
-
-                                    const showFrom = weekNumber * 7;
-                                    const showTo = showFrom + 7;
-                                    const totalDays = daysToShow.length;
-
-                                    return <HorizontalDay
-                                        key={weekNumber}
-                                        days={daysToShow.slice(showFrom, totalDays < showTo ? totalDays : showTo)}
-                                        timesToShow={times}
-                                        events={calendarEvents}
-                                        yAxis={rest.viewMode !== "month" ? yAxis : [yAxis.reduce((axis, current) => Object.assign(axis, { events: axis.events.concat(current.events) }), { events: [] })]}
-                                        width={(60 * 24) / rest.timeBlockMinutes * rest.blockPixelSize + 0.5}
-                                    />;
-                                })}
-                            </table>
+              {rest.dayHeader && (
+                <div
+                  className="d-flex"
+                  style={{
+                    padding:
+                      rest.viewMode === "month"
+                        ? 0
+                        : `0 0 0 ${rest.yAxisWidth}px`,
+                  }}
+                >
+                  {daysToShow
+                    .filter((d, i) => i < 7)
+                    .map((d, i) => (
+                      <div style={{ flexGrow: 1 }} key={i}>
+                        {rest.dayHeader(
+                          d,
+                          moment(activeDate).add(1, "day").isSame(d)
+                        )}
+                      </div>
+                    ))}
+                </div>
+              )}
+              <table
+                style={{
+                  borderLeft: "1px solid #b1b1b1",
+                  width:
+                    rest.viewMode === "day"
+                      ? ((60 * 24) / rest.timeBlockMinutes) *
+                          rest.blockPixelSize +
+                        2
+                      : `calc(100%)`,
+                  display: rest.viewMode === "day" ? "block" : "inline-table",
+                  ...rest.tableStyles,
+                }}
+              >
+                {/* Build the header with the times */}
+                {rest.viewMode === "day" && (
+                  <Time
+                    yAxisWidth={rest.yAxisWidth}
+                    width={
+                      ((60 * 24) / rest.timeBlockMinutes) * rest.blockPixelSize
+                    }
+                  >
+                    <td
+                      colSpan={2}
+                      style={{ padding: `0 0 0 ${rest.yAxisWidth}px` }}
+                    >
+                      {dayTimes.map((t, i) => (
+                        <div
+                          className="time_header"
+                          key={i}
+                          style={{
+                            width: rest.blockPixelSize + "px",
+                            display: "inline-block",
+                            listStyle: "none",
+                          }}
+                        >
+                          {t.startTime.minutes() === 0 &&
+                            t.startTime.format("ha")}
                         </div>
-                    )}
-                </CalendarContext.Provider>
-            </DndProvider>
-        </Layout>
-    );
+                      ))}
+                    </td>
+                  </Time>
+                )}
+
+                {Array.apply(null, Array(weeksCount)).map((x, weekNumber) => {
+                  const showFrom = weekNumber * 7;
+                  const showTo = showFrom + 7;
+                  const totalDays = daysToShow.length;
+                  var timesToShow = rest.viewMode === "day" ? dayTimes : times;
+                  return (
+                    <HorizontalDay
+                      key={weekNumber}
+                      days={daysToShow.slice(
+                        showFrom,
+                        totalDays < showTo ? totalDays : showTo
+                      )}
+                      timesToShow={timesToShow}
+                      events={calendarEvents}
+                      yAxis={
+                        rest.viewMode !== "month"
+                          ? yAxis
+                          : [
+                              yAxis.reduce(
+                                (axis, current) =>
+                                  Object.assign(axis, {
+                                    events: axis.events.concat(current.events),
+                                  }),
+                                { events: [] }
+                              ),
+                            ]
+                      }
+                      width={
+                        ((60 * 24) / rest.timeBlockMinutes) *
+                          rest.blockPixelSize +
+                        0.5
+                      }
+                    ></HorizontalDay>
+                  );
+                })}
+              </table>
+            </div>
+          )}
+        </CalendarContext.Provider>
+      </DndProvider>
+    </Layout>
+  );
 };
 
 Calendar.propTypes = {
@@ -218,13 +315,10 @@ Calendar.propTypes = {
   blockPixelSize: PropTypes.number,
   onChange: PropTypes.func,
   allowResize: PropTypes.bool,
-  blockHoverIcon: PropTypes.oneOfType([
-    PropTypes.func,
-    PropTypes.node
-  ]),
+  blockHoverIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
   showLeftSidebar: PropTypes.bool,
   daysToShow: PropTypes.array,
-  viewMode: PropTypes.oneOf(['day', 'week', 'month']),
+  viewMode: PropTypes.oneOf(["day", "week", "month"]),
   activeDate: PropTypes.object,
   eventOffset: PropTypes.number, //small margin to separete event from the edge (it makes easier drag&droping on ver busy schedules)
   events: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),
@@ -234,18 +328,12 @@ Calendar.propTypes = {
   showFrom: PropTypes.number,
   showUntil: PropTypes.number,
   blockHeight: PropTypes.number,
-  blockLabel: PropTypes.oneOfType([
-    PropTypes.func,
-    PropTypes.node
-  ]),
-  dayLabel: PropTypes.oneOfType([
-    PropTypes.func,
-    PropTypes.node
-  ]),
+  blockLabel: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
+  dayLabel: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
   timeBlockStyles: PropTypes.object,
   tableStyles: PropTypes.object,
-  dayBlockStyles: PropTypes.object
+  dayBlockStyles: PropTypes.object,
 };
 
 Calendar.defaultProps = {
@@ -271,7 +359,7 @@ Calendar.defaultProps = {
   blockHeight: 30,
   timeBlockStyles: {},
   dayBlockStyles: {},
-  tableStyles: {}
+  tableStyles: {},
 };
 
 export default Calendar;
