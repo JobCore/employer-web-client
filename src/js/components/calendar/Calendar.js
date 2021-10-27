@@ -191,7 +191,7 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
           {Array.isArray(calendarEvents) ? (
             <div className="vertical-day">
               <DayBlock
-                timesToShow={dayTimes}
+                timesToShow={times}
                 days={daysToShow}
                 events={calendarEvents}
               />
@@ -247,7 +247,7 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
                       colSpan={2}
                       style={{ padding: `0 0 0 ${rest.yAxisWidth}px` }}
                     >
-                      {dayTimes.map((t, i) => (
+                      {times.map((t, i) => (
                         <div
                           className="time_header"
                           key={i}
@@ -269,7 +269,7 @@ const Calendar = ({ daysToShow, events, onChange, ...rest }) => {
                   const showFrom = weekNumber * 7;
                   const showTo = showFrom + 7;
                   const totalDays = daysToShow.length;
-                  var timesToShow = rest.viewMode === "day" ? dayTimes : times;
+                  var timesToShow = times;
                   return (
                     <HorizontalDay
                       key={weekNumber}
