@@ -450,6 +450,7 @@ export class PayrollSettings extends Flux.DashView {
     let nextDate = this.state.employer.payroll_period_starting_time.clone();
     while (nextDate.isBefore(NOW())) nextDate = nextDate.add(7, "days");
 
+    console.log("etait", this.state);
     return (
       <Theme.Consumer>
         {({ bar }) => (
