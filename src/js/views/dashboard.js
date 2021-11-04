@@ -134,7 +134,9 @@ export default class Home extends Flux.DashView {
 
   render() {
     const today = moment();
+
     let shifts = this.state.shifts;
+
     let todayShifts =
       (Array.isArray(shifts) &&
         shifts.length > 0 &&
@@ -166,6 +168,10 @@ export default class Home extends Flux.DashView {
           (today.isSame(e.starting_at, "day") ||
             today.isSame(e.ending_at, "day"))
       ).length;
+
+    // var friday = now.clone().weekday(5);
+
+    // var isNowWeekday = now.isBetween(monday, friday, null, "[]");
 
     return (
       <Theme.Consumer>
@@ -386,6 +392,7 @@ export default class Home extends Flux.DashView {
                     </div>
                   </div>
                 </div>
+
                 <div id="draft_shifts">
                   <DashboardBox
                     id="draft_shift"

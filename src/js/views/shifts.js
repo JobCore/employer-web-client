@@ -1130,6 +1130,7 @@ const EditOrAddShift = ({
   });
   const [multipleRecurrentShift, setMultipleRecurrentShift] = useState([]);
   const [previousShifts, setPreviousShifts] = useState([]);
+  const [totalHoursEmployeeWeek, settotalHoursEmployeeWeek] = useState(null);
 
   const setDescriptionContent = (description) => {
     description.length > 300
@@ -1220,15 +1221,39 @@ const EditOrAddShift = ({
   };
   async function getPreviousShift(emp) {
     let response = await GET(
-      "employers/me/shifts?employee=" + emp + "&limit=10"
-    ).then((res) =>
-      res.filter(
+      "employers/me/shifts?employee=" + emp + "&limit=15"
+    ).then((res) => {
+      const previous_shifts = res.filter(
         (v, i, a) =>
           a.findIndex((t) => t.position.id === v.position.id) === i &&
           v.position.id == parseInt(formData.position)
-      )
-    );
-    setPreviousShifts(response);
+      );
+
+      var start_payroll = moment().clone().weekday(1);
+      var end_payroll = moment(start_payroll).add(6, "days");
+      const payrollWeekShifts =
+        res.filter((e) =>
+          moment(e.starting_at).isBetween(
+            start_payroll,
+            end_payroll,
+            "day",
+            "[]"
+          )
+        ) || [];
+
+      const scheduleHours = payrollWeekShifts.reduce(
+        (total, { starting_at, ending_at }) =>
+          total +
+          moment
+            .duration(moment(ending_at).diff(moment(starting_at)))
+            .asHours(),
+        0
+      );
+
+      setPreviousShifts(previous_shifts);
+      settotalHoursEmployeeWeek(scheduleHours);
+    });
+
     return response;
   }
 
@@ -1265,6 +1290,7 @@ const EditOrAddShift = ({
       .value.toString();
   if (formData.employer && isNaN(formData.employer))
     formData.employer = formData.employer.id;
+
   if (!formData.shift && !isNaN(formData.id)) formData.shift = formData.id;
   if (formData.required_badges) delete formData.required_badges;
   if (description) formData.description = description;
@@ -2663,6 +2689,14 @@ const EditOrAddShift = ({
             </div>
           ) : (
             ""
+          )}
+
+          {totalHoursEmployeeWeek && (
+            <div className="alert alert-warning mt-3" role="alert">
+              <span>This employee have</span>{" "}
+              <strong>{totalHoursEmployeeWeek + "/40 hours "}</strong>
+              <span>scheduled on this weeks payroll</span>
+            </div>
           )}
           <div className="btn-bar">
             {formData.status == "DRAFT" || formData.status == "UNDEFINED" ? ( // create shift
