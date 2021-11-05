@@ -2647,7 +2647,10 @@ const EditOrAddShift = ({
                         formData.position
                       ) {
                         getPreviousShift(formData.pending_invites[0].value);
-                      } else setPreviousShifts([]);
+                      } else {
+                        setPreviousShifts([]);
+                        settotalHoursEmployeeWeek(null);
+                      }
                     }}
                     searchFunction={(search) =>
                       new Promise((resolve, reject) =>
@@ -2691,13 +2694,15 @@ const EditOrAddShift = ({
             ""
           )}
 
-          {totalHoursEmployeeWeek && (
+          {totalHoursEmployeeWeek ? (
             <div className="alert alert-warning mt-3" role="alert">
               <span>This employee have</span>{" "}
-              <strong>{totalHoursEmployeeWeek + "/40 hours "}</strong>
+              <strong>
+                {Math.round(totalHoursEmployeeWeek * 100) / 100 + "/40 hours "}
+              </strong>
               <span>scheduled on this weeks payroll</span>
             </div>
-          )}
+          ) : null}
           <div className="btn-bar">
             {formData.status == "DRAFT" || formData.status == "UNDEFINED" ? ( // create shift
               <button
