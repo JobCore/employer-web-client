@@ -4440,15 +4440,18 @@ export class PayrollReport extends Flux.DashView {
           position: z.shift.position.title,
           hourly_rate: parseFloat(z.hourly_rate),
           hours: parseFloat(z.over_time) + parseFloat(z.regular_hours),
+          status: z.status,
         }));
 
-      const output = s.reduce((accumulator, cur) => {
-        let hr = cur.hourly_rate;
-        let found = accumulator.find((elem) => elem.hourly_rate === hr);
-        if (found) found.hours += cur.hours;
-        else accumulator.push(cur);
-        return accumulator;
-      }, []);
+      const output = s
+        .filter((e) => e.status == "APPROVED")
+        .reduce((accumulator, cur) => {
+          let hr = cur.hourly_rate;
+          let found = accumulator.find((elem) => elem.hourly_rate === hr);
+          if (found) found.hours += cur.hours;
+          else accumulator.push(cur);
+          return accumulator;
+        }, []);
 
       return (
         <table
@@ -4619,7 +4622,7 @@ export class PayrollReport extends Flux.DashView {
                         <th scope="col"></th>
                         <th scope="col">Over Time</th>
                         <th scope="col">Total Hrs</th>
-                        <th scope="col">Pay Rate</th>
+                        {/* <th scope="col">Pay Rate</th> */}
                         <th scope="col">Earnings</th>
                         <th scope="col">Federal Withholding</th>
                         <th scope="col">Social Security</th>
@@ -4749,7 +4752,7 @@ export class PayrollReport extends Flux.DashView {
                                     100
                                 ) / 100}
                               </td>
-                              <td>{"$" + Math.floor(payRate * 100) / 100}</td>
+                              {/* <td>{"$" + Math.floor(payRate * 100) / 100}</td> */}
                               <td>{pay.earnings}</td>
                               <td>
                                 {pay.deduction_list.find(
