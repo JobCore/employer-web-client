@@ -1623,19 +1623,6 @@ export const PayrollPeriodDetails = ({ match, history }) => {
 
   return (
     <div className="p-1 listcontents">
-      {/* {open && (
-        <div className="modal d-block show fade" id="exampleModalCenter" tabIndex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-            <div className="modal-dialog modal-dialog-centered" role="document">
-                <div className="modal-content">
-                    <iframe src={form || 'http://www.africau.edu/images/default/sample.pdf'} style={{width: "800px", height:"900px"}} frameBorder="0"></iframe>
-
-            
-                </div>
-            </div>
-        </div>
-
-        )} */}
-
       <div
         className="modal fade"
         id="exampleModalCenter"
@@ -1909,111 +1896,107 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {pay.payments
-                    .sort((a, b) =>
-                      a.shift.starting_at.localeCompare(b.shift.starting_at)
-                    )
-                    .map((p) => (
-                      <PaymentRow
-                        key={p.id}
-                        payment={p}
-                        period={period}
-                        employee={pay.employee}
-                        readOnly={p.status !== "PENDING" && p.status !== "NEW"}
-                        onApprove={(payment) => {
-                          p.status !== "NEW"
-                            ? update("payment", {
-                                ...payment,
-                                status: "APPROVED",
-                                employee: p.employee.id || p.employee,
-                                shift: payment.shift
-                                  ? payment.shift.id
-                                  : p.shift.id,
-                                id: p.id,
-                              }).then((_payment) =>
-                                setPayments(
-                                  payments.map((_pay) =>
-                                    _pay.id !== p.id
-                                      ? _pay
-                                      : {
-                                          ..._pay,
-                                          status: "APPROVED",
-                                          breaktime_minutes:
-                                            payment.breaktime_minutes,
-                                          over_time: payment.over_time,
-                                          regular_hours: payment.regular_hours,
-                                        }
-                                  )
-                                )
-                              )
-                            : create("payment", {
-                                ...payment,
-                                status: "APPROVED",
-                                employee: p.employee.id || p.employee,
-                                shift: payment.shift
-                                  ? payment.shift.id
-                                  : p.shift.id,
-                                payroll_period: period.id,
-                                id: p.id,
-                              }).then((_payment) =>
-                                setPayments(
-                                  payments.map((_pay) =>
-                                    _pay.id !== payment.id
-                                      ? _pay
-                                      : {
-                                          ...payment,
-                                          status: "APPROVED",
-                                          employee: _pay.employee,
-                                          over_time: payment.over_time,
-                                          breaktime_minutes:
-                                            payment.breaktime_minutes,
-                                          hourly_rate:
-                                            payment.shift.minimum_hourly_rate,
-                                          shift: payment.shift,
-                                          regular_hours: payment.regular_hours,
-                                          id: p.id || _pay.id || _payment.id,
-                                        }
-                                  )
-                                )
-                              );
-                        }}
-                        onUndo={(payment) =>
-                          update("payment", {
-                            status: "PENDING",
-                            id: p.id,
-                          }).then((_payment) =>
-                            setPayments(
-                              payments.map((_pay) =>
-                                _pay.id !== payment.id
-                                  ? _pay
-                                  : { ..._pay, status: "PENDING" }
-                              )
-                            )
-                          )
-                        }
-                        onReject={(payment) => {
-                          if (p.id === undefined)
-                            setPayments(
-                              payments.filter(
-                                (_pay) => _pay.id !== undefined && _pay.id
-                              )
-                            );
-                          else
-                            update("payment", {
+                  {pay.payments.map((p) => (
+                    <PaymentRow
+                      key={p.id}
+                      payment={p}
+                      period={period}
+                      employee={pay.employee}
+                      readOnly={p.status !== "PENDING" && p.status !== "NEW"}
+                      onApprove={(payment) => {
+                        p.status !== "NEW"
+                          ? update("payment", {
+                              ...payment,
+                              status: "APPROVED",
+                              employee: p.employee.id || p.employee,
+                              shift: payment.shift
+                                ? payment.shift.id
+                                : p.shift.id,
                               id: p.id,
-                              status: "REJECTED",
                             }).then((_payment) =>
                               setPayments(
                                 payments.map((_pay) =>
-                                  _pay.id !== _payment.id
+                                  _pay.id !== p.id
                                     ? _pay
-                                    : { ..._pay, status: "REJECTED" }
+                                    : {
+                                        ..._pay,
+                                        status: "APPROVED",
+                                        breaktime_minutes:
+                                          payment.breaktime_minutes,
+                                        over_time: payment.over_time,
+                                        regular_hours: payment.regular_hours,
+                                      }
+                                )
+                              )
+                            )
+                          : create("payment", {
+                              ...payment,
+                              status: "APPROVED",
+                              employee: p.employee.id || p.employee,
+                              shift: payment.shift
+                                ? payment.shift.id
+                                : p.shift.id,
+                              payroll_period: period.id,
+                              id: p.id,
+                            }).then((_payment) =>
+                              setPayments(
+                                payments.map((_pay) =>
+                                  _pay.id !== payment.id
+                                    ? _pay
+                                    : {
+                                        ...payment,
+                                        status: "APPROVED",
+                                        employee: _pay.employee,
+                                        over_time: payment.over_time,
+                                        breaktime_minutes:
+                                          payment.breaktime_minutes,
+                                        hourly_rate:
+                                          payment.shift.minimum_hourly_rate,
+                                        shift: payment.shift,
+                                        regular_hours: payment.regular_hours,
+                                        id: p.id || _pay.id || _payment.id,
+                                      }
                                 )
                               )
                             );
-                        }}
-                      />
-                    ))}
+                      }}
+                      onUndo={(payment) =>
+                        update("payment", {
+                          status: "PENDING",
+                          id: p.id,
+                        }).then((_payment) =>
+                          setPayments(
+                            payments.map((_pay) =>
+                              _pay.id !== payment.id
+                                ? _pay
+                                : { ..._pay, status: "PENDING" }
+                            )
+                          )
+                        )
+                      }
+                      onReject={(payment) => {
+                        if (p.id === undefined)
+                          setPayments(
+                            payments.filter(
+                              (_pay) => _pay.id !== undefined && _pay.id
+                            )
+                          );
+                        else
+                          update("payment", {
+                            id: p.id,
+                            status: "REJECTED",
+                          }).then((_payment) =>
+                            setPayments(
+                              payments.map((_pay) =>
+                                _pay.id !== _payment.id
+                                  ? _pay
+                                  : { ..._pay, status: "REJECTED" }
+                              )
+                            )
+                          );
+                      }}
+                    />
+                  ))}
                   <tr>
                     <td colSpan={5}>
                       {period.status === "OPEN" && pay.employee.id !== "new" && (
