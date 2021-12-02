@@ -1896,7 +1896,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {pay.payments.sort().map((p) => (
+                  {pay.payments.map((p) => (
                     <PaymentRow
                       key={p.id}
                       payment={p}
