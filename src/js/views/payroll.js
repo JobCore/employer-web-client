@@ -450,7 +450,6 @@ export class PayrollSettings extends Flux.DashView {
     let nextDate = this.state.employer.payroll_period_starting_time.clone();
     while (nextDate.isBefore(NOW())) nextDate = nextDate.add(7, "days");
 
-    console.log("etait", this.state);
     return (
       <Theme.Consumer>
         {({ bar }) => (
@@ -4617,7 +4616,7 @@ export class PayrollReport extends Flux.DashView {
                         <th scope="col"></th>
                         <th scope="col">Over Time</th>
                         <th scope="col">Total Hrs</th>
-                        {/* <th scope="col">Pay Rate</th> */}
+                        <th scope="col">Pay Rate</th>
                         <th scope="col">Earnings</th>
                         <th scope="col">Federal Withholding</th>
                         <th scope="col">Social Security</th>
@@ -4642,7 +4641,15 @@ export class PayrollReport extends Flux.DashView {
                                 Number(pay.over_time)) *
                                 100
                             ) / 100;
-                          const payRate = pay.earnings / totalHour;
+                          var payRate;
+
+                          if (totalHour > 40) {
+                            payRate = (
+                              pay.earnings /
+                              (40 + (totalHour - 40) * 1.5)
+                            ).toFixed(2);
+                          } else
+                            payRate = (pay.earnings / totalHour).toFixed(2);
                           return (
                             <tr key={pay.employee.id}>
                               <td className="text-left">
@@ -4747,7 +4754,7 @@ export class PayrollReport extends Flux.DashView {
                                     100
                                 ) / 100}
                               </td>
-                              {/* <td>{"$" + Math.floor(payRate * 100) / 100}</td> */}
+                              <td>{"$" + Math.floor(payRate * 100) / 100}</td>
                               <td>{pay.earnings}</td>
                               <td>
                                 {pay.deduction_list.find(
