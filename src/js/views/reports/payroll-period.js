@@ -177,7 +177,14 @@ const PayrollPeriodReport = ({ period, employer, payments }) => {
                   (parseFloat(pay.regular_hours) + parseFloat(pay.over_time)) *
                     100
                 ) / 100;
-              const payRate = pay.earnings / totalHour;
+              var payRate;
+
+              if (totalHour > 40) {
+                payRate = (
+                  pay.earnings /
+                  (40 + (totalHour - 40) * 1.5)
+                ).toFixed(2);
+              } else payRate = (pay.earnings / totalHour).toFixed(2);
               return (
                 <View key={pay.employee.id} style={styles.tableRow}>
                   <View style={styles.tableCol1}>
