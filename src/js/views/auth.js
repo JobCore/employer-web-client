@@ -240,6 +240,7 @@ export class Signup extends React.Component {
   constructor(props) {
     super(props);
     const urlVariables = qs.parse(props.location.search);
+
     this.state = {
       email: urlVariables.email || "",
       password: "",
