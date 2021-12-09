@@ -2131,7 +2131,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                 )
                   .then((res) => {
                     if (res) {
-                      history.push("/payroll/rating/" + period.id);
+                      history.push("/payroll/report/" + period.id);
                     }
                   })
                   .catch((e) => Notify.error(e.message || e));
