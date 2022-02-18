@@ -71,6 +71,8 @@
     "@fortawesome/free-solid-svg-icons": "^5.15.3",
     "@fortawesome/react-fontawesome": "^0.1.14",
     "@react-pdf/renderer": "^1.6.8",
+    "@stripe/react-stripe-js": "^1.7.0",
+    "@stripe/stripe-js": "^1.23.0",
     "babel-preset-es2015": "^6.24.1",
     "bc-react-calendar": "^1.0.39",
     "bc-react-notifier": "^1.1.6",
