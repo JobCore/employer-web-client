@@ -12,10 +12,10 @@
   "homepage": "http://localhost:3000/checkout",
   "proxy": "http://localhost:4242",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "stripestart": "react-scripts start",
+    "stripebuild": "react-scripts build",
+    "stripetest": "react-scripts test",
+    "stripeeject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": "react-app"

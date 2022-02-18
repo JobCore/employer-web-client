@@ -27,7 +27,7 @@ npm install
 4. Run the client app
 
 ~~~
-npm start
+npm run stripestart
 ~~~
 
 5. Go to [http://localhost:3000/checkout](http://localhost:3000/checkout)

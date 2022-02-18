@@ -11,7 +11,8 @@ module.exports = merge(common, {
     //publicPath: '/',
     hot: true,
     disableHostCheck: true,
-    historyApiFallback: true
+    historyApiFallback: true,
+    
   },
   output: {
     filename: 'bundle.js',
