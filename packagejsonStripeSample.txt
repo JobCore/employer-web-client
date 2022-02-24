@@ -6,16 +6,25 @@
   "engines": {
     "node": "14.x"
   },
+  "homepage": "http://localhost:3000/checkout",
+  "proxy": "http://localhost:4242",
   "scripts": {
-    "start": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
-    "start:gitpod": "API_HOST=https://8000-c50c6f93-a9bc-4720-bd98-2493535a5067.ws-us17.gitpod.io bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
-    "start:dev": "API_HOST=https://jobcore-test.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
-    "start:prod": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
-    "build": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack --config webpack.prod.js'",
-    "build:dev": "API_HOST=https://jobcore-test.herokuapp.com bash -c 'webpack --config webpack.dev.js'",
-    "deploy:test": "now --target staging -b [API_HOST=https://jobcore-test.herokuapp.com]",
-    "deploy": "now --prod -b [API_HOST=https://jobcore.herokuapp.com]",
-    "start:isratest": "API_HOST=https://8000-lavender-alligator-jdqsikyc39p.ws-us33.gitpod.io bash -c 'webpack-dev-server  --config webpack.dev.js --open'"
+    "stripestart": "react-scripts start",
+    "stripebuild": "react-scripts build",
+    "stripetest": "react-scripts test",
+    "stripeeject": "react-scripts eject"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   },
   "author": "",
   "license": "ISC",
@@ -35,6 +44,7 @@
     "css-loader": "^0.28.11",
     "dotenv-webpack": "^1.5.7",
     "eslint": "^4.19.1",
+    // "eslint-loader": "^2.0.0",
     "eslint-plugin-react": "^7.7.0",
     "file-loader": "^1.1.11",
     "html-loader": "^0.5.5",
@@ -123,5 +133,15 @@
     "underscore": "^1.9.1",
     "url-loader": "^4.1.1",
     "validator": "^10.4.0"
+  },
+  "scrip2": {
+    "start": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
+    "start:gitpod": "API_HOST=https://8000-c50c6f93-a9bc-4720-bd98-2493535a5067.ws-us17.gitpod.io bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
+    "start:dev": "API_HOST=https://jobcore-test.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
+    "start:prod": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
+    "build": "API_HOST=https://jobcore.herokuapp.com bash -c 'webpack --config webpack.prod.js'",
+    "build:dev": "API_HOST=https://jobcore-test.herokuapp.com bash -c 'webpack --config webpack.dev.js'",
+    "deploy:test": "now --target staging -b [API_HOST=https://jobcore-test.herokuapp.com]",
+    "deploy": "now --prod -b [API_HOST=https://jobcore.herokuapp.com]"
   }
 }

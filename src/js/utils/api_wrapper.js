@@ -62,6 +62,7 @@ const appendCompany = (data) => {
  */
 export const GET = async (endpoint, queryString = null, extraHeaders = {}) => {
   let url = `${rootAPIendpoint}/${endpoint}`;
+  console.log("GET###")
   if (queryString) url += queryString;
 
   HEADERS['Authorization'] = `JWT ${getToken()}`;
@@ -83,15 +84,17 @@ export const GET = async (endpoint, queryString = null, extraHeaders = {}) => {
 };
 
 export const POST = (endpoint, postData, extraHeaders = {}) => {
-
+  console.log("POST###")
   if (['user/register', 'login', 'user/password/reset','employers/me/jobcore-invites'].indexOf(endpoint) == -1) {
     HEADERS['Authorization'] = `JWT ${getToken()}`;
     postData = appendCompany(postData);
   }
+  
   const REQ = {
     method: 'POST',
     headers: Object.assign(HEADERS, extraHeaders),
-    body: JSON.stringify(postData)
+    body: JSON.stringify(postData),
+    // mode: 'no-cors'
   };
 
   const req = new Promise((resolve, reject) => fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
@@ -102,12 +105,21 @@ export const POST = (endpoint, postData, extraHeaders = {}) => {
       reject(err);
     })
   );
+
+//   const req = new Promise((resolve, reject) => {
+//     const loadData = async () => {
+//       const res = await fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
+//       const data = await res.json();
+//     }
+//     loadData();
+// });
+
   PendingReq.add(req);
   return req;
 };
 
 export const PUTFiles = (endpoint, files) => {
-
+  console.log("PUTfiles###")
   const headers = {
     'Authorization': `JWT ${getToken()}`
   };
@@ -135,7 +147,7 @@ export const PUTFiles = (endpoint, files) => {
 };
 
 export const PUT = (endpoint, putData, extraHeaders = {}) => {
-
+  console.log("PUT###")
   if (['register', 'login','user/password/reset'].indexOf(endpoint) == -1) {
     HEADERS['Authorization'] = `JWT ${getToken()}`;
   }
@@ -159,7 +171,7 @@ export const PUT = (endpoint, putData, extraHeaders = {}) => {
 };
 
 export const DELETE = (endpoint, extraHeaders = {}) => {
-
+  console.log("DELETE###")
   HEADERS['Authorization'] = `JWT ${getToken()}`;
 
   const REQ = {
@@ -180,6 +192,7 @@ export const DELETE = (endpoint, extraHeaders = {}) => {
 };
 
 const processResp = function (resp, req = null) {
+  console.log(resp)
   PendingReq.remove(req);
   if (resp.ok) {
     if (resp.status == 204) return new Promise((resolve, reject) => resolve(true));

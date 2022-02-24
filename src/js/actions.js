@@ -1,11 +1,12 @@
 import React from "react";
+import { useHistory } from 'react-router-dom';
 import Flux from "@4geeksacademy/react-flux-dash";
 import { Session } from "bc-react-session";
 import { Notify } from "bc-react-notifier";
 import { Shift } from "./views/shifts.js";
 import { Talent } from "./views/talents.js";
 import { Rating } from "./views/ratings.js";
-
+import { useNavigate } from "react-router-dom";
 import { Invite } from "./views/invites.js";
 import { Clockin, PayrollPeriod } from "./views/payroll.js";
 import moment from "moment";
@@ -57,15 +58,18 @@ export const autoLogin = (token = "") => {
   );
 };
 
-export const login = (email, password, keep, history, id) =>
-  new Promise((resolve, reject) =>
+export const login = (email, password, keep, history, id) => {
+console.log("entrando a login#######")
+console.log("history#######", history)
+// console.log("data#######", data)
+new Promise((resolve, reject) =>
     POST("login", {
       username_or_email: email,
       password: password,
       // employer_id: Number(id),
       exp_days: keep ? 30 : 1,
     })
-      .then(function (data) {
+      .then(function (data) { 
         // if (Number(data.user.profile.employer) != Number(id)) {
 
         //     let company = data.user.profile.other_employers.find(emp => emp.employer == Number(id) );
@@ -80,6 +84,7 @@ export const login = (email, password, keep, history, id) =>
         //     history.push('/');
         //     resolve();
         // }
+        console.log("login data post###", data)
         if (!data.user.profile.employer) {
           Notify.error(
             "Only employers are allowed to login into this application"
@@ -109,8 +114,11 @@ export const login = (email, password, keep, history, id) =>
         reject(error.message || error);
         Notify.error(error.message || error);
         log.error(error);
+        
       })
   );
+}
+
 
 export const signup = (formData, history) =>
   new Promise((resolve, reject) =>
@@ -620,22 +628,32 @@ export const updateProfileMe = (data) => {
 };
 
 export const createSubscription = (data, history) => {
+  console.log("entrando a createSubscription#######")
+  
+  console.log("data#######", data)
+  
+  console.log("history#######", history)
   const employer = store.getState("current_employer");
-  POST(`employers/me/subscription`, data)
-    .then(function (active_subscription) {
-      Flux.dispatchEvent("current_employer", {
-        ...employer,
-        active_subscription,
-      });
-      Notify.success("The subscription was created successfully");
-      history.push("/home");
-    })
-    .catch(function (error) {
-      console.log("ERROR", error);
-      Notify.error(error.message || error);
-      log.error(error);
-    });
+  
+    POST(`employers/me/subscription`, data)
+      .then(function (active_subscription) {
+        
+        Flux.dispatchEvent("current_employer", {
+          ...employer,
+          active_subscription,
+        });
+        Notify.success("The subscription was created successfully");
+        history.push("/home")
+       
+      })
+      .catch(function (error) {
+        console.log("ERROR", error);
+        Notify.error(error.message || error);
+        log.error(error);
+      })
+  
 };
+
 
 export const updateSubscription = (data, history) => {
   const employer = store.getState("current_employer");

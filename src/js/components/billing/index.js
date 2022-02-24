@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import PropTypes from 'prop-types';
 import * as actions from '../../actions';
 import {Notify,Notifier} from 'bc-react-notifier';
-
+import { Session } from "bc-react-session";
 import {
   Button,
   Card,
@@ -30,10 +30,12 @@ import PageHeader from "./PageHeader";
 import FaqCol from "./faq/FaqCol";
 import { isIterableArray } from "./faq/IterableAray";
 import fontawesome from '@fortawesome/fontawesome';
-
+import { useHistory } from 'react-router-dom';
 import countries from "./data-countries";
 import { faCircle, faQuestionCircle } from '@fortawesome/fontawesome-free-solid';
-import { injectStripe, CardElement, CardNumberElement, CardCvcElement, CardExpiryElement } from 'react-stripe-elements';
+import { injectStripe, CardElement, CardNumberElement, CardCvcElement, CardExpiryElement, StripeProvider } from 'react-stripe-elements';
+import { useStripe } from '@stripe/react-stripe-js';
+
 
 const BillingBanner = (props) =>{
    
@@ -119,246 +121,159 @@ const BillingContent = (props) => {
   fontawesome.library.add(faCircle, faQuestionCircle);
 
   return (
-      <Card className="h-100">
-          <Header title="Billing Details" light={false} />
-          <CardBody className="bg-light">
-              <Row tag={Form}>
-                  <Col>
-                      <CustomInput
-              type="radio"
-              name="billing"
-              id="card"
-              value="card"
-              checked={method === "card"}
-              onChange={({ target }) => setMethod(target.value)}
-              label={
-                  <span className="d-flex align-items-center">
-                      <span className="fs-1 text-nowrap">Credit Card</span>
-                      <img
-                    className="d-none d-sm-inline-block ml-2 mt-lg-0"
-                    src={iconPaymentMethods}
-                    height={20}
-                    alt=""
-                  />
-                  </span>
-              }
-            />
-                      <p className="fs--1 mb-4">
-              Safe money transfer using your bank accounts. Visa, maestro,
-              discover, american express.
-                      </p>
+    <Card className="h-100">
+      <Header title="Billing Details" light={false} />
+      <CardBody className="bg-light">
+          <Row tag={Form}>
+              <Col>
+                  <CustomInput
+                    type="radio"
+                    name="billing"
+                    id="card"
+                    value="card"
+                    checked={method === "card"}
+                    onChange={({ target }) => setMethod(target.value)}
+                    label={
+                        <span className="d-flex align-items-center">
+                            <span className="fs-1 text-nowrap">Credit Card</span>
+                            <img
+                            className="d-none d-sm-inline-block ml-2 mt-lg-0"
+                            src={iconPaymentMethods}
+                            height={20}
+                            alt=""
+                            />
+                        </span>
+                    }
+                 />
+                  <p className="fs--1 mb-4">
+                    Safe money transfer using your bank accounts. Visa, maestro,
+                    discover, american express.
+                  </p>
+                  <Row form>
+                      <Col>
+                          <FormGroup>
+                              <Label className={labelClasses} for="cardNumber">
+                                Card Number<span style={{color:"red"}}>*</span>
+                              </Label>
+                              <div id="card-element" className="form-control" style={{background: "white", color:"#000000", border:"1px solid #000000", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
+                                <CardNumberElement
+                                    placeholder="XXXX XXXX XXXX XXXX"
+                                    onChange={e => {
+                                        if(e.empty == true) setCardNumberError('This field is required');
+                                        else if(e.error) setCardNumberError(e.error.message);
+                                        else setCardNumberError('');
+                                    }}
+                                />
+                              </div>
+                              <span style={{color:"red"}}>{cardNumberError}</span>
+                          </FormGroup>
+                      </Col>
+                      <Col>
+                          <FormGroup>
+                            <Label className={labelClasses} for="cardName">
+                            Name of Card
+                            </Label>
+                            <Input
+                                placeholder=""
+                                maxLength={30}
+                                id="cardName"
+                                value={cardName}
+                                onChange={({ target }) => setCardName(target.value)}
+                            />
+                          </FormGroup>
+                      </Col>
+                  </Row>
+                  <Row form>
+                        <Col xs={6} sm={3}>
+                            <FormGroup>
+                                <Label className={labelClasses} for="customSelectCountry">
+                                    Country
+                                </Label>
+                                <CustomInput
+                                    type="select"
+                                    id="country"
+                                    name="country"
+                                    value={country}
+                                    onChange={({ target }) => setCountry(target.value)}
+                                >
+                                    {isIterableArray(countries) &&
+                                    countries.map((country, index) => (
+                                        <option value={country} key={index}>
+                                            {country}
+                                        </option>
+                                    ))}
+                                </CustomInput>
+                            </FormGroup>
+                        </Col>
+                        <Col xs={6} sm={3}>
+                            <FormGroup className="form-group">
+                                <Label className={labelClasses} for="zipCode">
+                                    Zip Code
+                                </Label>
+                                <Input
+                                    placeholder="33131"
+                                    id="zipCode"
+                                    maxLength="10"
+                                    value={zip}
+                                    onChange={({ target }) => setZip(target.value)}
+                                />
+                            </FormGroup>
+                        </Col>
+                        <Col xs={6} sm={3}>
+                            <FormGroup>
+                                <Label className={labelClasses} for="expDate">
+                                    Exp Date<span style={{color:"red"}}>*</span>
+                                </Label>
+                                <div id="card-element" className="form-control" style={{background: "white", color:"#000000", border:"1px solid #000000", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
+                                    <CardExpiryElement 
+                                        placeholder="14/25"
+                                        onChange={e => {
+                                        if(e.empty == true) setCardExpError('This field is required');
+                                        else if(e.error) setCardExpError(e.error.message);
+                                        else setCardExpError('');
 
-                      <Row form>
-                          <Col>
-                              <FormGroup>
-                                  <Label className={labelClasses} for="cardNumber">
-                    Card Number<span style={{color:"red"}}>*</span>
-                                  </Label>
-                                  {/* <Input
-                    placeholder="XXXX XXXX XXXX XXXX"
-                    id="cardNumber"
-                    value={cardNumber}
-                    maxLength={16}
-                    onChange={({ target }) => setCardNumber(target.value)}
-                  /> */}
-                                  <div id="card-element" className="form-control" style={{background: "white", color:"#000000", border:"1px solid #000000", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
-
-                                      <CardNumberElement
-                      placeholder="XXXX XXXX XXXX XXXX"
-                      onChange={e => {
-                        if(e.empty == true) setCardNumberError('This field is required');
-                        else if(e.error) setCardNumberError(e.error.message);
-                        else setCardNumberError('');
-
-                      }}
-                    />
-                                  </div>
-                                  <span style={{color:"red"}}>{cardNumberError}</span>
-                              </FormGroup>
-                          </Col>
-                          <Col>
-                              <FormGroup>
-                                  <Label className={labelClasses} for="cardName">
-                    Name of Card
-                                  </Label>
-                                  <Input
-                    placeholder=""
-                    maxLength={30}
-                    id="cardName"
-                    value={cardName}
-                    onChange={({ target }) => setCardName(target.value)}
-                  />
-                              </FormGroup>
-                          </Col>
-                      </Row>
-                      <Row form>
-                          <Col xs={6} sm={3}>
-                              <FormGroup>
-                                  <Label className={labelClasses} for="customSelectCountry">
-                    Country
-                                  </Label>
-                                  <CustomInput
-                    type="select"
-                    id="country"
-                    name="country"
-                    value={country}
-                    style={{border: "1px solid black"}}
-                    onChange={({ target }) => setCountry(target.value)}
-                  >
-                                      {isIterableArray(countries) &&
-                      countries.map((country, index) => (
-                          <option value={country} key={index}>
-                              {country}
-                          </option>
-                      ))}
-                                  </CustomInput>
-                              </FormGroup>
-                          </Col>
-                          <Col xs={6} sm={3}>
-                              <FormGroup className="form-group">
-                                  <Label className={labelClasses} for="zipCode">
-                    Zip Code
-                                  </Label>
-                                  <Input
-                    placeholder="33131"
-                    id="zipCode"
-                    maxLength="10"
-                    value={zip}
-                    onChange={({ target }) => setZip(target.value)}
-                  />
-                              </FormGroup>
-                          </Col>
-                          <Col xs={6} sm={3}>
-
-                              <FormGroup>
-                                  <Label className={labelClasses} for="expDate">
-                    Exp Date<span style={{color:"red"}}>*</span>
-                                  </Label>
-                                  {/* <Input
-                    placeholder="15/24"
-                    id="expDate"
-                    maxLength={5}
-                    value={expDate}
-                    onChange={({ target }) => setExpDate(target.value)}
-                /> */}
-                                  <div id="card-element" className="form-control" style={{background: "white", color:"#000000", border:"1px solid #000000", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
-                                      <CardExpiryElement 
-                            placeholder="14/25"
-                            onChange={e => {
-                              if(e.empty == true) setCardExpError('This field is required');
-                              else if(e.error) setCardExpError(e.error.message);
-                              else setCardExpError('');
-      
-                            }}
-                    />
-
-                                  </div>
-                                  <span style={{color:"red"}}>{cardExpError}</span>
-                              </FormGroup>
-                          </Col>
-                          <Col xs={6} sm={3}>
-                              <FormGroup>
-                                  <Label className={labelClasses} for="cvv">
-                    CVV
-                                      <FontAwesomeIcon
-                      icon="question-circle"
-                      className="ml-2 cursor-pointer"
-                      id="cvv"
-                    />
-                                      <UncontrolledTooltip placement="top" target="cvv">
-                      Card verification value
-                                      </UncontrolledTooltip>
-                                  </Label>
-                                  {/* <Input
-                    placeholder="123"
-                    maxLength="3"
-                    id="cvv"
-                    value={cvv}
-                    onChange={({ target }) => setCvv(target.value)}
-                  /> */}
-                                  <div id="card-element" className="form-control" style={{background: "white", color:"#000000", border:"1px solid #000000", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
-
-                                      <CardCvcElement
-                      onChange={e => {
-                      if(e.empty == true) setCardCVSError('This field is required');
-                      else if(e.error) setCardCVSError(e.error.message);
-                      else setCardCVSError('');
-                    }}
-                    />
-                                  </div>
-                                  <span style={{color:"red"}}>{cardCVSError}</span>
-
-                              </FormGroup>
-                          </Col>
-                      </Row>
-                  </Col>
-              </Row>
-          </CardBody>
-      </Card>
+                                        }}
+                                    />
+                                </div>
+                                <span style={{color:"red"}}>{cardExpError}</span>
+                            </FormGroup>
+                        </Col>
+                        <Col xs={6} sm={3}>
+                            <FormGroup>
+                                <Label className={labelClasses} for="cvv">
+                                    CVV
+                                    <span style={{color:"red"}}>*</span>
+                                    <FontAwesomeIcon
+                                        icon="question-circle"
+                                        className="ml-2 cursor-pointer"
+                                        id="cvv"
+                                    />
+                                    <UncontrolledTooltip placement="top" target="cvv">
+                                        Card verification value
+                                    </UncontrolledTooltip>
+                                </Label>
+                                <div id="card-element" className="form-control" style={{background: "white", color:"#000000", border:"1px solid #000000", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
+                                    <CardCvcElement
+                                        onChange={e => {
+                                            if(e.empty == true) setCardCVSError('This field is required');
+                                            else if(e.error) setCardCVSError(e.error.message);
+                                            else setCardCVSError('');
+                                        }}
+                                    />
+                                </div>
+                                <span style={{color:"red"}}>{cardCVSError}</span>
+                            </FormGroup>
+                        </Col>
+                    </Row>
+              </Col>
+          </Row>
+      </CardBody>
+  </Card>    
   );
 };
 
 const BillingAside = (props) => {
   console.log('props', props);
-  return (
-      <Card className="h-100">
-          <Header title="Billing" light={false} />
-          <CardBody
-        tag={Form}
-        className="bg-light"
-        // onSubmit={(e) => {
-            
-        //     e.preventDefault();
-        //     const noti = Notify.info("Are you sure?", (answer) => {
-        //         if (answer) actions.createSubscription({ subscription:1 });
-        //         noti.remove();
-        //     });
-          
-        // }}
-      >
-              <h5 className="d-flex justify-content-between">
-                  <span>Subscription</span>
-                  <span style={{textDecoration:"underline"}}>{props.plan}</span>
-              </h5>
-              <div className="d-flex justify-content-between fs--1 mb-1">
-                  <p className="mb-0">Due in 30 days</p>
-                  <span>{props.plan == "Basic" ? "$49.95" : props.plan == "Pro" ? "$99.95" : "$149.95"}</span>
-              </div>
-              {/* <div className="d-flex justify-content-between fs--1 mb-1 text-success">
-                  <p className="mb-0">Annual saving</p>
-                  <span>$75.00/yr</span>
-              </div> */}
-              <hr />
-              <h5 className="d-flex justify-content-between">
-                  <span>Due today</span>
-                  <span>$0.00</span>
-              </h5>
-              <p className="fs--1 text-600">
-          Once you start your trial, you will have 30 days to use JobCore
-          for free. After 30 days you’ll be charged based on your selected plan.
-              </p>
-              <Button color="primary" block onClick={(e) => {
-                                const noti = Notify.info("Are you sure? You will lose any other subscription you may have", (answer) => {
-                                    if (answer) actions.createSubscription({ subscription: 2 });
-                                    noti.remove();
-                                });
-                        }}>
-                  <FontAwesomeIcon icon="lock" className="mr-2" />
-          Start free trial
-              </Button>
-              <div className="text-center mt-2">
-                  <small className="d-inline-block">
-            By continuing, you are agreeing to our subscriber{" "}
-                      <Link to="#!">terms</Link> and will be charged at the end of the
-            trial.
-                  </small>
-              </div>
-          </CardBody>
-      </Card>
-  );
-};
-
-const Billing = (props) => {
   const [plan, setPlan] = useState("Basic");
   const [method, setMethod] = useState("card");
   const [cardNumber, setCardNumber] = useState("");
@@ -373,26 +288,26 @@ const Billing = (props) => {
   const [loading, setLoading] = useState(false);
   const labelClasses = "ls text-uppercase text-600 font-weight-semi-bold mb-0";
   fontawesome.library.add(faCircle, faQuestionCircle);
-
+  
   const [customerData, setCustomerData] = useState({
-      address: {
-          country: '',
-          postal_code: ''
-      },
-      description: '',
-      email: '',
-      name: '',
-      phone: ''
+    address: {
+        country: '',
+        postal_code: ''
+    },
+    description: '',
+    email: '',
+    name: '',
+    phone: ''
   });
   const [paymentData, setPaymentData] = useState({
-      address: {
-          country: '',
-          postal_code: ''
-      },
-      description: '',
-      email: '',
-      name: '',
-      phone: ''
+    address: {
+        country: '',
+        postal_code: ''
+    },
+    description: '',
+    email: '',
+    name: '',
+    phone: ''
   });
 
   const body = {
@@ -407,261 +322,144 @@ const Billing = (props) => {
     phone: props.user.profile  ? props.user.profile.phone_number : "",
     source: null
   };
+//   const { stripe } = props;
+// const history = useHistory();
+// console.log("history en index###", history)
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const noti = Notify.info("Are you sure?", (answer) => {
+        
+        if (answer){
+            setLoading(true);
+            props.stripe.createToken().then(res => {
+                if(res['token']){
+                body['source'] = res.token;
+                const result = actions.createSubscription(body, props.history).then(res => setLoading(false) );
+                // return result
+                }else setLoading(false);
+            });
+        }
+        noti.remove();
+    });
+  };
   return (
-      <ContentWithAsideLayout
+    <Card className="h-100">
+        <Header title="Billing" light={false} />
+        <CardBody tag={Form} className="bg-light" onSubmit={handleSubmit}>
+            <h5 className="d-flex justify-content-between">
+                <span>Subscription</span>
+                <span style={{textDecoration:"underline"}}>{props.plan}</span>
+            </h5>
+            <div className="d-flex justify-content-between fs--1 mb-1">
+                <p className="mb-0">Due in 30 days</p>
+                <span>{props.plan == "Basic" ? "$49.95" : props.plan == "Pro" ? "$99.95" : "$149.95"}</span>
+            </div>
+            <hr />
+            <h5 className="d-flex justify-content-between">
+                <span>Due today</span>
+                <span>$0.00</span>
+            </h5>
+            <p className="fs--1 text-600">
+                Once you start your trial, you will have 30 days to use JobCore
+                for free. After 30 days you’ll be charged based on your selected plan.
+            </p>
+            <Button color="primary" disabled={!loading ? false : true} block 
+                // onClick={ props.history.push("/home")}
+                >
+                {!loading ? (
+                    <div>
+                        <FontAwesomeIcon icon="lock" className="mr-2" />
+                        Start free trial
+                    </div>
+            ): (
+                <Spinner size="sm"/>
+            )}
+            </Button>
+            <div className="text-center mt-2">
+                <small className="d-inline-block">
+                By continuing, you are agreeing to our subscriber{" "}
+                <Link to="#!">terms</Link> and will be charged at the end of the trial.
+                </small>
+            </div>
+    </CardBody>
+</Card>
+  );
+};
+
+const Billing = (props) => {
+  const [plan, setPlan] = useState("Basic");
+//   const [method, setMethod] = useState("card");
+//   const [cardNumber, setCardNumber] = useState("");
+//   const [cardNumberError, setCardNumberError] = useState("");
+//   const [cardExpError, setCardExpError] = useState("");
+//   const [cardCVSError, setCardCVSError] = useState("");
+//   const [cardName, setCardName] = useState("");
+//   const [country, setCountry] = useState("United States");
+//   const [zip, setZip] = useState("");
+//   const [expDate, setExpDate] = useState("");
+//   const [cvv, setCvv] = useState("");
+//   const [loading, setLoading] = useState(false);
+//   const labelClasses = "ls text-uppercase text-600 font-weight-semi-bold mb-0";
+//   fontawesome.library.add(faCircle, faQuestionCircle);
+
+//   const [customerData, setCustomerData] = useState({
+//       address: {
+//           country: '',
+//           postal_code: ''
+//       },
+//       description: '',
+//       email: '',
+//       name: '',
+//       phone: ''
+//   });
+//   const [paymentData, setPaymentData] = useState({
+//       address: {
+//           country: '',
+//           postal_code: ''
+//       },
+//       description: '',
+//       email: '',
+//       name: '',
+//       phone: ''
+//   });
+
+//   const body = {
+//     subscription: plan == "Basic" ? 1 : plan == "Pro" ? 2 : plan == "Enterprise" ? 3 : null,
+//     address: {
+//         country: 'US',
+//         postal_code: zip
+//     },
+//     description: "Purchased " + plan + " Subscription",
+//     email: props.user.email || "",
+//     name: cardName,
+//     phone: props.user.profile  ? props.user.profile.phone_number : "",
+//     source: null
+//   };
+const session = Session.get();
+const { stripe } = props;
+  return (
+    <ContentWithAsideLayout
       banner={<BillingBanner plan={plan} onChangePlan={setPlan}/>}
-      aside={
-          <Card className="h-100">
-              <Header title="Billing" light={false} />
-              <CardBody
-      tag={Form}
-      className="bg-light"
-    >
-                  <h5 className="d-flex justify-content-between">
-                      <span>Subscription</span>
-                      <span style={{textDecoration:"underline"}}>{plan}</span>
-                  </h5>
-                  <div className="d-flex justify-content-between fs--1 mb-1">
-                      <p className="mb-0">Due in 30 days</p>
-                      <span>{plan == "Basic" ? "$49.95" : plan == "Pro" ? "$99.95" : "$149.95"}</span>
-                  </div>
-             
-                  <hr />
-                  <h5 className="d-flex justify-content-between">
-                      <span>Due today</span>
-                      <span>$0.00</span>
-                  </h5>
-                  <p className="fs--1 text-600">
-        Once you start your trial, you will have 30 days to use JobCore
-        for free. After 30 days you’ll be charged based on your selected plan.
-                  </p>
-                  <Button color="primary" disabled={!loading ? false : true} block onClick={(e) => {
-                              const noti = Notify.info("Are you sure?", (answer) => {
-                                  if (answer){
-                                      setLoading(true);
-                                      props.stripe.createToken().then(res => {
-                                          if(res['token']){
-                                            body['source'] = res.token;
-                                            const result = actions.createSubscription(body, props.history).then(res => setLoading(false) );
-                                            
-                                          }else setLoading(false);
-                                      });
-                                  }
-                                  noti.remove();
-                              });
-                      }}>
-                      {!loading ? (
-                          <div>
-                              <FontAwesomeIcon icon="lock" className="mr-2" />
-              Start free trial
-
-                          </div>
-
-                    ): (
-                        <Spinner size="sm"/>
-
-                    )}
-                  </Button>
-                  <div className="text-center mt-2">
-                      <small className="d-inline-block">
-          By continuing, you are agreeing to our subscriber{" "}
-                          <Link to="#!">terms</Link> and will be charged at the end of the
-          trial.
-                      </small>
-                  </div>
-              </CardBody>
-          </Card>
+      aside={ <BillingAside 
+                plan={plan} 
+                onChangePlan={setPlan}
+                stripe={stripe} 
+                user={session.payload.user}
+                history={props.history}
+                />
       }
       footer={<div><div className="row text-center mb-3">
           <div className="col">
               <Link to="/login">
-
                   <button className="btn btn-primary">Go Back To Login</button>
               </Link>
-
           </div>
-      
       </div><FaqCol /></div>}
       isStickyAside={false}
     >   
-          <Card className="h-100">
-              <Header title="Billing Details" light={false} />
-              <CardBody className="bg-light">
-                  <Row tag={Form}>
-                      <Col>
-                          <CustomInput
-              type="radio"
-              name="billing"
-              id="card"
-              value="card"
-              checked={method === "card"}
-              onChange={({ target }) => setMethod(target.value)}
-              label={
-                  <span className="d-flex align-items-center">
-                      <span className="fs-1 text-nowrap">Credit Card</span>
-                      <img
-                    className="d-none d-sm-inline-block ml-2 mt-lg-0"
-                    src={iconPaymentMethods}
-                    height={20}
-                    alt=""
-                  />
-                  </span>
-              }
-            />
-                          <p className="fs--1 mb-4">
-              Safe money transfer using your bank accounts. Visa, maestro,
-              discover, american express.
-                          </p>
-
-                          <Row form>
-                              <Col>
-                                  <FormGroup>
-                                      <Label className={labelClasses} for="cardNumber">
-                    Card Number<span style={{color:"red"}}>*</span>
-                                      </Label>
-                                      {/* <Input
-                    placeholder="XXXX XXXX XXXX XXXX"
-                    id="cardNumber"
-                    value={cardNumber}
-                    maxLength={16}
-                    onChange={({ target }) => setCardNumber(target.value)}
-                  /> */}
-                                      <div id="card-element" className="form-control" style={{background: "white", color:"#000000", border:"1px solid #000000", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
-
-                                          <CardNumberElement
-                      placeholder="XXXX XXXX XXXX XXXX"
-                      onChange={e => {
-                        if(e.empty == true) setCardNumberError('This field is required');
-                        else if(e.error) setCardNumberError(e.error.message);
-                        else setCardNumberError('');
-
-                      }}
-                    />
-                                      </div>
-                                      <span style={{color:"red"}}>{cardNumberError}</span>
-                                  </FormGroup>
-                              </Col>
-                              <Col>
-                                  <FormGroup>
-                                      <Label className={labelClasses} for="cardName">
-                    Name of Card
-                                      </Label>
-                                      <Input
-                    placeholder=""
-                    maxLength={30}
-                    id="cardName"
-                    value={cardName}
-                    onChange={({ target }) => setCardName(target.value)}
-                  />
-                                  </FormGroup>
-                              </Col>
-                          </Row>
-                          <Row form>
-                              <Col xs={6} sm={3}>
-                                  <FormGroup>
-                                      <Label className={labelClasses} for="customSelectCountry">
-                    Country
-                                      </Label>
-                                      <CustomInput
-                    type="select"
-                    id="country"
-                    name="country"
-                    value={country}
-                    onChange={({ target }) => setCountry(target.value)}
-                  >
-                                          {isIterableArray(countries) &&
-                      countries.map((country, index) => (
-                          <option value={country} key={index}>
-                              {country}
-                          </option>
-                      ))}
-                                      </CustomInput>
-                                  </FormGroup>
-                              </Col>
-                              <Col xs={6} sm={3}>
-                                  <FormGroup className="form-group">
-                                      <Label className={labelClasses} for="zipCode">
-                    Zip Code
-                                      </Label>
-                                      <Input
-                    placeholder="33131"
-                    id="zipCode"
-                    maxLength="10"
-                    value={zip}
-                    onChange={({ target }) => setZip(target.value)}
-                  />
-                                  </FormGroup>
-                              </Col>
-                              <Col xs={6} sm={3}>
-
-                                  <FormGroup>
-                                      <Label className={labelClasses} for="expDate">
-                    Exp Date<span style={{color:"red"}}>*</span>
-                                      </Label>
-                                      {/* <Input
-                    placeholder="15/24"
-                    id="expDate"
-                    maxLength={5}
-                    value={expDate}
-                    onChange={({ target }) => setExpDate(target.value)}
-                /> */}
-                                      <div id="card-element" className="form-control" style={{background: "white", color:"#000000", border:"1px solid #000000", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
-                                          <CardExpiryElement 
-                            placeholder="14/25"
-                            onChange={e => {
-                              if(e.empty == true) setCardExpError('This field is required');
-                              else if(e.error) setCardExpError(e.error.message);
-                              else setCardExpError('');
-      
-                            }}
-                    />
-
-                                      </div>
-                                      <span style={{color:"red"}}>{cardExpError}</span>
-                                  </FormGroup>
-                              </Col>
-                              <Col xs={6} sm={3}>
-                                  <FormGroup>
-                                      <Label className={labelClasses} for="cvv">
-                    CVV<span style={{color:"red"}}>*</span>
-                                          <FontAwesomeIcon
-                      icon="question-circle"
-                      className="ml-2 cursor-pointer"
-                      id="cvv"
-                    />
-                                          <UncontrolledTooltip placement="top" target="cvv">
-                      Card verification value
-                                          </UncontrolledTooltip>
-                                      </Label>
-                                      {/* <Input
-                    placeholder="123"
-                    maxLength="3"
-                    id="cvv"
-                    value={cvv}
-                    onChange={({ target }) => setCvv(target.value)}
-                  /> */}
-                                      <div id="card-element" className="form-control" style={{background: "white", color:"#000000", border:"1px solid #000000", borderRadius: '0', height: '2.4em', paddingTop: '.7em'}}>
-
-                                          <CardCvcElement
-                      onChange={e => {
-                      if(e.empty == true) setCardCVSError('This field is required');
-                      else if(e.error) setCardCVSError(e.error.message);
-                      else setCardCVSError('');
-                    }}
-                    />
-                                      </div>
-                                      <span style={{color:"red"}}>{cardCVSError}</span>
-
-                                  </FormGroup>
-                              </Col>
-                          </Row>
-                      </Col>
-                  </Row>
-              </CardBody>
-          </Card>      
-          <Notifier/>
-          
-      </ContentWithAsideLayout>
+        <BillingContent />
+        <Notifier/>
+    </ContentWithAsideLayout>
   );
 };
 
@@ -672,13 +470,17 @@ BillingBanner.propTypes = {
     onChangePlan: PropTypes.func
   };
 Billing.propTypes = {
+    // stripe: PropTypes.object.isRequired,
+    // user: PropTypes.object,
+    history: PropTypes.object,
+    plan: PropTypes.string,
+  };
+BillingAside.propTypes = {
+    plan: PropTypes.string.isRequired,
     stripe: PropTypes.object.isRequired,
     user: PropTypes.object,
     history: PropTypes.object
-  };
-BillingAside.propTypes = {
-plan: PropTypes.string.isRequired
 };
 BillingContent.propTypes = {
-parentCallback: PropTypes.func
+    parentCallback: PropTypes.func
 };

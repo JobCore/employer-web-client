@@ -24,6 +24,8 @@ import {
   CardElement,
 } from "react-stripe-elements";
 
+// const history = useHistory();
+
 export class Login extends React.Component {
   constructor(props) {
     super(props);
@@ -189,6 +191,7 @@ Login.propTypes = {
 };
 
 const Subscribe = (props) => {
+  console.log("props de subscribe#####", props)
   const [user, setUser] = useState("");
 
   useEffect(() => {
