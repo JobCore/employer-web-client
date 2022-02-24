@@ -387,56 +387,10 @@ const BillingAside = (props) => {
 };
 
 const Billing = (props) => {
-  const [plan, setPlan] = useState("Basic");
-//   const [method, setMethod] = useState("card");
-//   const [cardNumber, setCardNumber] = useState("");
-//   const [cardNumberError, setCardNumberError] = useState("");
-//   const [cardExpError, setCardExpError] = useState("");
-//   const [cardCVSError, setCardCVSError] = useState("");
-//   const [cardName, setCardName] = useState("");
-//   const [country, setCountry] = useState("United States");
-//   const [zip, setZip] = useState("");
-//   const [expDate, setExpDate] = useState("");
-//   const [cvv, setCvv] = useState("");
-//   const [loading, setLoading] = useState(false);
-//   const labelClasses = "ls text-uppercase text-600 font-weight-semi-bold mb-0";
-//   fontawesome.library.add(faCircle, faQuestionCircle);
-
-//   const [customerData, setCustomerData] = useState({
-//       address: {
-//           country: '',
-//           postal_code: ''
-//       },
-//       description: '',
-//       email: '',
-//       name: '',
-//       phone: ''
-//   });
-//   const [paymentData, setPaymentData] = useState({
-//       address: {
-//           country: '',
-//           postal_code: ''
-//       },
-//       description: '',
-//       email: '',
-//       name: '',
-//       phone: ''
-//   });
-
-//   const body = {
-//     subscription: plan == "Basic" ? 1 : plan == "Pro" ? 2 : plan == "Enterprise" ? 3 : null,
-//     address: {
-//         country: 'US',
-//         postal_code: zip
-//     },
-//     description: "Purchased " + plan + " Subscription",
-//     email: props.user.email || "",
-//     name: cardName,
-//     phone: props.user.profile  ? props.user.profile.phone_number : "",
-//     source: null
-//   };
+const [plan, setPlan] = useState("Basic");
 const session = Session.get();
 const { stripe } = props;
+
   return (
     <ContentWithAsideLayout
       banner={<BillingBanner plan={plan} onChangePlan={setPlan}/>}

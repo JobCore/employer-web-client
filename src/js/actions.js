@@ -643,9 +643,12 @@ export const createSubscription = (data, history) => {
           active_subscription,
         });
         Notify.success("The subscription was created successfully");
-        history.push("/home")
+        
        
-      })
+      }).then(
+        setTimeout(() => {history.push("/home")}, 5000)
+        
+        )
       .catch(function (error) {
         console.log("ERROR", error);
         Notify.error(error.message || error);
