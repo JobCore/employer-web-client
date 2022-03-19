@@ -3,6 +3,9 @@ import { logout } from '../actions';
 import log from './log';
 import { Session } from 'bc-react-session';
 import { setLoading } from '../components/load-bar/LoadBar.jsx';
+// import { getCookie } from '../csrftoken';
+import Cookies from 'js-cookie'
+
 
 const rootAPIendpoint = process.env.API_HOST + '/api';
 
@@ -62,6 +65,7 @@ const appendCompany = (data) => {
  */
 export const GET = async (endpoint, queryString = null, extraHeaders = {}) => {
   let url = `${rootAPIendpoint}/${endpoint}`;
+  console.log("GET###")
   if (queryString) url += queryString;
 
   HEADERS['Authorization'] = `JWT ${getToken()}`;
@@ -83,15 +87,17 @@ export const GET = async (endpoint, queryString = null, extraHeaders = {}) => {
 };
 
 export const POST = (endpoint, postData, extraHeaders = {}) => {
-
+  console.log("POST###")
   if (['user/register', 'login', 'user/password/reset','employers/me/jobcore-invites'].indexOf(endpoint) == -1) {
     HEADERS['Authorization'] = `JWT ${getToken()}`;
     postData = appendCompany(postData);
   }
+  
   const REQ = {
     method: 'POST',
     headers: Object.assign(HEADERS, extraHeaders),
-    body: JSON.stringify(postData)
+    body: JSON.stringify(postData),
+    // mode: 'no-cors'
   };
 
   const req = new Promise((resolve, reject) => fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
@@ -102,12 +108,79 @@ export const POST = (endpoint, postData, extraHeaders = {}) => {
       reject(err);
     })
   );
+
+//   const req = new Promise((resolve, reject) => {
+//     const loadData = async () => {
+//       const res = await fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
+//       const data = await res.json();
+//     }
+//     loadData();
+// });
+
+  PendingReq.add(req);
+  return req;
+};
+// function getCookie(name) {
+//   let cookieValue = null;
+
+//   if (document.cookie && document.cookie !== '') {
+//       const cookies = document.cookie.split(';');
+//       for (let i = 0; i < cookies.length; i++) {
+//           const cookie = cookies[i].trim();
+
+//           // Does this cookie string begin with the name we want?
+//           if (cookie.substring(0, name.length + 1) === (name + '=')) {
+//               cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+
+//               break;
+//           }
+//       }
+//   }
+
+//   return cookieValue;
+// }
+// var csrftoken = getCookie('csrftoken');
+// var headers = new Headers();
+// headers.append('X-CSRFToken', csrftoken);
+export const POSTcsrf = (endpoint, postData, extraHeaders = {}) => {
+  console.log("POST###")
+  // Cookies.get('csrftoken')
+  // console.log("postData###", postData)
+  Cookies.set('stripetoken', postData.id)
+  if (['user/register', 'login', 'user/password/reset','employers/me/jobcore-invites'].indexOf(endpoint) == -1) {
+    HEADERS['Authorization']  = `JWT ${getToken()}`,`X-CSRFToken ${Cookies.get('stripetoken')}`
+    postData = appendCompany(postData);
+  }
+
+  const REQ = {
+    method: 'POST',
+    headers: Object.assign(HEADERS, extraHeaders),
+    body: JSON.stringify(postData),
+    // mode: 'no-cors'
+  };
+  console.log("REQ###", REQ)
+  const req = new Promise((resolve, reject) => fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
+    .then((resp) => processResp(resp, req))
+    .then(data => resolve(data))
+    .catch(err => {
+      processFailure(err, req);
+      reject(err);
+    })
+  );
+  
   PendingReq.add(req);
   return req;
 };
 
-export const PUTFiles = (endpoint, files) => {
 
+// fetch('/api/upload', {
+//     method: 'POST',
+//     body: payload,
+//     headers: headers,
+//     credentials: 'include'
+// })
+export const PUTFiles = (endpoint, files) => {
+  console.log("PUTfiles###")
   const headers = {
     'Authorization': `JWT ${getToken()}`
   };
@@ -135,7 +208,7 @@ export const PUTFiles = (endpoint, files) => {
 };
 
 export const PUT = (endpoint, putData, extraHeaders = {}) => {
-
+  console.log("PUT###")
   if (['register', 'login','user/password/reset'].indexOf(endpoint) == -1) {
     HEADERS['Authorization'] = `JWT ${getToken()}`;
   }
@@ -159,7 +232,7 @@ export const PUT = (endpoint, putData, extraHeaders = {}) => {
 };
 
 export const DELETE = (endpoint, extraHeaders = {}) => {
-
+  console.log("DELETE###")
   HEADERS['Authorization'] = `JWT ${getToken()}`;
 
   const REQ = {
@@ -180,6 +253,7 @@ export const DELETE = (endpoint, extraHeaders = {}) => {
 };
 
 const processResp = function (resp, req = null) {
+  console.log(resp)
   PendingReq.remove(req);
   if (resp.ok) {
     if (resp.status == 204) return new Promise((resolve, reject) => resolve(true));

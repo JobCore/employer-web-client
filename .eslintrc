@@ -15,7 +15,7 @@
     "no-process-env": 0,
     "no-console": 1,
     "semi": ["error", "always"],
-    "allowImportExportEverywhere": false,
+    "allowImportExportEverywhere": true,
     "comma-dangle": [
       1,
       {
