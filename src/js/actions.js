@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { Invite } from "./views/invites.js";
 import { Clockin, PayrollPeriod } from "./views/payroll.js";
 import moment from "moment";
-import { POST, GET, PUT, DELETE, PUTFiles } from "./utils/api_wrapper";
+import { POST, GET, PUT, DELETE, PUTFiles, POSTcsrf } from "./utils/api_wrapper";
 import log from "./utils/log";
 import WEngine from "./utils/write_engine.js";
 import qs from "query-string";
@@ -55,13 +55,22 @@ export const autoLogin = (token = "") => {
         Notify.error(error.message || error);
         log.error(error);
       })
-  );
+  ); 
 };
-
+export const stripeStatus = (email, password, keep, history, id) => {
+  GET('subscription_auth/'+ email).then(
+    function(value) {
+    Notify.success("Welcome!")
+    
+    }, 
+    function(reason) {
+    history.push("/subscribe")
+    Notify.error("Your subscription is not active, please get a new one")
+    }
+    )
+    
+} 
 export const login = (email, password, keep, history, id) => {
-console.log("entrando a login#######")
-console.log("history#######", history)
-// console.log("data#######", data)
 new Promise((resolve, reject) =>
     POST("login", {
       username_or_email: email,
@@ -69,22 +78,17 @@ new Promise((resolve, reject) =>
       // employer_id: Number(id),
       exp_days: keep ? 30 : 1,
     })
+      .then(
+        setTimeout(() => {stripeStatus(email, password, keep, history, id)}, 1000)
+           )
       .then(function (data) { 
         // if (Number(data.user.profile.employer) != Number(id)) {
-
         //     let company = data.user.profile.other_employers.find(emp => emp.employer == Number(id) );
-
         //     updateCompanyUser({id: company.profile_id, employer: company.employer, employer_role: company.employer_role}, { 'Authorization': 'JWT ' + data.token });
-
-        //     Session.start({
-        //         payload: {
-        //             user: data.user, access_token: data.token
-        //         }
-        //     });
+        //     Session.start({ {payload: {user: data.user, access_token: data.token} });
         //     history.push('/');
         //     resolve();
         // }
-        console.log("login data post###", data)
         if (!data.user.profile.employer) {
           Notify.error(
             "Only employers are allowed to login into this application"
@@ -105,6 +109,7 @@ new Promise((resolve, reject) =>
             },
           });
           if (!data.user.profile.employer.active_subscription)
+
             history.push("/subscribe");
           else history.push("/");
           resolve();
@@ -121,7 +126,7 @@ new Promise((resolve, reject) =>
 
 
 export const signup = (formData, history) =>
-  new Promise((resolve, reject) =>
+  new Promise((resolve, reject) => {
     POST("user/register", {
       email: formData.email,
       account_type: formData.account_type,
@@ -138,8 +143,8 @@ export const signup = (formData, history) =>
       phone: formData.phone,
     })
       .then(function (data) {
-        Notify.success("You have signed up successfully, proceed to log in");
-        history.push(`/login?type=${formData.account_type}`);
+        Notify.success("You have signed up successfully! You are being redirected to the login screen");
+        setTimeout(() => {history.push(`/login?type=${formData.account_type}`)}, 2500)
         resolve();
       })
       .catch(function (error) {
@@ -147,7 +152,7 @@ export const signup = (formData, history) =>
         Notify.error(error.message || error);
         log.error(error);
       })
-  );
+    });
 
 export const remind = (email) =>
   new Promise((resolve, reject) =>
@@ -628,11 +633,6 @@ export const updateProfileMe = (data) => {
 };
 
 export const createSubscription = (data, history) => {
-  console.log("entrando a createSubscription#######")
-  
-  console.log("data#######", data)
-  
-  console.log("history#######", history)
   const employer = store.getState("current_employer");
   
     POST(`employers/me/subscription`, data)
@@ -643,10 +643,10 @@ export const createSubscription = (data, history) => {
           active_subscription,
         });
         Notify.success("The subscription was created successfully");
-        
+      
        
       }).then(
-        setTimeout(() => {history.push("/home")}, 5000)
+        setTimeout(() => {history.push("/home")}, 4000)
         
         )
       .catch(function (error) {
@@ -657,6 +657,20 @@ export const createSubscription = (data, history) => {
   
 };
 
+export const createStripePayment = async (stripeToken) => {
+  const response = await POSTcsrf('create-payment-intent', stripeToken)
+      .then( 
+          Notify.success("The payment was received successfully")
+        )
+      .catch(function (error) {
+        console.log("ERROR", error);
+        Notify.error(error.message || error);
+        log.error(error);
+      })
+
+    return response
+      
+};
 
 export const updateSubscription = (data, history) => {
   const employer = store.getState("current_employer");

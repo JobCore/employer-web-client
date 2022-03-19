@@ -11,7 +11,7 @@ import { useHistory } from "react-router-dom";
 import { validator, onlyLetters } from "../utils/validation";
 import { Notify } from "bc-react-notifier";
 import Billing from "../components/billing";
-import { BrowserView, MobileView } from "react-device-detect";
+import { BrowserView, ConsoleView, MobileView } from "react-device-detect";
 import logoURL from "../../img/jobcore-logo.png";
 
 import googleIcon from "../../img/icons/google-play.svg";
@@ -23,8 +23,7 @@ import {
   injectStripe,
   CardElement,
 } from "react-stripe-elements";
-
-// const history = useHistory();
+import { loadStripe } from "@stripe/stripe-js";
 
 export class Login extends React.Component {
   constructor(props) {
@@ -86,20 +85,32 @@ export class Login extends React.Component {
               e.preventDefault();
               this.setState({ loading: true });
               // if(this.state.id != "" && this.state.id != "0" ){
+              // actions.stripeStatus(
+              //   this.state.email,
+              //   this.state.password,
+              //   this.state.keep,
+              //   this.props.history
+              //   )
+              // if (stripeStatusResp.status===200) {
               actions
-                .login(
-                  this.state.email,
-                  this.state.password,
-                  this.state.keep,
-                  this.props.history
-                )
-                .then(() => this.setState({ loading: false }))
-                .catch(() => this.setState({ loading: false }));
-              // }else{
-              //     Notify.error("Please enter a valid Company ID");
-              //     this.setState({loading: false});
-              // }
-            }}
+              .login(
+                this.state.email,
+                this.state.password,
+                this.state.keep,
+                this.props.history
+              )
+              .then(() => this.setState({ loading: false }))
+              .catch(() => this.setState({ loading: false }));
+              
+              // } else {
+              //   console.log("estamos dentro del else")
+              //   Notify.error("Your subscription is not active, please get a new one");
+              //   this.setState({loading: false});
+              //   setTimeout(() => {history.push("/subscribe")}, 4000)
+              //   }
+
+              }
+             }
           >
             <div className="form-group">
               <label className="text-left" style={{ fontSize: 18 }}>
@@ -190,32 +201,24 @@ Login.propTypes = {
   location: PropTypes.object,
 };
 
+
+
 const Subscribe = (props) => {
   console.log("props de subscribe#####", props)
-  const [user, setUser] = useState("");
-
-  useEffect(() => {
-    const session = Session.get();
-    if (
-      typeof session == "undefined" ||
-      typeof session.active == "undefined" ||
-      session.active == false
-    )
-      props.history.push("/login");
-    else setUser(session.payload.user);
-  }, []);
-
+  
   return (
     <div className="container mt-4">
       <span
         className="svg_img"
         style={{ backgroundImage: `url(${logoURL})` }}
       />
+     
       <StripeProvider apiKey="pk_test_WO5dHVGGqxwtXAWP2T8jhPnR00tBqNpUR5">
-        <Elements>
-          <Billing user={user} history={props.history} />
+        <Elements >           
+          <Billing history={props.history} />
         </Elements>
       </StripeProvider>
+      
     </div>
   );
 };

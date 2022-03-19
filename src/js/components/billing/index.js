@@ -35,6 +35,7 @@ import countries from "./data-countries";
 import { faCircle, faQuestionCircle } from '@fortawesome/fontawesome-free-solid';
 import { injectStripe, CardElement, CardNumberElement, CardCvcElement, CardExpiryElement, StripeProvider } from 'react-stripe-elements';
 import { useStripe } from '@stripe/react-stripe-js';
+import CSRFToken from "../../csrftoken";
 
 
 const BillingBanner = (props) =>{
@@ -273,7 +274,10 @@ const BillingContent = (props) => {
 };
 
 const BillingAside = (props) => {
-  console.log('props', props);
+console.log('props', props);
+//   const stripe = useStripe();
+//   const elements = useElements();
+  const [message, setMessage] = useState(null);
   const [plan, setPlan] = useState("Basic");
   const [method, setMethod] = useState("card");
   const [cardNumber, setCardNumber] = useState("");
@@ -322,30 +326,38 @@ const BillingAside = (props) => {
     phone: props.user.profile  ? props.user.profile.phone_number : "",
     source: null
   };
-//   const { stripe } = props;
-// const history = useHistory();
-// console.log("history en index###", history)
-  const handleSubmit = (event) => {
+
+
+  const handleSubmit =  (event) => {
     event.preventDefault();
-    const noti = Notify.info("Are you sure?", (answer) => {
-        
-        if (answer){
+    var stripeToken = null
+    const noti = Notify.info("Are you sure?", async (answer) => {
+        if (answer){ 
             setLoading(true);
-            props.stripe.createToken().then(res => {
-                if(res['token']){
-                body['source'] = res.token;
-                const result = actions.createSubscription(body, props.history).then(res => setLoading(false) );
-                // return result
-                }else setLoading(false);
-            });
+            if (props.stripe) {
+                const res = await props.stripe.createToken()
+                if (res['token']){
+                    body['source'] = res.token ;
+                    stripeToken = body['source']
+                    stripeToken["amount"] = props.plan == "Basic" ? 49.95 : props.plan == "Pro" ? 99.95 : 149.95
+                    const stripePayResponse = await actions.createStripePayment(stripeToken) 
+                    if (stripePayResponse.status===200) {
+                        const subscriptionResponse = await actions.createSubscription(body, props.history).then(res => setLoading(false) );
+                    }
+                } else setLoading(false);
+               
+            } else setLoading(false);
         }
         noti.remove();
     });
   };
+
   return (
     <Card className="h-100">
         <Header title="Billing" light={false} />
         <CardBody tag={Form} className="bg-light" onSubmit={handleSubmit}>
+           <CSRFToken/>
+           <input type='hidden' name='csrfmiddlewaretoken' value={'HojhWp2F_xy_uMTKcQ18qYvYYX2wqwL_ifABDmXwxSHwyNWTY1QBtticEe3D8YN40keNFYwShoNg7nF-gB1GAjw-AYTZVJw1La6y7TXsyNkx5YM_9qCg-_34IJ7dKHnymLyp3xouPw%3D%3D'} />
             <h5 className="d-flex justify-content-between">
                 <span>Subscription</span>
                 <span style={{textDecoration:"underline"}}>{props.plan}</span>
@@ -363,9 +375,7 @@ const BillingAside = (props) => {
                 Once you start your trial, you will have 30 days to use JobCore
                 for free. After 30 days you’ll be charged based on your selected plan.
             </p>
-            <Button color="primary" disabled={!loading ? false : true} block 
-                // onClick={ props.history.push("/home")}
-                >
+            <Button color="primary" disabled={!loading ? false : true} block >
                 {!loading ? (
                     <div>
                         <FontAwesomeIcon icon="lock" className="mr-2" />
@@ -375,6 +385,7 @@ const BillingAside = (props) => {
                 <Spinner size="sm"/>
             )}
             </Button>
+            {message && <div id="payment-message">{message}</div>}
             <div className="text-center mt-2">
                 <small className="d-inline-block">
                 By continuing, you are agreeing to our subscriber{" "}

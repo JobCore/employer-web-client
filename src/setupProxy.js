@@ -9,3 +9,5 @@ module.exports = app => {
     })
   );
 };
+
+// este file se creo con el fin de hacer correr el sample de stripe y solo se conserva a fin de referencia

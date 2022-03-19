@@ -3,6 +3,9 @@ import { logout } from '../actions';
 import log from './log';
 import { Session } from 'bc-react-session';
 import { setLoading } from '../components/load-bar/LoadBar.jsx';
+// import { getCookie } from '../csrftoken';
+import Cookies from 'js-cookie'
+
 
 const rootAPIendpoint = process.env.API_HOST + '/api';
 
@@ -117,7 +120,65 @@ export const POST = (endpoint, postData, extraHeaders = {}) => {
   PendingReq.add(req);
   return req;
 };
+// function getCookie(name) {
+//   let cookieValue = null;
 
+//   if (document.cookie && document.cookie !== '') {
+//       const cookies = document.cookie.split(';');
+//       for (let i = 0; i < cookies.length; i++) {
+//           const cookie = cookies[i].trim();
+
+//           // Does this cookie string begin with the name we want?
+//           if (cookie.substring(0, name.length + 1) === (name + '=')) {
+//               cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+
+//               break;
+//           }
+//       }
+//   }
+
+//   return cookieValue;
+// }
+// var csrftoken = getCookie('csrftoken');
+// var headers = new Headers();
+// headers.append('X-CSRFToken', csrftoken);
+export const POSTcsrf = (endpoint, postData, extraHeaders = {}) => {
+  console.log("POST###")
+  // Cookies.get('csrftoken')
+  // console.log("postData###", postData)
+  Cookies.set('stripetoken', postData.id)
+  if (['user/register', 'login', 'user/password/reset','employers/me/jobcore-invites'].indexOf(endpoint) == -1) {
+    HEADERS['Authorization']  = `JWT ${getToken()}`,`X-CSRFToken ${Cookies.get('stripetoken')}`
+    postData = appendCompany(postData);
+  }
+
+  const REQ = {
+    method: 'POST',
+    headers: Object.assign(HEADERS, extraHeaders),
+    body: JSON.stringify(postData),
+    // mode: 'no-cors'
+  };
+  console.log("REQ###", REQ)
+  const req = new Promise((resolve, reject) => fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
+    .then((resp) => processResp(resp, req))
+    .then(data => resolve(data))
+    .catch(err => {
+      processFailure(err, req);
+      reject(err);
+    })
+  );
+  
+  PendingReq.add(req);
+  return req;
+};
+
+
+// fetch('/api/upload', {
+//     method: 'POST',
+//     body: payload,
+//     headers: headers,
+//     credentials: 'include'
+// })
 export const PUTFiles = (endpoint, files) => {
   console.log("PUTfiles###")
   const headers = {
