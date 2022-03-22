@@ -204,8 +204,6 @@ Login.propTypes = {
 
 
 const Subscribe = (props) => {
-  const stripekey=loadStripe(STRIPE_PUBLIC_KEY)
-  
   return (
     <div className="container mt-4">
       <span
@@ -213,7 +211,7 @@ const Subscribe = (props) => {
         style={{ backgroundImage: `url(${logoURL})` }}
       />
      
-      <StripeProvider apiKey='pk_live_JtS6WO3mL4HuI72Ay8wpjcFe003vJqDL6x'>
+      <StripeProvider apiKey="pk_live_JtS6WO3mL4HuI72Ay8wpjcFe003vJqDL6x">
         <Elements >           
           <Billing history={props.history} />
         </Elements>
