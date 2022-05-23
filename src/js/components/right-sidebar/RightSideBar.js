@@ -110,6 +110,11 @@ export const bar = {
                 console.log('favlist option',option.data);
                 this.showRightBar(AddFavlistsToTalent, option, { formData: Talent(option.data).getFormData() });
                 break;
+            case 'check_employee_documents':
+                option.title = "Add to favorite lists";
+                console.log('favlist option',option.data);
+                this.showRightBar(CheckEmployeeDocuments, option, { formData: Talent(option.data).getFormData() });
+                break;
             case 'create_favlist':
                 option.title = "Create Favorite List";
                 this.showRightBar(AddorUpdateFavlist, option, {formData: Favlist(option.data).getFormData()});

@@ -211,7 +211,7 @@ const Subscribe = (props) => {
         style={{ backgroundImage: `url(${logoURL})` }}
       />
      
-      <StripeProvider apiKey="pk_live_JtS6WO3mL4HuI72Ay8wpjcFe003vJqDL6x">
+      <StripeProvider apiKey="pk_test_WO5dHVGGqxwtXAWP2T8jhPnR00tBqNpUR5">
         <Elements >           
           <Billing history={props.history} />
         </Elements>
