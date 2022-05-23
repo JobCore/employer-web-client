@@ -96,6 +96,16 @@ class RightBar extends React.Component {
                         this.props.onClose();
                     }
                 break;
+                case 'check_employee_documents':{
+                    this.state.formData.favoriteLists.forEach((list)=>{
+                        update({
+                            path: "employers/me/favlists/employee",
+                            event_name: "employees"
+                        },Talent(this.state.formData).validate().serialize());
+                    });
+                    this.props.onClose();
+                }
+                break;
                 case 'filter_talent':{
                         if(data === false) this.props.history.push('/talents');
                         else{

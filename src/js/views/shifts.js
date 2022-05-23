@@ -1228,7 +1228,7 @@ const EditOrAddShift = ({
           a.findIndex((t) => t.position.id === v.position.id) === i &&
           v.position.id == parseInt(formData.position)
       );
-
+          
       var start_payroll = moment().clone().weekday(1);
       var end_payroll = moment(start_payroll).add(6, "days");
       const payrollWeekShifts =
@@ -2655,7 +2655,9 @@ const EditOrAddShift = ({
                     searchFunction={(search) =>
                       new Promise((resolve, reject) =>
                         GET("catalog/employees?full_name=" + search)
-                          .then((talents) =>
+                          .then((talents) => {
+                            console.log("talents#######", talents)
+                            console.log("totalHoursEmployeeWeek#######", totalHoursEmployeeWeek)
                             resolve(
                               [
                                 {
@@ -2666,7 +2668,7 @@ const EditOrAddShift = ({
                                 },
                               ].concat(talents)
                             )
-                          )
+                            })
                           .catch((error) => reject(error))
                       )
                     }

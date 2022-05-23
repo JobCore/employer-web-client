@@ -1,15 +1,16 @@
 import React from "react";
+import { useHistory } from 'react-router-dom';
 import Flux from "@4geeksacademy/react-flux-dash";
 import { Session } from "bc-react-session";
 import { Notify } from "bc-react-notifier";
 import { Shift } from "./views/shifts.js";
 import { Talent } from "./views/talents.js";
 import { Rating } from "./views/ratings.js";
-
+import { useNavigate } from "react-router-dom";
 import { Invite } from "./views/invites.js";
 import { Clockin, PayrollPeriod } from "./views/payroll.js";
 import moment from "moment";
-import { POST, GET, PUT, DELETE, PUTFiles } from "./utils/api_wrapper";
+import { POST, GET, PUT, DELETE, PUTFiles, POSTcsrf } from "./utils/api_wrapper";
 import log from "./utils/log";
 import WEngine from "./utils/write_engine.js";
 import qs from "query-string";
@@ -54,29 +55,37 @@ export const autoLogin = (token = "") => {
         Notify.error(error.message || error);
         log.error(error);
       })
-  );
+  ); 
 };
-
-export const login = (email, password, keep, history, id) =>
-  new Promise((resolve, reject) =>
+export const stripeStatus = (email, password, keep, history, id) => {
+  GET('subscription_auth/'+ email).then(
+    function(value) {
+    Notify.success("Welcome!")
+    
+    }, 
+    function(reason) {
+    history.push("/subscribe")
+    Notify.error("Your subscription is not active, please get a new one")
+    }
+    )
+    
+} 
+export const login = (email, password, keep, history, id) => {
+new Promise((resolve, reject) =>
     POST("login", {
       username_or_email: email,
       password: password,
       // employer_id: Number(id),
       exp_days: keep ? 30 : 1,
     })
-      .then(function (data) {
+      .then(
+        setTimeout(() => {stripeStatus(email, password, keep, history, id)}, 1000)
+           )
+      .then(function (data) { 
         // if (Number(data.user.profile.employer) != Number(id)) {
-
         //     let company = data.user.profile.other_employers.find(emp => emp.employer == Number(id) );
-
         //     updateCompanyUser({id: company.profile_id, employer: company.employer, employer_role: company.employer_role}, { 'Authorization': 'JWT ' + data.token });
-
-        //     Session.start({
-        //         payload: {
-        //             user: data.user, access_token: data.token
-        //         }
-        //     });
+        //     Session.start({ {payload: {user: data.user, access_token: data.token} });
         //     history.push('/');
         //     resolve();
         // }
@@ -100,6 +109,7 @@ export const login = (email, password, keep, history, id) =>
             },
           });
           if (!data.user.profile.employer.active_subscription)
+
             history.push("/subscribe");
           else history.push("/");
           resolve();
@@ -109,11 +119,14 @@ export const login = (email, password, keep, history, id) =>
         reject(error.message || error);
         Notify.error(error.message || error);
         log.error(error);
+        
       })
   );
+}
+
 
 export const signup = (formData, history) =>
-  new Promise((resolve, reject) =>
+  new Promise((resolve, reject) => {
     POST("user/register", {
       email: formData.email,
       account_type: formData.account_type,
@@ -130,8 +143,8 @@ export const signup = (formData, history) =>
       phone: formData.phone,
     })
       .then(function (data) {
-        Notify.success("You have signed up successfully, proceed to log in");
-        history.push(`/login?type=${formData.account_type}`);
+        Notify.success("You have signed up successfully! You are being redirected to the login screen");
+        setTimeout(() => {history.push(`/login?type=${formData.account_type}`)}, 2500)
         resolve();
       })
       .catch(function (error) {
@@ -139,7 +152,7 @@ export const signup = (formData, history) =>
         Notify.error(error.message || error);
         log.error(error);
       })
-  );
+    });
 
 export const remind = (email) =>
   new Promise((resolve, reject) =>
@@ -389,6 +402,7 @@ export const processPendingPayrollPeriods = () =>
     GET(`hook/generate_periods?${qs.stringify(params)}`)
       .then(function (_newPeriods) {
         let periods = store.getState("payroll-periods");
+        console.log('frontend periods###', periods)
         Flux.dispatchEvent("payroll-periods", periods.concat(_newPeriods));
         resolve(_newPeriods);
       })
@@ -619,22 +633,65 @@ export const updateProfileMe = (data) => {
     });
 };
 
+export const updateEmployability = (data) => {
+  console.log("data desde updateEmployability", data)
+  PUT(`employee/employability_expired_at/update/${data.catalog.employee.id}`, 
+      data)
+      .then()
+  // PUT(`employers/me/shifts/12/employees`, 
+  // data)
+  // .then(Notify.success("API Aproved"))
+      
+}
+export const updateDocs = (data) => {
+  
+  PUT(`employee/employment_verification_status/update/${data.catalog.employee.id}`, 
+      data)
+      .then(response => response.json())
+      .then(data => console.log(data))
+  // PUT(`employers/me/shifts/12/employees`, 
+  // data)
+  // .then(Notify.success("API Aproved"))
+      
+}
 export const createSubscription = (data, history) => {
   const employer = store.getState("current_employer");
-  POST(`employers/me/subscription`, data)
-    .then(function (active_subscription) {
-      Flux.dispatchEvent("current_employer", {
-        ...employer,
-        active_subscription,
-      });
-      Notify.success("The subscription was created successfully");
-      history.push("/home");
-    })
-    .catch(function (error) {
-      console.log("ERROR", error);
-      Notify.error(error.message || error);
-      log.error(error);
-    });
+  
+    POST(`employers/me/subscription`, data)
+      .then(function (active_subscription) {
+        
+        Flux.dispatchEvent("current_employer", {
+          ...employer,
+          active_subscription,
+        });
+        Notify.success("The subscription was created successfully");
+      
+       
+      }).then(
+        setTimeout(() => {history.push("/home")}, 4000)
+        
+        )
+      .catch(function (error) {
+        console.log("ERROR", error);
+        Notify.error(error.message || error);
+        log.error(error);
+      })
+  
+};
+
+export const createStripePayment = async (stripeToken) => {
+  const response = await POSTcsrf('create-payment-intent', stripeToken)
+      .then( 
+          Notify.success("The payment was received successfully")
+        )
+      .catch(function (error) {
+        console.log("ERROR", error);
+        Notify.error(error.message || error);
+        log.error(error);
+      })
+
+    return response
+      
 };
 
 export const updateSubscription = (data, history) => {

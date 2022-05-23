@@ -14,6 +14,11 @@ import {
 import Select from "react-select";
 import queryString from "query-string";
 import { Session } from "bc-react-session";
+import { Notify } from "bc-react-notifier";
+import { ButtonGroup } from "reactstrap";
+import { ToggleButtonGroupControlled } from "/workspace/employer-web-client/src/js/components/button-group/buttonGroup.jsx"
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom"
 
 //gets the querystring and creats a formData object to be used when opening the rightbar
 export const getTalentInitialFilters = (catalog) => {
@@ -143,11 +148,16 @@ export const ShiftInvite = (data) => {
     },
   };
 };
-
+     
 export class ManageTalents extends Flux.DashView {
   constructor() {
     super();
     this.state = {
+      // catalog: {this.state.catalog},
+      DocStatus: "",
+      empStatus: "unverified",
+      form: "",
+      formLoading: false,
       employees: [],
       runTutorial: hasTutorial(),
       pagination: {
@@ -170,11 +180,12 @@ export class ManageTalents extends Flux.DashView {
         },
       ],
     };
+    this.handleStatusChange = this.handleStatusChange.bind(this);
   }
 
   componentDidMount() {
     this.filter();
-
+    
     const positions = store.getState("positions");
 
     if (!positions) {
@@ -198,8 +209,15 @@ export class ManageTalents extends Flux.DashView {
       else this.setState({ firstSearch: false });
     });
     this.setState({ runTutorial: true });
+    
+    this.handleStatusChange
   }
-
+  componentWillUnmount() {
+    this.handleStatusChange
+  }
+  handleStatusChange() {
+    this.setState({ DocStatus: props.catalog.employee.employment_verification_status });
+  }
   filter(url) {
     // search('employees', window.location.search);
     let queries = window.location.search;
@@ -224,12 +242,52 @@ export class ManageTalents extends Flux.DashView {
       });
     }
   }
-
+  
+  
   render() {
+    const employees = this.state.employees
+    function checkEmployability(empl) {
+      console.log(empl.employability_expired_at)
+      const today = new Date()
+      const empDate = new Date(empl.employability_expired_at)
+      console.log(empDate)
+      // compared = dates.compare(empl.employability_expired_at,today)
+      if (empDate.getTime()<today.getTime()) {
+        empl.employment_verification_status = "NOT_APPROVED"
+        return "is NOT eligible to work"
+      } else {
+        return "it IS eligible to work"
+      }
+      // empl.employability_expired_at
+      
+    }
+    const today = new Date()
+    
+    console.log("today#########", today)
+    console.log("empleados#########", employees.map(checkEmployability))
     const positions = this.state.positions;
     if (this.state.firstSearch) return <p>Please search for an employee</p>;
     const allowLevels = window.location.search != "";
-
+    const filteredEmployeesList = (empStatus) => {
+      if (empStatus==="rejected") {
+        const notAprovedEmpList = employees.filter((employees) => employees.employment_verification_status==="NOT_APPROVED")
+        return  notAprovedEmpList
+      } else if (empStatus==="verified") {
+        const verifiedEmpList = employees.filter((employees) => employees.employment_verification_status==="APPROVED")
+        const sortedVerifiedEmpList = verifiedEmpList.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+        return sortedVerifiedEmpList
+      } else {
+        const pendingEmpList = employees.filter((employees) => employees.employment_verification_status==="PENDING")
+        const beingReviewedEmpList = employees.filter((employees) => employees.employment_verification_status==="BEING_REVIEWED")
+        const missDocsEmpList = employees.filter((employees) => employees.employment_verification_status==="MISSING_DOCUMENTS")
+        const unverifiedEmpList = pendingEmpList.concat(beingReviewedEmpList, missDocsEmpList)
+        const sortedUnverifiedEmpList = unverifiedEmpList.slice().sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+        return sortedUnverifiedEmpList
+      }
+    }
+    const finalList = filteredEmployeesList(this.state.empStatus)
+    console.log("employees###", finalList)
+    
     return (
       <div className="p-1 listcontents">
         <Theme.Consumer>
@@ -243,14 +301,35 @@ export class ManageTalents extends Flux.DashView {
               <h1>
                 <span id="talent_search_header">Talent Search</span>
               </h1>
-              {this.state.employees.map((s, i) => (
+              <div className="my-2">
+                <button onClick={() => {this.setState({ empStatus: this.state.empStatus="rejected" }) 
+                }} type="button" className="btn btn-secondary" style={this.state.empStatus==="rejected" ? {background:"red"} : {}}>Rejected</button>
+                <button onClick={() => {this.setState({ empStatus: this.state.empStatus="verified" }) 
+                }} type="button" className="btn btn-secondary" style={this.state.empStatus==="verified" ? {background:"green"} : {}}>Verified</button>
+                <button onClick={() => {this.setState({ empStatus: this.state.empStatus="unverified" })
+                }} type="button" className="btn btn-secondary" style={this.state.empStatus==="unverified" ? {background:"#FFDB58", color:"gray"} : {}}>Unverified</button>
+              </div>
+              {/* <Link to={{pathname: '/CheckEmployeeDocuments'}} >
+                Este es el link
+                <p>{console.log("catalog###", this.props.location.state)}</p>
+                
+              </Link> */}
+              
+              {// this.state.employees.map((s, i) => (
+                finalList.map((s, i) => (
                 <EmployeeExtendedCard
+                  // props={this.state.catalog}
+                  form={this.state.form}
+                  formLoading={this.state.formLoading}
                   key={i}
                   employee={s}
                   hover={true}
                   positions={positions}
                   onClick={(e) =>
                     bar.show({ slug: "show_single_talent", data: s })
+                  }
+                  defineEmployee={(e) =>
+                    bar.show({ slug: "define_employee", data: s})
                   }
                 >
                   <Button
@@ -275,6 +354,7 @@ export class ManageTalents extends Flux.DashView {
                   </Button>
                 </EmployeeExtendedCard>
               ))}
+              
               <div className="row mt-4 justify-content-center">
                 <div className="col">
                   <nav aria-label="Page navigation example">
@@ -457,7 +537,7 @@ export const TalentDetails = (props) => {
     }
     return null;
   }
-
+              
   return (
     <Theme.Consumer>
       {({ bar }) => (
@@ -549,6 +629,21 @@ export const TalentDetails = (props) => {
               Add to favorites
             </Button>
           </div>
+          <div className="btn-bar">
+            <Button
+              color="danger"
+              onClick={() =>
+                
+                bar.show({
+                  slug: "check_employee_documents",
+                  data: employee,
+                  allowLevels: true,
+                })
+              }
+            >
+              Check employee documents
+            </Button>
+            </div>
         </li>
       )}
     </Theme.Consumer>

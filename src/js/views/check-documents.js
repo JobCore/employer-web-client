@@ -1,32 +1,90 @@
-import './style.scss';
-import React, { useState, useEffect } from "react";
-import PropTypes from 'prop-types';
-import Avatar from '../avatar';
-import Stars from '../stars';
-import { GET } from "/workspace/employer-web-client/src/js/utils/api_wrapper.js";
+import React, { useState, useEffect, useContext } from "react";
+import Flux from "@4geeksacademy/react-flux-dash";
+import PropTypes from "prop-types";
+import {
+  store,
+  search,
+  update,
+  fetchSingle,
+  searchMe,
+  processPendingPayrollPeriods,
+  updateProfileMe,
+  updatePayments,
+  createPayment,
+  fetchAllMe,
+  fetchTemporal,
+  remove,
+  create,
+  fetchPeyrollPeriodPayments,
+} from "../actions.js";
+import { Session } from "bc-react-session";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { PDFDocument, rgb } from "pdf-lib";
+import { saveAs } from "file-saver";
+import fw4 from "../../img/fw4.pdf";
+import i9form from "../../img/i92.pdf";
+import loadingURL from "../../img/loading2.gif";
+
+import DateTime from "react-datetime";
 import moment from "moment";
+import {
+  DATETIME_FORMAT,
+  TIME_FORMAT,
+  NOW,
+  TODAY,
+  haversineDistance,
+} from "../components/utils.js";
+import Select from "react-select";
+import { hasTutorial } from "../utils/tutorial";
+
 import { Notify } from "bc-react-notifier";
+
+import { Shift, EditOrAddShift } from "./shifts.js";
+import { Employer } from "./profile.js";
+import { ManageLocations, AddOrEditLocation, Location } from "./locations.js";
+import {
+  EmployeeExtendedCard,
+  ShiftOption,
+  ShiftCard,
+  DeductionExtendedCard,
+  Theme,
+  Button,
+  ShiftOptionSelected,
+  GenericCard,
+  SearchCatalogSelect,
+  Avatar,
+  Toggle,
+  Wizard,
+  StarRating,
+  ListCard,
+} from "../components/index";
+import queryString, { parse } from "query-string";
+
+import TimePicker from "rc-time-picker";
 import "rc-time-picker/assets/index.css";
+
+import Tooltip from "rc-tooltip";
 import "rc-tooltip/assets/bootstrap_white.css";
-import  Theme from "/workspace/employer-web-client/src/js/components/theme"
-/**
- * Applican Card
- */
-const EmployeeExtendedCard = (props) => {
-    console.log("EmployeeExtendedCard props###", props)
-    const positions =  !props.positions ? null : props.employee.positions.slice(0, 4).map((p, i) => {
-        return props.positions.find(pos => p == pos.value || p.id == pos.value);
-    });
 
-    const badgesHTML = !props.employee.badges ? [] : props.employee.badges.map((b, i) => (<span key={i} className="badge">{b.title}</span>));
-    const favoriteCount = !Array.isArray(props.employee.favoritelist_set) ? 0 :props.employee.favoritelist_set.length;
+import GoogleMapReact from "google-map-react";
 
-    const picture = props.employee && props.employee.user && props.employee.user.profile && props.employee.user.profile.picture ?props.employee.user.profile.picture : "" ; 
-    const DocStatus = props.employee.employment_verification_status
-    console.log("DocStatus###", DocStatus)
-    const [form, setForm] = useState(props.form);
-    const [formLoading, setFormLoading] = useState(props.formLoading);
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { Document, Page } from "react-pdf";
+import TextareaAutosize from "react-textarea-autosize";
+import { PayrollPeriodReport } from "./reports/index.js";
+import { times } from "underscore";
+import { POST, GET, PUT, DELETE, PUTFiles, POSTcsrf } from "../utils/api_wrapper";
+import { updateDocs, updateEmployability } from "../actions.js";
+
+const ENTITIY_NAME = "payroll";
+
+
+  export const CheckEmployeeDocuments = (props) => { 
+    console.log('CheckEmployeeDocuments props###', props)
+    const [startDate, setStartDate] = useState(false);
+    const [form, setForm] = useState("");
+    const [formLoading, setFormLoading] = useState(false);
     async function getEmployeeDocumet(emp, type) {
       console.log('emp###', emp)
       console.log('type###', type)
@@ -190,7 +248,7 @@ const EmployeeExtendedCard = (props) => {
         const fileURL = URL.createObjectURL(blob);
         setForm(fileURL);
         setFormLoading(false);
-       
+  
         //   window.open(blob);
         //   saveAs(blob, `${data.i9form.first_name + "_" + data.i9form.last_name+"_W4"}.pdf`);
       }
@@ -429,220 +487,229 @@ const EmployeeExtendedCard = (props) => {
         const fileURL = URL.createObjectURL(blob);
         setForm(fileURL);
         setFormLoading(false);
-        
         //   saveAs(blob, `${data.i9form.first_name + "_" + data.i9form.last_name+"_I9"+moment().format("MMDDYYYY")}.pdf`);
       }
     }
-    // const [DocStatus, setDocStatus] = useState("");
-    // useEffect(() => {
-    //   props.defineEmployee()
-    // }, []);
+    const [DocStatus, setDocStatus] = useState("NOT_APPROVED");
+    function AproveDocs() {      
+      const today = new Date()
+      const empDate = new Date(props.catalog.employee.employability_expired_at)
+      if (empDate.getTime()<today.getTime()) {
+        props.catalog.employee.employment_verification_status = "NOT_APPROVED"
+        setDocStatus(props.catalog.employee.employment_verification_status)
+        updateDocs(props)
+        window.location.reload(false)
+        return Notify.error(`${props.catalog.employee.user.first_name} ${props.catalog.employee.user.last_name} Documents ${props.catalog.employee.employment_verification_status} they are expired`)
+      } else {
+        props.catalog.employee.employment_verification_status = "APPROVED"
+        setDocStatus(props.catalog.employee.employment_verification_status)
+        updateDocs(props)
+        window.location.reload(false)
+        return Notify.success(`${props.catalog.employee.user.first_name} ${props.catalog.employee.user.last_name} Documents ${props.catalog.employee.employment_verification_status}`)
+      }
+    }
+    function RejectDocs() {
+      Notify.error("Employee Documents Rejected")
+      const today = new Date()
+      props.catalog.employee.employability_expired_at = today
+      props.catalog.employee.employment_verification_status = "NOT_APPROVED"
+      setDocStatus(props.catalog.employee.employment_verification_status)
+      updateDocs(props)
+      window.location.reload(false)
+    }
+    useEffect(() => {
+      console.log('dentro del useEffect')
+      setDocStatus(props.catalog.employee.employment_verification_status)
+    }, [DocStatus]);
+    
+   
+
     return (
-    <li className={`aplicantcard ${props.hoverEffect ? "aplicantcard-hover":""} ${props.showButtonsOnHover ? "show-hover":""} ${props.className}`} onClick={() => (props.onClick) ? props.onClick() : false}>
-      <Theme.Consumer>
-      {({ bar }) => ( <div className=''>
-        {/* <Avatar url={props.employee.user ? props.employee.user.profile.picture : ""} /> */}
-        <Avatar url={picture} />
-        <div className="row">
-            <div className="col-2.5 p-2">
-                <a href="#"><b>{props.employee.user.first_name + ' ' + props.employee.user.last_name}</b></a>
-                <Stars rating={Number(props.employee.rating)} jobCount={props.employee.total_ratings}  />
-                { (props.showFavlist) ?
-                    <p href="#">{ (favoriteCount > 0) ? <span className="badge badge-warning"><i className="fas fa-star"></i> {favoriteCount} Lists</span> : '' } {badgesHTML}</p>
-                  :''
-              }
-            </div>
-            <div className="mt-2" 
-              onMouseEnter={(e) => {
-                console.log("button hovered");
-                props.defineEmployee()
-              }}
-            >
-            { 
-            // props.catalog.employee.employment_verification_status 
-            DocStatus === "APPROVED"  
-              ? (
-              <span className="mr-2"
-                style={{ cursor: "pointer" }}
-                data-toggle="modal"
-                data-target="#exampleModalCenter"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  console.log("button clicked");
-                  console.log("props dentro", props);
-                  // Notify.info("Press ESC to close this window")
-                  // if (!props.formLoading) getEmployeeDocumet(props, "w4");
-                  bar.show({
-                    slug: "check_employee_documents2",
-                    data: props.employee,
-                    allowLevels: true,
-                  })
-                }}
-              >
-                <i
-                  style={{ fontSize: "16px", color: "#43A047"}}
-                  className="fas fa-file-alt mr-1"
-                ></i>
-                {true ? "W4" : "Loading"}
-              </span>
-            ) : ( DocStatus === "MISSING_DOCUMENTS" 
-            ? ( 
-              <span className="text-muted mr-3"
-                style={{ cursor: "pointer"}}
-                data-toggle="modal"
-                data-target="#exampleModalCenter"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  console.log("button clicked");
-                  // Notify.info("Press ESC to close this window")
-                  // if (!props.formLoading) getEmployeeDocumet(props, "w4");
-                  bar.show({
-                    slug: "check_employee_documents2",
-                    data: props.employee,
-                    allowLevels: true,
-                  })
-                }}
-              >
-                <i style={{ fontSize: "15px", color: "#FFD600" }} className="fas fa-exclamation-circle mr-1"></i>
-                {true ? "W4" : "Loading"}
-              </span>
-            ) : ( 
-              <span className="text-muted mr-3"
-                style={{ cursor: "pointer"}}
-                data-toggle="modal"
-                data-target="#exampleModalCenter"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  console.log("button clicked");
-                  // Notify.info("Press ESC to close this window")
-                  // if (!props.formLoading) getEmployeeDocumet(props, "w4");
-                  bar.show({
-                    slug: "check_employee_documents2",
-                    data: props.employee,
-                    allowLevels: true,
-                  })
-                }}
-              >
-                <i className="fas fa-exclamation-circle text-danger mr-1"></i>
-                {true ? "W4" : "Loading"}
-              </span>
-            ))}
-            { 
-            // props.catalog.employee.employment_verification_status 
-            DocStatus === "APPROVED" 
-              ? (
-              <span className="mr-2"
-                style={{ cursor: "pointer" }}
-                data-toggle="modal"
-                data-target="#exampleModalCenter"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  console.log("button clicked");
-                  // Notify.info("Press ESC to close this window")
-                  // if (!props.formLoading) getEmployeeDocumet(props, "w4");
-                  bar.show({
-                    slug: "check_employee_documents2",
-                    data: props.employee,
-                    allowLevels: true,
-                  })
-                }}
-              >
-                <i
-                  style={{ fontSize: "16px", color: "#43A047" }}
-                  className="fas fa-file-alt mr-1"
-                ></i>
-                {true ? "I9" : "Loading"}
-              </span>
-            ) : ( DocStatus === "MISSING_DOCUMENTS" 
-            ? ( 
-              <span className="text-muted mr-3"
-                style={{ cursor: "pointer" }}
-                data-toggle="modal"
-                data-target="#exampleModalCenter"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  console.log("button clicked");
-                  // Notify.info("Press ESC to close this window")
-                  // if (!props.formLoading) getEmployeeDocumet(props, "w4");
-                  bar.show({
-                    slug: "check_employee_documents2",
-                    data: props.employee,
-                    allowLevels: true,
-                  })
-                }}
-              >
-                <i style={{ fontSize: "15px", color: "#FFD600" }} className="fas fa-exclamation-circle mr-1"></i>
-                {true ? "I9" : "Loading"}
-              </span>
-            ) : ( 
-              <span className="text-muted mr-3"
-                style={{ cursor: "pointer" }}
-                data-toggle="modal"
-                data-target="#exampleModalCenter"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  console.log("button clicked");
-                  // Notify.info("Press ESC to close this window")
-                  // if (!props.formLoading) getEmployeeDocumet(props, "w4");
-                  bar.show({
-                    slug: "check_employee_documents2",
-                    data: props.employee,
-                    allowLevels: true,
-                  })
-                }}
-              >
-                <i className="fas fa-exclamation-circle text-danger mr-1"></i>
-                {true ? "I9" : "Loading"}
-              </span>
-            ))} 
-            </div>
-            {Array.isArray(positions) && positions.length > 0 ? (
-                <div className="col-8 my-auto">
+          <div>
+                    <div
+                      className="modal fade"
+                      id="exampleModalCenter"
+                      tabIndex="-1"
+                      role="dialog"
+                      aria-labelledby="exampleModalCenterTitle"
+                      aria-hidden="true"
+                      data-backdrop="false"
+                      backdrop="true"
+                    > <button 
+                    type="button" 
+                    class="close btn-lg" 
+                    data-dismiss="modal"
+                    style={{ width: "100px" }}
+                    >&times;</button>
+                      <div className="modal-dialog modal-dialog-centered" role="document">
+                        <div className="modal-content">
+                          {form ? ( 
+                            <iframe 
+                            src={form}
+                            style={{ width: "800px", height: "900px" }}
+                            frameBorder="0"
+                            ></iframe>
+                          ) : (
+                          <div className="spinner-border text-center mx-auto" role="status">
+                            <span className="sr-only">Loading...</span>
+                          </div>
+                          )}
+                        </div>
+                      </div>
+                      </div>
+                      <form>
+                      {console.log('form###', form)}
+                      <div className="row">
+                      <div className="col-12">
+                      <label>The documents of the selected employee are listed below.</label>
+                      <label>You can click on each one to verify them:</label>
+                      <div className="row" style={{ marginLeft: "30px", marginTop: "20px", marginBottom: "20px" }}>
+                            <div className="col-6 pr-0">
+                              
+                              { 
+                                // props.catalog.employee.employment_verification_status 
+                                DocStatus === "APPROVED" 
+                                  ? (
+                                  <span
+                                    style={{ cursor: "pointer" }}
+                                    data-toggle="modal"
+                                    data-target="#exampleModalCenter"
+                                    onClick={() => {
+                                      // Notify.info("Press ESC to close this window")
+                                      if (!formLoading) getEmployeeDocumet(props.catalog, "w4");
+                                    }}
+                                  >
+                                    <i
+                                      style={{ fontSize: "16px", color: "#43A047" }}
+                                      className="fas fa-file-alt mr-1"
+                                    ></i>
+                                    {!formLoading ? "W-4 Form" : "Loading"}
+                                  </span>
+                                ) : (DocStatus != "APPROVED" 
+                                ? (
+                                  <span className="text-muted"
+                                    style={{ cursor: "pointer" }}
+                                    data-toggle="modal"
+                                    data-target="#exampleModalCenter"
+                                    onClick={() => {
+                                      // Notify.info("Press ESC to close this window")
+                                      if (!formLoading) getEmployeeDocumet(props.catalog, "w4");
+                                    }}
+                                  >
+                                    <i style={{ fontSize: "15px", color: "#FFD600" }} className="fas fa-exclamation-circle mr-1"></i>
+                                    {!formLoading ? "W-4 Form" : "Loading"}
+                                  </span>
+                                ) : ( 
+                                <span className="text-muted"
+                                style={{ cursor: "pointer" }}
+                                data-toggle="modal"
+                                data-target="#exampleModalCenter"
+                                onClick={() => {
+                                  // Notify.info("Press ESC to close this window")
+                                  if (!formLoading) getEmployeeDocumet(props.catalog, "w4");
+                                }}
+                              >
+                                <i className="fas fa-exclamation-circle text-danger mr-1"></i>
+                                {!formLoading ? "W-4 Form" : "Loading"}
+                              </span> ))}
+                            </div>
                     
-                    { positions.map((pos, i)=> {
-                        if(i < 3 && pos ) return (<span key={i} className="badge badge-success">{pos.label || pos.title}</span>);
-                      }
-                    )}
-                    {Array.isArray(positions) && positions.length > 3 ? <span className="text-right ml-4">See more</span> : null}
+                            <div className="col-6 pr-0">
+                                {
+                              // props.catalog.employee.employment_verification_status 
+                              DocStatus === "APPROVED" 
+                                ? (
+                                  <span
+                                    style={{ cursor: "pointer" }}
+                                    data-toggle="modal"
+                                    data-target="#exampleModalCenter"
+                                    onClick={() => {
+                                      if (!formLoading) getEmployeeDocumet(props.catalog, "i9");
+                                    
+                                    }}
+                                  >
+                                    <i
+                                      style={{ fontSize: "16px", color: "#43A047" }}
+                                      className="fas fa-file-alt mr-1"
+                                    ></i>
+                                    {!formLoading ? "I-9 and others" : "Loading"}
+                                  </span>
+                                ) : (DocStatus != "APPROVED" 
+                                ? (
+                                  <span className="text-muted"
+                                    style={{ cursor: "pointer" }}
+                                    data-toggle="modal"
+                                    data-target="#exampleModalCenter"
+                                    onClick={() => {
+                                      if (!formLoading) getEmployeeDocumet(props.catalog, "i9");
+                                    }}
+                                  >
+                                    <i style={{ fontSize: "15px", color: "#FFD600" }} className="fas fa-exclamation-circle mr-1"></i>
+                                    {!formLoading ? "I-9 and others" : "Loading"}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted"
+                                    style={{ cursor: "pointer" }}
+                                    data-toggle="modal"
+                                    data-target="#exampleModalCenter"
+                                    onClick={() => {
+                                      if (!formLoading) getEmployeeDocumet(props.catalog, "i9");
+                                    }}
+                                  >
+                                    <i className="fas fa-exclamation-circle text-danger mr-1"></i>
+                                    {!formLoading ? "I-9 and others" : "Loading"}
+                                  </span>
+                                ))}
+                          
+                      </div>
+                  </div>
                 </div>
-            ): null}
+              </div> 
+              <p>If you see a yellow icon <i style={{ fontSize: "15px", color: "#FFD600" }} className="fas fa-exclamation-circle mr-1">
+                </i> means that the document is waiting for approval, a red icon <i className="fas fa-exclamation-circle text-danger mr-1">
+                </i> means the document is not approved, while if you see a green icon  <i 
+                style={{ fontSize: "16px", color: "#43A047" }} className="fas fa-file-alt mr-1">
+                </i> the document is approved</p>
+              <p>When you're ready, accept or reject the employee's documents at your discretion.</p>
+              <p>if the job seeker has eligibility to work permanently (US citizen) use the "approve documents" button without choosing any date.</p>
+              <div className="btn-bar">
+                  <Button id="aproveBtn" color="secondary" onClick={() => 
+                    AproveDocs() 
+                    }>Approve Documents</Button>
+              </div>
+              <div className="d-flex justify-content-center p-2">
+                <label className="mr-1">Documents will be approved until date:</label>
+                <DatePicker 
+                  dateFormat="yyyy-MM-dd"
+                  placeholderText="Pick a date"
+                  selected={new Date("2100-06-01")} 
+                  onChange={(date) => { 
+                    console.log("date from datepicker" , date)
+                    props.catalog.employee.employability_expired_at = date
+                    updateEmployability(props)
+                    setStartDate(date)
+                    let aproveBtn = document.getElementById("aproveBtn");
+                    aproveBtn.style["background-color"] = "green"
+                  }} 
+                  className="mt-2 text-center w-75 ml-4"
+                />
+              </div>
+              <div className="btn-bar">
+                  <Button color="danger" onClick={() => 
+                    RejectDocs()
+                    }>Reject Documents</Button>
+              </div>
+              
+            </form>
+          </div>);
+};
 
-        </div>
-  
- 
-        {(props.children) ?
-            <div className="btn-group" role="group" aria-label="Basic example">
-                {props.children}
-            </div>
-            :''
-        }
-       </div>
-         )}
-    </Theme.Consumer>
-  </li>);
+CheckEmployeeDocuments.propTypes = {
+  history: PropTypes.object.isRequired,
+  match: PropTypes.object.isRequired,
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  formData: PropTypes.object,
+  catalog: PropTypes.object //contains the data needed for the form to load
 };
-EmployeeExtendedCard.propTypes = {
-  employee: PropTypes.object.isRequired,
-  children: PropTypes.oneOfType([
-    PropTypes.arrayOf(PropTypes.node),
-    PropTypes.node
-  ]),
-  showFavlist: PropTypes.bool,
-  className: PropTypes.string,
-  showButtonsOnHover: PropTypes.bool,
-  hoverEffect: PropTypes.bool,
-  onClick: PropTypes.func,
-  defineEmployee: PropTypes.func,
-  positions: PropTypes.array
-};
-EmployeeExtendedCard.defaultProps = {
-  showFavlist: true,
-  className:'',
-  hoverEffect: true,
-  showButtonsOnHover: true,
-  children: null,
-  onClick: null,
-  positions: null
-};
-
-export default EmployeeExtendedCard;
