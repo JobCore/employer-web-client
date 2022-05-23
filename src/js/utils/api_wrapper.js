@@ -212,7 +212,6 @@ export const PUT = (endpoint, putData, extraHeaders = {}) => {
   if (['register', 'login','user/password/reset'].indexOf(endpoint) == -1) {
     HEADERS['Authorization'] = `JWT ${getToken()}`;
   }
-  console.log("HEADERS###", HEADERS)
   const REQ = {
     method: 'PUT',
     headers: Object.assign(HEADERS, extraHeaders),

@@ -3,18 +3,17 @@ import React, { useState, useEffect } from "react";
 import PropTypes from 'prop-types';
 import Avatar from '../avatar';
 import Stars from '../stars';
-import { GET } from "/workspace/employer-web-client/src/js/utils/api_wrapper.js";
+import { GET } from "src/js/utils/api_wrapper.js";
 import { PDFDocument, rgb } from "pdf-lib";
 import moment from "moment";
 import { Notify } from "bc-react-notifier";
 import "rc-time-picker/assets/index.css";
 import "rc-tooltip/assets/bootstrap_white.css";
-import  Theme from "/workspace/employer-web-client/src/js/components/theme"
-/**
+import  Theme from "../theme"
+/** 
  * Applican Card
  */
 const EmployeeExtendedCard = (props) => {
-    console.log("EmployeeExtendedCard props###", props)
     const positions =  !props.positions ? null : props.employee.positions.slice(0, 4).map((p, i) => {
         return props.positions.find(pos => p == pos.value || p.id == pos.value);
     });
@@ -24,18 +23,13 @@ const EmployeeExtendedCard = (props) => {
 
     const picture = props.employee && props.employee.user && props.employee.user.profile && props.employee.user.profile.picture ?props.employee.user.profile.picture : "" ; 
     const DocStatus = props.employee.employment_verification_status
-    console.log("DocStatus###", DocStatus)
     const [form, setForm] = useState(props.form);
     const [formLoading, setFormLoading] = useState(props.formLoading);
     async function getEmployeeDocumet(emp, type) {
-      console.log('emp###', emp)
-      console.log('type###', type)
       setFormLoading(true);
       setForm(null);
       const id = emp.employee.id;
-  
       const w4form = await GET("employers/me/" + "w4-form" + "/" + id);
-      console.log('w4form###', w4form)
       const i9form = await GET("employers/me/" + "i9-form" + "/" + id);
       const employeeDocument = await GET(
         "employers/me/" + "employee-documents" + "/" + id
@@ -47,7 +41,6 @@ const EmployeeExtendedCard = (props) => {
         employeeDocument: employeeDocument[0] || "",
         employeeDocument2: employeeDocument[1] || "",
       };
-      console.log('data###', data)
       if (type === "w4") fillForm(data);
       else if (type === "i9") fillFormI9(data);
       

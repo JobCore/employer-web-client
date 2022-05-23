@@ -16,7 +16,6 @@ import queryString from "query-string";
 import { Session } from "bc-react-session";
 import { Notify } from "bc-react-notifier";
 import { ButtonGroup } from "reactstrap";
-import { ToggleButtonGroupControlled } from "/workspace/employer-web-client/src/js/components/button-group/buttonGroup.jsx"
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom"
 
@@ -247,23 +246,16 @@ export class ManageTalents extends Flux.DashView {
   render() {
     const employees = this.state.employees
     function checkEmployability(empl) {
-      console.log(empl.employability_expired_at)
       const today = new Date()
       const empDate = new Date(empl.employability_expired_at)
-      console.log(empDate)
-      // compared = dates.compare(empl.employability_expired_at,today)
       if (empDate.getTime()<today.getTime()) {
         empl.employment_verification_status = "NOT_APPROVED"
         return "is NOT eligible to work"
       } else {
         return "it IS eligible to work"
       }
-      // empl.employability_expired_at
-      
     }
     const today = new Date()
-    
-    console.log("today#########", today)
     console.log("empleados#########", employees.map(checkEmployability))
     const positions = this.state.positions;
     if (this.state.firstSearch) return <p>Please search for an employee</p>;
@@ -286,8 +278,6 @@ export class ManageTalents extends Flux.DashView {
       }
     }
     const finalList = filteredEmployeesList(this.state.empStatus)
-    console.log("employees###", finalList)
-    
     return (
       <div className="p-1 listcontents">
         <Theme.Consumer>
@@ -309,16 +299,9 @@ export class ManageTalents extends Flux.DashView {
                 <button onClick={() => {this.setState({ empStatus: this.state.empStatus="unverified" })
                 }} type="button" className="btn btn-secondary" style={this.state.empStatus==="unverified" ? {background:"#FFDB58", color:"gray"} : {}}>Unverified</button>
               </div>
-              {/* <Link to={{pathname: '/CheckEmployeeDocuments'}} >
-                Este es el link
-                <p>{console.log("catalog###", this.props.location.state)}</p>
-                
-              </Link> */}
-              
               {// this.state.employees.map((s, i) => (
                 finalList.map((s, i) => (
                 <EmployeeExtendedCard
-                  // props={this.state.catalog}
                   form={this.state.form}
                   formLoading={this.state.formLoading}
                   key={i}

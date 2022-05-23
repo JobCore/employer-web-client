@@ -80,20 +80,16 @@ import { updateDocs, updateEmployability } from "../actions.js";
 const ENTITIY_NAME = "payroll";
 
 
-  export const CheckEmployeeDocuments = (props) => { 
-    console.log('CheckEmployeeDocuments props###', props)
+  export const CheckEmployeeDocuments = (props) => {
     const [startDate, setStartDate] = useState(false);
     const [form, setForm] = useState("");
     const [formLoading, setFormLoading] = useState(false);
     async function getEmployeeDocumet(emp, type) {
-      console.log('emp###', emp)
-      console.log('type###', type)
       setFormLoading(true);
       setForm(null);
       const id = emp.employee.id;
   
       const w4form = await GET("employers/me/" + "w4-form" + "/" + id);
-      console.log('w4form###', w4form)
       const i9form = await GET("employers/me/" + "i9-form" + "/" + id);
       const employeeDocument = await GET(
         "employers/me/" + "employee-documents" + "/" + id
@@ -105,7 +101,6 @@ const ENTITIY_NAME = "payroll";
         employeeDocument: employeeDocument[0] || "",
         employeeDocument2: employeeDocument[1] || "",
       };
-      console.log('data###', data)
       if (type === "w4") fillForm(data);
       else if (type === "i9") fillFormI9(data);
       
@@ -255,7 +250,6 @@ const ENTITIY_NAME = "payroll";
     }
     async function fillFormI9(data) {
       if (data) {
-        console.log('dataI9###', data)
         const signature = data.i9form.employee_signature;
         const png = `data:image/png;base64,${signature}`;
         const formUrl =
@@ -518,7 +512,6 @@ const ENTITIY_NAME = "payroll";
       window.location.reload(false)
     }
     useEffect(() => {
-      console.log('dentro del useEffect')
       setDocStatus(props.catalog.employee.employment_verification_status)
     }, [DocStatus]);
     
@@ -558,7 +551,6 @@ const ENTITIY_NAME = "payroll";
                       </div>
                       </div>
                       <form>
-                      {console.log('form###', form)}
                       <div className="row">
                       <div className="col-12">
                       <label>The documents of the selected employee are listed below.</label>
@@ -684,7 +676,6 @@ const ENTITIY_NAME = "payroll";
                   placeholderText="Pick a date"
                   selected={new Date("2100-06-01")} 
                   onChange={(date) => { 
-                    console.log("date from datepicker" , date)
                     props.catalog.employee.employability_expired_at = date
                     updateEmployability(props)
                     setStartDate(date)

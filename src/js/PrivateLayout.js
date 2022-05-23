@@ -345,7 +345,6 @@ class PrivateLayout extends Flux.DashView {
                 this.showRightBar(TalentDetails, option, {
                   employee: Talent(talent).defaults().unserialize(),
                 }),
-                // this.closeRightBar()
               );
               break;
             case "add_to_favlist":
@@ -1133,8 +1132,6 @@ class PrivateLayout extends Flux.DashView {
               <Route exact path="/shifts" component={ManageShifts} />
               <Route exact path="/applicants" component={ManageApplicantions} />
               <Route exact path="/talents" component={ManageTalents} /> 
-              {/* <Route exact path="/talents"
-               render={() => ( <ManageTalents catalog={this.state.catalog}/> )} /> */}
               <Route exact path="/favorites" component={ManageFavorites} />
               <Route exact path="/payrates" component={ManagePayrates} />
               <Route
