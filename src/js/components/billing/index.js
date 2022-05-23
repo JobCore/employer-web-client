@@ -274,7 +274,7 @@ const BillingContent = (props) => {
 };
 
 const BillingAside = (props) => {
-console.log('props', props);
+console.log('BillingAside props', props);
 //   const stripe = useStripe();
 //   const elements = useElements();
   const [message, setMessage] = useState(null);

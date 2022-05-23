@@ -73,6 +73,7 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import { Document, Page } from "react-pdf";
 import TextareaAutosize from "react-textarea-autosize";
 import { PayrollPeriodReport } from "./reports/index.js";
+import { ConsoleView } from "react-device-detect";
 
 const ENTITIY_NAME = "payroll";
 
@@ -1134,6 +1135,8 @@ export const ManagePayroll = () => {
 };
 
 export const PayrollPeriodDetails = ({ match, history }) => {
+  console.log('PayrollPeriodDetails match###', match)
+  console.log('PayrollPeriodDetails history###', history)
   const [employer, setEmployer] = useState(store.getState("current_employer"));
   const [period, setPeriod] = useState(null);
   const [form, setForm] = useState("");
@@ -1189,6 +1192,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
   let groupedPayments = {};
   for (let i = 0; i < payments.length; i++) {
     const pay = payments[i];
+    console.log('pay###', pay)
     if (typeof groupedPayments[pay.employee.id] === "undefined") {
       groupedPayments[pay.employee.id] = {
         employee: pay.employee,
@@ -1238,6 +1242,7 @@ export const PayrollPeriodDetails = ({ match, history }) => {
 
     if (type === "w4") fillForm(data);
     else if (type === "i9") fillFormI9(data);
+    // const loadingTimeout = setTimeout(setFormLoading(false), 10000);
   }
 
   async function fillForm(data) {
@@ -1844,13 +1849,20 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                               }}
                             >
                               <i
-                                style={{ fontSize: "16px", color: "#000000" }}
+                                style={{ fontSize: "16px", color: "#43A047" }}
                                 className="fas fa-file-alt mr-1"
                               ></i>
                               {!formLoading ? "W-4" : "Loading"}
                             </span>
                           ) : (
-                            <span className="text-muted">
+                            <span className="text-muted" 
+                              style={{ cursor: "pointer" }}
+                              data-toggle="modal"
+                              data-target="#exampleModalCenter"
+                              onClick={() => {
+                                if (!formLoading) getEmployeeDocumet(pay, "w4");
+                              }}
+                            >
                               <i className="fas fa-exclamation-circle text-danger mr-1"></i>
                               W-4
                             </span>
@@ -1868,13 +1880,20 @@ export const PayrollPeriodDetails = ({ match, history }) => {
                               }}
                             >
                               <i
-                                style={{ fontSize: "16px", color: "#000000" }}
+                                style={{ fontSize: "16px", color: "#43A047" }}
                                 className="fas fa-file-alt mr-1"
                               ></i>
                               {!formLoading ? "I-9" : "Loading"}
                             </span>
                           ) : (
-                            <span className="text-muted">
+                            <span className="text-muted"
+                              style={{ cursor: "pointer" }}
+                              data-toggle="modal"
+                              data-target="#exampleModalCenter"
+                              onClick={() => {
+                                if (!formLoading) getEmployeeDocumet(pay, "i9");
+                              }}
+                            >
                               <i className="fas fa-exclamation-circle text-danger mr-1"></i>
                               I-9
                             </span>
@@ -2841,6 +2860,7 @@ export const SelectTimesheet = ({
   const employer = store.getState("current_employer");
   const [noMorePeriods, setNoMorePeriods] = useState(false);
   const [periods, setPeriods] = useState(formData.periods);
+  console.log("formData.periods###", formData.periods)
   if (
     !employer ||
     !employer.payroll_configured ||
@@ -4186,7 +4206,7 @@ export class PayrollReport extends Flux.DashView {
       const formPdfBytes = await fetch(formUrl).then((res) =>
         res.arrayBuffer()
       );
-
+      
       const pngUrl = png;
       var pngImageBytes;
       var pngImage;
@@ -4672,7 +4692,7 @@ export class PayrollReport extends Flux.DashView {
                                         <i
                                           style={{
                                             fontSize: "16px",
-                                            color: "#000000",
+                                            color: "#43A047",
                                           }}
                                           className="fas fa-file-alt mr-1"
                                         ></i>
@@ -4701,7 +4721,7 @@ export class PayrollReport extends Flux.DashView {
                                         <i
                                           style={{
                                             fontSize: "16px",
-                                            color: "#000000",
+                                            color: "#43A047",
                                           }}
                                           className="fas fa-file-alt mr-1"
                                         ></i>

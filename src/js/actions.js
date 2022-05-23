@@ -402,6 +402,7 @@ export const processPendingPayrollPeriods = () =>
     GET(`hook/generate_periods?${qs.stringify(params)}`)
       .then(function (_newPeriods) {
         let periods = store.getState("payroll-periods");
+        console.log('frontend periods###', periods)
         Flux.dispatchEvent("payroll-periods", periods.concat(_newPeriods));
         resolve(_newPeriods);
       })
@@ -632,6 +633,27 @@ export const updateProfileMe = (data) => {
     });
 };
 
+export const updateEmployability = (data) => {
+  console.log("data desde updateEmployability", data)
+  PUT(`employee/employability_expired_at/update/${data.catalog.employee.id}`, 
+      data)
+      .then()
+  // PUT(`employers/me/shifts/12/employees`, 
+  // data)
+  // .then(Notify.success("API Aproved"))
+      
+}
+export const updateDocs = (data) => {
+  
+  PUT(`employee/employment_verification_status/update/${data.catalog.employee.id}`, 
+      data)
+      .then(response => response.json())
+      .then(data => console.log(data))
+  // PUT(`employers/me/shifts/12/employees`, 
+  // data)
+  // .then(Notify.success("API Aproved"))
+      
+}
 export const createSubscription = (data, history) => {
   const employer = store.getState("current_employer");
   

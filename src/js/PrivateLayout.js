@@ -50,6 +50,7 @@ import {
   InviteTalentToJobcore,
   SearchTalentToInviteToShift,
 } from "./views/invites.js";
+import { CheckEmployeeDocuments } from "./views/check-documents.js";
 import {
   ManageFavorites,
   AddFavlistsToTalent,
@@ -106,6 +107,7 @@ import { MakePayment, Payment } from "./views/payments";
 import "../styles/_notification.scss";
 import "jquery/dist/jquery.min.js";
 import "bootstrap/dist/js/bootstrap.min.js";
+import { CheckEmployeeDocuments2 } from "./views/check-documents2";
 
 class PrivateLayout extends Flux.DashView {
   constructor() {
@@ -113,6 +115,7 @@ class PrivateLayout extends Flux.DashView {
     this.currentPath = null;
     this.removeHistoryListener = null;
     this.state = {
+      showHideHR: true,
       showRightBar: 0,
       showButtonBar: true,
       loading: true,
@@ -278,6 +281,18 @@ class PrivateLayout extends Flux.DashView {
                 formData: ShiftInvite(option.data).getFormData(),
               });
               break;
+            case "check_employee_documents":
+              option.title = "Invite Talent";
+              this.showRightBar(CheckEmployeeDocuments, option, {
+                formData: Talent(option.data).getFormData(),
+              });
+              break;
+            case "check_employee_documents2":
+              option.title = "Invite Talent";
+              this.showRightBar(CheckEmployeeDocuments2, option, {
+                formData: Talent(option.data).getFormData(),
+              });
+              break;
             case "search_talent_and_invite_to_shift":
               option.title = "Invite Talent";
               this.showRightBar(SearchTalentToInviteToShift, option, {
@@ -319,6 +334,18 @@ class PrivateLayout extends Flux.DashView {
                 this.showRightBar(TalentDetails, option, {
                   employee: Talent(talent).defaults().unserialize(),
                 })
+              );
+              break;
+            case "define_employee":
+              option.title = "Talent Detail";
+              fetchSingle(
+                { url: "employees/" + option.data.id, slug: "employees" },
+                option.data.id
+              ).then((talent) =>
+                this.showRightBar(TalentDetails, option, {
+                  employee: Talent(talent).defaults().unserialize(),
+                }),
+                // this.closeRightBar()
               );
               break;
             case "add_to_favlist":
@@ -366,7 +393,7 @@ class PrivateLayout extends Flux.DashView {
             case "add_talent_to_favlist":
               option.title = "Search for the talent";
               this.showRightBar(AddTalentToFavlist, option, {
-                formData: Favlist(option.data).getFormData(),
+                formData: Favlist(option.data).getFormData(), 
               });
               break;
             case "show_single_rating":
@@ -470,6 +497,7 @@ class PrivateLayout extends Flux.DashView {
       },
     };
     this.watchers = [];
+    this.hideComponent = this.hideComponent.bind(this);
   }
 
   componentDidMount() {
@@ -585,6 +613,7 @@ class PrivateLayout extends Flux.DashView {
       if (this.currentPath != e.pathname) this.closeRightBar("all");
       this.currentPath = e.pathname;
     });
+    this.hideComponent(session.payload.user.username)
   }
 
   componentWillUnmount() {
@@ -658,7 +687,9 @@ class PrivateLayout extends Flux.DashView {
         );
     }
   }
+
   render() {
+    const { showHideHR } = this.state;
     if (
       this.state.employer &&
       this.state.employer.active_subscription &&
@@ -707,6 +738,7 @@ class PrivateLayout extends Flux.DashView {
         style={{ backgroundImage: `url(${logoURL})` }}
       />
     );
+    
     return (
       <Theme.Provider value={{ bar: this.state.bar }}>
         <LoadBar
@@ -730,12 +762,14 @@ class PrivateLayout extends Flux.DashView {
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/talents">
-                  <i className="icon icon-talents"></i>
-                  <span style={{ fontSize: 16, fontWeight: 500 }}>
-                    Talent Search
-                  </span>
-                </NavLink>
+                {showHideHR && (
+                  <NavLink to="/talents">
+                    <i className="icon icon-talents"></i>
+                    <span style={{ fontSize: 16, fontWeight: 500 }}>
+                      Talent Search
+                    </span>
+                  </NavLink>
+                )}
               </li>
               <li>
                 <NavLink to="/favorites">
@@ -1098,7 +1132,9 @@ class PrivateLayout extends Flux.DashView {
               />
               <Route exact path="/shifts" component={ManageShifts} />
               <Route exact path="/applicants" component={ManageApplicantions} />
-              <Route exact path="/talents" component={ManageTalents} />
+              <Route exact path="/talents" component={ManageTalents} /> 
+              {/* <Route exact path="/talents"
+               render={() => ( <ManageTalents catalog={this.state.catalog}/> )} /> */}
               <Route exact path="/favorites" component={ManageFavorites} />
               <Route exact path="/payrates" component={ManagePayrates} />
               <Route
@@ -1134,6 +1170,11 @@ class PrivateLayout extends Flux.DashView {
                 exact
                 path="/payroll/period/:period_id"
                 component={PayrollPeriodDetails}
+              />
+               <Route
+                exact
+                path="/CheckEmployeeDocuments"
+                component={CheckEmployeeDocuments}
               />
               <Route
                 exact
@@ -1175,6 +1216,13 @@ class PrivateLayout extends Flux.DashView {
         </div>
       </Theme.Provider>
     );
+  }
+  hideComponent(admin) {
+    if (admin==="hradmin@jobcore.co") {
+      // this.setState({ showHideHR: false }); // uncommenting makes tap talent search is visible only to JC-HR@admin.co
+      console.log("showHideHR###", this.state.showHideHR)
+      console.log("admin###", admin)
+    } 
   }
 }
 export default PrivateLayout;
