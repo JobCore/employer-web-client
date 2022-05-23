@@ -2656,8 +2656,6 @@ const EditOrAddShift = ({
                       new Promise((resolve, reject) =>
                         GET("catalog/employees?full_name=" + search)
                           .then((talents) => {
-                            console.log("talents#######", talents)
-                            console.log("totalHoursEmployeeWeek#######", totalHoursEmployeeWeek)
                             resolve(
                               [
                                 {

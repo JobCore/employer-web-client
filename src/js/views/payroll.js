@@ -1135,8 +1135,6 @@ export const ManagePayroll = () => {
 };
 
 export const PayrollPeriodDetails = ({ match, history }) => {
-  console.log('PayrollPeriodDetails match###', match)
-  console.log('PayrollPeriodDetails history###', history)
   const [employer, setEmployer] = useState(store.getState("current_employer"));
   const [period, setPeriod] = useState(null);
   const [form, setForm] = useState("");
@@ -1192,7 +1190,6 @@ export const PayrollPeriodDetails = ({ match, history }) => {
   let groupedPayments = {};
   for (let i = 0; i < payments.length; i++) {
     const pay = payments[i];
-    console.log('pay###', pay)
     if (typeof groupedPayments[pay.employee.id] === "undefined") {
       groupedPayments[pay.employee.id] = {
         employee: pay.employee,
@@ -1242,7 +1239,6 @@ export const PayrollPeriodDetails = ({ match, history }) => {
 
     if (type === "w4") fillForm(data);
     else if (type === "i9") fillFormI9(data);
-    // const loadingTimeout = setTimeout(setFormLoading(false), 10000);
   }
 
   async function fillForm(data) {
@@ -2860,7 +2856,6 @@ export const SelectTimesheet = ({
   const employer = store.getState("current_employer");
   const [noMorePeriods, setNoMorePeriods] = useState(false);
   const [periods, setPeriods] = useState(formData.periods);
-  console.log("formData.periods###", formData.periods)
   if (
     !employer ||
     !employer.payroll_configured ||
