@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import PropTypes from 'prop-types';
 import Avatar from '../avatar';
 import Stars from '../stars';
-import { GET } from "src/js/utils/api_wrapper.js";
+import { GET } from "../..api_wrapper";
 import { PDFDocument, rgb } from "pdf-lib";
 import moment from "moment";
 import { Notify } from "bc-react-notifier";
