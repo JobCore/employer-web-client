@@ -18,7 +18,6 @@ import { Notify } from "bc-react-notifier";
 import { ButtonGroup } from "reactstrap";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom"
-
 //gets the querystring and creats a formData object to be used when opening the rightbar
 export const getTalentInitialFilters = (catalog) => {
   let query = queryString.parse(window.location.search);
@@ -40,6 +39,8 @@ export const getTalentInitialFilters = (catalog) => {
 };
 
 export const Talent = (data) => {
+  const theEmpList = []
+  const theemployees = store.getState("employees", theEmpList);
   const session = Session.getPayload();
   const _defaults = {
     //foo: 'bar',
@@ -74,7 +75,6 @@ export const Talent = (data) => {
   };
 
   let _entity = Object.assign(_defaults, data);
-
   return {
     validate: () => {
       return _entity;
@@ -248,15 +248,17 @@ export class ManageTalents extends Flux.DashView {
     function checkEmployability(empl) {
       const today = new Date()
       const empDate = new Date(empl.employability_expired_at)
-      if (empDate.getTime()<today.getTime()) {
-        empl.employment_verification_status = "NOT_APPROVED"
-        return "is NOT eligible to work"
+      if (empl.employability_expired_at===null || empl.employability_expired_at===undefined || empDate.getTime()===0) {
+        return "The employee does not have a defined expiration date for employability"
+      } else if (empDate.getTime()<today.getTime()){
+          empl.employment_verification_status = "NOT_APPROVED"
+        return "Is NOT eligible to work"
       } else {
-        return "it IS eligible to work"
+        return "It IS eligible to work"
       }
     }
     const today = new Date()
-    console.log("empleados#########", employees.map(checkEmployability))
+    console.log("empleados#########", employees.map(checkEmployability)) // leave this one for now [Israel]
     const positions = this.state.positions;
     if (this.state.firstSearch) return <p>Please search for an employee</p>;
     const allowLevels = window.location.search != "";
