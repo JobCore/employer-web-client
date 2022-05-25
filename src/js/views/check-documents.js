@@ -79,11 +79,12 @@ import { updateDocs, updateEmployability } from "../actions.js";
 
 const ENTITIY_NAME = "payroll";
 
-
+  
   export const CheckEmployeeDocuments = (props) => {
     const [startDate, setStartDate] = useState(false);
     const [form, setForm] = useState("");
     const [formLoading, setFormLoading] = useState(false);
+
     async function getEmployeeDocumet(emp, type) {
       setFormLoading(true);
       setForm(null);
