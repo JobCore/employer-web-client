@@ -39,8 +39,6 @@ export const getTalentInitialFilters = (catalog) => {
 };
 
 export const Talent = (data) => {
-  const theEmpList = []
-  const theemployees = store.getState("employees", theEmpList);
   const session = Session.getPayload();
   const _defaults = {
     //foo: 'bar',
