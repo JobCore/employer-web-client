@@ -210,7 +210,7 @@ const Subscribe = (props) => {
         className="svg_img"
         style={{ backgroundImage: `url(${logoURL})` }}
       />
-     
+
       <StripeProvider apiKey="pk_live_JtS6WO3mL4HuI72Ay8wpjcFe003vJqDL6x">
         <Elements >           
           <Billing history={props.history} />
