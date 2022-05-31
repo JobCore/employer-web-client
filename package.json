@@ -15,7 +15,7 @@
     "build:dev": "API_HOST=https://jobcore-test.herokuapp.com bash -c 'webpack --config webpack.dev.js'",
     "deploy:test": "now --target staging -b [API_HOST=https://jobcore-test.herokuapp.com]",
     "deploy": "now --prod -b [API_HOST=https://jobcore.herokuapp.com]",
-    "start:isratest": "API_HOST=https://8000-lavender-alligator-jdqsikyc39p.ws-us45.gitpod.io bash -c 'webpack-dev-server  --config webpack.dev.js --open'"
+    "start:isratest": "API_HOST=https://8000-lavender-alligator-jdqsikyc39p.ws-us46.gitpod.io bash -c 'webpack-dev-server  --config webpack.dev.js --open'"
   },
   "author": "",
   "license": "ISC",

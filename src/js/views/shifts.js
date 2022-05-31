@@ -950,6 +950,7 @@ const EditOrAddShift = ({
   bar,
   oldShift,
 }) => {
+  const [expired, setExpired] = useState()
   const [runTutorial, setRunTutorial] = useState(hasTutorial());
   const [steps, setSteps] = useState([
     {
@@ -1084,7 +1085,7 @@ const EditOrAddShift = ({
   ]);
   const [description, setDescription] = useState("");
   const [tutorial, setTutorial] = useState(false);
-  const [recurrent, setRecurrent] = useState(false);
+  const [recurrent, setRecurrent] = useState();
   const [recurrentDates, setRecurrentDates] = useState({
     starting_at: moment(),
     ending_at: moment().add(1, "M"),
@@ -1258,14 +1259,15 @@ const EditOrAddShift = ({
   }
 
   useEffect(() => {
+    setRecurrent(true)
     const venues = store.getState("venues");
     const favlists = store.getState("favlists");
     if (!venues || !favlists) fetchAllMe(["venues", "favlists"]);
   }, []);
-  const expired =
-    moment(formData.starting_at).isBefore(NOW()) ||
-    moment(formData.ending_at).isBefore(NOW());
-
+  useEffect(() => {
+    setExpired(moment(formData.starting_at).isBefore(NOW()) || moment(formData.ending_at).isBefore(NOW()))
+  }, [formData.starting_at]);
+  
   if (
     catalog.positions.find(
       (pos) =>
@@ -1294,10 +1296,16 @@ const EditOrAddShift = ({
   if (!formData.shift && !isNaN(formData.id)) formData.shift = formData.id;
   if (formData.required_badges) delete formData.required_badges;
   if (description) formData.description = description;
-
+  
+  const handleChange = e => {if (e.target.value==="true") {
+    setRecurrent(false) 
+  } else if (e.target.value==="false") {
+    setRecurrent(true)
+  }}
+    
   return (
     <div>
-      {/* <Wizard continuous
+      {/* <Wizard continuous 
             steps={steps}
             run={tutorial}
             callback={callback}
@@ -1434,10 +1442,9 @@ const EditOrAddShift = ({
                   type="radio"
                   name="recurrentShifts"
                   id="recurrentYes"
-                  value={recurrent}
+                  value={true}
                   style={{ verticalAlign: "middle" }}
-                  checked={recurrent}
-                  onChange={() => setRecurrent(true)}
+                  onChange={handleChange}
                 />
                 <span className="form-check-label" htmlFor="recurrentYes">
                   Yes
@@ -1449,16 +1456,16 @@ const EditOrAddShift = ({
                   type="radio"
                   name="recurrentShifts"
                   id="recurrentNo"
-                  value={recurrent}
-                  checked={!recurrent}
-                  onChange={() => setRecurrent(false)}
+                  value={false}
+                  defaultChecked
+                  onChange={handleChange}
                 />
                 <span className="form-check-label" htmlFor="recurrentNo">
                   No
                 </span>
               </div>
             </div>
-            {recurrent && (
+            {!recurrent && (
               <div className="col-12 mt-2">
                 <div className="row text-center">
                   <div className="col" />
@@ -2257,7 +2264,7 @@ const EditOrAddShift = ({
               </div>
             )}
           </div>
-          {!recurrent && (
+          {recurrent && (
             <div>
               <div className="row" id="date-shift">
                 <div className="col-12">
@@ -2709,7 +2716,7 @@ const EditOrAddShift = ({
                 type="button"
                 className="btn btn-secondary"
                 onClick={() => {
-                  if (recurrent)
+                  if (!recurrent)
                     formData.multiple_dates = multipleRecurrentShift;
                   onSave({
                     executed_action: isNaN(formData.id)
@@ -2777,7 +2784,7 @@ const EditOrAddShift = ({
                 id="publish"
                 className="btn btn-primary"
                 onClick={() => {
-                  if (recurrent) {
+                  if (!recurrent) {
                     saveRecurrentDates();
                   } else {
                     onSave({
