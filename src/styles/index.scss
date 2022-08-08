@@ -4,6 +4,7 @@
 @import 'payroll-summary';
 @import 'profile';
 @import 'auth';
+@import 'plan-options';
 @import 'button-bar';
 @import 'right-bar';
 @import 'layout';
@@ -19,4 +20,27 @@
 
 .pointer{
     cursor: pointer;
+}
+@keyframes floatingPlan {
+    0% {
+      transform: translate(0%,-5%);
+      color: black;
+    }
+    50% {
+      transform: translate(0%,5%);
+    //   opacity: 0.75;
+      color: white;
+    }
+    100% {
+      transform: translate(0%,-5%);
+      color: black;
+    }
+  }
+#PlanType {
+    background-color: rgba(119,199,210,255);
+    color: white;
+    border-radius: 5px;
+    padding:  5px 20px 5px 20px;
+    border: 1px solid green;
+    animation: floatingPlan ease 2s infinite;
 }

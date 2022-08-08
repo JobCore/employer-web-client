@@ -5,6 +5,8 @@ import {Login, Signup, Forgot, Invite, ResetPassword, Admin} from './views/auth.
 import Subscribe from './views/auth.js';
 import PrivateLayout from './PrivateLayout.js';
 import {PrivateRoute} from 'bc-react-session';
+import Welcome from './views/welcome.js';
+
 
 class Layout extends Flux.View{
 
@@ -36,6 +38,7 @@ class Layout extends Flux.View{
                             <PrivateRoute path='/payrates' component={PrivateLayout} />
                             <PrivateRoute path='/payroll' component={PrivateLayout} />
                             <PrivateRoute exact path='/home' component={PrivateLayout} />
+                            <PrivateRoute exact path='/welcome' component={Welcome} />
                             <Route render={() => (<p className="text-center mt-5">Not found</p>)} />
                         </Switch>
                     </div>

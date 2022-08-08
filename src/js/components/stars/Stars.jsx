@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from 'prop-types';
-import './style.scss';
+import './style.scss'; 
 
 const Stars = ({ rating , jobCount, className, onClick, noRatingLabel}) => {
     const whole = Math.floor(rating);

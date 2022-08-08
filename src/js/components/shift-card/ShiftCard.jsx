@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Theme from '../theme';
 import ShiftBadge from '../shift-badge';
-import './style.scss';
+import './style.scss'; 
 import moment from 'moment';
 /**
  * ShiftCard

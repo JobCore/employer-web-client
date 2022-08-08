@@ -412,6 +412,7 @@ export class ManageTalents extends Flux.DashView {
             </span>
           )}
         </Theme.Consumer>
+        
       </div>
     );
   }

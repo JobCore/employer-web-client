@@ -1,4 +1,4 @@
-import './style.scss';
+import './style.scss'; 
 import React from 'react';
 import Theme from '../theme';
 import PropTypes from 'prop-types';

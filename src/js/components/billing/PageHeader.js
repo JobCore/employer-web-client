@@ -11,15 +11,28 @@ const PageHeader = ({ title, titleTag: TitleTag, description, image, col, childr
         <Background
       image={image}
       className="bg-card"
-      style={{ borderTopRightRadius: '0.375rem', borderBottomRightRadius: '0.375rem' }}
+      // style={{  }} // borderTopRightRadius: '0.375rem', borderBottomRightRadius: '0.375rem'
     />
-        <CardBody>
+        <CardBody >
             <Row>
+                <Col md="auto">
+                <div className="loginLogo mt-2">
+                  <img
+                      className="banner logo mt-2 p-3 "
+                      src={
+                        "https://res.cloudinary.com/hq02xjols/image/upload/v1626700274/logo1.png"
+                      }
+                      width={270}
+                      
+                  />
+                  
+                </div>
+                </Col>
                 <Col {...col}>
-                    <TitleTag className="mb-0">{title}</TitleTag>
+                    <TitleTag className="mb-0 display-4">{title}</TitleTag>
                     {description && (
-                    <p
-              className={classNames('mt-2', { 'mb-0': !children })}
+                    <h1
+              className={classNames('mt-2 font-weight-light', { 'mb-0': !children })}
               dangerouslySetInnerHTML={createMarkup(description)}
             />
           )}
@@ -40,6 +53,6 @@ PageHeader.propTypes = {
   children: PropTypes.node
 };
 
-PageHeader.defaultProps = { col: { lg: 8 }, image: corner4, titleTag: 'h3' };
+PageHeader.defaultProps = { col: { lg: 8 }, image: corner4, titleTag: 'h1' };
 
 export default PageHeader;
