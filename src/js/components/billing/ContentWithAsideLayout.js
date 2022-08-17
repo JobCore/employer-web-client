@@ -3,10 +3,11 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { Row, Col } from 'reactstrap';
 
-const ContentWithAsideLayout = ({ banner, aside, footer, isStickyAside, children }) => {
+const ContentWithAsideLayout = ({ banner, aside, footer, isStickyAside, children, PlansBanner }) => {
   return (
       <Fragment>
           {banner}
+          {PlansBanner}
           <Row noGutters>
               <Col lg="8" className={classNames('pr-lg-2', { 'mb-3': !isStickyAside })}>
                   {children}
@@ -23,6 +24,7 @@ const ContentWithAsideLayout = ({ banner, aside, footer, isStickyAside, children
 ContentWithAsideLayout.propTypes = {
   aside: PropTypes.element.isRequired,
   banner: PropTypes.element,
+  PlansBanner: PropTypes.element,
   footer: PropTypes.element,
   isStickyAside: PropTypes.bool,
   children: PropTypes.node

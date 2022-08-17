@@ -66,6 +66,8 @@ const appendCompany = (data) => {
 export const GET = async (endpoint, queryString = null, extraHeaders = {}) => {
   let url = `${rootAPIendpoint}/${endpoint}`;
   console.log("GET###")
+  console.log("endpoint###", endpoint)
+  console.log("url###", url)
   if (queryString) url += queryString;
 
   HEADERS['Authorization'] = `JWT ${getToken()}`;
@@ -172,6 +174,35 @@ export const POSTcsrf = (endpoint, postData, extraHeaders = {}) => {
   return req;
 };
 
+export const POSTcsrf2 = (endpoint, postData, extraHeaders = {}) => {
+  console.log("POST###")
+  // Cookies.get('csrftoken')
+  // console.log("postData###", postData)
+  // Cookies.set('stripetoken', postData.id)
+  if (['user/register', 'login', 'user/password/reset','employers/me/jobcore-invites'].indexOf(endpoint) == -1) {
+    HEADERS['Authorization']  = `JWT ${getToken()}`,`X-CSRFToken ${Cookies.get('stripetoken')}`
+    postData = appendCompany(postData);
+  }
+
+  const REQ = {
+    method: 'POST',
+    headers: Object.assign(HEADERS, extraHeaders),
+    body: JSON.stringify(postData),
+    // mode: 'no-cors'
+  };
+  console.log("REQ###", REQ)
+  const req = new Promise((resolve, reject) => fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
+    .then((resp) => processResp(resp, req))
+    .then(data => resolve(data))
+    .catch(err => {
+      processFailure(err, req);
+      reject(err);
+    })
+  );
+  
+  PendingReq.add(req);
+  return req;
+};
 
 // fetch('/api/upload', {
 //     method: 'POST',

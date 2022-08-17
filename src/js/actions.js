@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { Invite } from "./views/invites.js";
 import { Clockin, PayrollPeriod } from "./views/payroll.js";
 import moment from "moment";
-import { POST, GET, PUT, DELETE, PUTFiles, POSTcsrf } from "./utils/api_wrapper";
+import { POST, GET, PUT, DELETE, PUTFiles, POSTcsrf, POSTcsrf2 } from "./utils/api_wrapper";
 import log from "./utils/log";
 import WEngine from "./utils/write_engine.js";
 import qs from "query-string";
@@ -657,7 +657,7 @@ export const createSubscription = (data, history) => {
       
        
       }).then(
-        setTimeout(() => {history.push("/home")}, 4000)
+        setTimeout(() => {history.push("/welcome")}, 4000)
         
         )
       .catch(function (error) {
@@ -666,6 +666,21 @@ export const createSubscription = (data, history) => {
         log.error(error);
       })
   
+};
+
+export const createStripePayment2 = async () => {
+  const response = await POSTcsrf2('create-payment-single-emp')
+      .then( 
+          Notify.success("The payment was received successfully")
+        )
+      .catch(function (error) {
+        console.log("ERROR", error);
+        Notify.error(error.message || error);
+        log.error(error);
+      })
+
+    return response
+      
 };
 
 export const createStripePayment = async (stripeToken) => {

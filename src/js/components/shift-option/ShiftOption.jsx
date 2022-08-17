@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from 'prop-types';
-import './style.scss';
+import './style.scss'; 
 
 const ShiftOption = ({data, isDisabled, innerProps}) => {
     if(data.label != undefined && data.label != '') return <div className="shift-option" {...innerProps}>{data.label}</div>;

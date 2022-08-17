@@ -195,6 +195,7 @@ export class ManageApplicantions extends Flux.DashView {
                     }
                 </span>)}
             </Theme.Consumer>
+           
         </div>);
     }
 }

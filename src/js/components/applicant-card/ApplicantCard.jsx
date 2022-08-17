@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from 'prop-types';
-import './style.scss';
+import './style.scss'; 
 import Avatar from '../avatar';
 import Stars from '../stars';
 import Theme from '../theme';

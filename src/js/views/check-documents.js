@@ -486,6 +486,7 @@ const ENTITIY_NAME = "payroll";
       }
     }
     const [DocStatus, setDocStatus] = useState("NOT_APPROVED");
+    const [isCitizen, setIsCitizen] = useState(false);
     function AproveDocs() {      
       const today = new Date()
       const empDate = new Date(props.catalog.employee.employability_expired_at)
@@ -515,9 +516,27 @@ const ENTITIY_NAME = "payroll";
     useEffect(() => {
       setDocStatus(props.catalog.employee.employment_verification_status)
     }, [DocStatus]);
-    
-   
-
+    useEffect(() => {
+      if (isCitizen===true) {
+      props.catalog.employee.employability_expired_at = new Date("2100-06-01")
+      updateEmployability(props)
+      setStartDate(new Date("2100-06-01"))
+      let aproveBtn = document.getElementById("aproveBtn");
+      aproveBtn.style["background-color"] = "green"
+      } else {
+        props.catalog.employee.employability_expired_at = undefined
+        updateEmployability(props)
+        setStartDate(undefined)
+        let notAproveBtn = document.getElementById("aproveBtn");
+        notAproveBtn.style["background-color"] = "gray"
+      }
+      console.log(isCitizen)
+      console.log("vence en el futuro", props.catalog.employee.employability_expired_at)
+    }, [isCitizen]);
+    const handleChangeCheckboxCitizen = () => {
+      setIsCitizen(!isCitizen);
+    };
+  
     return (
           <div>
                     <div
@@ -657,25 +676,25 @@ const ENTITIY_NAME = "payroll";
                       </div>
                   </div>
                 </div>
-              </div> 
+              </div>.   
               <p>If you see a yellow icon <i style={{ fontSize: "15px", color: "#FFD600" }} className="fas fa-exclamation-circle mr-1">
                 </i> means that the document is waiting for approval, a red icon <i className="fas fa-exclamation-circle text-danger mr-1">
                 </i> means the document is not approved, while if you see a green icon  <i 
                 style={{ fontSize: "16px", color: "#43A047" }} className="fas fa-file-alt mr-1">
                 </i> the document is approved</p>
               <p>When you're ready, accept or reject the employee's documents at your discretion.</p>
-              <p>if the job seeker has eligibility to work permanently (US citizen) use the "approve documents" button without choosing any date.</p>
+              {/* <p>if the job seeker has eligibility to work permanently (US citizen) use the "approve documents" button without choosing any date.</p> */}
               <div className="btn-bar">
                   <Button id="aproveBtn" color="secondary" onClick={() => 
                     AproveDocs() 
                     }>Approve Documents</Button>
-              </div>
+              </div>  
               <div className="d-flex justify-content-center p-2">
                 <label className="mr-1">Documents will be approved until date:</label>
                 <DatePicker 
                   dateFormat="yyyy-MM-dd"
                   placeholderText="Pick a date"
-                  selected={new Date("2100-06-01")} 
+                  selected={startDate} 
                   onChange={(date) => { 
                     props.catalog.employee.employability_expired_at = date
                     updateEmployability(props)
@@ -685,6 +704,10 @@ const ENTITIY_NAME = "payroll";
                   }} 
                   className="mt-2 text-center w-75 ml-4"
                 />
+              </div>
+              <div>
+                <label className="mx-2">The job seeker is a citizen</label>
+                <input type="checkbox" checked={isCitizen} onChange={handleChangeCheckboxCitizen} />
               </div>
               <div className="btn-bar">
                   <Button color="danger" onClick={() => 

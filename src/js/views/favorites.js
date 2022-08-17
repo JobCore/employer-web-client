@@ -159,6 +159,7 @@ export class ManageFavorites extends Flux.DashView {
             )
           }
         </Theme.Consumer>
+        
       </div>
     );
   }
