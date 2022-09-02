@@ -1233,7 +1233,7 @@ class PrivateLayout extends Flux.DashView {
     );
   }
   hideComponent(admin) {
-    if (admin==="hradmin@jobcore.co") {
+    if (admin==="a@jobcore.co") {
       // this.setState({ showHideHR: false }); // uncommenting makes tap talent search is visible only to JC-HR@admin.co
       console.log("showHideHR###", this.state.showHideHR)
       console.log("admin###", admin)

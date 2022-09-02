@@ -18,7 +18,7 @@ import { CalendarView } from "../components/calendar/index.js";
 import { Redirect } from "react-router-dom";
 import logoURL from "../../img/logo.png";
 import { Notify } from "bc-react-notifier";
-import * as actions from "/workspace/employer-web-client/src/js/actions.js"
+import * as actions from "../actions"
 
 export default class Home extends Flux.DashView {
   constructor() {
