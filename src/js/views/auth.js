@@ -24,12 +24,14 @@ import {
   CardElement,
 } from "react-stripe-elements";
 import { loadStripe } from "@stripe/stripe-js";
+import Gleap from 'gleap';
 
 export class Login extends React.Component {
   constructor(props) {
     super(props);
     const urlVariables = qs.parse(props.location.search);
     this.state = {
+      hidePassword: false,
       email: "",
       password: "",
       id: "",
@@ -37,17 +39,28 @@ export class Login extends React.Component {
       loading: false,
       keep: true,
     };
+    
   }
+  
   render() {
+    
     return (
       <div className="public_view login_view">
-        <img
-          className="banner"
-          src={
-            "https://res.cloudinary.com/hq02xjols/image/upload/v1626700274/logo1.png"
-          }
-          width={230}
-        />
+        {/* <div className="shineLogo"> */}
+          <div className="loginLogo">
+            <img 
+              className="banner logo "
+              style={{
+                opacity: 1, 
+                transition: "opacity 3s",
+              }}
+              src={
+                "https://res.cloudinary.com/hq02xjols/image/upload/v1626700274/logo1.png"
+              }
+              width={230}
+            />
+          </div>
+        {/* </div> */}
         <Notifier />
         {/* <MobileView>
                     {
@@ -113,45 +126,68 @@ export class Login extends React.Component {
              }
           >
             <div className="form-group">
-              <label className="text-left" style={{ fontSize: 18 }}>
+              <label className="text-left" style={{ fontSize: 18, float: "left" }}>
                 Email
               </label>
               <input
-                style={{ fontSize: 18 }}
+                required
+                style={{ fontSize: 14 }}
                 type="email"
                 autoComplete="new-email"
-                className="form-control"
+                className="form-control shadow"
                 aria-describedby="emailHelp"
-                placeholder="Enter email"
+                placeholder="YourName@SomeDomain.com"
+                id="loginInput"
                 value={this.state.email}
                 onChange={(e) => this.setState({ email: e.target.value })}
+                onFocus={() => {
+                  this.setState({ email:localStorage.getItem('currentEmail')})
+                }}
+                // onBlur={() => {
+                //   console.log("fuera de foco")
+                //   // localStorage.setItem('currentEmail', "")
+                // }}
               />
             </div>
-            <div className="form-group">
-              <label style={{ fontSize: 18 }}>Password</label>
-
+            <div className="form-group ">
+              <label style={{ fontSize: 18, float: "left" }}>
+                Password
+              </label>
+              <i className={this.state.hidePassword ? "fas fa-solid fa-eye border float-right px-1 mt-2 mr-1 rounded-circle" : "fas fa-solid fa-eye-slash border shadow float-right px-1 mt-2 mr-1 rounded-circle"} 
+              style={this.state.hidePassword ? ({ boxShadow: "inset 0px 0px 5px 0px rgba(0,0,0, 1)" }) : ({})} //solo funciona si quitas shadow del boostrap
+              onClick={() => { 
+                // this.toggleInverted
+                this.setState({hidePassword: !this.state.hidePassword})
+                console.log("dentro del onClick#######")
+                
+                console.log("this.state.shown#######", this.state.hidePassword)
+              }}></i>
               <input
-                style={{ fontSize: 18 }}
-                type="password"
+                required
+                style={{ fontSize: 14 }}
+                type={this.state.hidePassword ?  "text" : "password"}
                 autoComplete="new-password"
-                className="form-control"
-                id="exampleInputPassword1"
-                placeholder="Password"
+                className="form-control shadow loginInput"
+                id="loginInput"
+                placeholder="Keyword I'll save and remember"
                 onChange={(e) => this.setState({ password: e.target.value })}
                 value={this.state.password}
               />
+              
             </div>
             {/* <div className="form-group mb-0">
                                     <input name="Company ID" type="text" autoComplete="new-company-id-pass" className="form-control rounded" id="exampleInputID" placeholder="Company ID"
                                         onChange={(e) => this.setState({id: e.target.value})} value={this.state.id}
                                     />
                                 </div> */}
-            <div className="form-group text-left mt-4" style={{ fontSize: 18 }}>
+            <div className="form-group text-left mt-4" style={{ fontSize: 14 }}>
               <input
+                required
                 type="checkbox"
                 className="mr-1"
                 onChange={(e) => this.setState({ keep: !this.state.keep })}
                 checked={this.state.keep}
+                
               />
               Keep Me Logged In
             </div>
@@ -167,31 +203,54 @@ export class Login extends React.Component {
             ) : (
               <button
                 type="submit"
-                className="btn btn-primary w-100 mt-2"
+                id="LoginSignIn"
+                className="btn btn-primary w-100 mt-2 shadow-lg"
                 style={{ fontSize: 18, fontWeight: 900 }}
+                
               >
                 <span>Sign In</span>
               </button>
+              
             )}
-            <div className="extra-actions mt-4">
+            <div className="extra-actions mt-4 row">
+              <div className="col-4">
               <Link
                 to="/signup"
-                className="float-left ml-4 mt-2"
-                style={{ fontSize: 18, textDecoration: "underline" }}
+                id="LoginLink"
+                className="float-left ml-0 mt-2 shadow"
+                style={{ fontSize: 18 }}
               >
                 Sign Up
               </Link>
+              </div>
+              <div  className="col-8">
               <Link
                 to="/forgot"
-                className="float-right mr-4 mt-2"
-                style={{ fontSize: 18, textDecoration: "underline" }}
+                id="LoginLink"
+                className="float-right mr-0 mt-2 shadow"
+                style={{ fontSize: 18 }}
               >
                 Forgot Password
               </Link>
+              </div>
+              
             </div>
           </form>
         )}
-        {/* </BrowserView> */}
+        <div className="row">
+          <div className="col mt-5">
+          <button
+            // href="https://c5q5lw7ly6i.typeform.com/to/hCgUTpnJ"
+            onClick={ () => Gleap.open()}  
+            id="Feedback"
+            className=" p-2"
+            style={{ fontSize: 18 }}
+          >
+            Report an issue here
+          </button>
+          </div>
+        </div>
+        
       </div>
     );
   }
@@ -206,17 +265,27 @@ Login.propTypes = {
 const Subscribe = (props) => {
   return (
     <div className="container mt-4">
-      <span
-        className="svg_img"
-        style={{ backgroundImage: `url(${logoURL})` }}
-      />
-
+      {/* <div className="loginLogo ">
+        <img
+            className="banner logo mt-2 p-3"
+            src={
+              "https://res.cloudinary.com/hq02xjols/image/upload/v1626700274/logo1.png"
+            }
+            width={230}
+            
+        />
+        {/* <h1
+          className="svg_img logo display-1 col-3"
+          style={{ backgroundImage: `url(${logoURL})` }}
+        /> */}
+      {/* </div> */} 
+      
       <StripeProvider apiKey="pk_live_JtS6WO3mL4HuI72Ay8wpjcFe003vJqDL6x">
         <Elements >           
           <Billing history={props.history} />
         </Elements>
       </StripeProvider>
-      
+
     </div>
   );
 };
@@ -284,6 +353,7 @@ export class Signup extends React.Component {
     );
     return output;
   }
+  
   validate(formData) {
     let errors = [];
     if (!validator.isEmail(formData.email)) errors.push("Invalid email");
@@ -315,14 +385,16 @@ export class Signup extends React.Component {
   }
   render() {
     return (
-      <div className="public_view login_view">
-        <img
-          className="banner"
-          src={
-            "https://res.cloudinary.com/hq02xjols/image/upload/v1626700274/logo1.png"
-          }
-          width={230}
-        />
+      <div className="public_view login_view px-0">
+        <div className="loginLogo">
+          <img
+            className="banner logo mt-2"
+            src={
+              "https://res.cloudinary.com/hq02xjols/image/upload/v1626700274/logo1.png"
+            }
+            width={230}
+          />
+        </div>
         <Notifier />
         {this.state.errors.length > 0 ? (
           <div className="alert alert-danger">
@@ -336,7 +408,7 @@ export class Signup extends React.Component {
           ""
         )}
         <form
-          className="col-10 col-sm-8 col-md-4 col-lg-4 mx-auto mb-5"
+          className="col-10 col-sm-8 col-md-4 col-lg-4 mx-auto mb-5 mt-4 px-0"
           onSubmit={(e) => {
             this.setState({ loading: true });
             e.preventDefault();
@@ -365,51 +437,70 @@ export class Signup extends React.Component {
           <div className="row">
             <div className="col">
               <div className="form-group">
+                <div className="tooltipp2" data-text="Required" >
                 <input
+                  required
+                  id="loginInput"
                   type="text"
-                  className="form-control"
+                  className="form-control shadow"
                   aria-describedby="fHelp"
                   placeholder="First Name"
-                  style={{ fontSize: 18 }}
+                  style={{ fontSize: 16 }}
                   value={this.state.first_name}
                   onChange={(e) =>
                     this.setState({ first_name: e.target.value })
                   }
                 />
+                </div>
               </div>
             </div>
             <div className="col">
               <div className="form-group">
+              <div className="tooltipp3" data-text="Required" >
                 <input
+                  required
+                  id="loginInput"
                   type="text"
-                  className="form-control"
+                  className="form-control shadow"
                   aria-describedby="lHelp"
                   placeholder="Last Name"
-                  style={{ fontSize: 18 }}
+                  style={{ fontSize: 16 }}
                   value={this.state.last_name}
                   onChange={(e) => this.setState({ last_name: e.target.value })}
                 />
+                </div>
               </div>
             </div>
           </div>
           <div className="form-group">
+          <div className="tooltipp2" data-text="Required" >
             <input
+              required
+              id="loginInput"
               type="email"
-              className="form-control"
+              className="form-control shadow"
               aria-describedby="emailHelp"
               placeholder="Email"
-              style={{ fontSize: 18 }}
+              style={{ fontSize: 16 }}
               value={this.state.email}
-              onChange={(e) => this.setState({ email: e.target.value })}
+              onChange={(e) => {
+                this.setState({ email: e.target.value })
+                localStorage.setItem('currentEmail', this.state.email)
+              }}
+
             />
+            </div>
           </div>
           <div className="form-group">
+          <div className="tooltipp2" data-text="Required" >
             <input
+              required
+              id="loginInput"
               type="text"
-              className="form-control"
+              className="form-control shadow"
               aria-describedby="emailHelp"
               placeholder="Phone"
-              style={{ fontSize: 18 }}
+              style={{ fontSize: 16 }}
               value={this.state.phone}
               onChange={(e) => {
                 if (e.target.value.length < 13) {
@@ -425,56 +516,97 @@ export class Signup extends React.Component {
                 }
               }}
             />
+            </div>
           </div>
-          <div className="form-group">
-            <input
-              type="password"
-              className="form-control"
-              id="exampleInputPassword1"
-              placeholder="Password"
-              style={{ fontSize: 18 }}
-              onChange={(e) => this.setState({ password: e.target.value })}
-              value={this.state.password}
-            />
+          <div className="row">
+              <div className="col-10">
+                <div className="form-group ">
+                <div className="tooltipp2" data-text="Required" >
+                  <input
+                    required
+                    id="loginInput"
+                    type={this.state.hidePassword ?  "text" : "password"}
+                    className="form-control shadow"
+                    // id="exampleInputPassword1"
+                    placeholder="Password"
+                    style={{ fontSize: 16}}
+                    onChange={(e) => this.setState({ password: e.target.value })}
+                    value={this.state.password}
+                  />
+                 </div>
+                </div>
+              </div>
+              <div className="col-1">
+                <div className="form-group ">
+                  <i className={this.state.hidePassword ? "fas fa-solid fa-eye border float-right px-1 mt-2 mr-1 rounded-circle" : "fas fa-solid fa-eye-slash border shadow float-right px-1 mt-2 mr-1 rounded-circle"} 
+                      style={this.state.hidePassword ? ({position:"relative", boxShadow: "inset 0px 0px 5px 0px rgba(0,0,0, 1)" }) : ({})} //solo funciona si quitas shadow del boostrap
+                      onClick={() => { 
+                        // this.toggleInverted
+                        this.setState({hidePassword: !this.state.hidePassword})
+                        console.log("dentro del onClick#######")
+                        
+                        console.log("this.state.shown#######", this.state.hidePassword)
+                  }}></i>
+                </div>
+              </div>
+              <div className="col-1 tooltipp"
+              data-text="
+              -Use at least 8 characters.
+              -Use one uppercase letter.
+              -Use at least one 1 number.
+              -Use at least one 1 simbol.
+              
+              
+              " >
+                  <i  className="fas fa-solid fa-question border float-right px-1 mt-2 mr-1 rounded-circle"></i>
+              </div>
           </div>
-
           <div className="row">
             <div className="col">
               <div className="form-group">
+              <div className="tooltipp2" data-text="Required" >
                 <input
+                  required
+                  id="loginInput"
                   type="text"
-                  className="form-control"
+                  className="form-control shadow"
                   aria-describedby="fHelp"
                   placeholder="Company Name"
-                  style={{ fontSize: 18 }}
+                  style={{ fontSize: 16 }}
                   value={this.state.business_name}
                   onChange={(e) =>
                     this.setState({ business_name: e.target.value })
                   }
                 />
+                </div>
               </div>
             </div>
             <div className="col">
               <div className="form-group">
+              <div className="tooltipp3" data-text="Required" >
                 <input
+                  required
+                  id="loginInput"
                   type="text"
-                  className="form-control"
+                  className="form-control shadow"
                   aria-describedby="lHelp"
                   placeholder="Company Website"
-                  style={{ fontSize: 18 }}
+                  style={{ fontSize: 16 }}
                   value={this.state.business_website}
                   onChange={(e) =>
                     this.setState({ business_website: e.target.value })
                   }
                 />
+                </div>
               </div>
             </div>
           </div>
-          <div className="row" style={{ fontSize: 18 }}>
+          <div className="row" style={{ fontSize: 16 }}>
             <div className="col">
               <div className="form-group">
+              <div className="tooltipp2" data-text="Required" >
                 <select
-                  style={{ background: "none", fontSize: 18 }}
+                  style={{ background: "none", fontSize: 16}}
                   className="form-control"
                   aria-describedby="fHelp"
                   placeholder="Type of business"
@@ -492,6 +624,7 @@ export class Signup extends React.Component {
                   <option value="Janitorial">Janitorial</option>
                   <option value="Warehouse">Warehouse</option>
                 </select>
+                </div>
               </div>
             </div>
           </div>
@@ -499,42 +632,62 @@ export class Signup extends React.Component {
             <button
               type="submit"
               className="btn btn-default w-100"
-              style={{ fontSize: 18, fontWeight: 900 }}
+              style={{ fontSize: 16, fontWeight: 900 }}
               disabled
             >
               Loading...
             </button>
           ) : (
             <button
+              id="LoginSignIn"
               type="submit"
-              className="btn btn-primary w-100"
+              className="btn btn-primary w-100 shadow-lg"
               style={{ fontSize: 18, fontWeight: 900 }}
             >
               Sign Up
             </button>
           )}
 
-          <span style={{ fontSize: 14 }}>
+          <span style={{ fontSize: 9 }}>
             By clicking sign up, you agree to the Terms of use and have read our
             Privacy policy
           </span>
-          <div className="extra-actions mt-3">
+          <div className="extra-actions mt-3 row">
+          <div className="col">
             <Link
+              id="LoginLink"
               to="/login"
-              className="float-left ml-4 mt-2"
-              style={{ fontSize: 18, textDecoration: "underline" }}
+              className="float-left ml-0 mt-2 shadow"
+              style={{ fontSize: 18 }}
             >
               Log In
             </Link>
+            </div>
+            <div className="col">
             <Link
+              id="LoginLink"
               to="/forgot"
-              className="float-right mr-4 mt-2"
-              style={{ fontSize: 18, textDecoration: "underline" }}
+              className="float-right mr-0 mt-2 shadow"
+              style={{ fontSize: 18 }}
             >
               Forgot Password
             </Link>
+            </div>
           </div>
         </form>
+        <div className="row">
+          <div className="col mt-0">
+          <button
+            // href="https://c5q5lw7ly6i.typeform.com/to/hCgUTpnJ"
+            onClick={ () => Gleap.open()}  
+            id="Feedback"
+            className=" p-2"
+            style={{ fontSize: 18 }}
+          >
+            Report an issue here
+          </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -551,13 +704,15 @@ export class Forgot extends React.Component {
   render() {
     return (
       <div className="public_view login_view">
-        <img
-          className="banner"
-          src={
-            "https://res.cloudinary.com/hq02xjols/image/upload/v1626700274/logo1.png"
-          }
-          width={230}
-        />
+        <div className="loginLogo">
+          <img
+            className="banner logo"
+            src={
+              "https://res.cloudinary.com/hq02xjols/image/upload/v1626700274/logo1.png"
+            }
+            width={230}
+          />
+        </div>
         <Notifier />
         <form
           className="col-10 col-sm-5 col-md-4 col-lg-3 mx-auto"
@@ -570,7 +725,7 @@ export class Forgot extends React.Component {
               .catch(() => this.setState({ loading: false }));
           }}
         >
-          <div className="mb-4" style={{ fontSize: 18 }}>
+          <div className="mb-4" style={{ fontSize: 14, textAlign: "justify" }}>
             <span>
               Enter the email address associated with your account to reset your
               password. You may need to check your spam/junk folder.
@@ -579,9 +734,11 @@ export class Forgot extends React.Component {
 
           <div className="form-group">
             <input
+              required
+              id="loginInput"
               type="email"
               style={{ fontSize: 18 }}
-              className="form-control rounded"
+              className="form-control"
               aria-describedby="emailHelp"
               placeholder="Email"
               value={this.state.email}
@@ -599,6 +756,7 @@ export class Forgot extends React.Component {
             </button>
           ) : (
             <button
+              id="LoginSignIn"
               type="submit"
               className="btn btn-primary w-100"
               style={{ fontSize: 18, fontWeight: 900 }}
@@ -606,16 +764,32 @@ export class Forgot extends React.Component {
               Send Reset Link
             </button>
           )}
-          <div className="extra-actions mt-4">
+          <div className="extra-actions mt-4 row">
+          <div className="col">
             <Link
+              id="LoginLink"
               to="/login"
-              className="float-left mt-2"
-              style={{ fontSize: 18, textDecoration: "underline" }}
+              className="float-left mt-2 shadow"
+              style={{ fontSize: 18 }}
             >
               Back to login
             </Link>
+            </div>
           </div>
         </form>
+        <div className="row">
+          <div className="col mt-5">
+          <button
+            // href="https://c5q5lw7ly6i.typeform.com/to/hCgUTpnJ"
+            onClick={ () => Gleap.open()}  
+            id="Feedback"
+            className=" p-2"
+            style={{ fontSize: 18 }}
+          >
+            Report an issue here
+          </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -678,6 +852,7 @@ export class ResetPassword extends React.Component {
             )}
             <div className="form-group">
               <input
+                required
                 type="password"
                 className="form-control rounded"
                 id="exampleInputPassword1"
@@ -690,6 +865,7 @@ export class ResetPassword extends React.Component {
             </div>
             <div className="form-group">
               <input
+                required
                 type="password"
                 className="form-control rounded"
                 id="exampleInputPassword1"
@@ -797,6 +973,7 @@ export class Invite extends React.Component {
             )}
             <div className="form-group">
               <input
+                required
                 type="text"
                 style={{ fontSize: 18 }}
                 className="form-control rounded"
@@ -808,7 +985,9 @@ export class Invite extends React.Component {
               />
             </div>
             <div className="form-group">
+            <div className="tooltipp3" data-text="Required" >
               <input
+                required
                 type="text"
                 style={{ fontSize: 18 }}
                 className="form-control rounded"
@@ -818,9 +997,11 @@ export class Invite extends React.Component {
                   this.setState({ last_name: e.target.value, error: null })
                 }
               />
+              </div>
             </div>
             <div className="form-group">
               <input
+                required
                 type="email"
                 style={{ fontSize: 18 }}
                 className="form-control rounded"
@@ -834,6 +1015,7 @@ export class Invite extends React.Component {
             </div>
             <div className="form-group">
               <input
+                required
                 type="password"
                 style={{ fontSize: 18 }}
                 className="form-control rounded"
@@ -847,6 +1029,7 @@ export class Invite extends React.Component {
             </div>
             <div className="form-group">
               <input
+                required
                 type="password"
                 style={{ fontSize: 18 }}
                 className="form-control rounded"

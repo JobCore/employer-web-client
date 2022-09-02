@@ -1,4 +1,4 @@
-import './style.scss';
+import './style.scss'; 
 import React from "react";
 import PropTypes from 'prop-types';
 import deleteIcon from "../../../img/icons/delete.png";

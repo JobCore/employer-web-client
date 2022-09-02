@@ -1,4 +1,4 @@
-import './style.scss';
+import './style.scss'; 
 import React, { useState, useEffect } from 'react';
 import Flux from "@4geeksacademy/react-flux-dash";
 

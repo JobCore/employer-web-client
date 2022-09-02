@@ -36,18 +36,22 @@ import { faCircle, faQuestionCircle } from '@fortawesome/fontawesome-free-solid'
 import { injectStripe, CardElement, CardNumberElement, CardCvcElement, CardExpiryElement, StripeProvider } from 'react-stripe-elements';
 import { useStripe } from '@stripe/react-stripe-js';
 import CSRFToken from "../../csrftoken";
-
+import PlanOptions from "./plan-options";
+import Gleap from 'gleap';
 
 const BillingBanner = (props) =>{
    
     return(
-
+        
         <PageHeader
-                title="Get started with your free trial"
-                description="Subscription are Free for 30 days, cancel at any time."
-                className="mb-3"
+                title="The right plan
+                for your needs"
+                description="All our plans include a 30-day free trial"
+                className="mb-3 border-0 text-right"
+                
             >
-            <UncontrolledDropdown>
+                
+            {/* <UncontrolledDropdown>
                 <DropdownToggle caret color="link" size="sm" className="pl-0 border-0" style={{fontSize: '16px', fontWeight:"bold"}} >
                     {props.plan + ' Plan'}
                 </DropdownToggle>
@@ -100,12 +104,17 @@ const BillingBanner = (props) =>{
                         </p>
                     </div>
                 </DropdownMenu>
-            </UncontrolledDropdown>
+            </UncontrolledDropdown> */}
         </PageHeader>
 );
 
 };
-
+const PlansBanner = (props) =>{
+   
+    return(
+        <PlanOptions ></PlanOptions>
+    )
+};
 const BillingContent = (props) => {
   const [method, setMethod] = useState("card");
   const [cardNumber, setCardNumber] = useState("");
@@ -359,7 +368,7 @@ const BillingAside = (props) => {
            <input type='hidden' name='csrfmiddlewaretoken' value={'HojhWp2F_xy_uMTKcQ18qYvYYX2wqwL_ifABDmXwxSHwyNWTY1QBtticEe3D8YN40keNFYwShoNg7nF-gB1GAjw-AYTZVJw1La6y7TXsyNkx5YM_9qCg-_34IJ7dKHnymLyp3xouPw%3D%3D'} />
             <h5 className="d-flex justify-content-between">
                 <span>Subscription</span>
-                <span style={{textDecoration:"underline"}}>{props.plan}</span>
+                <span id="PlanType" >{props.plan}</span>
             </h5>
             <div className="d-flex justify-content-between fs--1 mb-1">
                 <p className="mb-0">Due in 30 days</p>
@@ -404,6 +413,7 @@ const { stripe } = props;
   return (
     <ContentWithAsideLayout
       banner={<BillingBanner plan={plan} onChangePlan={setPlan}/>}
+      PlansBanner={<PlanOptions plan={plan} onChangePlan={setPlan}/>}
       aside={ <BillingAside 
                 plan={plan} 
                 onChangePlan={setPlan}
@@ -412,13 +422,29 @@ const { stripe } = props;
                 history={props.history}
                 />
       }
-      footer={<div><div className="row text-center mb-3">
-          <div className="col">
+      footer={
+      <div>
+        <div className="row text-center mb-3">
+        <div className="col">
               <Link to="/login">
                   <button className="btn btn-primary">Go Back To Login</button>
               </Link>
-          </div>
-      </div><FaqCol /></div>}
+        </div>
+        <div className="col ">
+            <button
+                // href="https://c5q5lw7ly6i.typeform.com/to/hCgUTpnJ"
+                onClick={ () => Gleap.open()}  
+                id="FeedbackSubscribe"
+                className="mb-0 p-2"
+                style={{ fontSize: 13 }}
+            >
+                Report an issue here
+			</button>
+              
+        </div>
+      </div>
+      <FaqCol />
+      </div>}
       isStickyAside={false}
     >   
         <BillingContent />
@@ -432,13 +458,17 @@ export default injectStripe(Billing);
 BillingBanner.propTypes = {
     plan: PropTypes.string.isRequired,
     onChangePlan: PropTypes.func
-  };
+};
+PlansBanner.propTypes = {
+    plan: PropTypes.string.isRequired,
+    onChangePlan: PropTypes.func
+};
 Billing.propTypes = {
     // stripe: PropTypes.object.isRequired,
     // user: PropTypes.object,
     history: PropTypes.object,
     plan: PropTypes.string,
-  };
+};
 BillingAside.propTypes = {
     plan: PropTypes.string.isRequired,
     stripe: PropTypes.object.isRequired,

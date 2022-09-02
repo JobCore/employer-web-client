@@ -1250,7 +1250,7 @@ const EditOrAddShift = ({
             .asHours(),
         0
       );
-
+      console.log("scheduleHours###", scheduleHours)
       setPreviousShifts(previous_shifts);
       settotalHoursEmployeeWeek(scheduleHours);
     });

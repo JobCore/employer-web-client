@@ -17,6 +17,8 @@ import moment from "moment";
 import { CalendarView } from "../components/calendar/index.js";
 import { Redirect } from "react-router-dom";
 import logoURL from "../../img/logo.png";
+import { Notify } from "bc-react-notifier";
+import * as actions from "../actions"
 
 export default class Home extends Flux.DashView {
   constructor() {
@@ -172,10 +174,35 @@ export default class Home extends Flux.DashView {
     // var friday = now.clone().weekday(5);
 
     // var isNowWeekday = now.isBetween(monday, friday, null, "[]");
-
+    const handleSubmitPay =  (event) => {
+      event.preventDefault();
+      var stripeToken = null
+      const noti = Notify.info("Are you sure?", async (answer) => {
+          if (answer){ 
+              console.log("GO!!");
+              // if (props.stripe) {
+                  // const res = await props.stripe.createToken()
+                  // if (res['token']){
+                      // body['source'] = res.token ;
+                      // stripeToken = body['source']
+                      // stripeToken["amount"] = 400
+                      const stripePayResponse = await actions.createStripePayment2() 
+                      // console.log("stripePayResponse###", stripePayResponse)
+                      // if (stripePayResponse.status===200) {
+                          // const subscriptionResponse = await actions.createSubscription(body, props.history).then(res => setLoading(false) );
+                          // console.log("stripePayResponse.status",stripePayResponse.status)
+                        // }
+                  // } else setLoading(false);
+                 
+              // } else setLoading(false);
+          }
+          noti.remove();
+      });
+    };
     return (
       <Theme.Consumer>
         {({ bar }) => (
+          
           <div>
             <Wizard
               steps={this.state.steps}
@@ -192,6 +219,9 @@ export default class Home extends Flux.DashView {
               }}
             />
             <div className="row">
+            {/* <button className="mt-5" onClick={handleSubmitPay}>
+              create-payment-single-emp
+            </button> */}
               <div className="col-9">
                 <CalendarView
                   viewMode={"day"}
@@ -470,8 +500,11 @@ export default class Home extends Flux.DashView {
                 </div>
               </div>
             </div>
+           
           </div>
+        
         )}
+        
       </Theme.Consumer>
     );
   }

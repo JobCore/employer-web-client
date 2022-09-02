@@ -108,6 +108,8 @@ import "../styles/_notification.scss";
 import "jquery/dist/jquery.min.js";
 import "bootstrap/dist/js/bootstrap.min.js";
 import { CheckEmployeeDocuments2 } from "./views/check-documents2";
+import Gleap from 'gleap';
+
 
 class PrivateLayout extends Flux.DashView {
   constructor() {
@@ -813,7 +815,22 @@ class PrivateLayout extends Flux.DashView {
                   <span style={{ fontSize: 16, fontWeight: 500 }}>Logout</span>
                 </a>
               </li>
-              {/* <li style={{paddingTop: "9.19px"}}><a href="https://jobcore.co/contact" target="_blank" rel="noopener noreferrer"><i className="fas fa-question" style={{fontSize: "40px", color:"black"}}></i><br/>Help</a></li> */}
+              {/* <li style={{paddingTop: "9.19px"}}>
+              <a href="https://jobcore.co/contact" 
+              target="_blank" rel="noopener noreferrer">
+              <i className="fas fa-question" style={{fontSize: "40px", color:"black"}}></i><br/>Help</a></li> */}
+              <li> 
+              <button
+                // href="https://c5q5lw7ly6i.typeform.com/to/hCgUTpnJ"
+                onClick={ () => Gleap.open()}  
+                id="FeedbackDashboard"
+                className="p-1"
+                style={{ fontSize: 14 }}
+              >
+                Report an issue here
+			        </button>
+                
+              </li>
             </ul>
           </div>
           <div className="right_pane bc-scrollbar">
@@ -1197,6 +1214,7 @@ class PrivateLayout extends Flux.DashView {
               <Route exact path="/home" component={Dashboard} />
               <Route exact path="/" component={Dashboard} />
             </Switch>
+           
           </div>
           <EngineComponent />
           <ButtonBar onClick={(option) => this.state.bar.show(option)} />
@@ -1215,7 +1233,7 @@ class PrivateLayout extends Flux.DashView {
     );
   }
   hideComponent(admin) {
-    if (admin==="hradmin@jobcore.co") {
+    if (admin==="a@jobcore.co") {
       // this.setState({ showHideHR: false }); // uncommenting makes tap talent search is visible only to JC-HR@admin.co
       console.log("showHideHR###", this.state.showHideHR)
       console.log("admin###", admin)

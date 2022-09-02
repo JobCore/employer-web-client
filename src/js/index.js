@@ -10,6 +10,15 @@ import { autoLogin } from './actions.js';
 
 //import your own components
 import Layout from './Layout.js';
+import Gleap from 'gleap';
+
+// Please make sure to call this method only once!
+Gleap.initialize("JfJX8cFIxkXfbTISZxKaWOfnYKYPtp1A");
+    
+  
+
+            
+
 
 console.info(`JobCore: Employer v${packg.version}, ENVIRONMENT=${process.env.ENVIRONMENT}`);
 
