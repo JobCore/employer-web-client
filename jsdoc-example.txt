@@ -1,0 +1,3 @@
+Generate a JSDOC Html file with this example:
+
+jsdoc /workspace/employer-web-client/src/js/components/applicant-card/ApplicantCard.jsx

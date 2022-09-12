@@ -32,12 +32,16 @@
     "@babel/preset-env": "^7.18.6",
     "@babel/preset-react": "^7.0.0",
     "@babel/runtime": "^7.5.5",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^12.1.5",
     "babel-cli": "^6.26.0",
     "babel-eslint": "^8.2.2",
     "babel-jest": "^28.1.2",
     "babel-loader": "^8.0.0-beta.6",
     "css-loader": "^0.28.11",
     "dotenv-webpack": "^1.5.7",
+    "enzyme": "^3.11.0",
+    "enzyme-adapter-react-16": "^1.15.6",
     "eslint": "^4.19.1",
     "eslint-plugin-react": "^7.7.0",
     "file-loader": "^1.1.11",
@@ -76,8 +80,17 @@
     },
     "moduleNameMapper": {
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga|pdf)$": "<rootDir>/empty-module.js",
-      "\\.(css|less|scss|sass)$": "identity-obj-proxy"
-    }
+      "\\.(css|less|scss|sass)$": "identity-obj-proxy",
+      "^react-dnd$": "react-dnd/dist/cjs",
+      "^react-dnd-html5-backend$": "react-dnd-html5-backend/dist/cjs",
+      "^dnd-core$": "dnd-core/dist/cjs"
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!@ngrx|(?!common)|ng-dynamic)"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/setupTest.js"
+    ]
   },
   "dependencies": {
     "@4geeksacademy/react-flux-dash": "^3.0.2",
@@ -90,8 +103,6 @@
     "@react-pdf/renderer": "^1.6.8",
     "@stripe/react-stripe-js": "^1.7.0",
     "@stripe/stripe-js": "^1.23.0",
-    "@testing-library/jest-dom": "^5.16.4",
-    "@testing-library/react": "^13.3.0",
     "bc-react-calendar": "^1.0.39",
     "bc-react-notifier": "^1.1.6",
     "bc-react-session": "^1.5.2",

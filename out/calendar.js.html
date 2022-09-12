@@ -1,4 +1,32 @@
-import React, { useEffect, useState, useRef } from "react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: calendar.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: calendar.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useEffect, useState, useRef } from "react";
 import { CalendarView } from "../components/calendar/index.js";
 import { Theme, Button, ShiftBadge } from "../components/index";
 import queryString from "query-string";
@@ -27,24 +55,24 @@ const gf = {
   positions: {
     grouping: (s) => s.position.title || s.position.label,
     label: (s) => (
-      <span>
-        <ShiftBadge {...s} /> {s.venue.title || s.position.label}
-      </span>
+      &lt;span>
+        &lt;ShiftBadge {...s} /> {s.venue.title || s.position.label}
+      &lt;/span>
     ),
   },
   venues: {
     grouping: (s) => s.venue.title,
     label: (s) => (
-      <span>
-        <ShiftBadge {...s} /> {s.position.title || s.position.label}
-      </span>
+      &lt;span>
+        &lt;ShiftBadge {...s} /> {s.position.title || s.position.label}
+      &lt;/span>
     ),
   },
   employees: {
     label: (s) => (
-      <span>
-        <ShiftBadge {...s} /> {s.position.title || s.position.label}
-      </span>
+      &lt;span>
+        &lt;ShiftBadge {...s} /> {s.position.title || s.position.label}
+      &lt;/span>
     ),
   },
 };
@@ -84,7 +112,7 @@ export const ShiftCalendar = ({ catalog }) => {
       _filters.end = _filters.end.format("YYYY-MM-DD");
     searchMe(
       "shifts",
-      "?limit=10000&" + queryString.stringify(_filters) + "&serializer=big"
+      "?limit=10000&amp;" + queryString.stringify(_filters) + "&amp;serializer=big"
     );
   };
   const groupShifts = (sh, l = null) => {
@@ -159,18 +187,18 @@ export const ShiftCalendar = ({ catalog }) => {
   }, [groupedLabel]);
 
   return (
-    <Theme.Consumer>
+    &lt;Theme.Consumer>
       {({ bar }) => (
-        <div className="row">
-          <div className="col-10">
-            {groupedShifts && (
-              <CalendarView
+        &lt;div className="row">
+          &lt;div className="col-10">
+            {groupedShifts &amp;&amp; (
+              &lt;CalendarView
                 viewMode={viewMode}
                 ToolbarComponent={({ setCurrentDate, currentDate }) => (
-                  <div className="row mb-2">
-                    <div className="col">
-                      <p className="mb-0">Sort by:</p>
-                      <Select
+                  &lt;div className="row mb-2">
+                    &lt;div className="col">
+                      &lt;p className="mb-0">Sort by:&lt;/p>
+                      &lt;Select
                         onChange={(l) => groupShifts(shifts, l)}
                         options={[
                           { label: "Position", value: "positions" },
@@ -179,9 +207,9 @@ export const ShiftCalendar = ({ catalog }) => {
                         ]}
                         value={groupedLabel}
                       />
-                    </div>
-                    <div className="col text-right pt-4">
-                      <Button
+                    &lt;/div>
+                    &lt;div className="col text-right pt-4">
+                      &lt;Button
                         size="small"
                         disable={calendarLoading}
                         color="light"
@@ -209,28 +237,28 @@ export const ShiftCalendar = ({ catalog }) => {
                           setCurrentDate(moment(currentDate).add(-1, viewMode));
                         }}
                       />
-                      <Button
+                      &lt;Button
                         size="small"
                         disable={calendarLoading}
                         onClick={() => setViewMode("day")}
                       >
                         Day
-                      </Button>
-                      <Button
+                      &lt;/Button>
+                      &lt;Button
                         size="small"
                         disable={calendarLoading}
                         onClick={() => setViewMode("week")}
                       >
                         Week
-                      </Button>
-                      <Button
+                      &lt;/Button>
+                      &lt;Button
                         size="small"
                         disable={calendarLoading}
                         onClick={() => setViewMode("month")}
                       >
                         Month
-                      </Button>
-                      <Button
+                      &lt;/Button>
+                      &lt;Button
                         size="small"
                         disable={calendarLoading}
                         color="light"
@@ -258,8 +286,8 @@ export const ShiftCalendar = ({ catalog }) => {
                           setCurrentDate(moment(currentDate).add(1, viewMode));
                         }}
                       />
-                    </div>
-                  </div>
+                    &lt;/div>
+                  &lt;/div>
                 )}
                 onChange={(evt) => {
                   let shift = {
@@ -326,9 +354,9 @@ export const ShiftCalendar = ({ catalog }) => {
                         ending_at: e.end.startOf("hour"),
                         venue: venue ? venue.id : "",
                         position:
-                          position && position.id
+                          position &amp;&amp; position.id
                             ? position.id
-                            : position && position.value
+                            : position &amp;&amp; position.value
                             ? position.value
                             : "",
                         application_restriction: employee
@@ -352,13 +380,36 @@ export const ShiftCalendar = ({ catalog }) => {
                 events={groupedShifts}
               />
             )}
-          </div>
-        </div>
+          &lt;/div>
+        &lt;/div>
       )}
-    </Theme.Consumer>
+    &lt;/Theme.Consumer>
   );
 };
 
 ShiftCalendar.propTypes = {
   catalog: PropTypes.object,
 };
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#ShiftCalendar">ShiftCalendar</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Tue Sep 06 2022 18:42:43 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

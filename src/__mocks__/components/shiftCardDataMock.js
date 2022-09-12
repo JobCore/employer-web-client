@@ -1,0 +1,21 @@
+export const shiftCardDataMock = {
+    allowedFavlists: [],
+    allowedTalents: [],
+    allowed_from_list: [],
+    application_restriction: "ANYONE",
+    candidates: [],
+    description: "N/A",
+    employees: [],
+    employer: 56,
+    ending_at: "2050-06-29T20:15:47.883Z",
+    has_sensitive_updates: true,
+    maximum_allowed_employees: "1",
+    minimum_allowed_rating: "0",
+    minimum_hourly_rate: "8",
+    pending_invites: [],
+    pending_jobcore_invites: [],
+    position: "3",
+    starting_at: "2050-06-29T18:15:47.883Z",
+    status: "OPEN",
+    venue: "12"
+}
