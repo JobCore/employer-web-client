@@ -1,4 +1,32 @@
-import './style.scss';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: EmployeeExtendedCard.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: EmployeeExtendedCard.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import './style.scss';
 import React, { useState, useEffect } from "react";
 import PropTypes from 'prop-types';
 import Avatar from '../avatar';
@@ -28,10 +56,10 @@ const EmployeeExtendedCard = (props) => {
     return props.positions.find(pos => p == pos.value || p.id == pos.value);
   });
 
-  const badgesHTML = !props.employee.badges ? [] : props.employee.badges.map((b, i) => (<span key={i} className="badge">{b.title}</span>));
+  const badgesHTML = !props.employee.badges ? [] : props.employee.badges.map((b, i) => (&lt;span key={i} className="badge">{b.title}&lt;/span>));
   const favoriteCount = !Array.isArray(props.employee.favoritelist_set) ? 0 : props.employee.favoritelist_set.length;
 
-  const picture = props.employee && props.employee.user && props.employee.user.profile && props.employee.user.profile.picture ? props.employee.user.profile.picture : "";
+  const picture = props.employee &amp;&amp; props.employee.user &amp;&amp; props.employee.user.profile &amp;&amp; props.employee.user.profile.picture ? props.employee.user.profile.picture : "";
   const DocStatus = props.employee.employment_verification_status
   const [form, setForm] = useState(props.form);
   const [formLoading, setFormLoading] = useState(props.formLoading);
@@ -154,7 +182,7 @@ const EmployeeExtendedCard = (props) => {
       step3aField.setText(data.w4form.dependant3b);
       step3bField.setText(data.w4form.dependant3c);
 
-      if (data.w4form.dependant3b && data.w4form.dependant3c) {
+      if (data.w4form.dependant3b &amp;&amp; data.w4form.dependant3c) {
         var totalDependant =
           +data.w4form.dependant3b + +data.w4form.dependant3c;
         step3cField.setText(totalDependant.toString());
@@ -441,21 +469,21 @@ const EmployeeExtendedCard = (props) => {
   //   props.defineEmployee()
   // }, []);
   return (
-    <li className={`aplicantcard ${props.hoverEffect ? "aplicantcard-hover" : ""} ${props.showButtonsOnHover ? "show-hover" : ""} ${props.className}`} onClick={() => (props.onClick) ? props.onClick() : false}>
-      <Theme.Consumer>
-        {({ bar }) => (<div className=''>
-          {/* <Avatar url={props.employee.user ? props.employee.user.profile.picture : ""} /> */}
-          <Avatar url={picture} />
-          <div className="row">
-            <div className="col-2.5 p-2">
-              <a href="#"><b>{props.employee.user.first_name + ' ' + props.employee.user.last_name}</b></a>
-              <Stars rating={Number(props.employee.rating)} jobCount={props.employee.total_ratings} />
+    &lt;li className={`aplicantcard ${props.hoverEffect ? "aplicantcard-hover" : ""} ${props.showButtonsOnHover ? "show-hover" : ""} ${props.className}`} onClick={() => (props.onClick) ? props.onClick() : false}>
+      &lt;Theme.Consumer>
+        {({ bar }) => (&lt;div className=''>
+          {/* &lt;Avatar url={props.employee.user ? props.employee.user.profile.picture : ""} /> */}
+          &lt;Avatar url={picture} />
+          &lt;div className="row">
+            &lt;div className="col-2.5 p-2">
+              &lt;a href="#">&lt;b>{props.employee.user.first_name + ' ' + props.employee.user.last_name}&lt;/b>&lt;/a>
+              &lt;Stars rating={Number(props.employee.rating)} jobCount={props.employee.total_ratings} />
               {(props.showFavlist) ?
-                <p href="#">{(favoriteCount > 0) ? <span className="badge badge-warning"><i className="fas fa-star"></i> {favoriteCount} Lists</span> : ''} {badgesHTML}</p>
+                &lt;p href="#">{(favoriteCount > 0) ? &lt;span className="badge badge-warning">&lt;i className="fas fa-star">&lt;/i> {favoriteCount} Lists&lt;/span> : ''} {badgesHTML}&lt;/p>
                 : ''
               }
-            </div>
-            <div className="mt-2"
+            &lt;/div>
+            &lt;div className="mt-2"
               onMouseEnter={(e) => {
                 console.log("button hovered");
                 props.defineEmployee()
@@ -465,7 +493,7 @@ const EmployeeExtendedCard = (props) => {
                 // props.catalog.employee.employment_verification_status 
                 DocStatus === "APPROVED"
                   ? (
-                    <span className="mr-2"
+                    &lt;span className="mr-2"
                       style={{ cursor: "pointer" }}
                       data-toggle="modal"
                       data-target="#exampleModalCenter"
@@ -482,15 +510,15 @@ const EmployeeExtendedCard = (props) => {
                         })
                       }}
                     >
-                      <i
+                      &lt;i
                         style={{ fontSize: "16px", color: "#43A047" }}
                         className="fas fa-file-alt mr-1"
-                      ></i>
+                      >&lt;/i>
                       {true ? "W4" : "Loading"}
-                    </span>
+                    &lt;/span>
                   ) : (DocStatus === "MISSING_DOCUMENTS"
                     ? (
-                      <span className="text-muted mr-3"
+                      &lt;span className="text-muted mr-3"
                         style={{ cursor: "pointer" }}
                         data-toggle="modal"
                         data-target="#exampleModalCenter"
@@ -506,11 +534,11 @@ const EmployeeExtendedCard = (props) => {
                           })
                         }}
                       >
-                        <i style={{ fontSize: "15px", color: "#FFD600" }} className="fas fa-exclamation-circle mr-1"></i>
+                        &lt;i style={{ fontSize: "15px", color: "#FFD600" }} className="fas fa-exclamation-circle mr-1">&lt;/i>
                         {true ? "W4" : "Loading"}
-                      </span>
+                      &lt;/span>
                     ) : (
-                      <span className="text-muted mr-3"
+                      &lt;span className="text-muted mr-3"
                         style={{ cursor: "pointer" }}
                         data-toggle="modal"
                         data-target="#exampleModalCenter"
@@ -526,15 +554,15 @@ const EmployeeExtendedCard = (props) => {
                           })
                         }}
                       >
-                        <i className="fas fa-exclamation-circle text-danger mr-1"></i>
+                        &lt;i className="fas fa-exclamation-circle text-danger mr-1">&lt;/i>
                         {true ? "W4" : "Loading"}
-                      </span>
+                      &lt;/span>
                     ))}
               {
                 // props.catalog.employee.employment_verification_status 
                 DocStatus === "APPROVED"
                   ? (
-                    <span className="mr-2"
+                    &lt;span className="mr-2"
                       style={{ cursor: "pointer" }}
                       data-toggle="modal"
                       data-target="#exampleModalCenter"
@@ -550,15 +578,15 @@ const EmployeeExtendedCard = (props) => {
                         })
                       }}
                     >
-                      <i
+                      &lt;i
                         style={{ fontSize: "16px", color: "#43A047" }}
                         className="fas fa-file-alt mr-1"
-                      ></i>
+                      >&lt;/i>
                       {true ? "I9" : "Loading"}
-                    </span>
+                    &lt;/span>
                   ) : (DocStatus === "MISSING_DOCUMENTS"
                     ? (
-                      <span className="text-muted mr-3"
+                      &lt;span className="text-muted mr-3"
                         style={{ cursor: "pointer" }}
                         data-toggle="modal"
                         data-target="#exampleModalCenter"
@@ -574,11 +602,11 @@ const EmployeeExtendedCard = (props) => {
                           })
                         }}
                       >
-                        <i style={{ fontSize: "15px", color: "#FFD600" }} className="fas fa-exclamation-circle mr-1"></i>
+                        &lt;i style={{ fontSize: "15px", color: "#FFD600" }} className="fas fa-exclamation-circle mr-1">&lt;/i>
                         {true ? "I9" : "Loading"}
-                      </span>
+                      &lt;/span>
                     ) : (
-                      <span className="text-muted mr-3"
+                      &lt;span className="text-muted mr-3"
                         style={{ cursor: "pointer" }}
                         data-toggle="modal"
                         data-target="#exampleModalCenter"
@@ -594,35 +622,35 @@ const EmployeeExtendedCard = (props) => {
                           })
                         }}
                       >
-                        <i className="fas fa-exclamation-circle text-danger mr-1"></i>
+                        &lt;i className="fas fa-exclamation-circle text-danger mr-1">&lt;/i>
                         {true ? "I9" : "Loading"}
-                      </span>
+                      &lt;/span>
                     ))}
-            </div>
-            {Array.isArray(positions) && positions.length > 0 ? (
-              <div className="col-8 my-auto">
+            &lt;/div>
+            {Array.isArray(positions) &amp;&amp; positions.length > 0 ? (
+              &lt;div className="col-8 my-auto">
 
                 {positions.map((pos, i) => {
-                  if (i < 3 && pos) return (<span key={i} className="badge badge-success">{pos.label || pos.title}</span>);
+                  if (i &lt; 3 &amp;&amp; pos) return (&lt;span key={i} className="badge badge-success">{pos.label || pos.title}&lt;/span>);
                 }
                 )}
-                {Array.isArray(positions) && positions.length > 3 ? <span className="text-right ml-4">See more</span> : null}
-              </div>
+                {Array.isArray(positions) &amp;&amp; positions.length > 3 ? &lt;span className="text-right ml-4">See more&lt;/span> : null}
+              &lt;/div>
             ) : null}
 
-          </div>
+          &lt;/div>
 
 
           {(props.children) ?
-            <div className="btn-group" role="group" aria-label="Basic example">
+            &lt;div className="btn-group" role="group" aria-label="Basic example">
               {props.children}
-            </div>
+            &lt;/div>
             : ''
           }
-        </div>
+        &lt;/div>
         )}
-      </Theme.Consumer>
-    </li>);
+      &lt;/Theme.Consumer>
+    &lt;/li>);
 };
 EmployeeExtendedCard.propTypes = {
   employee: PropTypes.object.isRequired,
@@ -648,4 +676,26 @@ EmployeeExtendedCard.defaultProps = {
   positions: null
 };
 
-export default EmployeeExtendedCard;
+export default EmployeeExtendedCard;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#EmployeeExtendedCard">EmployeeExtendedCard</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Tue Sep 06 2022 18:42:31 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

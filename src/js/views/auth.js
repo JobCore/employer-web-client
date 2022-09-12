@@ -280,7 +280,7 @@ const Subscribe = (props) => {
         /> */}
       {/* </div> */} 
       
-      <StripeProvider apiKey="pk_live_JtS6WO3mL4HuI72Ay8wpjcFe003vJqDL6x">
+      <StripeProvider apiKey={process.env.STRIPE_PUBLIC_KEY}>
         <Elements >           
           <Billing history={props.history} />
         </Elements>
