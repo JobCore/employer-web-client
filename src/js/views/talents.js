@@ -256,7 +256,7 @@ export class ManageTalents extends Flux.DashView {
       }
     }
     const today = new Date()
-    console.log("empleados#########", employees.map(checkEmployability)) // leave this one for now [Israel]
+    //console.log("empleados#########", employees.map(checkEmployability)) // leave this one for now [Israel]
     const positions = this.state.positions;
     if (this.state.firstSearch) return <p>Please search for an employee</p>;
     const allowLevels = window.location.search != "";
@@ -508,6 +508,9 @@ FilterTalents.propTypes = {
 
 /**
  * Talent Details
+ * 
+ * Before, the Stars component was rendered inside a p tag, 
+ * now its rendered inside a span tag
  */
 export const TalentDetails = (props) => {
   const employee = props.catalog.employee;
@@ -544,12 +547,12 @@ export const TalentDetails = (props) => {
             />
           </div>
           <Avatar url={employee.user.profile.picture} />
-          <p>
+          <span>
             <Stars
               rating={Number(employee.rating)}
               jobCount={employee.total_ratings}
             />
-          </p>
+          </span>
           <p style={{ fontWeight: "bolder", fontSize: "24px" }}>
             {typeof employee.fullName == "function"
               ? employee.fullName()

@@ -65,9 +65,6 @@ const appendCompany = (data) => {
  */
 export const GET = async (endpoint, queryString = null, extraHeaders = {}) => {
   let url = `${rootAPIendpoint}/${endpoint}`;
-  console.log("GET###")
-  console.log("endpoint###", endpoint)
-  console.log("url###", url)
   if (queryString) url += queryString;
 
   HEADERS['Authorization'] = `JWT ${getToken()}`;
@@ -89,7 +86,6 @@ export const GET = async (endpoint, queryString = null, extraHeaders = {}) => {
 };
 
 export const POST = (endpoint, postData, extraHeaders = {}) => {
-  console.log("POST###")
   if (['user/register', 'login', 'user/password/reset','employers/me/jobcore-invites'].indexOf(endpoint) == -1) {
     HEADERS['Authorization'] = `JWT ${getToken()}`;
     postData = appendCompany(postData);
@@ -145,7 +141,6 @@ export const POST = (endpoint, postData, extraHeaders = {}) => {
 // var headers = new Headers();
 // headers.append('X-CSRFToken', csrftoken);
 export const POSTcsrf = (endpoint, postData, extraHeaders = {}) => {
-  console.log("POST###")
   // Cookies.get('csrftoken')
   // console.log("postData###", postData)
   Cookies.set('stripetoken', postData.id)
@@ -160,7 +155,6 @@ export const POSTcsrf = (endpoint, postData, extraHeaders = {}) => {
     body: JSON.stringify(postData),
     // mode: 'no-cors'
   };
-  console.log("REQ###", REQ)
   const req = new Promise((resolve, reject) => fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
     .then((resp) => processResp(resp, req))
     .then(data => resolve(data))
@@ -175,7 +169,6 @@ export const POSTcsrf = (endpoint, postData, extraHeaders = {}) => {
 };
 
 export const POSTcsrf2 = (endpoint, postData, extraHeaders = {}) => {
-  console.log("POST###")
   // Cookies.get('csrftoken')
   // console.log("postData###", postData)
   // Cookies.set('stripetoken', postData.id)
@@ -190,7 +183,6 @@ export const POSTcsrf2 = (endpoint, postData, extraHeaders = {}) => {
     body: JSON.stringify(postData),
     // mode: 'no-cors'
   };
-  console.log("REQ###", REQ)
   const req = new Promise((resolve, reject) => fetch(`${rootAPIendpoint}/${endpoint}`, REQ)
     .then((resp) => processResp(resp, req))
     .then(data => resolve(data))
@@ -211,7 +203,6 @@ export const POSTcsrf2 = (endpoint, postData, extraHeaders = {}) => {
 //     credentials: 'include'
 // }).  
 export const PUTFiles = (endpoint, files) => {
-  console.log("PUTfiles###")
   const headers = {
     'Authorization': `JWT ${getToken()}`
   };
@@ -239,7 +230,6 @@ export const PUTFiles = (endpoint, files) => {
 };
 
 export const PUT = (endpoint, putData, extraHeaders = {}) => {
-  console.log("PUT###")
   if (['register', 'login','user/password/reset'].indexOf(endpoint) == -1) {
     HEADERS['Authorization'] = `JWT ${getToken()}`;
   }
@@ -263,7 +253,6 @@ export const PUT = (endpoint, putData, extraHeaders = {}) => {
 };
 
 export const DELETE = (endpoint, extraHeaders = {}) => {
-  console.log("DELETE###")
   HEADERS['Authorization'] = `JWT ${getToken()}`;
 
   const REQ = {
@@ -284,7 +273,6 @@ export const DELETE = (endpoint, extraHeaders = {}) => {
 };
 
 const processResp = function (resp, req = null) {
-  console.log(resp)
   PendingReq.remove(req);
   if (resp.ok) {
     if (resp.status == 204) return new Promise((resolve, reject) => resolve(true));

@@ -1,0 +1,687 @@
+export const DummyDataWorkers = [
+    {
+      id: 5,
+      user: {
+        first_name: "Bill",
+        last_name: "Clinton",
+        email: "a+bill@jobcore.co",
+        profile: {
+          picture: "",
+          bio: "",
+          phone_number: ""
+        }
+      },
+      favoritelist_set: [],
+      minimum_hourly_rate: "8.0",
+      stop_receiving_invites: false,
+      rating: 3,
+      total_ratings: 0,
+      total_pending_payments: 0,
+      maximum_job_distance_miles: 50,
+      job_count: 0,
+      created_at: "2018-09-13T19:45:00Z",
+      updated_at: "2022-05-31T19:17:05.756262Z",
+      response_time: 0,
+      total_invites: 0,
+      employability_expired_at: "2100-06-04T00:00:00Z",
+      employment_verification_status: "APPROVED",
+      filing_status: "SINGLE",
+      allowances: 0,
+      w4_year: 0,
+      step2c_checked: false,
+      dependants_deduction: "0.00",
+      other_income: "0.00",
+      additional_deductions: "0.00",
+      extra_withholding: "0.00",
+      positions: [],
+      badges: []
+    },
+    {
+      id: 4,
+      user: {
+        first_name: "Frank",
+        last_name: "Sinatra",
+        email: "a+employee4@jobcore.co",
+        profile: {
+          picture: "",
+          bio: "",
+          phone_number: ""
+        }
+      },
+      favoritelist_set: [
+        {
+          id: 2,
+          title: "Preferred Employees",
+          created_at: "2018-09-13T19:45:00Z",
+          updated_at: "2018-09-13T19:45:00Z",
+          auto_accept_employees_on_this_list: false,
+          employer: 1,
+          employees: [4, 3]
+        }
+      ],
+      minimum_hourly_rate: "8.0",
+      stop_receiving_invites: false,
+      rating: 1,
+      total_ratings: 0,
+      total_pending_payments: 0,
+      maximum_job_distance_miles: 50,
+      job_count: 0,
+      created_at: "2018-09-13T19:45:00Z",
+      updated_at: "2022-05-31T19:16:58.179401Z",
+      response_time: 0,
+      total_invites: 0,
+      employability_expired_at: "2100-06-04T00:00:00Z",
+      employment_verification_status: "APPROVED",
+      filing_status: "SINGLE",
+      allowances: 0,
+      w4_year: 0,
+      step2c_checked: false,
+      dependants_deduction: "0.00",
+      other_income: "0.00",
+      additional_deductions: "0.00",
+      extra_withholding: "0.00",
+      positions: [],
+      badges: []
+    }
+  ];
+  
+  /*
+  
+  ,
+   
+    {
+      id: 7,
+      user: {
+        first_name: "Martin",
+        last_name: "Luther King",
+        email: "a+martin@jobcore.co",
+        profile: {
+          picture: "",
+          bio: "",
+          phone_number: ""
+        }
+      },
+      favoritelist_set: [],
+      minimum_hourly_rate: "8.0",
+      stop_receiving_invites: false,
+      rating: null,
+      total_ratings: 0,
+      total_pending_payments: 0,
+      maximum_job_distance_miles: 50,
+      job_count: 0,
+      created_at: "2018-09-13T19:45:00Z",
+      updated_at: "2022-05-31T19:16:51.944212Z",
+      response_time: 0,
+      total_invites: 0,
+      employability_expired_at: "2100-06-04T00:00:00Z",
+      employment_verification_status: "APPROVED",
+      filing_status: "SINGLE",
+      allowances: 0,
+      w4_year: 0,
+      step2c_checked: false,
+      dependants_deduction: "0.00",
+      other_income: "0.00",
+      additional_deductions: "0.00",
+      extra_withholding: "0.00",
+      positions: [],
+      badges: []
+    },
+    {
+      id: 6,
+      user: {
+        first_name: "Hilary",
+        last_name: "Clinton",
+        email: "a+hilary@jobcore.co",
+        profile: {
+          picture: "",
+          bio: "",
+          phone_number: ""
+        }
+      },
+      favoritelist_set: [],
+      minimum_hourly_rate: "8.0",
+      stop_receiving_invites: false,
+      rating: null,
+      total_ratings: 0,
+      total_pending_payments: 0,
+      maximum_job_distance_miles: 50,
+      job_count: 0,
+      created_at: "2018-09-13T19:45:00Z",
+      updated_at: "2022-05-31T19:16:45.061163Z",
+      response_time: 0,
+      total_invites: 0,
+      employability_expired_at: null,
+      employment_verification_status: "APPROVED",
+      filing_status: "SINGLE",
+      allowances: 0,
+      w4_year: 0,
+      step2c_checked: false,
+      dependants_deduction: "0.00",
+      other_income: "0.00",
+      additional_deductions: "0.00",
+      extra_withholding: "0.00",
+      positions: [],
+      badges: []
+    },
+    {
+      id: 2,
+      user: {
+        first_name: "John",
+        last_name: "Lennon",
+        email: "a+employee2@jobcore.co",
+        profile: {
+          picture: "",
+          bio: "",
+          phone_number: ""
+        }
+      },
+      favoritelist_set: [
+        {
+          id: 1,
+          title: "Preferred Employees",
+          created_at: "2018-09-13T19:45:00Z",
+          updated_at: "2018-09-13T19:45:00Z",
+          auto_accept_employees_on_this_list: true,
+          employer: 1,
+          employees: [3, 2]
+        }
+      ],
+      minimum_hourly_rate: "8.0",
+      stop_receiving_invites: false,
+      rating: null,
+      total_ratings: 0,
+      total_pending_payments: 0,
+      maximum_job_distance_miles: 50,
+      job_count: 0,
+      created_at: "2018-09-13T19:45:00Z",
+      updated_at: "2022-05-31T19:16:38.278596Z",
+      response_time: 0,
+      total_invites: 0,
+      employability_expired_at: "2100-06-04T00:00:00Z",
+      employment_verification_status: "APPROVED",
+      filing_status: "SINGLE",
+      allowances: 0,
+      w4_year: 0,
+      step2c_checked: false,
+      dependants_deduction: "0.00",
+      other_income: "0.00",
+      additional_deductions: "0.00",
+      extra_withholding: "0.00",
+      positions: [1, 3],
+      badges: [1, 2]
+    },
+    {
+      id: 8,
+      user: {
+        first_name: "Bob",
+        last_name: "Patiño",
+        email: "a+employer2@jobcore.co",
+        profile: {
+          picture: "",
+          bio: "",
+          phone_number: ""
+        }
+      },
+      favoritelist_set: [],
+      minimum_hourly_rate: "8.0",
+      stop_receiving_invites: false,
+      rating: null,
+      total_ratings: 0,
+      total_pending_payments: 0,
+      maximum_job_distance_miles: 50,
+      job_count: 0,
+      created_at: "2019-12-02T19:31:08.229524Z",
+      updated_at: "2022-05-31T19:16:31.891312Z",
+      response_time: 0,
+      total_invites: 0,
+      employability_expired_at: "2100-06-04T00:00:00Z",
+      employment_verification_status: "APPROVED",
+      filing_status: "SINGLE",
+      allowances: 0,
+      w4_year: 0,
+      step2c_checked: false,
+      dependants_deduction: "0.00",
+      other_income: "0.00",
+      additional_deductions: "0.00",
+      extra_withholding: "0.00",
+      positions: [1, 2, 3, 4, 5, 6],
+      badges: []
+    },
+    {
+      id: 3,
+      user: {
+        first_name: "Paul",
+        last_name: "McCartney",
+        email: "a+employee3@jobcore.co",
+        profile: {
+          picture: "",
+          bio: "",
+          phone_number: ""
+        }
+      },
+      favoritelist_set: [
+        {
+          id: 1,
+          title: "Preferred Employees",
+          created_at: "2018-09-13T19:45:00Z",
+          updated_at: "2018-09-13T19:45:00Z",
+          auto_accept_employees_on_this_list: true,
+          employer: 1,
+          employees: [3, 2]
+        },
+        {
+          id: 2,
+          title: "Preferred Employees",
+          created_at: "2018-09-13T19:45:00Z",
+          updated_at: "2018-09-13T19:45:00Z",
+          auto_accept_employees_on_this_list: false,
+          employer: 1,
+          employees: [4, 3]
+        }
+      ],
+      minimum_hourly_rate: "8.0",
+      stop_receiving_invites: false,
+      rating: null,
+      total_ratings: 0,
+      total_pending_payments: 0,
+      maximum_job_distance_miles: 50,
+      job_count: 0,
+      created_at: "2018-09-13T19:45:00Z",
+      updated_at: "2022-05-31T19:16:25.336247Z",
+      response_time: 0,
+      total_invites: 0,
+      employability_expired_at: "2100-06-04T00:00:00Z",
+      employment_verification_status: "APPROVED",
+      filing_status: "SINGLE",
+      allowances: 0,
+      w4_year: 0,
+      step2c_checked: false,
+      dependants_deduction: "0.00",
+      other_income: "0.00",
+      additional_deductions: "0.00",
+      extra_withholding: "0.00",
+      positions: [],
+      badges: [3, 4]
+    },
+    {
+      id: 1,
+      user: {
+        first_name: "Alejo",
+        last_name: "Sanchez",
+        email: "a+employer@jobcore.co",
+        profile: {
+          picture: "",
+          bio: "",
+          phone_number: ""
+        }
+      },
+      favoritelist_set: [],
+      minimum_hourly_rate: "8.0",
+      stop_receiving_invites: false,
+      rating: null,
+      total_ratings: 0,
+      total_pending_payments: 0,
+      maximum_job_distance_miles: 50,
+      job_count: 0,
+      created_at: "2019-12-02T14:03:05.532124Z",
+      updated_at: "2022-05-31T19:16:18.809900Z",
+      response_time: 0,
+      total_invites: 0,
+      employability_expired_at: "2100-06-03T00:00:00Z",
+      employment_verification_status: "APPROVED",
+      filing_status: "SINGLE",
+      allowances: 0,
+      w4_year: 0,
+      step2c_checked: false,
+      dependants_deduction: "0.00",
+      other_income: "0.00",
+      additional_deductions: "0.00",
+      extra_withholding: "0.00",
+      positions: [],
+      badges: []
+    },
+    {
+      id: 9,
+      user: {
+        first_name: "Sea",
+        last_name: "Aegean",
+        email: "agaege@gmail.com",
+        profile: {
+          picture:
+            "https://res.cloudinary.com/hq02xjols/image/upload/v1560365062/static/default_profile3.png",
+          bio: "",
+          phone_number: ""
+        }
+      },
+      favoritelist_set: [],
+      minimum_hourly_rate: "8.0",
+      stop_receiving_invites: false,
+      rating: null,
+      total_ratings: 0,
+      total_pending_payments: 0,
+      maximum_job_distance_miles: 50,
+      job_count: 0,
+      created_at: "2019-12-15T17:06:58.768466Z",
+      updated_at: "2022-05-31T19:16:11.267685Z",
+      response_time: 0,
+      total_invites: 0,
+      employability_expired_at: "2100-06-04T00:00:00Z",
+      employment_verification_status: "APPROVED",
+      filing_status: "SINGLE",
+      allowances: 0,
+      w4_year: 0,
+      step2c_checked: false,
+      dependants_deduction: "0.00",
+      other_income: "0.00",
+      additional_deductions: "0.00",
+      extra_withholding: "0.00",
+      positions: [1, 2, 3, 4, 5, 6],
+      badges: []
+    },
+    {
+      id: 10,
+      user: {
+        first_name: "Aeg",
+        last_name: "Aegean",
+        email: "aegaeg@gmail.com",
+        profile: {
+          picture:
+            "https://res.cloudinary.com/hq02xjols/image/upload/v1560365062/static/default_profile1.png",
+          bio: "",
+          phone_number: ""
+        }
+      },
+      favoritelist_set: [],
+      minimum_hourly_rate: "8.0",
+      stop_receiving_invites: false,
+      rating: null,
+      total_ratings: 0,
+      total_pending_payments: 0,
+      maximum_job_distance_miles: 50,
+      job_count: 0,
+      created_at: "2019-12-15T17:09:40.996187Z",
+      updated_at: "2022-05-31T19:16:04.729902Z",
+      response_time: 0,
+      total_invites: 0,
+      employability_expired_at: "2100-06-04T00:00:00Z",
+      employment_verification_status: "APPROVED",
+      filing_status: "SINGLE",
+      allowances: 0,
+      w4_year: 0,
+      step2c_checked: false,
+      dependants_deduction: "0.00",
+      other_income: "0.00",
+      additional_deductions: "0.00",
+      extra_withholding: "0.00",
+      positions: [1, 2, 3, 4, 5, 6],
+      badges: []
+    },
+    {
+      id: 11,
+      user: {
+        first_name: "Angel",
+        last_name: "Lacret",
+        email: "alacret@gmail.com",
+        profile: {
+          picture:
+            "https://res.cloudinary.com/hq02xjols/image/upload/v1560365062/static/default_profile3.png",
+          bio: "",
+          phone_number: ""
+        }
+      },
+      favoritelist_set: [],
+      minimum_hourly_rate: "8.0",
+      stop_receiving_invites: false,
+      rating: null,
+      total_ratings: 0,
+      total_pending_payments: 0,
+      maximum_job_distance_miles: 50,
+      job_count: 0,
+      created_at: "2019-12-23T02:15:55.733701Z",
+      updated_at: "2022-05-31T19:15:59.168859Z",
+      response_time: 0,
+      total_invites: 0,
+      employability_expired_at: "2100-06-03T00:00:00Z",
+      employment_verification_status: "APPROVED",
+      filing_status: "SINGLE",
+      allowances: 0,
+      w4_year: 0,
+      step2c_checked: false,
+      dependants_deduction: "0.00",
+      other_income: "0.00",
+      additional_deductions: "0.00",
+      extra_withholding: "0.00",
+      positions: [1, 2, 3, 4, 5, 6],
+      badges: []
+    },
+    {
+      id: 12,
+      user: {
+        first_name: "Esteban",
+        last_name: "Contreras",
+        email: "estebancont11@gmail.com",
+        profile: {
+          picture:
+            "https://res.cloudinary.com/hq02xjols/image/upload/v1560365062/static/default_profile1.png",
+          bio: "",
+          phone_number: ""
+        }
+      },
+      favoritelist_set: [],
+      minimum_hourly_rate: "8.0",
+      stop_receiving_invites: false,
+      rating: null,
+      total_ratings: 0,
+      total_pending_payments: 0,
+      maximum_job_distance_miles: 50,
+      job_count: 0,
+      created_at: "2019-12-23T14:27:39.797020Z",
+      updated_at: "2022-05-31T19:15:52.039462Z",
+      response_time: 0,
+      total_invites: 0,
+      employability_expired_at: "2100-06-04T00:00:00Z",
+      employment_verification_status: "APPROVED",
+      filing_status: "SINGLE",
+      allowances: 0,
+      w4_year: 0,
+      step2c_checked: false,
+      dependants_deduction: "0.00",
+      other_income: "0.00",
+      additional_deductions: "0.00",
+      extra_withholding: "0.00",
+      positions: [1, 2, 3, 4, 5, 6],
+      badges: []
+    },
+    {
+      id: 13,
+      user: {
+        first_name: "Cesar",
+        last_name: "Morales",
+        email: "david_avid1@hotmail.com",
+        profile: {
+          picture:
+            "https://res.cloudinary.com/hq02xjols/image/upload/v1560365062/static/default_profile3.png",
+          bio: "Software developer react",
+          phone_number: ""
+        }
+      },
+      favoritelist_set: [],
+      minimum_hourly_rate: "8.0",
+      stop_receiving_invites: true,
+      rating: null,
+      total_ratings: 0,
+      total_pending_payments: 0,
+      maximum_job_distance_miles: 48,
+      job_count: 0,
+      created_at: "2019-12-26T15:30:22.006415Z",
+      updated_at: "2022-05-31T19:15:44.543932Z",
+      response_time: 0,
+      total_invites: 0,
+      employability_expired_at: "2100-06-04T00:00:00Z",
+      employment_verification_status: "APPROVED",
+      filing_status: "SINGLE",
+      allowances: 0,
+      w4_year: 0,
+      step2c_checked: false,
+      dependants_deduction: "0.00",
+      other_income: "0.00",
+      additional_deductions: "0.00",
+      extra_withholding: "0.00",
+      positions: [1, 2, 3, 4, 5, 6],
+      badges: []
+    },
+    {
+      id: 14,
+      user: {
+        first_name: "Moises",
+        last_name: "Marquina",
+        email: "marquinaabreu@gmail.com",
+        profile: {
+          picture:
+            "https://res.cloudinary.com/hq02xjols/image/upload/v1560365062/static/default_profile3.png",
+          bio: "",
+          phone_number: ""
+        }
+      },
+      favoritelist_set: [],
+      minimum_hourly_rate: "8.0",
+      stop_receiving_invites: false,
+      rating: null,
+      total_ratings: 0,
+      total_pending_payments: 0,
+      maximum_job_distance_miles: 50,
+      job_count: 0,
+      created_at: "2020-01-10T20:48:46.219434Z",
+      updated_at: "2022-05-31T19:15:37.198090Z",
+      response_time: 0,
+      total_invites: 0,
+      employability_expired_at: "2100-06-05T00:00:00Z",
+      employment_verification_status: "APPROVED",
+      filing_status: "SINGLE",
+      allowances: 0,
+      w4_year: 0,
+      step2c_checked: false,
+      dependants_deduction: "0.00",
+      other_income: "0.00",
+      additional_deductions: "0.00",
+      extra_withholding: "0.00",
+      positions: [1, 2, 3, 4, 5, 6],
+      badges: []
+    },
+    {
+      id: 16,
+      user: {
+        first_name: "Ronald",
+        last_name: "Macdonald",
+        email: "ronaldmac@jobcore.co",
+        profile: {
+          picture:
+            "https://res.cloudinary.com/hq02xjols/image/upload/v1560365062/static/default_profile3.png",
+          bio: "",
+          phone_number: "7863299422"
+        }
+      },
+      favoritelist_set: [],
+      minimum_hourly_rate: "8.0",
+      stop_receiving_invites: false,
+      rating: null,
+      total_ratings: 0,
+      total_pending_payments: 0,
+      maximum_job_distance_miles: 50,
+      job_count: 0,
+      created_at: "2022-04-14T14:57:59.993342Z",
+      updated_at: "2022-05-31T19:15:22.175867Z",
+      response_time: 0,
+      total_invites: 0,
+      employability_expired_at: "2100-06-03T00:00:00Z",
+      employment_verification_status: "APPROVED",
+      filing_status: "SINGLE",
+      allowances: 0,
+      w4_year: 0,
+      step2c_checked: false,
+      dependants_deduction: "0.00",
+      other_income: "0.00",
+      additional_deductions: "0.00",
+      extra_withholding: "0.00",
+      positions: [],
+      badges: []
+    },
+    {
+      id: 17,
+      user: {
+        first_name: "Bart",
+        last_name: "Simpson",
+        email: "bartsimpson@jobcore.co",
+        profile: {
+          picture:
+            "https://res.cloudinary.com/hq02xjols/image/upload/v1560365062/static/default_profile2.png",
+          bio: "",
+          phone_number: "7863299422"
+        }
+      },
+      favoritelist_set: [],
+      minimum_hourly_rate: "8.0",
+      stop_receiving_invites: false,
+      rating: null,
+      total_ratings: 0,
+      total_pending_payments: 0,
+      maximum_job_distance_miles: 50,
+      job_count: 0,
+      created_at: "2022-04-14T16:06:13.564446Z",
+      updated_at: "2022-05-31T19:08:50.298810Z",
+      response_time: 0,
+      total_invites: 0,
+      employability_expired_at: "2100-06-02T00:00:00Z",
+      employment_verification_status: "APPROVED",
+      filing_status: "SINGLE",
+      allowances: 0,
+      w4_year: 0,
+      step2c_checked: false,
+      dependants_deduction: "0.00",
+      other_income: "0.00",
+      additional_deductions: "0.00",
+      extra_withholding: "0.00",
+      positions: [],
+      badges: []
+    },
+    {
+      id: 15,
+      user: {
+        first_name: "Luis",
+        last_name: "Llave",
+        email: "luisllave12357@gmail.com",
+        profile: {
+          picture:
+            "https://res.cloudinary.com/hq02xjols/image/upload/v1560365062/static/default_profile1.png",
+          bio: "",
+          phone_number: ""
+        }
+      },
+      favoritelist_set: [],
+      minimum_hourly_rate: "8.0",
+      stop_receiving_invites: false,
+      rating: null,
+      total_ratings: 0,
+      total_pending_payments: 0,
+      maximum_job_distance_miles: 50,
+      job_count: 0,
+      created_at: "2020-03-10T20:42:35.885388Z",
+      updated_at: "2022-04-11T16:21:59.973971Z",
+      response_time: 0,
+      total_invites: 0,
+      employability_expired_at: null,
+      employment_verification_status: "APPROVED",
+      filing_status: "SINGLE",
+      allowances: 0,
+      w4_year: 0,
+      step2c_checked: false,
+      dependants_deduction: "0.00",
+      other_income: "0.00",
+      additional_deductions: "0.00",
+      extra_withholding: "0.00",
+      positions: [1, 2, 3, 4, 5, 6],
+      badges: []
+    }
+  
+  */
+  
