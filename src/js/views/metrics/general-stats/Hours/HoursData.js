@@ -22,7 +22,7 @@ const HoursDataGenerator = () => {
     // Adding all the hours worked from each shift
     let hoursWorked = clockInsList.reduce(
       (total, { start, end }) =>
-        total + moment.duration(moment(start).diff(moment(end))).asHours(),
+        total + moment.duration(moment(end).diff(moment(start))).asHours(),
       0
     );
   
