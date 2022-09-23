@@ -45,17 +45,21 @@ export const Hours = () => {
                             </thead>
 
                             <tbody>
-                                <tr>
-                                    <th scope="row"><h3 className="m-0">{HoursData[0].description}</h3></th>
-                                    <td><h3 className="m-0">{HoursData[0].qty}</h3></td>
-                                    <td><h3 className="m-0">{`${HoursData[0].pct}%`}</h3></td>
-                                </tr>
-
-                                <tr style={{ background: "rgba(107, 107, 107, 0.35)" }}>
-                                    <th scope="row"><h3 className="m-0">{HoursData[1].description}</h3></th>
-                                    <td><h3 className="m-0">{HoursData[1].qty}</h3></td>
-                                    <td><h3 className="m-0">{`${HoursData[1].pct}%`}</h3></td>
-                                </tr>
+                            {HoursData.map((item, i) => {
+                                    return item.description === "Available Hours" ? (
+                                        <tr key={i} style={{ background: "rgba(107, 107, 107, 0.35)" }}>
+                                            <th scope="row"><h3 className="m-0">{item.description}</h3></th>
+                                            <td><h3 className="m-0">{item.qty}</h3></td>
+                                            <td><h3 className="m-0">{`${item.pct}%`}</h3></td>
+                                        </tr>
+                                    ) : (
+                                        <tr key={i}>
+                                            <th scope="row"><h3 className="m-0">{item.description}</h3></th>
+                                            <td><h3 className="m-0">{item.qty}</h3></td>
+                                            <td><h3 className="m-0">{`${item.pct}%`}</h3></td>
+                                        </tr>
+                                    )
+                                })}
                             </tbody>
                         </table>
                     </div>
@@ -71,7 +75,7 @@ export const Hours = () => {
                     <div className="col text-center">
                         <h2 className="mb-3">Hours Chart</h2>
 
-                        <div style={{ height: '10.5rem' }} className="mx-auto">
+                        <div style={{ height: '16rem' }} className="mx-auto">
                             <PieChart pieData={hoursData} />
                         </div>
                     </div>

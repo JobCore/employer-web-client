@@ -39,17 +39,14 @@ const ShiftsDataGenerator = () => {
         description: "Open Shifts",
         qty: open
     }
-
     let filledShifts = {
         description: "Filled Shifts",
         qty: filled
     }
-
     let workedShifts = {
         description: "Worked Shifts",
         qty: completed
     }
-
     let rejectedShifts = {
         description: "Rejected Shifts",
         qty: rejected
@@ -58,7 +55,7 @@ const ShiftsDataGenerator = () => {
     // Setting up base array for all shift objects
     let cleanedArray = []
 
-    // Pushing shift object to base array
+    // Pushing shift objects to base array
     cleanedArray.push(openShifts)
     cleanedArray.push(filledShifts)
     cleanedArray.push(workedShifts)

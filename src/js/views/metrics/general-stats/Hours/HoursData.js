@@ -4,68 +4,100 @@ import { DummyDataShifts } from "./DummyDataShifts"
 
 const HoursDataGenerator = () => {
 
-    // First array
-    let clockInsList = [];
+  // First array
+  let completeList = [];
 
-    // Gathering the clock-ins of all the shifts
-    DummyDataShifts.forEach((shift) => {
-      shift.clockin.forEach((clockIn) => {
-        if (shift.clockin.length > 0) {
-          clockInsList.push({
-            start: clockIn.started_at,
-            end: clockIn.ended_at
-          });
-        }
-      });
+  // Gathering both clock-ins and clock-outs
+  DummyDataShifts.forEach((shift) => {
+    shift.clockin.forEach((clockIn) => {
+      if (shift.clockin.length > 0) {
+        completeList.push({
+          starting_at: shift.starting_at,
+          started_at: clockIn.started_at,
+          ending_at: shift.ending_at,
+          ended_at: clockIn.ended_at
+        });
+      }
     });
-  
-    // Adding all the hours worked from each shift
-    let hoursWorked = clockInsList.reduce(
-      (total, { start, end }) =>
-        total + moment.duration(moment(end).diff(moment(start))).asHours(),
-      0
-    );
-  
-    // Formatting hours worked
-    let hoursWorkedFormatted = (Math.round(hoursWorked * 4) / 4).toFixed(0);
-  
-    // THIS IS A PLACEHOLDER, we double the hours worked to mimic available hours
-    let availableHours = (hoursWorkedFormatted * 2).toString()
-  
-    // Generate object of worked hours
-    let workedHoursObj = {
-      id: 1,
-      description: "Hours Worked",
-      qty: hoursWorkedFormatted
-    };
-  
-    // Generate semi-final list
-    let semiFinalList = [];
-  
-    // Adding object of worked hours to semi-final list
-    semiFinalList.push(workedHoursObj);
-  
-    // Generating final array with percentages as new properties
-    let finalList = semiFinalList.map(({ id, description, qty }) => ({
-      id,
-      description,
-      qty,
-      pct: ((qty * 100) / availableHours).toFixed(0)
-    }));
-  
-    // Generating object of available hours
-    let availableHoursObj = {
-      id: 2,
-      description: "Available Hours",
-      qty: availableHours,
-      pct: "100"
-    };
-  
-    // Adding object of available hours to final list
-    finalList.push(availableHoursObj);
+  });
 
-    // Returning the final array
-    return finalList
+  // Adding all the scheduled hours from each shift
+  let scheduledHours = completeList.reduce(
+    (total, { starting_at, ending_at }) =>
+      total +
+      moment.duration(moment(ending_at).diff(moment(starting_at))).asHours(),
+    0
+  );
+
+  // Formatting scheduled hours
+  let scheduledHoursFormatted = (Math.round(scheduledHours * 4) / 4).toFixed(0);
+
+  // Adding all the worked hours from each shift
+  let workedHours = completeList.reduce(
+    (total, { started_at, ended_at }) =>
+      total +
+      moment.duration(moment(ended_at).diff(moment(started_at))).asHours(),
+    0
+  );
+
+  // Formatting worked hours
+  let workedHoursFormatted = (Math.round(workedHours * 4) / 4).toFixed(0);
+
+  // THIS IS A PLACEHOLDER, we double the hours worked to mimic available hours
+  let availableHours = (workedHoursFormatted * 2).toString()
+
+  // Creating object for worked hours
+  let workedHoursObj = {
+    description: "Hours Worked",
+    qty: workedHoursFormatted
+  };
+
+  // Calculating extra worked hours
+  let extraHours = workedHoursFormatted - scheduledHoursFormatted;
+
+  // Creating object for extra worked hours
+  let extraHoursObj = {
+    description: "Extra Hours Worked",
+    qty: extraHours
+  };
+
+  // Creating object for long breaks
+  let longBreaksObj = {
+    description: "Long Breaks",
+    qty: "10"
+  };
+
+  // Generate semi-final list
+  let semiFinalList = [];
+
+  // Adding object of worked hours to semi-final list
+  semiFinalList.push(workedHoursObj);
+  semiFinalList.push(extraHoursObj);
+  semiFinalList.push(longBreaksObj);
+
+  // Generating final array with percentages as new properties
+  let finalList = semiFinalList.map(({ description, qty }) => ({
+    description,
+    qty,
+    pct: ((qty * 100) / availableHours).toFixed(0)
+  }));
+
+  // Generating object of available hours
+  let availableHoursObj = {
+    description: "Available Hours",
+    qty: availableHours,
+    pct: "100"
+  };
+
+  // Adding object of available hours to final list
+  finalList.push(availableHoursObj);
+
+  finalList.forEach((item, i) => {
+    item.id = i + 1;
+  });
+
+  // Returning the final array
+  return finalList
 }
 
 // Exporting the final array

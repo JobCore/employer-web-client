@@ -3,14 +3,15 @@ import { Pie, Bar } from 'react-chartjs-2';
 import { Chart as ChartJS } from 'chart.js/auto';
 
 export const PieChart = ({ pieData }) => {
-
   return (
     <Pie
       data={pieData}
       options={{
         responsive: true,
         maintainAspectRatio: false,
+        cutout: "0%",
         animation: {
+          animateScale: true,
           animateRotate: true,
         }
       }}
@@ -19,7 +20,8 @@ export const PieChart = ({ pieData }) => {
 }
 
 export const BarChart = ({ barData }) => {
-
+  
+  let delayed;
   return (
     <Bar
       data={barData}
@@ -27,19 +29,18 @@ export const BarChart = ({ barData }) => {
         responsive: true,
         maintainAspectRatio: false,
         animation: {
-          animateRotate: true,
+          onComplete: () => {
+            delayed = true;
+          },
+          delay: (context) => {
+            let delay = 0;
+            if (context.type === 'data' && context.mode === 'default' && !delayed) {
+              delay = context.dataIndex * 150 + context.datasetIndex * 100;
+            }
+            return delay;
+          },
         }
       }}
     />
   )
 }
-
-/*
-        rotation: (-0.5*Math.PI) - (25/180 * Math.PI),
-        animation: {
-          animateRotate: true,
-          render: false,
-          easing="linear"
-          duration={500}
-          maxPointCountSupported={100}
-      },*/
