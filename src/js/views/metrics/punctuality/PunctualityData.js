@@ -103,7 +103,8 @@ const ClockOutsDataGenerator = () => {
                 // Gathering the clock-outs
                 clockOuts.push({
                     ending_at: shift.ending_at,
-                    ended_at: clockIn.ended_at
+                    ended_at: clockIn.ended_at,
+                    automatically_closed: clockIn.automatically_closed
                 });
             }
         });
@@ -112,6 +113,7 @@ const ClockOutsDataGenerator = () => {
     // Setting up counters
     let earlyClockouts = 0;
     let lateClockouts = 0;
+    let forgotClockOut= 0;
 
     // Increasing clock-out counters
     clockOuts.forEach((shift) => {
@@ -124,6 +126,13 @@ const ClockOutsDataGenerator = () => {
             lateClockouts++;
         } else if (endDiff <= -30) {
             earlyClockouts++;
+        } 
+    });
+
+    // Increasing forgotClockOut counter
+    clockOuts.forEach((shift) => {
+        if (shift.automatically_closed === true) {
+            forgotClockOut++;
         }
     });
 
@@ -136,6 +145,10 @@ const ClockOutsDataGenerator = () => {
         description: "Late Clock-Outs",
         qty: lateClockouts
     };
+    let forgotClockOutObj = {
+        description: "Forgotten Clock-Outs",
+        qty: forgotClockOut
+    };
 
     // Setting up base array for all objects
     let cleanedClockOuts = [];
@@ -143,6 +156,7 @@ const ClockOutsDataGenerator = () => {
     // Pushing objects to base array
     cleanedClockOuts.push(earlyClockoutsObj);
     cleanedClockOuts.push(lateClockoutsObj);
+    cleanedClockOuts.push(forgotClockOutObj);
 
     // Setting up totals
     let totalClockOuts = clockOuts.length;

@@ -37,7 +37,7 @@ export const Punctuality = () => {
             label: "Clock-Outs",
             data: dataCO.map((data) => data.qty),
             backgroundColor: [
-                green, darkTeal
+                green, darkTeal, purple
             ],
         }]
     }
