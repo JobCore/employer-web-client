@@ -148,7 +148,7 @@ export const Punctuality = () => {
             <div className="col">
                 <div className="row mb-5">
                     {/* Clock-Ins Chart Starts */}
-                    <div className="col text-center">
+                    <div className="col text-center mb-5">
                         <h2 className="mb-3">Clock-Ins Chart</h2>
 
                         <div style={{ height: '13.905rem' }}>

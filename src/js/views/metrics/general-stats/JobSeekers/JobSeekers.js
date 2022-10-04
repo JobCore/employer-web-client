@@ -37,15 +37,12 @@ export const JobSeekers = () => {
 
     // Data for bar chart -------------------------------------------------------------------------------------
 
-    // Taking out the "Totals" from the chart view
-    let barData = NewJobSeekersData.filter((item) => { return item.description !== "Total Job Seekers" }) // Taking out the "Totals" from the chart view
-
     // Preparing data to be passed to the chart component
     const newJobSeekersData = {
-        labels: barData.map((data) => data.description),
+        labels: NewJobSeekersData.map((data) => data.description),
         datasets: [{
             label: "New Job Seekers",
-            data: barData.map((data) => data.qty),
+            data: NewJobSeekersData.map((data) => data.qty),
             backgroundColor: [
                 darkTeal, green
             ],
@@ -142,7 +139,7 @@ export const JobSeekers = () => {
             <div className="col">
                 <div className="row">
                     {/* Job Seekers Chart Starts*/}
-                    <div className="col text-center">
+                    <div className="col text-center mb-5">
                         <h2 className="mb-3">Job Seekers Chart</h2>
 
                         <div style={{ height: '13.90rem' }} className="mx-auto">
