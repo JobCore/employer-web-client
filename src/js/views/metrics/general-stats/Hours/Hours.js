@@ -9,10 +9,19 @@ const darkTeal = "#009e9e";
 const lightPink = "#eb00eb";
 const darkPink = "#b200b2";
 
+/**
+ * @function
+ * @description Creates a page with a table and a graph of the hours worked and their trends.
+ * @since 09.29.22 by Paola Sanchez
+ * @author Paola Sanchez
+ * @requires PieChart
+ * @requires HoursData
+ */
 export const Hours = () => {
 
     // Data for pie chart -------------------------------------------------------------------------------------
 
+    // Preparing data to be passed to the chart component
     const hoursData = {
         labels: HoursData.map((data) => data.description),
         datasets: [{
@@ -37,6 +46,7 @@ export const Hours = () => {
 
                         <table className="table table-bordered text-center">
                             <thead className="thead-dark">
+                                {/* Table columns */}
                                 <tr>
                                     <th scope="col"><h3 className="m-0">Description</h3></th>
                                     <th scope="col"><h3 className="m-0">Quantity</h3></th>
@@ -45,7 +55,8 @@ export const Hours = () => {
                             </thead>
 
                             <tbody>
-                            {HoursData.map((item, i) => {
+                                {/* Mapping the data to diplay it as table rows */}
+                                {HoursData.map((item, i) => {
                                     return item.description === "Available Hours" ? (
                                         <tr key={i} style={{ background: "rgba(107, 107, 107, 0.35)" }}>
                                             <th scope="row"><h3 className="m-0">{item.description}</h3></th>

@@ -10,12 +10,23 @@ const green = "#06ff05";
 const lightPink = "#eb00eb";
 const darkPink = "#b200b2";
 
+/**
+ * @function
+ * @description Creates a view of the number of ratings per worker.
+ * @since 09.29.22 by Paola Sanchez
+ * @author Paola Sanchez
+ * @requires PieChart
+ * @requires RatingsData
+ * @returns A table and a chart displaying the ratings data
+ */
 export const Ratings = () => {
 
     // Data for pie chart -------------------------------------------------------------------------------------
 
+    // Taking out the "Totals" from the chart view
     let pieData = RatingsData.filter((item) => { return item.rating !== "Total Employees" })
 
+    // Preparing data to be passed to the chart component
     const ratingsData = {
         labels: pieData.map((data) => { return data.rating === null ? "Unavailable Rating" : ` ${data.rating} Star Employees` }),
         datasets: [{
@@ -41,6 +52,7 @@ export const Ratings = () => {
 
                         <table className="table table-bordered text-center">
                             <thead className="thead-dark">
+                                {/* Table columns */}
                                 <tr>
                                     <th scope="col"><h3 className="m-0">Star Rating</h3></th>
                                     <th scope="col"><h3 className="m-0">Quantity</h3></th>
@@ -49,6 +61,7 @@ export const Ratings = () => {
                             </thead>
 
                             <tbody>
+                                {/* Mapping the data to diplay it as table rows */}
                                 {RatingsData.map((item, i) => {
                                     return item.rating === null ? (
                                         <tr key={i}>
@@ -89,7 +102,7 @@ export const Ratings = () => {
                             <PieChart pieData={ratingsData} />
                         </div>
                     </div>
-                    {/* Ratings Ends */}
+                    {/* Ratings Chart Ends */}
                 </div>
             </div>
             {/* Right Column Ends */}

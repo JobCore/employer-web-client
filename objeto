@@ -1,0 +1,372 @@
+// This is the object of an employee, let's call him Person_1
+
+{
+    "id": 18,
+    "positions": [
+        {
+            "id": 1,
+            "picture": "",
+            "title": "Server",
+            "description": "",
+            "meta_description": "",
+            "meta_keywords": "",
+            "created_at": "2018-09-13T19:45:00Z",
+            "updated_at": "2018-09-13T19:45:00Z",
+            "status": "ACTIVE",
+            "pay_rate": []
+        },
+        {
+            "id": 2,
+            "picture": "",
+            "title": "Kitchen Assistant",
+            "description": "",
+            "meta_description": "",
+            "meta_keywords": "",
+            "created_at": "2018-09-13T19:45:00Z",
+            "updated_at": "2018-09-13T19:45:00Z",
+            "status": "ACTIVE",
+            "pay_rate": []
+        },
+        {
+            "id": 3,
+            "picture": "",
+            "title": "Floor Manager",
+            "description": "",
+            "meta_description": "",
+            "meta_keywords": "",
+            "created_at": "2018-09-13T19:45:00Z",
+            "updated_at": "2018-09-13T19:45:00Z",
+            "status": "ACTIVE",
+            "pay_rate": []
+        },
+        {
+            "id": 4,
+            "picture": "",
+            "title": "Executive Chef",
+            "description": "",
+            "meta_description": "",
+            "meta_keywords": "",
+            "created_at": "2018-09-13T19:45:00Z",
+            "updated_at": "2018-09-13T19:45:00Z",
+            "status": "ACTIVE",
+            "pay_rate": []
+        },
+        {
+            "id": 5,
+            "picture": "",
+            "title": "Runner",
+            "description": "",
+            "meta_description": "",
+            "meta_keywords": "",
+            "created_at": "2018-09-13T19:45:00Z",
+            "updated_at": "2018-09-13T19:45:00Z",
+            "status": "ACTIVE",
+            "pay_rate": []
+        },
+        {
+            "id": 6,
+            "picture": "",
+            "title": "Warehouse Utility",
+            "description": "",
+            "meta_description": "",
+            "meta_keywords": "",
+            "created_at": "2018-09-13T19:45:00Z",
+            "updated_at": "2018-09-13T19:45:00Z",
+            "status": "ACTIVE",
+            "pay_rate": []
+        }
+    ],
+    "badges": [],
+    "favoritelist_set": [],
+    "user": {
+        "first_name": "Dalai",
+        "last_name": "Lama",
+        "email": "dalailama@jobcore.co",
+        "profile": {
+            "picture": "https://res.cloudinary.com/hplilzdkc/image/upload/v1650054127/57/profile57.jpg",
+            "bio": "",
+            "phone_number": "7863299422"
+        }
+    },
+    "minimum_hourly_rate": "18.0",
+    "stop_receiving_invites": false,
+    "rating": null,
+    "total_ratings": 0,
+    "total_pending_payments": 0,
+    "maximum_job_distance_miles": 50,
+    "job_count": 0,
+    "created_at": "2022-04-14T17:25:07.821760Z",
+    "updated_at": "2022-05-26T18:56:37.236311Z",
+    "response_time": 0,
+    "total_invites": 0,
+    "employability_expired_at": "2022-06-03T00:00:00Z",
+    "employment_verification_status": "APPROVED",
+    "filing_status": "SINGLE",
+    "allowances": 0,
+    "w4_year": 0,
+    "step2c_checked": false,
+    "dependants_deduction": "0.00",
+    "other_income": "0.00",
+    "additional_deductions": "0.00",
+    "extra_withholding": "0.00"
+}
+
+
+// This is the object of a shift that has one clock-in registered by Person_1
+
+{
+    "id": 49,
+    "venue": {
+        "title": "250 Catalonia Avenue",
+        "id": 32,
+        "latitude": "25.744481",
+        "longitude": "-80.259618",
+        "street_address": "250 Catalonia Avenue, Coral Gables, FL, USA",
+        "zip_code": 33134
+    },
+    "position": {
+        "title": "Server",
+        "id": 1
+    },
+    "status": "FILLED",
+    "clockin": [
+        {
+            "id": 17,
+            "started_at": "2022-09-29T16:34:14Z",
+            "latitude_in": "25.74446770000",
+            "longitude_in": "-80.25945610000",
+            "distance_in_miles": "0.016",
+            "latitude_out": "0.00000000000",
+            "longitude_out": "0.00000000000",
+            "distance_out_miles": "0.000",
+            "ended_at": null,
+            "automatically_closed": false,
+            "created_at": "2022-09-29T16:34:15.071796Z",
+            "updated_at": "2022-09-29T16:34:15.074379Z",
+            "status": "PENDING",
+            "employee": 18,
+            "shift": 49,
+            "author": 57
+        }
+    ],
+    "maximum_allowed_employees": 1,
+    "minimum_hourly_rate": "8.0",
+    "starting_at": "2022-09-29T16:45:00Z",
+    "ending_at": "2022-09-29T18:30:25.064000Z",
+    "created_at": "2022-09-29T16:28:43.344518Z",
+    "description": "",
+    "employer": 84,
+    "author": null,
+    "candidates": [],
+    "employees": [
+        18
+    ]
+}
+
+// Now, Person_1 has clocked-out to eat his lunch. He will be back
+
+{
+    "count": 1,
+    "first": null,
+    "next": null,
+    "previous": null,
+    "last": null,
+    "results": [
+        {
+            "id": 49,
+            "venue": {
+                "title": "250 Catalonia Avenue",
+                "id": 32,
+                "latitude": "25.744481",
+                "longitude": "-80.259618",
+                "street_address": "250 Catalonia Avenue, Coral Gables, FL, USA",
+                "zip_code": 33134
+            },
+            "position": {
+                "title": "Server",
+                "id": 1
+            },
+            "status": "FILLED",
+            "clockin": [
+                {
+                    "id": 17,
+                    "started_at": "2022-09-29T16:34:14Z",
+                    "latitude_in": "25.74446770000",
+                    "longitude_in": "-80.25945610000",
+                    "distance_in_miles": "0.016",
+                    "latitude_out": "25.74446770000",
+                    "longitude_out": "-80.25945610000",
+                    "distance_out_miles": "0.016",
+                    "ended_at": "2022-09-29T16:36:36Z",
+                    "automatically_closed": false,
+                    "created_at": "2022-09-29T16:34:15.071796Z",
+                    "updated_at": "2022-09-29T16:36:37.171524Z",
+                    "status": "PENDING",
+                    "employee": 18,
+                    "shift": 49,
+                    "author": 57
+                }
+            ],
+            "maximum_allowed_employees": 1,
+            "minimum_hourly_rate": "8.0",
+            "starting_at": "2022-09-29T16:45:00Z",
+            "ending_at": "2022-09-29T18:30:25.064000Z",
+            "created_at": "2022-09-29T16:28:43.344518Z",
+            "description": "",
+            "employer": 84,
+            "author": null,
+            "candidates": [],
+            "employees": [
+                18
+            ]
+        }
+    ]
+}
+
+
+// Person_1 has finished his lunch, so now he has clocked-in back to keep working
+
+{
+    "count": 1,
+    "first": null,
+    "next": null,
+    "previous": null,
+    "last": null,
+    "results": [
+        {
+            "id": 49,
+            "venue": {
+                "title": "250 Catalonia Avenue",
+                "id": 32,
+                "latitude": "25.744481",
+                "longitude": "-80.259618",
+                "street_address": "250 Catalonia Avenue, Coral Gables, FL, USA",
+                "zip_code": 33134
+            },
+            "position": {
+                "title": "Server",
+                "id": 1
+            },
+            "status": "FILLED",
+            "clockin": [
+                {
+                    "id": 17,
+                    "started_at": "2022-09-29T16:34:14Z",
+                    "latitude_in": "25.74446770000",
+                    "longitude_in": "-80.25945610000",
+                    "distance_in_miles": "0.016",
+                    "latitude_out": "25.74446770000",
+                    "longitude_out": "-80.25945610000",
+                    "distance_out_miles": "0.016",
+                    "ended_at": "2022-09-29T16:36:36Z",
+                    "automatically_closed": false,
+                    "created_at": "2022-09-29T16:34:15.071796Z",
+                    "updated_at": "2022-09-29T16:36:37.171524Z",
+                    "status": "PENDING",
+                    "employee": 18,
+                    "shift": 49,
+                    "author": 57
+                },
+                {
+                    "id": 18,
+                    "started_at": "2022-09-29T16:39:02Z",
+                    "latitude_in": "25.74446770000",
+                    "longitude_in": "-80.25945610000",
+                    "distance_in_miles": "0.016",
+                    "latitude_out": "0.00000000000",
+                    "longitude_out": "0.00000000000",
+                    "distance_out_miles": "0.000",
+                    "ended_at": null,
+                    "automatically_closed": false,
+                    "created_at": "2022-09-29T16:39:03.074089Z",
+                    "updated_at": "2022-09-29T16:39:03.077391Z",
+                    "status": "PENDING",
+                    "employee": 18,
+                    "shift": 49,
+                    "author": 57
+                }
+            ],
+            "maximum_allowed_employees": 1,
+            "minimum_hourly_rate": "8.0",
+            "starting_at": "2022-09-29T16:45:00Z",
+            "ending_at": "2022-09-29T18:30:25.064000Z",
+            "created_at": "2022-09-29T16:28:43.344518Z",
+            "description": "",
+            "employer": 84,
+            "author": null,
+            "candidates": [],
+            "employees": [
+                18
+            ]
+        }
+    ]
+}
+
+
+// Person_1 has finished working for the day, now he is ready to clock-out and go home!
+{
+    "id": 49,
+    "venue": {
+        "title": "250 Catalonia Avenue",
+        "id": 32,
+        "latitude": "25.744481",
+        "longitude": "-80.259618",
+        "street_address": "250 Catalonia Avenue, Coral Gables, FL, USA",
+        "zip_code": 33134
+    },
+    "position": {
+        "title": "Server",
+        "id": 1
+    },
+    "status": "FILLED",
+    "clockin": [
+        {
+            "id": 17,
+            "started_at": "2022-09-29T16:34:14Z",
+            "latitude_in": "25.74446770000",
+            "longitude_in": "-80.25945610000",
+            "distance_in_miles": "0.016",
+            "latitude_out": "25.74446770000",
+            "longitude_out": "-80.25945610000",
+            "distance_out_miles": "0.016",
+            "ended_at": "2022-09-29T16:36:36Z",
+            "automatically_closed": false,
+            "created_at": "2022-09-29T16:34:15.071796Z",
+            "updated_at": "2022-09-29T16:36:37.171524Z",
+            "status": "PENDING",
+            "employee": 18,
+            "shift": 49,
+            "author": 57
+        },
+        {
+            "id": 18,
+            "started_at": "2022-09-29T16:39:02Z",
+            "latitude_in": "25.74446770000",
+            "longitude_in": "-80.25945610000",
+            "distance_in_miles": "0.016",
+            "latitude_out": "25.74446770000",
+            "longitude_out": "-80.25945610000",
+            "distance_out_miles": "0.016",
+            "ended_at": "2022-09-29T16:43:50Z",
+            "automatically_closed": false,
+            "created_at": "2022-09-29T16:39:03.074089Z",
+            "updated_at": "2022-09-29T16:43:51.131201Z",
+            "status": "PENDING",
+            "employee": 18,
+            "shift": 49,
+            "author": 57
+        }
+    ],
+    "maximum_allowed_employees": 1,
+    "minimum_hourly_rate": "8.0",
+    "starting_at": "2022-09-29T16:45:00Z",
+    "ending_at": "2022-09-29T18:30:25.064000Z",
+    "created_at": "2022-09-29T16:28:43.344518Z",
+    "description": "",
+    "employer": 84,
+    "author": null,
+    "candidates": [],
+    "employees": [
+        18
+    ]
+}

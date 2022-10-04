@@ -1,343 +1,328 @@
 export const DummyDataShifts = [
-    {
-      id: 45,
-      venue: {
-        title: "250 Catalonia Avenue",
-        id: 30,
-        latitude: "25.744481",
-        longitude: "-80.259618",
-        street_address: "250 Catalonia Avenue, Coral Gables, FL, USA",
-        zip_code: 33134
+  {
+    id: 1,
+    employees: [5, 4],
+    clockin: [
+      {
+        started_at: "2022-10-03T09:00:00Z",
+        ended_at: "2022-10-03T15:00:00Z",
+        employee: 5,
+        shift: 1
       },
-      position: {
-        title: "Server",
-        id: 1
+      {
+        started_at: "2022-10-03T15:00:00Z",
+        ended_at: "2022-10-03T20:10:00Z",
+        employee: 5,
+        shift: 1
       },
-      status: "COMPLETED",
-      clockin: [
-        {
-          id: 16,
-          started_at: "2022-09-19T10:00:09Z",
-          latitude_in: "25.74446444000",
-          longitude_in: "-80.25952809000",
-          distance_in_miles: "0.009",
-          latitude_out: "0.00000000000",
-          longitude_out: "0.00000000000",
-          distance_out_miles: "0.000",
-          ended_at: "2022-09-19T15:10:09Z",
-          automatically_closed: false,
-          created_at: "2022-09-10T19:28:08.811375Z",
-          updated_at: "2022-09-10T19:28:08.818207Z",
-          status: "PENDING",
-          employee: 5,
-          shift: 45,
-          author: 95
-        }
-      ],
-      maximum_allowed_employees: 1,
-      minimum_hourly_rate: "8.0",
-      starting_at: "2022-09-19T10:00:00Z",
-      ending_at: "2022-09-19T20:00:00Z",
-      created_at: "2022-09-10T19:34.638331Z",
-      description: "",
-      employer: 80,
-      author: null,
-      candidates: [],
-      employees: [5]
-    },
-    {
-      id: 49,
-      venue: {
-        title: "250 Catalonia Avenue",
-        id: 30,
-        latitude: "25.744481",
-        longitude: "-80.259618",
-        street_address: "250 Catalonia Avenue, Coral Gables, FL, USA",
-        zip_code: 33134
+      {
+        started_at: "2022-10-03T10:05:00Z",
+        ended_at: "2022-10-03T15:00:00Z",
+        employee: 4,
+        shift: 1
       },
-      position: {
-        title: "Server",
-        id: 1
+      {
+        started_at: "2022-10-03T15:00:00Z",
+        ended_at: "2022-10-03T20:15:00Z",
+        employee: 4,
+        shift: 1
+      }
+    ],
+    starting_at: "2022-10-03T10:00:00Z",
+    ending_at: "2022-10-03T20:00:00Z"
+  },
+  {
+    id: 2,
+    employees: [5],
+    clockin: [
+      {
+        started_at: "2022-10-03T09:30:09Z",
+        ended_at: "2022-10-03T13:00:00Z",
+        employee: 5,
+        shift: 2
       },
-      status: "COMPLETED",
-      clockin: [
-        {
-          id: 18,
-          started_at: "2022-09-20T10:00:09Z",
-          latitude_in: "25.74446444000",
-          longitude_in: "-80.25952809000",
-          distance_in_miles: "0.009",
-          latitude_out: "0.00000000000",
-          longitude_out: "0.00000000000",
-          distance_out_miles: "0.000",
-          ended_at: "2022-09-20T15:10:09Z",
-          automatically_closed: false,
-          created_at: "2022-09-10T19:28:08.811375Z",
-          updated_at: "2022-09-10T19:28:08.818207Z",
-          status: "PENDING",
-          employee: 5,
-          shift: 49,
-          author: 95
-        }
-      ],
-      maximum_allowed_employees: 1,
-      minimum_hourly_rate: "8.0",
-      starting_at: "2022-09-20T10:00:00Z",
-      ending_at: "2022-09-20T20:00:00Z",
-      created_at: "2022-09-10T19:21:34.638331Z",
-      description: "",
-      employer: 80,
-      author: null,
-      candidates: [],
-      employees: [5]
-    },
-    {
-      id: 46,
-      venue: {
-        title: "250 Catalonia Avenue",
-        id: 30,
-        latitude: "25.744481",
-        longitude: "-80.259618",
-        street_address: "250 Catalonia Avenue, Coral Gables, FL, USA",
-        zip_code: 33134
+      {
+        started_at: "2022-10-03T13:00:00Z",
+        ended_at: "2022-10-03T20:25:00Z",
+        employee: 5,
+        shift: 2
+      }
+    ],
+    starting_at: "2022-10-03T10:00:00Z",
+    ending_at: "2022-10-03T20:00:00Z"
+  },
+  {
+    id: 3,
+    employees: [4],
+    clockin: [
+      {
+        started_at: "2022-10-03T09:00:00Z",
+        ended_at: "2022-10-03T12:07:00Z",
+        employee: 4,
+        shift: 3
       },
-      position: {
-        title: "Server",
-        id: 1
+      {
+        started_at: "2022-10-03T12:20:00Z",
+        ended_at: "2022-10-03T17:00:00Z",
+        employee: 4,
+        shift: 3
       },
-      status: "COMPLETED",
-      clockin: [
-        {
-          id: 17,
-          started_at: "2022-09-21T10:00:09Z",
-          latitude_in: "25.74446444000",
-          longitude_in: "-80.25952809000",
-          distance_in_miles: "0.009",
-          latitude_out: "0.00000000000",
-          longitude_out: "0.00000000000",
-          distance_out_miles: "0.000",
-          ended_at: "2022-09-21T15:05:09Z",
-          automatically_closed: false,
-          created_at: "2022-09-10T19:00:08.811375Z",
-          updated_at: "2022-09-10T19:00:08.818207Z",
-          status: "PENDING",
-          employee: 4,
-          shift: 46,
-          author: 95
-        }
-      ],
-      maximum_allowed_employees: 1,
-      minimum_hourly_rate: "8.0",
-      starting_at: "2022-09-21T10:00:00Z",
-      ending_at: "2022-09-21T20:00:00Z",
-      created_at: "2022-09-10T19:21:34.638331Z",
-      description: "",
-      employer: 80,
-      author: null,
-      candidates: [],
-      employees: [4]
-    },
-    {
-      id: 47,
-      venue: {
-        title: "250 Catalonia Avenue",
-        id: 30,
-        latitude: "25.744481",
-        longitude: "-80.259618",
-        street_address: "250 Catalonia Avenue, Coral Gables, FL, USA",
-        zip_code: 33134
+      {
+        started_at: "2022-10-03T17:00:00Z",
+        ended_at: "2022-10-03T20:20:00Z",
+        employee: 4,
+        shift: 3
+      }
+    ],
+    starting_at: "2022-10-03T10:00:00Z",
+    ending_at: "2022-10-03T20:00:00Z"
+  },
+  {
+    id: 4,
+    employees: [5],
+    clockin: [
+      {
+        started_at: "2022-10-03T09:10:09Z",
+        ended_at: "2022-10-03T15:30:09Z",
+        employee: 5,
+        shift: 4
       },
-      position: {
-        title: "Server",
-        id: 1
+      {
+        started_at: "2022-10-03T15:42:09Z",
+        ended_at: "2022-10-03T18:00:09Z",
+        employee: 5,
+        shift: 4
       },
-      status: "FILLED",
-      clockin: [],
-      maximum_allowed_employees: 1,
-      minimum_hourly_rate: "8.0",
-      starting_at: "2022-09-22T10:00:00Z",
-      ending_at: "2022-09-22T20:30:00Z",
-      created_at: "2022-09-15T19:21:34.638331Z",
-      description: "",
-      employer: 80,
-      author: null,
-      candidates: [],
-      employees: [5]
-    },
-    {
-      id: 48,
-      venue: {
-        title: "250 Catalonia Avenue",
-        id: 30,
-        latitude: "25.744481",
-        longitude: "-80.259618",
-        street_address: "250 Catalonia Avenue, Coral Gables, FL, USA",
-        zip_code: 33134
+      {
+        started_at: "2022-10-03T18:30:09Z",
+        ended_at: "2022-10-03T20:31:09Z",
+        employee: 5,
+        shift: 4
+      }
+    ],
+    starting_at: "2022-10-03T10:00:00Z",
+    ending_at: "2022-10-03T20:00:00Z"
+  },
+  {
+    id: 5,
+    employees: [4],
+    clockin: [
+      {
+        started_at: "2022-10-03T10:00:09Z",
+        ended_at: "2022-10-03T20:19:09Z",
+        employee: 4,
+        shift: 5
+      }
+    ],
+    starting_at: "2022-10-03T10:00:00Z",
+    ending_at: "2022-10-03T20:00:00Z"
+  },
+  {
+    id: 6,
+    employees: [4],
+    clockin: [
+      {
+        started_at: "2022-10-03T10:40:09Z",
+        ended_at: "2022-10-03T19:25:09Z",
+        employee: 4,
+        shift: 6
+      }
+    ],
+    starting_at: "2022-10-03T10:00:00Z",
+    ending_at: "2022-10-03T20:00:00Z"
+  },
+  {
+    id: 7,
+    employees: [5],
+    clockin: [
+      {
+        started_at: "2022-10-03T09:10:09Z",
+        ended_at: "2022-10-03T14:10:09Z",
+        employee: 5,
+        shift: 7
       },
-      position: {
-        title: "Server",
-        id: 1
+      {
+        started_at: "2022-10-03T14:28:09Z",
+        ended_at: "2022-10-03T19:20:09Z",
+        employee: 5,
+        shift: 7
+      }
+    ],
+    starting_at: "2022-10-03T10:00:00Z",
+    ending_at: "2022-10-03T20:00:00Z"
+  },
+  {
+    id: 8,
+    employees: [5],
+    clockin: [
+      {
+        started_at: "2022-10-03T10:14:09Z",
+        ended_at: "2022-10-03T16:30:09Z",
+        employee: 5,
+        shift: 8
       },
-      status: "FILLED",
-      clockin: [],
-      maximum_allowed_employees: 1,
-      minimum_hourly_rate: "8.0",
-      starting_at: "2022-09-23T10:00:00Z",
-      ending_at: "2022-09-23T20:10:00Z",
-      created_at: "2022-09-15T19:21:34.638331Z",
-      description: "",
-      employer: 80,
-      author: null,
-      candidates: [],
-      employees: [4]
-    },
-    {
-      id: 50,
-      venue: {
-        title: "250 Catalonia Avenue",
-        id: 30,
-        latitude: "25.744481",
-        longitude: "-80.259618",
-        street_address: "250 Catalonia Avenue, Coral Gables, FL, USA",
-        zip_code: 33134
+      {
+        started_at: "2022-10-03T17:00:09Z",
+        ended_at: "2022-10-03T21:35:09Z",
+        employee: 5,
+        shift: 8
+      }
+    ],
+    starting_at: "2022-10-03T10:00:00Z",
+    ending_at: "2022-10-03T20:00:00Z"
+  },
+  {
+    id: 9,
+    employees: [4],
+    clockin: [
+      {
+        started_at: "2022-10-03T10:08:09Z",
+        ended_at: "2022-10-03T15:00:09Z",
+        employee: 4,
+        shift: 9
       },
-      position: {
-        title: "Server",
-        id: 1
+      {
+        started_at: "2022-10-03T15:36:09Z",
+        ended_at: "2022-10-03T20:00:09Z",
+        employee: 4,
+        shift: 9
+      }
+    ],
+    starting_at: "2022-10-03T10:00:00Z",
+    ending_at: "2022-10-03T20:00:00Z"
+  },
+  {
+    id: 10,
+    employees: [5],
+    clockin: [
+      {
+        started_at: "2022-10-03T10:10:09Z",
+        ended_at: "2022-10-03T14:00:09Z",
+        employee: 5,
+        shift: 10
       },
-      status: "COMPLETED",
-      clockin: [
-        {
-          id: 16,
-          started_at: "2022-09-10T10:00:09Z",
-          latitude_in: "25.74446444000",
-          longitude_in: "-80.25952809000",
-          distance_in_miles: "0.009",
-          latitude_out: "0.00000000000",
-          longitude_out: "0.00000000000",
-          distance_out_miles: "0.000",
-          ended_at: "2022-09-10T15:10:09Z",
-          automatically_closed: false,
-          created_at: "2022-09-10T19:28:08.811375Z",
-          updated_at: "2022-09-10T19:28:08.818207Z",
-          status: "PENDING",
-          employee: 5,
-          shift: 50,
-          author: 95
-        }
-      ],
-      maximum_allowed_employees: 1,
-      minimum_hourly_rate: "8.0",
-      starting_at: "2022-09-10T10:00:00Z",
-      ending_at: "2022-09-10T20:00:00Z",
-      created_at: "2022-09-10T19:34.638331Z",
-      description: "",
-      employer: 80,
-      author: null,
-      candidates: [],
-      employees: [5]
-    }
-  ];
-  
-  /*
-    FILLED + CLOCK-IN // NO CLOCK-OUT
-    
-    {
-        "id": 45,
-        "venue": {
-            "title": "250 Catalonia Avenue",
-            "id": 30,
-            "latitude": "25.744481",
-            "longitude": "-80.259618",
-            "street_address": "250 Catalonia Avenue, Coral Gables, FL, USA",
-            "zip_code": 33134
-        },
-        "position": {
-            "title": "Server",
-            "id": 1
-        },
-        "status": "FILLED",
-        "clockin": [
-            {
-                "id": 16,
-                "started_at": "2022-09-94T19:28:09Z",
-                "latitude_in": "25.74446444000",
-                "longitude_in": "-80.25952809000",
-                "distance_in_miles": "0.009",
-                "latitude_out": "0.00000000000",
-                "longitude_out": "0.00000000000",
-                "distance_out_miles": "0.000",
-                "ended_at": null,
-                "automatically_closed": false,
-                "created_at": "2022-09-19T19:28:08.811375Z",
-                "updated_at": "2022-09-19T19:28:08.818207Z",
-                "status": "PENDING",
-                "employee": 19,
-                "shift": 45,
-                "author": 95
-            }
-        ],
-        "maximum_allowed_employees": 1,
-        "minimum_hourly_rate": "8.0",
-        "starting_at": "2022-09-28T19:30:00Z",
-        "ending_at": "2022-09208T21:30:00Z",
-        "created_at": "2022-09-19T19:21:34.638331Z",
-        "description": "",
-        "employer": 80,
-        "author": null,
-        "candidates": [],
-        "employees": [
-            19
-        ]
-    }
-    
-    COMPLETED
-    
-    {
-        "id": 4335,
-        "venue": {
-            "title": "The Club of Knights",
-            "id": 47,
-            "latitude": "25.744510",
-            "longitude": "-80.260054",
-            "street_address": "270 Catalonia Avenue, Coral Gables, FL, USA",
-            "zip_code": 33134
-        },
-        "position": {
-            "title": "Cleaning Specialist",
-            "id": 41
-        },
-        "status": "COMPLETED",
-        "clockin": [
-            {
-                "id": 3382,
-                "started_at": "2021-08-99T11:00:00Z",
-                "latitude_in": "25.74440950000",
-                "longitude_in": "-80.25995216000",
-                "distance_in_miles": "0.150",
-                "latitude_out": "25.74440950000",
-                "longitude_out": "-80.25995216000",
-                "distance_out_miles": "0.150",
-                "ended_at": "2021-08-09T17:00:00Z",
-                "automatically_closed": false,
-                "created_at": "2021-08-12T14:15:29.510326Z",
-                "updated_at": "2021-08-12T14:15:29.510343Z",
-                "status": "PENDING",
-                "employee": 179,
-                "shift": 4335,
-                "author": null
-            }
-        ],
-        "maximum_allowed_employees": 1,
-        "minimum_hourly_rate": "12.5",
-        "starting_at": "2021-08-09T11:00:00Z",
-        "ending_at": "2021-08209T19:00:04Z",
-        "created_at": "2021-08-12T14:09:11.474735Z",
-        "description": "",
-        "employer": 1,
-        "author": null,
-        "candidates": [],
-        "employees": []
-    }
-    */
-  
+      {
+        started_at: "2022-10-03T14:40:09Z",
+        ended_at: "2022-10-03T20:40:09Z",
+        employee: 5,
+        shift: 10
+      }
+    ],
+    starting_at: "2022-10-03T10:00:00Z",
+    ending_at: "2022-10-03T20:00:00Z"
+  },
+  {
+    id: 11,
+    employees: [5],
+    clockin: [
+      {
+        started_at: "2022-10-03T08:00:09Z",
+        ended_at: "2022-10-03T13:00:09Z",
+        employee: 5,
+        shift: 11
+      },
+      {
+        started_at: "2022-10-03T13:45:09Z",
+        ended_at: "2022-10-03T20:45:09Z",
+        employee: 5,
+        shift: 11
+      }
+    ],
+    starting_at: "2022-10-03T10:00:00Z",
+    ending_at: "2022-10-03T20:00:00Z"
+  },
+  {
+    id: 12,
+    employees: [4],
+    clockin: [
+      {
+        started_at: "2022-10-03T09:10:09Z",
+        ended_at: "2022-10-03T12:00:09Z",
+        employee: 4,
+        shift: 12
+      },
+      {
+        started_at: "2022-10-03T12:34:09Z",
+        ended_at: "2022-10-03T20:00:09Z",
+        employee: 4,
+        shift: 12
+      }
+    ],
+    starting_at: "2022-10-03T10:00:00Z",
+    ending_at: "2022-10-03T20:00:00Z"
+  },
+  {
+    id: 13,
+    employees: [5],
+    clockin: [
+      {
+        started_at: "2022-10-03T09:10:09Z",
+        ended_at: "2022-10-03T22:00:09Z",
+        employee: 5,
+        shift: 13
+      }
+    ],
+    starting_at: "2022-10-03T10:00:00Z",
+    ending_at: "2022-10-03T22:00:00Z"
+  },
+  {
+    id: 14,
+    employees: [4, 5],
+    clockin: [
+      {
+        started_at: "2022-10-03T09:10:09Z",
+        ended_at: "2022-10-03T22:00:09Z",
+        employee: 4,
+        shift: 14
+      },
+      {
+        started_at: "2022-10-03T09:10:09Z",
+        ended_at: "2022-10-03T22:00:09Z",
+        employee: 5,
+        shift: 14
+      }
+    ],
+    starting_at: "2022-10-03T10:00:00Z",
+    ending_at: "2022-10-03T20:00:00Z"
+  },
+  {
+    id: 15,
+    employees: [4],
+    clockin: [
+      {
+        started_at: "2022-10-03T10:10:09Z",
+        ended_at: "2022-10-03T12:00:09Z",
+        employee: 4,
+        shift: 15
+      },
+      {
+        started_at: "2022-10-03T12:30:09Z",
+        ended_at: "2022-10-03T22:00:09Z",
+        employee: 4,
+        shift: 15
+      }
+    ],
+    starting_at: "2022-10-03T10:00:00Z",
+    ending_at: "2022-10-03T22:00:00Z"
+  },
+  {
+    id: 16,
+    employees: [5],
+    clockin: [
+      {
+        started_at: "2022-10-03T10:05:09Z",
+        ended_at: "2022-10-03T12:00:09Z",
+        employee: 5,
+        shift: 16
+      },
+      {
+        started_at: "2022-10-03T12:30:09Z",
+        ended_at: "2022-10-03T22:00:09Z",
+        employee: 5,
+        shift: 16
+      }
+    ],
+    starting_at: "2022-10-03T10:00:00Z",
+    ending_at: "2022-10-03T22:00:00Z"
+  }
+];

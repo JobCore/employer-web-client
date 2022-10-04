@@ -1,8 +1,17 @@
 import React from "react";
-import { Employees } from "./Employees/Employees";
+import { JobSeekers } from "./JobSeekers/JobSeekers";
 import { Hours } from "./Hours/Hours";
 import { Shifts } from "./Shifts/Shifts";
 
+/**
+ * @function
+ * @description Creates a page with 3 tabs that show metrics about Shifts, Punctuality, and Hours.
+ * @since 09.29.22 by Paola Sanchez
+ * @author Paola Sanchez
+ * @requires Hours
+ * @requires Shifts
+ * @requires JobSeekers
+ */
 export const GeneralStats = () => {
 
     // Return ----------------------------------------------------------------------------------------------------
@@ -15,7 +24,7 @@ export const GeneralStats = () => {
                         <div className="nav nav-tabs nav-fill" id="nav-tab" role="tablist">
                             <a className="nav-item nav-link active" id="nav-shifts-tab" data-toggle="tab" href="#nav-shifts" role="tab" aria-controls="nav-shifts" aria-selected="true"><h2>Shifts</h2></a>
                             <a className="nav-item nav-link" id="nav-hours-tab" data-toggle="tab" href="#nav-hours" role="tab" aria-controls="nav-hours" aria-selected="false"><h2>Hours</h2></a>
-                            <a className="nav-item nav-link" id="nav-employees-tab" data-toggle="tab" href="#nav-employees" role="tab" aria-controls="nav-employees" aria-selected="false"><h2>Employees</h2></a>
+                            <a className="nav-item nav-link" id="nav-job-seekers-tab" data-toggle="tab" href="#nav-job-seekers" role="tab" aria-controls="nav-job-seekers" aria-selected="false"><h2>Job Seekers</h2></a>
                         </div>
                     </nav>
                     {/* Tabs Controller Ends */}
@@ -37,11 +46,11 @@ export const GeneralStats = () => {
                         </div>
                         {/* Hours Tab Ends */}
 
-                        {/* Employees Tab Starts */}
-                        <div className="tab-pane fade" id="nav-employees" role="tabpanel" aria-labelledby="nav-employees-tab">
-                            <Employees />
+                        {/* Job Seekers Tab Starts */}
+                        <div className="tab-pane fade" id="nav-job-seekers" role="tabpanel" aria-labelledby="nav-job-seekers-tab">
+                            <JobSeekers />
                         </div>
-                        {/* Employees Tab Ends */}
+                        {/* Job Seekers Tab Ends */}
                     </div>
                     {/* Tabs Content Ends */}
                 </div>

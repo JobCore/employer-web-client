@@ -9,12 +9,22 @@ const darkTeal = "#009e9e";
 const lightPink = "#eb00eb";
 const darkPink = "#b200b2";
 
+/**
+ * @function
+ * @description Creates a page with a table and a graph of all the shift statuses.
+ * @since 09.29.22 by Paola Sanchez
+ * @author Paola Sanchez
+ * @requires ShiftsData
+ * @requires BarChart
+ */
 export const Shifts = () => {
 
     // Data for bar chart -------------------------------------------------------------------------------------
 
-    let barData = ShiftsData.filter((item) => { return item.description !== "Total Shifts Posted "})
+    // Taking out the "Totals" from the chart vie
+    let barData = ShiftsData.filter((item) => { return item.description !== "Total Shifts Posted "}) // Taking out the "Totals" from the chart view
 
+    // Preparing data to be passed to the chart component
     const shiftsData = {
         labels: barData.map((data) => data.description),
         datasets: [{
@@ -39,6 +49,7 @@ export const Shifts = () => {
 
                         <table className="table table-bordered text-center">
                             <thead className="thead-dark">
+                                {/* Table columns */}
                                 <tr>
                                     <th scope="col"><h3 className="m-0">Description</h3></th>
                                     <th scope="col"><h3 className="m-0">Quantity</h3></th>
@@ -47,6 +58,7 @@ export const Shifts = () => {
                             </thead>
 
                             <tbody>
+                                {/* Mapping the data to diplay it as table rows */}
                                 {ShiftsData.map((item, i) => {
                                     return item.description === "Total Shifts Posted" ? (
                                         <tr key={i} style={{ background: "rgba(107, 107, 107, 0.35)" }}>

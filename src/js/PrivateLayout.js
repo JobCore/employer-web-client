@@ -796,6 +796,13 @@ class PrivateLayout extends Flux.DashView {
                 </NavLink>
               </li>
               <li>
+                {/* {showHideHR && (
+                  <NavLink to="/metrics" id="metricslink">
+                    <i className="icon icon-metrics"></i>
+                    <span style={{ fontSize: 16, fontWeight: 500 }}>Metrics</span>
+                  </NavLink>
+                )} */}
+
                 <NavLink to="/metrics" id="metricslink">
                   <i className="icon icon-metrics"></i>
                   <span style={{ fontSize: 16, fontWeight: 500 }}>Metrics</span>

@@ -1,64 +1,56 @@
 import React from "react";
-import { PieChart } from '../charts';
-import { ClockInsData, ClockOutsData } from "./PunctualityData";
+import { PieChart, BarChart } from '../../charts';
+import { JobSeekersData, NewJobSeekersData } from "./JobSeekersData";
 
 // Colors
 const purple = "#5c00b8";
-const lightTeal = "#00ebeb";
+const lightPink = "#eb00eb";
 const darkTeal = "#009e9e";
 const green = "#06ff05";
-const lightPink = "#eb00eb";
-const darkPink = "#b200b2";
 
 /**
  * @function
- * @description Creates a page with 2 tables and 2 graphs of all the clock-in and clock-out trends.
+ * @description Creates a page with 2 tables and 2 graphs of all the active/inactive and new job seekers.
  * @since 09.29.22 by Paola Sanchez
  * @author Paola Sanchez
  * @requires PieChart
- * @requires ClockInsData
- * @requires ClockOutsData
+ * @requires JobSeekersData
  */
-export const Punctuality = () => {
-    // Data for pie charts -------------------------------------------------------------------------------------
+export const JobSeekers = () => {
 
-    // Clock-Ins
-
-    // Taking out the "Totals" from the chart view
-    let dataCI = ClockInsData.filter((item) => {
-        return item.description !== "Total Clock-Ins";
-    }); // Taking out the "Totals" from the chart view
-
-    // Preparing data to be passed to the chart component
-    const clockInsData = {
-        labels: dataCI.map((data) => data.description),
-        datasets: [
-            {
-                label: "Clock-Ins",
-                data: dataCI.map((data) => data.qty),
-                backgroundColor: [green, lightTeal, darkPink]
-            }
-        ]
-    };
-
-    // Clock-Outs
+    // Data for pie chart -------------------------------------------------------------------------------------
 
     // Taking out the "Totals" from the chart view
-    let dataCO = ClockOutsData.filter((item) => {
-        return item.description !== "Total Clock-Outs";
-    });
+    let pieData = JobSeekersData.filter((item) => { return item.description !== "Total Job Seekers" }) // Taking out the "Totals" from the chart view
 
     // Preparing data to be passed to the chart component
-    const clockOutsData = {
-        labels: dataCO.map((data) => data.description),
-        datasets: [
-            {
-                label: "Clock-Outs",
-                data: dataCO.map((data) => data.qty),
-                backgroundColor: [purple, darkTeal, lightTeal, lightPink]
-            }
-        ]
-    };
+    const jobSeekersData = {
+        labels: pieData.map((data) => data.description),
+        datasets: [{
+            label: "Job Seekers",
+            data: pieData.map((data) => data.qty),
+            backgroundColor: [
+                purple, lightPink
+            ],
+        }]
+    }
+
+    // Data for bar chart -------------------------------------------------------------------------------------
+
+    // Taking out the "Totals" from the chart view
+    let barData = NewJobSeekersData.filter((item) => { return item.description !== "Total Job Seekers" }) // Taking out the "Totals" from the chart view
+
+    // Preparing data to be passed to the chart component
+    const newJobSeekersData = {
+        labels: barData.map((data) => data.description),
+        datasets: [{
+            label: "New Job Seekers",
+            data: barData.map((data) => data.qty),
+            backgroundColor: [
+                darkTeal, green
+            ],
+        }]
+    }
 
     // Return ----------------------------------------------------------------------------------------------------
 
@@ -67,9 +59,9 @@ export const Punctuality = () => {
             {/* Left Column Starts */}
             <div className="col">
                 <div className="row d-flex flex-column justify-content-between mb-5">
-                    {/* Clock-Ins Table Starts */}
+                    {/* Job Seekers Table Starts */}
                     <div className="col text-center">
-                        <h2 className="mb-4">Clock-Ins Table</h2>
+                        <h2 className="mb-4">Job Seekers Table</h2>
 
                         <table className="table table-bordered text-center">
                             <thead className="thead-dark">
@@ -83,31 +75,32 @@ export const Punctuality = () => {
 
                             <tbody>
                                 {/* Mapping the data to diplay it as table rows */}
-                                {ClockInsData.map((item, i) => {
-                                    return item.description === "Total Clock-Ins" ? (
+                                {JobSeekersData.map((item, i) => {
+                                    return item.description === "Total Job Seekers" ? (
                                         <tr key={i} style={{ background: "rgba(107, 107, 107, 0.35)" }}>
                                             <th scope="row"><h3 className="m-0">{item.description}</h3></th>
                                             <td><h3 className="m-0">{item.qty}</h3></td>
                                             <td><h3 className="m-0">{`${item.pct}%`}</h3></td>
                                         </tr>
-                                    ) : (
-                                        <tr key={i}>
-                                            <th scope="row"><h3 className="m-0">{item.description}</h3></th>
-                                            <td><h3 className="m-0">{item.qty}</h3></td>
-                                            <td><h3 className="m-0">{`${item.pct}%`}</h3></td>
-                                        </tr>
-                                    )
+                                    ) :
+                                        (
+                                            <tr key={i}>
+                                                <th scope="row"><h3 className="m-0">{item.description}</h3></th>
+                                                <td><h3 className="m-0">{item.qty}</h3></td>
+                                                <td><h3 className="m-0">{`${item.pct}%`}</h3></td>
+                                            </tr>
+                                        )
                                 })}
                             </tbody>
                         </table>
                     </div>
-                    {/* Clock-Ins Table Ends */}
+                    {/* Job Seekers Table Ends */}
                 </div>
 
-                <div className="row d-flex flex-column justify-content-between">
-                    {/* Clock-Outs Table Starts */}
+                <div className="row d-flex flex-column justify-content-between mb-5">
+                    {/* New Job Seekers Table Starts */}
                     <div className="col text-center">
-                        <h2 className="mb-4">Clock-Outs Table</h2>
+                        <h2 className="mb-4">New Job Seekers Table</h2>
 
                         <table className="table table-bordered text-center">
                             <thead className="thead-dark">
@@ -121,53 +114,54 @@ export const Punctuality = () => {
 
                             <tbody>
                                 {/* Mapping the data to diplay it as table rows */}
-                                {ClockOutsData.map((item, i) => {
-                                    return item.description === "Total Clock-Outs" ? (
+                                {NewJobSeekersData.map((item, i) => {
+                                    return item.description === "Total Job Seekers" ? (
                                         <tr key={i} style={{ background: "rgba(107, 107, 107, 0.35)" }}>
                                             <th scope="row"><h3 className="m-0">{item.description}</h3></th>
                                             <td><h3 className="m-0">{item.qty}</h3></td>
                                             <td><h3 className="m-0">{`${item.pct}%`}</h3></td>
                                         </tr>
-                                    ) : (
-                                        <tr key={i}>
-                                            <th scope="row"><h3 className="m-0">{item.description}</h3></th>
-                                            <td><h3 className="m-0">{item.qty}</h3></td>
-                                            <td><h3 className="m-0">{`${item.pct}%`}</h3></td>
-                                        </tr>
-                                    )
+                                    ) :
+                                        (
+                                            <tr key={i}>
+                                                <th scope="row"><h3 className="m-0">{item.description}</h3></th>
+                                                <td><h3 className="m-0">{item.qty}</h3></td>
+                                                <td><h3 className="m-0">{`${item.pct}%`}</h3></td>
+                                            </tr>
+                                        )
                                 })}
                             </tbody>
                         </table>
                     </div>
-                    {/* Clock-Outs Table Ends */}
+                    {/* New Job Seekers Table Ends */}
                 </div>
             </div>
             {/* Left Column Ends */}
 
             {/* Right Column Starts */}
             <div className="col">
-                <div className="row mb-5">
-                    {/* Clock-Ins Chart Starts */}
+                <div className="row">
+                    {/* Job Seekers Chart Starts*/}
                     <div className="col text-center">
-                        <h2 className="mb-3">Clock-Ins Chart</h2>
+                        <h2 className="mb-3">Job Seekers Chart</h2>
 
-                        <div style={{ height: '13.905rem' }}>
-                            <PieChart pieData={clockInsData} />
+                        <div style={{ height: '13.90rem' }} className="mx-auto">
+                            <PieChart pieData={jobSeekersData} />
                         </div>
                     </div>
-                    {/* Clock-Ins Chart Ends */}
+                    {/* Job Seekers Chart Ends*/}
                 </div>
 
-                <div className="row mt-5">
-                    {/* Clock-Outs Chart Starts */}
+                <div className="row">
+                    {/* New Job Seekers Chart Starts*/}
                     <div className="col text-center">
-                        <h2 className="mb-3">Clock-Outs Chart</h2>
+                        <h2 className="mb-3">New Job Seekers Chart</h2>
 
-                        <div style={{ height: '13.905rem' }}>
-                            <PieChart pieData={clockOutsData} />
+                        <div style={{ height: '13.90rem' }} className="mx-auto">
+                            <BarChart barData={newJobSeekersData} />
                         </div>
                     </div>
-                    {/* Clock-Outs Chart Ends */}
+                    {/* New Job Seekers Chart Ends*/}
                 </div>
             </div>
             {/* Right Column Ends */}
