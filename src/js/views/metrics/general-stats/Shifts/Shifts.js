@@ -1,28 +1,32 @@
 import React from "react";
 import { BarChart } from "../../charts";
-import { ShiftsData } from "./ShiftsData";
-
-// Colors
-const purple = "#5c00b8";
-const lightTeal = "#00ebeb";
-const darkTeal = "#009e9e";
-const lightPink = "#eb00eb";
-const darkPink = "#b200b2";
+import { ShiftsDataGenerator } from "./ShiftsData";
 
 /**
  * @function
  * @description Creates a page with a table and a graph of all the shift statuses.
  * @since 09.29.22 by Paola Sanchez
  * @author Paola Sanchez
- * @requires ShiftsData
+ * @requires ShiftsDataGenerator
  * @requires BarChart
+ * @param {object} props - Contains an array of all the shifts.
  */
-export const Shifts = () => {
+export const Shifts = (props) => {
+
+    // Setting up main data source
+    let ShiftsData = ShiftsDataGenerator(props.shifts)
 
     // Data for bar chart -------------------------------------------------------------------------------------
 
-    // Taking out the "Totals" from the chart vie
-    let barData = ShiftsData.filter((item) => { return item.description !== "Total Shifts Posted "}) // Taking out the "Totals" from the chart view
+    // Colors
+    const purple = "#5c00b8";
+    const lightTeal = "#00ebeb";
+    const darkTeal = "#009e9e";
+    const lightPink = "#eb00eb";
+    const darkPink = "#b200b2";
+
+    // Taking out the "Totals" from the chart view
+    let barData = ShiftsData.filter((item) => { return item.description !== "Total Shifts Posted " }) // Taking out the "Totals" from the chart view
 
     // Preparing data to be passed to the chart component
     const shiftsData = {

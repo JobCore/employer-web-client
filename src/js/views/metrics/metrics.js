@@ -10,14 +10,17 @@ import { GeneralStats } from "./general-stats/GeneralStats";
 import { store, search } from "../../actions";
 
 /**
- * @description Creates the view for Metrics page, which renders tabs with different modules being called inside each one.
+ * @description Creates the view for Metrics page, which renders 4 tabs with different components being called inside each one.
  * @since 09.28.22 by Paola Sanchez
  * @author Paola Sanchez
- * 
  * @requires Punctuality
  * @requires Ratings
  * @requires GeneralStats
  * @requires Queue
+ * @requires store
+ * @requires search
+ * @requires Session
+ * @requries Flux
  */
 export class Metrics extends Flux.DashView {
 
@@ -101,10 +104,10 @@ export class Metrics extends Flux.DashView {
 
     render() {
         // List of workers with verified documents
-        const verifiedEmpList = this.state.employees.filter((employees) => employees.employment_verification_status === "APPROVED")
+        let verifiedEmpList = this.state.employees.filter((employees) => employees.employment_verification_status === "APPROVED")
 
         // List of all shifts
-        const listOfShifts = this.state.allShifts;
+        let listOfShifts = this.state.allShifts;
 
         // ---------------------------------------------
         // Filtering expired shifts
@@ -145,25 +148,25 @@ export class Metrics extends Flux.DashView {
                     >
                         {/* General Stats Tab Starts */}
                         <div className="tab-pane fade show active" id="nav-general-stats" role="tabpanel" aria-labelledby="nav-general-stats-tab">
-                            <GeneralStats />
+                            <GeneralStats workers={verifiedEmpList} shifts={listOfShifts} />
                         </div>
                         {/* General Stats Tab Ends */}
 
                         {/* Punctuality Tab Starts */}
                         <div className="tab-pane fade" id="nav-punctuality" role="tabpanel" aria-labelledby="nav-punctuality-tab">
-                            <Punctuality />
+                            <Punctuality shifts={listOfShifts} />
                         </div>
                         {/* Punctuality Tab Ends */}
 
                         {/* Ratings Tab Starts */}
                         <div className="tab-pane fade" id="nav-ratings" role="tabpanel" aria-labelledby="nav-ratings-tab">
-                            <Ratings />
+                            <Ratings workers={verifiedEmpList} />
                         </div>
                         {/* Ratings Tab Ends */}
 
                         {/* Queue Tab Starts */}
                         <div className="tab-pane fade" id="nav-queue" role="tabpanel" aria-labelledby="nav-queue-tab">
-                            <Queue shifts={listOfShifts} workers={verifiedEmpList} />
+                            <Queue workers={verifiedEmpList} shifts={listOfShifts} />
                         </div>
                         {/* Queue Tab Ends */}
                     </div>

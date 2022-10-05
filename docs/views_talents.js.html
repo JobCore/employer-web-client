@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: views/talents.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: views/talents.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React from "react";
+import Flux from "@4geeksacademy/react-flux-dash";
+import PropTypes from "prop-types";
+import { store, search, searchMe, fetchAllMe } from "../actions.js";
+import { callback, hasTutorial } from "../utils/tutorial";
+import {
+  EmployeeExtendedCard,
+  Avatar,
+  Stars,
+  Theme,
+  Button,
+  Wizard,
+} from "../components/index";
+import Select from "react-select";
+import queryString from "query-string";
+import { Session } from "bc-react-session";
+import { Notify } from "bc-react-notifier";
+import { ButtonGroup } from "reactstrap";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom"
+//gets the querystring and creats a formData object to be used when opening the rightbar
+export const getTalentInitialFilters = (catalog) => {
+  let query = queryString.parse(window.location.search);
+  if (typeof query == "undefined") return {};
+  if (!Array.isArray(query.positions))
+    query.positions =
+      typeof query.positions == "undefined" ? [] : [query.positions];
+  if (!Array.isArray(query.badges))
+    query.badges = typeof query.badges == "undefined" ? [] : [query.badges];
+  return {
+    positions: query.positions.map((pId) =>
+      catalog.positions.find((pos) => pos.value == pId)
+    ),
+    badges: query.badges.map((bId) =>
+      catalog.badges.find((b) => b.value == bId)
+    ),
+    rating: catalog.stars.find((rate) => rate.value == query.rating),
+  };
+};
+
+export const Talent = (data) => {
+  const session = Session.getPayload();
+  const _defaults = {
+    //foo: 'bar',
+    serialize: function () {
+      const newShift = {
+        //foo: 'bar'
+        favoritelist_set: data.favoriteLists.map((fav) => fav.value),
+      };
+
+      return Object.assign(this, newShift);
+    },
+    unserialize: function () {
+      this.fullName = function () {
+        return this.user.first_name.length > 0
+          ? this.user.first_name + " " + this.user.last_name
+          : "No name specified";
+      };
+      if (typeof session.user.profile.employer != "undefined") {
+        if (typeof this.favoriteLists == "undefined")
+          this.favoriteLists = this.favoritelist_set.filter(
+            (fav) => fav.employer == session.user.profile.employer
+          );
+        else {
+          this.favoriteLists = this.favoritelist_set.map((fav) =>
+            store.get("favlists", fav.id || fav)
+          );
+        }
+      }
+
+      return this;
+    },
+  };
+
+  let _entity = Object.assign(_defaults, data);
+  return {
+    validate: () => {
+      return _entity;
+    },
+    defaults: () => {
+      return _defaults;
+    },
+    getFormData: () => {
+      const _formShift = {
+        id: _entity.id,
+        favoriteLists: _entity.favoritelist_set.map((fav) => ({
+          label: fav.title,
+          value: fav.id,
+        })),
+      };
+      return _formShift;
+    },
+    filters: () => {
+      const _filters = {
+        positions: _entity.positions.map((item) => item.value),
+        rating:
+          typeof _entity.rating == "object" ? _entity.rating.value : undefined,
+        badges: _entity.badges.map((item) => item.value),
+      };
+      for (let key in _entity)
+        if (typeof _entity[key] == "function") delete _entity[key];
+      return Object.assign(_entity, _filters);
+    },
+  };
+};
+
+export const ShiftInvite = (data) => {
+  const user = Session.getPayload().user;
+  const _defaults = {
+    //foo: 'bar',
+    serialize: function () {
+      const newShiftInvite = {
+        //foo: 'bar'
+        sender: user.id,
+        shifts: data.shifts.map((s) => s.id || s.value.id),
+        employees: data.employees,
+      };
+
+      return Object.assign(this, newShiftInvite);
+    },
+  };
+
+  let _entity = Object.assign(_defaults, data);
+  return {
+    validate: () => {
+      return _entity;
+    },
+    defaults: () => {
+      return _defaults;
+    },
+    getFormData: () => {
+      const _formShift = {
+        employees: _entity.employees || [_entity.id],
+        shifts: _entity.shifts,
+      };
+      return _formShift;
+    },
+    filters: () => {
+      const _filters = {
+        //positions: _entity.positions.map( item => item.value ),
+      };
+      for (let key in _entity)
+        if (typeof _entity[key] == "function") delete _entity[key];
+      return Object.assign(_entity, _filters);
+    },
+  };
+};
+     
+export class ManageTalents extends Flux.DashView {
+  constructor() {
+    super();
+    this.state = {
+      // catalog: {this.state.catalog},
+      DocStatus: "",
+      empStatus: "unverified",
+      form: "",
+      formLoading: false,
+      employees: [],
+      runTutorial: hasTutorial(),
+      pagination: {
+        first: "",
+        last: "",
+        next: "",
+        previous: "",
+      },
+      steps: [
+        {
+          target: "#talent_search_header",
+          content: "In this page you can search our entire talent network",
+          placement: "right",
+        },
+        {
+          target: "#filter_talent",
+          content:
+            "Start by filtering by name, experience, badges or minium star rating",
+          placement: "left",
+        },
+      ],
+    };
+    this.handleStatusChange = this.handleStatusChange.bind(this);
+  }
+
+  componentDidMount() {
+    this.filter();
+    
+    const positions = store.getState("positions");
+
+    if (!positions) {
+      this.subscribe(store, "positions", (positions) => {
+        this.setState({ positions });
+      });
+    } else this.setState({ positions });
+
+    this.subscribe(store, "employees", (employees) => {
+      if (Array.isArray(employees) &amp;&amp; employees.length !== 0)
+        this.setState({ employees });
+    });
+    const lists = store.getState("favlists");
+    // this.subscribe(store, 'favlists', (lists) => {
+    //     this.setState({ lists });
+    // });
+    if (!lists) fetchAllMe(["favlists"]);
+
+    this.props.history.listen(() => {
+      if (this.props.history.location.pathname == "/talents") this.filter("l");
+      else this.setState({ firstSearch: false });
+    });
+    this.setState({ runTutorial: true });
+    
+    this.handleStatusChange
+  }
+  componentWillUnmount() {
+    this.handleStatusChange
+  }
+  handleStatusChange() {
+    this.setState({ DocStatus: props.catalog.employee.employment_verification_status });
+  }
+  filter(url) {
+    // search('employees', window.location.search);
+    let queries = window.location.search;
+
+    if (queries) queries = "&amp;" + queries.substring(1);
+    if (url &amp;&amp; url.length > 50) {
+      const page = url.split("employees")[1];
+      if (page) {
+        search(`employees`, `${page + queries}`).then((data) => {
+          this.setState({
+            employees: data.results,
+            pagination: data,
+          });
+        });
+      } else null;
+    } else {
+      search(`employees`, `?envelope=true&amp;limit=50${queries}`).then((data) => {
+        this.setState({
+          employees: data.results,
+          pagination: data,
+        });
+      });
+    }
+  }
+  
+  
+  render() {
+    const employees = this.state.employees
+    function checkEmployability(empl) {
+      const today = new Date()
+      const empDate = new Date(empl.employability_expired_at)
+      if (empl.employability_expired_at===null || empl.employability_expired_at===undefined || empDate.getTime()===0) {
+        return "The employee does not have a defined expiration date for employability"
+      } else if (empDate.getTime()&lt;today.getTime()){
+          empl.employment_verification_status = "NOT_APPROVED"
+        return "Is NOT eligible to work"
+      } else {
+        return "It IS eligible to work"
+      }
+    }
+    const today = new Date()
+    //console.log("empleados#########", employees.map(checkEmployability)) // leave this one for now [Israel]
+    const positions = this.state.positions;
+    if (this.state.firstSearch) return &lt;p>Please search for an employee&lt;/p>;
+    const allowLevels = window.location.search != "";
+    const filteredEmployeesList = (empStatus) => {
+      if (empStatus==="rejected") {
+        const notAprovedEmpList = employees.filter((employees) => employees.employment_verification_status==="NOT_APPROVED")
+        return  notAprovedEmpList
+      } else if (empStatus==="verified") {
+        const verifiedEmpList = employees.filter((employees) => employees.employment_verification_status==="APPROVED")
+        const sortedVerifiedEmpList = verifiedEmpList.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+        return sortedVerifiedEmpList
+      } else {
+        const pendingEmpList = employees.filter((employees) => employees.employment_verification_status==="PENDING")
+        const beingReviewedEmpList = employees.filter((employees) => employees.employment_verification_status==="BEING_REVIEWED")
+        const missDocsEmpList = employees.filter((employees) => employees.employment_verification_status==="MISSING_DOCUMENTS")
+        const unverifiedEmpList = pendingEmpList.concat(beingReviewedEmpList, missDocsEmpList)
+        const sortedUnverifiedEmpList = unverifiedEmpList.slice().sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+        return sortedUnverifiedEmpList
+      }
+    }
+    const finalList = filteredEmployeesList(this.state.empStatus)
+    return (
+      &lt;div className="p-1 listcontents">
+        &lt;Theme.Consumer>
+          {({ bar }) => (
+            &lt;span>
+              {/* &lt;Wizard continuous
+                      steps={this.state.steps}
+                      run={this.state.runTutorial}
+                      callback={callback}
+                    /> */}
+              &lt;h1>
+                &lt;span id="talent_search_header">Talent Search&lt;/span>
+              &lt;/h1>
+              &lt;div className="my-2">
+                &lt;button onClick={() => {this.setState({ empStatus: this.state.empStatus="rejected" }) 
+                }} type="button" className="btn btn-secondary" style={this.state.empStatus==="rejected" ? {background:"red"} : {}}>Rejected&lt;/button>
+                &lt;button onClick={() => {this.setState({ empStatus: this.state.empStatus="verified" }) 
+                }} type="button" className="btn btn-secondary" style={this.state.empStatus==="verified" ? {background:"green"} : {}}>Verified&lt;/button>
+                &lt;button onClick={() => {this.setState({ empStatus: this.state.empStatus="unverified" })
+                }} type="button" className="btn btn-secondary" style={this.state.empStatus==="unverified" ? {background:"#FFDB58", color:"gray"} : {}}>Unverified&lt;/button>
+              &lt;/div>
+              {// this.state.employees.map((s, i) => (
+                finalList.map((s, i) => (
+                &lt;EmployeeExtendedCard
+                  form={this.state.form}
+                  formLoading={this.state.formLoading}
+                  key={i}
+                  employee={s}
+                  hover={true}
+                  positions={positions}
+                  onClick={(e) =>
+                    bar.show({ slug: "show_single_talent", data: s })
+                  }
+                  defineEmployee={(e) =>
+                    bar.show({ slug: "define_employee", data: s})
+                  }
+                >
+                  &lt;Button
+                    className="btn btn-outline-dark"
+                    onClick={() =>
+                      bar.show({ slug: "add_to_favlist", data: s, allowLevels })
+                    }
+                  >
+                    Add to Favorites
+                  &lt;/Button>
+                  &lt;Button
+                    className="btn btn-outline-dark"
+                    onClick={() =>
+                      bar.show({
+                        slug: "invite_talent_to_shift",
+                        data: s,
+                        allowLevels,
+                      })
+                    }
+                  >
+                    Invite
+                  &lt;/Button>
+                &lt;/EmployeeExtendedCard>
+              ))}
+              
+              &lt;div className="row mt-4 justify-content-center">
+                &lt;div className="col">
+                  &lt;nav aria-label="Page navigation example">
+                    &lt;ul className="pagination">
+                      {this.state.pagination.first &amp;&amp; (
+                        &lt;li className="page-item">
+                          &lt;span
+                            className="page-link"
+                            aria-label="Previous"
+                            style={{ cursor: "pointer", color: "black" }}
+                            onClick={() =>
+                              this.filter(this.state.pagination.first)
+                            }
+                          >
+                            &lt;span aria-hidden="true">
+                              &lt;i className="fas fa-chevron-left">&lt;/i>
+                              &lt;i className="fas fa-chevron-left">&lt;/i>
+                            &lt;/span>
+                            &lt;span className="sr-only">{"First"}&lt;/span>
+                          &lt;/span>
+                        &lt;/li>
+                      )}
+                      {this.state.pagination.previous &amp;&amp; (
+                        &lt;li className="page-item">
+                          &lt;span
+                            className="page-link"
+                            style={{ cursor: "pointer", color: "black" }}
+                            onClick={() =>
+                              this.filter(this.state.pagination.previous)
+                            }
+                          >
+                            &lt;i className="fas fa-chevron-left">&lt;/i>
+                          &lt;/span>
+                        &lt;/li>
+                      )}
+                      {this.state.pagination.next &amp;&amp; (
+                        &lt;li className="page-item">
+                          &lt;span
+                            className="page-link"
+                            style={{ cursor: "pointer", color: "black" }}
+                            onClick={() =>
+                              this.filter(this.state.pagination.next)
+                            }
+                          >
+                            &lt;i className="fas fa-chevron-right">&lt;/i>
+                          &lt;/span>
+                        &lt;/li>
+                      )}
+
+                      {this.state.pagination.last &amp;&amp; (
+                        &lt;li className="page-item">
+                          &lt;span
+                            className="page-link"
+                            onClick={() =>
+                              this.filter(this.state.pagination.last)
+                            }
+                            aria-label="Next"
+                            style={{ cursor: "pointer", color: "black" }}
+                          >
+                            &lt;span aria-hidden="true">
+                              &lt;i className="fas fa-chevron-right">&lt;/i>
+                              &lt;i className="fas fa-chevron-right">&lt;/i>
+                            &lt;/span>
+                            &lt;span className="sr-only">Last&lt;/span>
+                          &lt;/span>
+                        &lt;/li>
+                      )}
+                    &lt;/ul>
+                  &lt;/nav>
+                &lt;/div>
+              &lt;/div>
+            &lt;/span>
+          )}
+        &lt;/Theme.Consumer>
+        
+      &lt;/div>
+    );
+  }
+}
+
+/**
+ * AddShift
+ */
+export const FilterTalents = (props) => {
+  return (
+    &lt;form>
+      &lt;div className="row">
+        &lt;div className="col-6">
+          &lt;label>First Name:&lt;/label>
+          &lt;input
+            className="form-control"
+            value={props.formData.first_name}
+            onChange={(e) => props.onChange({ first_name: e.target.value })}
+          />
+        &lt;/div>
+        &lt;div className="col-6">
+          &lt;label>Last Name:&lt;/label>
+          &lt;input
+            className="form-control"
+            value={props.formData.last_name}
+            onChange={(e) => props.onChange({ last_name: e.target.value })}
+          />
+        &lt;/div>
+      &lt;/div>
+      &lt;div className="row">
+        &lt;div className="col-12">
+          &lt;label>Experience in past positions:&lt;/label>
+          &lt;Select
+            isMulti
+            value={props.formData.positions}
+            onChange={(selectedOption) =>
+              props.onChange({ positions: selectedOption })
+            }
+            options={props.catalog.positions}
+          />
+        &lt;/div>
+      &lt;/div>
+
+      {/* BADGE COMING SOON */}
+      {/* &lt;div className="row">
+            &lt;div className="col-12">
+                &lt;label>Badges:&lt;/label>
+                &lt;Select isMulti
+                    value={props.formData.badges}
+                    onChange={(selectedOption)=>props.onChange({badges: selectedOption})}
+                    options={props.catalog.badges}
+                />
+            &lt;/div>
+        &lt;/div> */}
+      &lt;div className="row">
+        &lt;div className="col-12">
+          &lt;label>Minimum start rating&lt;/label>
+          &lt;Select
+            value={props.formData.rating}
+            onChange={(opt) => props.onChange({ rating: opt })}
+            options={props.catalog.stars}
+          />
+        &lt;/div>
+      &lt;/div>
+      &lt;div className="btn-bar">
+        &lt;Button color="primary" onClick={() => props.onSave()}>
+          Apply Filters
+        &lt;/Button>
+        &lt;Button
+          color="secondary"
+          onClick={() => {
+            props.formData.first_name = "";
+            props.formData.last_name = "";
+            props.formData.positions = [];
+            props.formData.badges = [];
+            props.formData.rating = "";
+            props.onSave(false);
+          }}
+        >
+          Clear Filters
+        &lt;/Button>
+      &lt;/div>
+    &lt;/form>
+  );
+};
+FilterTalents.propTypes = {
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  formData: PropTypes.object,
+  catalog: PropTypes.object, //contains the data needed for the form to load
+};
+
+/**
+ * Talent Details
+ * 
+ * Before, the Stars component was rendered inside a p tag, 
+ * now its rendered inside a span tag
+ */
+export const TalentDetails = (props) => {
+  const employee = props.catalog.employee;
+
+  function reformatPhoneNumber(phoneNumberString) {
+    var cleaned = ("" + phoneNumberString).replace(/\D/g, "");
+    var match = cleaned.match(/^(1|)?(\d{3})(\d{3})(\d{4})$/);
+    if (match) {
+      var intlCode = match[1] ? "+1 " : "";
+      return [intlCode, "(", match[2], ") ", match[3], "-", match[4]].join("");
+    }
+    return null;
+  }
+              
+  return (
+    &lt;Theme.Consumer>
+      {({ bar }) => (
+        &lt;li className="aplication-details">
+          &lt;div className="top-bar">
+            &lt;Button
+              icon="envelope"
+              color="primary"
+              size="small"
+              rounded={true}
+              note="Pending Invites"
+              notePosition="left"
+              onClick={() =>
+                bar.show({
+                  slug: "show_talent_shift_invites",
+                  data: employee,
+                  allowLevels: true,
+                })
+              }
+            />
+          &lt;/div>
+          &lt;Avatar url={employee.user.profile.picture} />
+          &lt;span>
+            &lt;Stars
+              rating={Number(employee.rating)}
+              jobCount={employee.total_ratings}
+            />
+          &lt;/span>
+          &lt;p style={{ fontWeight: "bolder", fontSize: "24px" }}>
+            {typeof employee.fullName == "function"
+              ? employee.fullName()
+              : employee.first_name + " " + employee.last_name}
+          &lt;/p>
+          &lt;p>
+            &lt;strong>Email:&lt;/strong>{" "}
+            {employee.user ? employee.user.email : "No email provided"}
+          &lt;/p>
+          &lt;p>
+            &lt;strong>Phone number:&lt;/strong>{" "}
+            {employee.user &amp;&amp; employee.user.profile.phone_number != ""
+              ? reformatPhoneNumber(employee.user.profile.phone_number)
+              : "none"}
+          &lt;/p>
+          &lt;p>
+            &lt;strong>Position(s):&lt;/strong>{" "}
+            {employee.positions.map((p) => p.title).join(", ")}
+          &lt;/p>
+          &lt;p>
+            &lt;strong>
+              ${Number(employee.minimum_hourly_rate).toFixed(2)}/hr minimum
+              expected rate
+            &lt;/strong>
+          &lt;/p>
+          &lt;p>{employee.user.profile.bio}&lt;/p>
+
+          {/* {employee.positions.length > 0 &amp;&amp; &lt;p>{employee.positions.map(p => &lt;ul key={p.id}>&lt;li className="badge badge-primary" style={{columnCount: 3}}>{p.title}&lt;/li>&lt;/ul>)}&lt;/p>} */}
+          {employee.badges.length > 0 &amp;&amp; (
+            &lt;p>
+              {employee.badges.map((b) => (
+                &lt;span key={b.id} className="badge badge-secondary">
+                  {b.title}
+                &lt;/span>
+              ))}
+            &lt;/p>
+          )}
+          &lt;div className="btn-bar">
+            &lt;Button
+              color="primary"
+              onClick={() =>
+                bar.show({
+                  slug: "invite_talent_to_shift",
+                  data: employee,
+                  allowLevels: true,
+                })
+              }
+            >
+              Invite to shift
+            &lt;/Button>
+            &lt;Button
+              color="success"
+              onClick={() =>
+                bar.show({
+                  slug: "add_to_favlist",
+                  data: employee,
+                  allowLevels: true,
+                })
+              }
+            >
+              Add to favorites
+            &lt;/Button>
+          &lt;/div>
+          &lt;div className="btn-bar">
+            &lt;Button
+              color="danger"
+              onClick={() =>
+                
+                bar.show({
+                  slug: "check_employee_documents",
+                  data: employee,
+                  allowLevels: true,
+                })
+              }
+            >
+              Check employee documents
+            &lt;/Button>
+            &lt;/div>
+        &lt;/li>
+      )}
+    &lt;/Theme.Consumer>
+  );
+};
+TalentDetails.propTypes = {
+  catalog: PropTypes.object.isRequired,
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">JSDoc Home</a></h2><h3>Classes</h3><ul><li><a href="MakePayment.html">MakePayment</a></li><li><a href="Metrics.html">Metrics</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AddFavlistsToTalent">AddFavlistsToTalent</a></li><li><a href="global.html#ApplicantExtendedCard">ApplicantExtendedCard</a></li><li><a href="global.html#ApplicationDetails">ApplicationDetails</a></li><li><a href="global.html#BarChart">BarChart</a></li><li><a href="global.html#ClockInsDataGenerator">ClockInsDataGenerator</a></li><li><a href="global.html#ClockOutsDataGenerator">ClockOutsDataGenerator</a></li><li><a href="global.html#CreateDeduction">CreateDeduction</a></li><li><a href="global.html#createMapOptions">createMapOptions</a></li><li><a href="global.html#EditOrAddExpiredShift">EditOrAddExpiredShift</a></li><li><a href="global.html#EditOrAddShift">EditOrAddShift</a></li><li><a href="global.html#FeatureIndicator">FeatureIndicator</a></li><li><a href="global.html#fetchAllIfNull">fetchAllIfNull</a></li><li><a href="global.html#fetchPeyrollPeriodPayments">fetchPeyrollPeriodPayments</a></li><li><a href="global.html#FilterApplications">FilterApplications</a></li><li><a href="global.html#filterClockins">filterClockins</a></li><li><a href="global.html#FilterLocations">FilterLocations</a></li><li><a href="global.html#FilterShifts">FilterShifts</a></li><li><a href="global.html#FilterTalents">FilterTalents</a></li><li><a href="global.html#GeneralStats">GeneralStats</a></li><li><a href="global.html#GET">GET</a></li><li><a href="global.html#getDeductionsReport">getDeductionsReport</a></li><li><a href="global.html#getPaymentsReport">getPaymentsReport</a></li><li><a href="global.html#Hours">Hours</a></li><li><a href="global.html#HoursDataGenerator">HoursDataGenerator</a></li><li><a href="global.html#InviteTalentToJobcore">InviteTalentToJobcore</a></li><li><a href="global.html#InviteUserToCompanyJobcore">InviteUserToCompanyJobcore</a></li><li><a href="global.html#JobSeekers">JobSeekers</a></li><li><a href="global.html#JobSeekersDataGenerator">JobSeekersDataGenerator</a></li><li><a href="global.html#makeEmployeePayment">makeEmployeePayment</a></li><li><a href="global.html#NewJobSeekersDataGenerator">NewJobSeekersDataGenerator</a></li><li><a href="global.html#PendingInvites">PendingInvites</a></li><li><a href="global.html#PendingJobcoreInvites">PendingJobcoreInvites</a></li><li><a href="global.html#PendingRatings">PendingRatings</a></li><li><a href="global.html#PieChart">PieChart</a></li><li><a href="global.html#Punctuality">Punctuality</a></li><li><a href="global.html#Queue">Queue</a></li><li><a href="global.html#QueueData">QueueData</a></li><li><a href="global.html#RateShift">RateShift</a></li><li><a href="global.html#RatingDetails">RatingDetails</a></li><li><a href="global.html#RatingEmployees">RatingEmployees</a></li><li><a href="global.html#Ratings">Ratings</a></li><li><a href="global.html#ReviewTalentAndShift">ReviewTalentAndShift</a></li><li><a href="global.html#SearchShiftToInviteTalent">SearchShiftToInviteTalent</a></li><li><a href="global.html#SearchTalentToInviteToShift">SearchTalentToInviteToShift</a></li><li><a href="global.html#ShiftApplicants">ShiftApplicants</a></li><li><a href="global.html#ShiftDetails">ShiftDetails</a></li><li><a href="global.html#ShiftEmployees">ShiftEmployees</a></li><li><a href="global.html#ShiftInvites">ShiftInvites</a></li><li><a href="global.html#Shifts">Shifts</a></li><li><a href="global.html#ShiftsDataGenerator">ShiftsDataGenerator</a></li><li><a href="global.html#ShiftTalentClockins">ShiftTalentClockins</a></li><li><a href="global.html#TalentDetails">TalentDetails</a></li><li><a href="global.html#UpdateDeduction">UpdateDeduction</a></li><li><a href="global.html#updateProfileImage">updateProfileImage</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Wed Oct 05 2022 17:50:45 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

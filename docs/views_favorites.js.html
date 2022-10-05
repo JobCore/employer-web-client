@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: views/favorites.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: views/favorites.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React from "react";
+import Flux from "@4geeksacademy/react-flux-dash";
+import PropTypes from "prop-types";
+import {
+  store,
+  update,
+  remove,
+  updateTalentList,
+  fetchAllMe,
+  searchMe,
+} from "../actions.js";
+import { callback, hasTutorial } from "../utils/tutorial";
+import {
+  ListCard,
+  EmployeeExtendedCard,
+  Button,
+  Theme,
+  Wizard,
+  SearchCatalogSelect,
+  GenericCard,
+} from "../components/index";
+import Select from "react-select";
+import { Session } from "bc-react-session";
+import { Notify } from "bc-react-notifier";
+import { GET } from "../utils/api_wrapper";
+
+export const Favlist = (data) => {
+  const _defaults = {
+    title: "",
+    auto_accept_employees_on_this_list: true,
+    employees: [],
+    employer: Session.getPayload().user.profile.employer,
+    serialize: function (filters = []) {
+      const newEntity = {
+        id: data.id,
+        employees: _defaults.employees.map((emp) => emp.id || emp),
+      };
+      let response = Object.assign(this, newEntity);
+
+      filters.forEach((property) => delete response[property]);
+      return response;
+    },
+  };
+
+  let _entity = Object.assign(_defaults, data);
+  return {
+    validate: () => {
+      // if(!validator.isEmail(_entity.email)) throw new ValidationError('Please specify the email');
+      // if(validator.isEmpty(_entity.first_name)) throw new ValidationError('Please specify the first name');
+      // if(validator.isEmpty(_entity.last_name)) throw new ValidationError('Please specify the last name');
+      return _entity;
+    },
+    defaults: () => {
+      return _defaults;
+    },
+    getFormData: () => {
+      let _formShift = {
+        id: _entity.id,
+        title: _entity.title,
+        auto_accept_employees_on_this_list:
+          _entity.auto_accept_employees_on_this_list,
+        employees: _entity.employees,
+      };
+      return _formShift;
+    },
+    filters: () => {
+      const _filters = {
+        // positions: _entity.positions.map( item => item.value ),
+      };
+      return Object.assign(_entity, _filters);
+    },
+  };
+};
+
+export class ManageFavorites extends Flux.DashView {
+  constructor() {
+    super();
+    this.state = {
+      lists: [],
+    };
+  }
+
+  componentDidMount() {
+    const lists = store.getState("favlists");
+    this.subscribe(store, "favlists", (lists) => {
+      this.setState({ lists });
+    });
+    this.setState({ lists: lists ? lists : [], runTutorial: true });
+
+    fetchAllMe(["favlists"]);
+  }
+
+  render() {
+    return (
+      &lt;div className="p-1 listcontents">
+        &lt;h1>
+          &lt;span id="your-favorites-heading">Your Favorite List:&lt;/span>
+        &lt;/h1>
+        &lt;Theme.Consumer>
+          {({ bar }) =>
+            this.state.lists.length == 0 ? (
+              &lt;p>
+                You have no favorite lists yet,{" "}
+                &lt;a
+                  href="#"
+                  className="text-primary"
+                  onClick={() => bar.show({ slug: "create_favlist" })}
+                >
+                  click here
+                &lt;/a>{" "}
+                to create your first
+              &lt;/p>
+            ) : (
+              this.state.lists
+                .sort((a, b) => a.title.localeCompare(b.title))
+                .map((list, i) => (
+                  &lt;ListCard
+                    key={i}
+                    list={list}
+                    onClick={() =>
+                      bar.show({
+                        slug: "favlist_employees",
+                        data: list,
+                        title: "List Details",
+                      })
+                    }
+                  >
+                    &lt;button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{ background: "transparent" }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        bar.show({
+                          slug: "update_favlist",
+                          data: list,
+                          title: "List Details",
+                        });
+                      }}
+                    >
+                      &lt;i className="fas fa-pencil-alt">&lt;/i>
+                    &lt;/button>
+                    &lt;button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{ background: "transparent" }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const noti = Notify.info("Are you sure?", (answer) => {
+                          if (answer) remove("favlists", list);
+                          noti.remove();
+                        });
+                      }}
+                    >
+                      &lt;i className="fas fa-trash-alt">&lt;/i>
+                    &lt;/button>
+                  &lt;/ListCard>
+                ))
+            )
+          }
+        &lt;/Theme.Consumer>
+        
+      &lt;/div>
+    );
+  }
+}
+
+/**
+ * Add To Favorite List
+ */
+export const AddFavlistsToTalent = ({
+  onChange,
+  formData,
+  onSave,
+  onCancel,
+  catalog,
+}) => {
+  return (
+    &lt;Theme.Consumer>
+      {({ bar }) => (
+        &lt;form>
+          &lt;div className="row">
+            &lt;div className="col-12">
+              &lt;label>Pick your favorite lists:&lt;/label>
+              &lt;Select
+                isMulti
+                className="select-favlists"
+                value={formData.favoriteLists}
+                options={[
+                  {
+                    label: "Add new favorite list",
+                    value: "new_favlist",
+                    component: AddorUpdateFavlist,
+                  },
+                ].concat(catalog.favlists)}
+                onChange={(selection) => {
+                  const create = selection.find(
+                    (opt) => opt.value == "new_favlist"
+                  );
+                  if (create)
+                    bar.show({ slug: "create_favlist", allowLevels: true });
+                  else onChange({ favoriteLists: selection });
+                }}
+              />
+            &lt;/div>
+          &lt;/div>
+          &lt;p>Click on invite add the talent to your favorite lists&lt;/p>
+          &lt;div className="btn-bar">
+            &lt;Button color="primary" onClick={() => onSave()}>
+              Save
+            &lt;/Button>
+            &lt;Button color="secondary" onClick={() => onCancel()}>
+              Cancel
+            &lt;/Button>
+          &lt;/div>
+        &lt;/form>
+      )}
+    &lt;/Theme.Consumer>
+  );
+};
+
+AddFavlistsToTalent.propTypes = {
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  formData: PropTypes.object,
+  catalog: PropTypes.object, //contains the data needed for the form to load
+};
+
+export const AddorUpdateFavlist = ({
+  formData,
+  onChange,
+  onSave,
+  onCancel,
+}) => (
+  &lt;form>
+    &lt;div className="row">
+      &lt;div className="col-12">
+        &lt;label>List name:&lt;/label>
+        &lt;input
+          type="text"
+          className="form-control"
+          placeholder="List name"
+          value={formData.title}
+          onChange={(e) => onChange({ title: e.target.value })}
+        />
+      &lt;/div>
+    &lt;/div>
+    &lt;div className="row mt-1">
+      &lt;div className="col-1 text-center">
+        &lt;input
+          type="checkbox"
+          placeholder="List name"
+          checked={formData.auto_accept_employees_on_this_list}
+          onChange={(e) =>
+            onChange({ auto_accept_employees_on_this_list: e.target.checked })
+          }
+        />
+      &lt;/div>
+      &lt;div className="col-11">
+        Talents on this list do not require approval to join shifts
+      &lt;/div>
+    &lt;/div>
+    &lt;div className="btn-bar">
+      &lt;Button color="light" onClick={() => onCancel()}>
+        Cancel
+      &lt;/Button>
+      &lt;Button color="success" className="ml-2" onClick={() => onSave()}>
+        Save
+      &lt;/Button>
+    &lt;/div>
+  &lt;/form>
+);
+AddorUpdateFavlist.propTypes = {
+  onSave: PropTypes.func.isRequired,
+  formData: PropTypes.object.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  catalog: PropTypes.object, //contains the data needed for the form to load
+};
+
+export const FavlistEmployees = ({ formData, onChange, onSave, catalog }) => {
+  const favlist = store.get("favlists", formData.id);
+  return (
+    &lt;form>
+      &lt;Theme.Consumer>
+        {({ bar }) => (
+          &lt;span>
+            &lt;div className="top-bar">
+              &lt;button
+                type="button"
+                className="btn btn-primary btn-sm rounded"
+                onClick={() =>
+                  bar.show({
+                    slug: "update_favlist",
+                    data: formData,
+                    allowLevels: true,
+                  })
+                }
+              >
+                &lt;i className="fas fa-pencil-alt">&lt;/i>
+              &lt;/button>
+              &lt;button
+                type="button"
+                className="btn btn-secondary btn-sm rounded"
+                onClick={() => onChange({ _mode: "add_talent" })}
+              >
+                &lt;i className="fas fa-plus">&lt;/i>
+              &lt;/button>
+            &lt;/div>
+            &lt;div className="row">
+              &lt;div className="col-12">
+                &lt;label>Title: &lt;/label>
+                &lt;span>{favlist.title}&lt;/span>
+              &lt;/div>
+            &lt;/div>
+            {typeof formData._mode == "undefined" ||
+            formData._mode == "default" ? (
+              &lt;div className="row">
+                &lt;div className="col-12">
+                  &lt;label>Talents: &lt;/label>
+                  {!favlist || favlist.employees.length == 0 ? (
+                    &lt;span>
+                      There are no talents in this list yet,{" "}
+                      &lt;span
+                        className="anchor"
+                        onClick={() => onChange({ _mode: "add_talent" })}
+                      >
+                        click here to add a new one
+                      &lt;/span>
+                    &lt;/span>
+                  ) : (
+                    ""
+                  )}
+                &lt;/div>
+              &lt;/div>
+            ) : (
+              ""
+            )}
+            {typeof formData._mode != "undefined" &amp;&amp;
+            formData._mode == "add_talent" ? (
+              &lt;div className="row mb-2">
+                &lt;div className="col-12">
+                  &lt;label>Search for the talents you want to add&lt;/label>
+                  &lt;SearchCatalogSelect
+                    isMulti={false}
+                    onChange={(selection) => {
+                      if (selection.value == "invite_talent_to_jobcore")
+                        bar.show({
+                          allowLevels: true,
+                          slug: "invite_talent_to_jobcore",
+                        });
+                      else
+                        updateTalentList("add", selection.value, formData.id)
+                          .then(() => onChange({ _mode: "default" }))
+                          .catch((error) => alert(error));
+                    }}
+                    searchFunction={(search) =>
+                      new Promise((resolve, reject) =>
+                        GET("catalog/employees?full_name=" + search)
+                          .then((talents) =>
+                            resolve(
+                              [
+                                {
+                                  label: `${
+                                    talents.length == 0 ? "No one found: " : ""
+                                  }Invite "${search}" to JobCore?`,
+                                  value: "invite_talent_to_jobcore",
+                                },
+                              ].concat(talents)
+                            )
+                          )
+                          .catch((error) => reject(error))
+                      )
+                    }
+                  />
+                &lt;/div>
+              &lt;/div>
+            ) : (
+              ""
+            )}
+            {favlist &amp;&amp; favlist.employees.length > 0 ? (
+              &lt;div className="row">
+                &lt;div className="col-12">
+                  &lt;ul
+                    className="scroll"
+                    style={{
+                      maxHeight: "600px",
+                      overflowY: "auto",
+                      padding: "10px",
+                      margin: "-10px",
+                    }}
+                  >
+                    {favlist.employees.map((em, i) => (
+                      &lt;EmployeeExtendedCard
+                        key={i}
+                        employee={em}
+                        hover={false}
+                        showFavlist={false}
+                        onClick={() =>
+                          bar.show({
+                            slug: "show_single_talent",
+                            data: em,
+                            allowLevels: true,
+                          })
+                        }
+                      >
+                        &lt;Button
+                          className="mt-0"
+                          icon="trash"
+                          label="Delete"
+                          onClick={() => {
+                            updateTalentList("delete", em.id, formData.id);
+                            //.then(() => onChange);
+                          }}
+                        />
+                      &lt;/EmployeeExtendedCard>
+                    ))}
+                  &lt;/ul>
+                &lt;/div>
+              &lt;/div>
+            ) : (
+              ""
+            )}
+          &lt;/span>
+        )}
+      &lt;/Theme.Consumer>
+    &lt;/form>
+  );
+};
+FavlistEmployees.propTypes = {
+  onSave: PropTypes.func.isRequired,
+  formData: PropTypes.object.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  catalog: PropTypes.object, //contains the data needed for the form to load
+};
+
+export class ManagePayrates extends Flux.DashView {
+  constructor() {
+    super();
+    this.state = {
+      locations: [],
+    };
+  }
+
+  componentDidMount() {
+    this.filter();
+    this.subscribe(store, "venues", (locations) => {
+      this.setState({ locations });
+    });
+
+    this.props.history.listen(() => {
+      this.filter();
+      this.setState({ firstSearch: false });
+    });
+  }
+
+  filter(locations = null) {
+    searchMe("venues", window.location.search);
+  }
+
+  render() {
+    if (this.state.firstSearch) return &lt;p>Search for any location&lt;/p>;
+    const allowLevels = window.location.search != "";
+    return (
+      &lt;div className="p-1 listcontents">
+        &lt;Theme.Consumer>
+          {({ bar }) => (
+            &lt;span>
+              &lt;h1>
+                &lt;span id="talent_search_header">Payrates Search&lt;/span>
+              &lt;/h1>
+              {this.state.locations.map((l, i) => (
+                &lt;GenericCard
+                  key={i}
+                  hover={true}
+                  onClick={() =>
+                    bar.show({ slug: "update_location", data: l, allowLevels })
+                  }
+                >
+                  &lt;div className="btn-group">
+                    &lt;Button
+                      icon="pencil"
+                      onClick={() =>
+                        bar.show({
+                          slug: "update_location",
+                          data: l,
+                          allowLevels,
+                        })
+                      }
+                    >&lt;/Button>
+                    &lt;Button
+                      icon="trash"
+                      onClick={() => {
+                        const noti = Notify.info(
+                          "Are you sure you want to delete this location?",
+                          (answer) => {
+                            if (answer) remove("venues", l);
+                            noti.remove();
+                          }
+                        );
+                      }}
+                    >&lt;/Button>
+                  &lt;/div>
+                  &lt;p className="mt-2">{l.title}&lt;/p>
+                &lt;/GenericCard>
+              ))}
+            &lt;/span>
+          )}
+        &lt;/Theme.Consumer>
+      &lt;/div>
+    );
+  }
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">JSDoc Home</a></h2><h3>Classes</h3><ul><li><a href="MakePayment.html">MakePayment</a></li><li><a href="Metrics.html">Metrics</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AddFavlistsToTalent">AddFavlistsToTalent</a></li><li><a href="global.html#ApplicantExtendedCard">ApplicantExtendedCard</a></li><li><a href="global.html#ApplicationDetails">ApplicationDetails</a></li><li><a href="global.html#BarChart">BarChart</a></li><li><a href="global.html#ClockInsDataGenerator">ClockInsDataGenerator</a></li><li><a href="global.html#ClockOutsDataGenerator">ClockOutsDataGenerator</a></li><li><a href="global.html#CreateDeduction">CreateDeduction</a></li><li><a href="global.html#createMapOptions">createMapOptions</a></li><li><a href="global.html#EditOrAddExpiredShift">EditOrAddExpiredShift</a></li><li><a href="global.html#EditOrAddShift">EditOrAddShift</a></li><li><a href="global.html#FeatureIndicator">FeatureIndicator</a></li><li><a href="global.html#fetchAllIfNull">fetchAllIfNull</a></li><li><a href="global.html#fetchPeyrollPeriodPayments">fetchPeyrollPeriodPayments</a></li><li><a href="global.html#FilterApplications">FilterApplications</a></li><li><a href="global.html#filterClockins">filterClockins</a></li><li><a href="global.html#FilterLocations">FilterLocations</a></li><li><a href="global.html#FilterShifts">FilterShifts</a></li><li><a href="global.html#FilterTalents">FilterTalents</a></li><li><a href="global.html#GeneralStats">GeneralStats</a></li><li><a href="global.html#GET">GET</a></li><li><a href="global.html#getDeductionsReport">getDeductionsReport</a></li><li><a href="global.html#getPaymentsReport">getPaymentsReport</a></li><li><a href="global.html#Hours">Hours</a></li><li><a href="global.html#HoursDataGenerator">HoursDataGenerator</a></li><li><a href="global.html#InviteTalentToJobcore">InviteTalentToJobcore</a></li><li><a href="global.html#InviteUserToCompanyJobcore">InviteUserToCompanyJobcore</a></li><li><a href="global.html#JobSeekers">JobSeekers</a></li><li><a href="global.html#JobSeekersDataGenerator">JobSeekersDataGenerator</a></li><li><a href="global.html#makeEmployeePayment">makeEmployeePayment</a></li><li><a href="global.html#NewJobSeekersDataGenerator">NewJobSeekersDataGenerator</a></li><li><a href="global.html#PendingInvites">PendingInvites</a></li><li><a href="global.html#PendingJobcoreInvites">PendingJobcoreInvites</a></li><li><a href="global.html#PendingRatings">PendingRatings</a></li><li><a href="global.html#PieChart">PieChart</a></li><li><a href="global.html#Punctuality">Punctuality</a></li><li><a href="global.html#Queue">Queue</a></li><li><a href="global.html#QueueData">QueueData</a></li><li><a href="global.html#RateShift">RateShift</a></li><li><a href="global.html#RatingDetails">RatingDetails</a></li><li><a href="global.html#RatingEmployees">RatingEmployees</a></li><li><a href="global.html#Ratings">Ratings</a></li><li><a href="global.html#ReviewTalentAndShift">ReviewTalentAndShift</a></li><li><a href="global.html#SearchShiftToInviteTalent">SearchShiftToInviteTalent</a></li><li><a href="global.html#SearchTalentToInviteToShift">SearchTalentToInviteToShift</a></li><li><a href="global.html#ShiftApplicants">ShiftApplicants</a></li><li><a href="global.html#ShiftDetails">ShiftDetails</a></li><li><a href="global.html#ShiftEmployees">ShiftEmployees</a></li><li><a href="global.html#ShiftInvites">ShiftInvites</a></li><li><a href="global.html#Shifts">Shifts</a></li><li><a href="global.html#ShiftsDataGenerator">ShiftsDataGenerator</a></li><li><a href="global.html#ShiftTalentClockins">ShiftTalentClockins</a></li><li><a href="global.html#TalentDetails">TalentDetails</a></li><li><a href="global.html#UpdateDeduction">UpdateDeduction</a></li><li><a href="global.html#updateProfileImage">updateProfileImage</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Wed Oct 05 2022 17:50:45 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

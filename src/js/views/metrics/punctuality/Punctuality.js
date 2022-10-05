@@ -1,35 +1,41 @@
 import React from "react";
 import { PieChart } from '../charts';
-import { ClockInsData, ClockOutsData } from "./PunctualityData";
-
-// Colors
-const purple = "#5c00b8";
-const lightTeal = "#00ebeb";
-const darkTeal = "#009e9e";
-const green = "#06ff05";
-const lightPink = "#eb00eb";
-const darkPink = "#b200b2";
+import { ClockInsDataGenerator, ClockOutsDataGenerator } from "./PunctualityData";
 
 /**
  * @function
- * @description Creates a page with 2 tables and 2 graphs of all the clock-in and clock-out trends.
+ * @description Creates a page with 2 tables and 2 graphs of the clock-in and clock-out trends.
  * @since 09.29.22 by Paola Sanchez
  * @author Paola Sanchez
  * @requires PieChart
- * @requires ClockInsData
- * @requires ClockOutsData
+ * @requires ClockInsDataGenerator
+ * @requires ClockOutsDataGenerator
+ * @param {object} props - Contains an array of all the shifts.
  */
-export const Punctuality = () => {
+export const Punctuality = (props) => {
+
+    // Setting up main data sources
+    let ClockInsData = ClockInsDataGenerator(props.shifts)
+    let ClockOutsData = ClockOutsDataGenerator(props.shifts)
+
     // Data for pie charts -------------------------------------------------------------------------------------
 
-    // Clock-Ins
+    // Colors
+    const purple = "#5c00b8";
+    const lightTeal = "#00ebeb";
+    const darkTeal = "#009e9e";
+    const green = "#06ff05";
+    const lightPink = "#eb00eb";
+    const darkPink = "#b200b2";
+
+    // Clock-Ins ------------------------------------------------------------------------------------------------
 
     // Taking out the "Totals" from the chart view
     let dataCI = ClockInsData.filter((item) => {
         return item.description !== "Total Clock-Ins";
-    }); // Taking out the "Totals" from the chart view
+    });
 
-    // Preparing data to be passed to the chart component
+    // Preparing the data to be passed to the chart component
     const clockInsData = {
         labels: dataCI.map((data) => data.description),
         datasets: [
@@ -41,14 +47,14 @@ export const Punctuality = () => {
         ]
     };
 
-    // Clock-Outs
+    // Clock-Outs ------------------------------------------------------------------------------------------------
 
     // Taking out the "Totals" from the chart view
     let dataCO = ClockOutsData.filter((item) => {
         return item.description !== "Total Clock-Outs";
     });
 
-    // Preparing data to be passed to the chart component
+    // Preparing the data to be passed to the chart component
     const clockOutsData = {
         labels: dataCO.map((data) => data.description),
         datasets: [

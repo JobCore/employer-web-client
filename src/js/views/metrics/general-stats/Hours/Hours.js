@@ -1,13 +1,7 @@
 import React from "react";
 import { PieChart } from "../../charts";
-import { HoursData } from "./HoursData";
+import { HoursDataGenerator } from "./HoursData";
 
-// Colors
-const purple = "#5c00b8";
-const lightTeal = "#00ebeb";
-const darkTeal = "#009e9e";
-const lightPink = "#eb00eb";
-const darkPink = "#b200b2";
 
 /**
  * @function
@@ -17,9 +11,19 @@ const darkPink = "#b200b2";
  * @requires PieChart
  * @requires HoursData
  */
-export const Hours = () => {
+export const Hours = (props) => {
+
+    // Setting up main data source
+    let HoursData = HoursDataGenerator(props.shifts)
 
     // Data for pie chart -------------------------------------------------------------------------------------
+
+    // Colors
+    const purple = "#5c00b8";
+    const lightTeal = "#00ebeb";
+    const darkTeal = "#009e9e";
+    const lightPink = "#eb00eb";
+    const darkPink = "#b200b2";
 
     // Preparing data to be passed to the chart component
     const hoursData = {

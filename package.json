@@ -17,7 +17,8 @@
     "deploy": "now --prod -b [API_HOST=https://jobcore.herokuapp.com]",
     "start:isratest": "API_HOST=https://8000-lavender-alligator-jdqsikyc39p.ws-us54.gitpod.io bash -c 'webpack-dev-server  --config webpack.dev.js --open'",
     "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "doc": "jsdoc -c jsdoc.json"
   },
   "author": "",
   "license": "ISC",

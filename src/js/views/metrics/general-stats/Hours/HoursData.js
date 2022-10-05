@@ -1,15 +1,17 @@
 import moment from "moment";
-import { DummyDataShifts } from "./DummyDataShifts";
 
 /**
  * @function
- * @description Takes in list a of shifts and generates data of the hours worked for Hours.js.
+ * @description Takes in list a of shifts and generates data of all the hours trends for Hours.js.
  * @since 09.29.22 by Paola Sanchez
  * @author Paola Sanchez
- * @requires DummyDataShifts
- * @returns Array of objects
+ * @requires moment
+ * @param {object} props - Contains an array of all the shifts.
  */
-const HoursDataGenerator = () => {
+export const HoursDataGenerator = (props) => {
+
+  // Assigning props to variable
+  let shifts = props
   
   // 1st - Separation of shifts ----------------------------------------------------------
 
@@ -19,8 +21,9 @@ const HoursDataGenerator = () => {
   // Array for single clock-ins made by single workers
   let singleClockInSingleWorker = [];
 
-  // Gathering both clock-ins and clock-outs
-  DummyDataShifts.forEach((shift) => {
+  // Gathering both clock-ins and clock-outs in a formatted 
+  // way to keep at the useful data handy at all times.
+  shifts.forEach((shift) => {
     if (shift.clockin.length > 1) {
       multipleClockIns.push({
         starting_at: shift.starting_at,
@@ -63,6 +66,7 @@ const HoursDataGenerator = () => {
 
   // Adding shifts to 'MCIMWOrganized'
   multipleClockInsMultipleWorkers.forEach((shift) => {
+    // Unifying shifts that have the same worker
     let newObj = shift.reduce((obj, value) => {
       let key = value.employee;
       if (obj[key] == null) obj[key] = [];
@@ -98,8 +102,9 @@ const HoursDataGenerator = () => {
   // Array for polished version of 'singleClockinsMultipleWorkers'
   let SCIMWPolished = [];
 
-  // Adding shifts to 'SCIMWPolished'
-  DummyDataShifts.forEach((originalShift) => {
+  // Adding shifts to 'SCIMWPolished' in a formatted 
+  // way to keep at the useful data handy at all times.
+  shifts.forEach((originalShift) => {
     singleClockinsMultipleWorkers.forEach((filteredShift) => {
       if (originalShift.id === filteredShift.shift) {
         SCIMWPolished.push({
@@ -353,6 +358,3 @@ const HoursDataGenerator = () => {
   // Returning the final array
   return finalList;
 };
-
-// Exporting the final array
-export const HoursData = HoursDataGenerator();

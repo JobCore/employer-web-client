@@ -4,11 +4,11 @@ import { Chart as ChartJS } from 'chart.js/auto';
 
 /**
  * @function
- * @description Creates a pie chart with the data passed as an argument
+ * @description Creates a pie chart with the data passed as an argument.
  * @since 09.29.22 by Paola Sanchez
  * @author Paola Sanchez
  * @requires Pie
- * @param {object} pieData - Object with data like colors, labels, and values for the chart.
+ * @param {object} pieData - Object with data like colors, labels, and values needed for the chart.
  */
 export const PieChart = ({ pieData }) => {
   return (
@@ -33,7 +33,7 @@ export const PieChart = ({ pieData }) => {
  * @since 09.29.22 by Paola Sanchez
  * @author Paola Sanchez
  * @requires Bar
- * @param {object} barData - Object with data like colors, labels, and values for the chart.
+ * @param {object} barData - Object with data like colors, labels, and values needed for the chart.
  */
 export const BarChart = ({ barData }) => {
   

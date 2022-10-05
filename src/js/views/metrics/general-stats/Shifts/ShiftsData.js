@@ -1,20 +1,20 @@
-import { DummyData } from "./DummyData";
-
 /**
  * @function
  * @description Takes in list a of shifts and generates data of shift statuses for Shifts.js.
  * @since 09.29.22 by Paola Sanchez
  * @author Paola Sanchez
- * @requires DummyData
- * @returns Array of objects
+ * @param {object} props - Contains a list of all shifts.
  */
-const ShiftsDataGenerator = () => {
+export const ShiftsDataGenerator = (props) => {
+
+    // Assigning props to variable
+    let shifts = props
 
     // First array
     let shiftsList = [];
 
     // Gathering all the existing shifts
-    DummyData.forEach((shift) => {
+    shifts.forEach((shift) => {
         shiftsList.push({
             status: shift.status,
             clockin: shift.clockin,
@@ -94,6 +94,3 @@ const ShiftsDataGenerator = () => {
     // Returning the final array
     return percentagesArray
 };
-
-// Exporting the final array
-export const ShiftsData = ShiftsDataGenerator()

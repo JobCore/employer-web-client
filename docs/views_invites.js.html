@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: views/invites.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: views/invites.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useEffect, useState } from 'react';
+import {validator, ValidationError} from '../utils/validation';
+import {update, searchMe} from '../actions';
+import {Session} from 'bc-react-session';
+import PropTypes from 'prop-types';
+import {GET} from '../utils/api_wrapper';
+import Select from 'react-select';
+import {TIME_FORMAT, DATE_FORMAT, NOW} from '../components/utils.js';
+import {Button, Theme, ShiftOption, ShiftOptionSelected, SearchCatalogSelect, ShiftCard} from '../components/index';
+import {Shift} from "./shifts.js";
+import moment from 'moment';
+
+export const Invite = (data) => {
+
+    const _defaults = {
+        first_name: '',
+        last_name: '',
+        status: 'PENDING',
+        created_at: NOW(),
+        email: '',
+        include_sms: undefined,
+        phone_number: '',
+        serialize: function(){
+
+            const newShift = {
+                sender: Session.getPayload().user.profile.id
+            };
+
+            return Object.assign(this, newShift);
+        },
+        unserialize: function(){
+            const dataType = typeof this.created_at;
+            //if its already serialized
+            if((typeof this.position == 'object') &amp;&amp; ['number','string'].indexOf(dataType) == -1) return this;
+            const newInvite = {
+                shift: Shift(this.shift).defaults().unserialize(),
+                created_at: (!moment.isMoment(this.created_at)) ? moment(this.created_at) : this.created_at
+            };
+
+            return Object.assign(this, newInvite);
+        }
+    };
+
+    let _entity = Object.assign(_defaults, data);
+    return {
+        validate: () => {
+            if(!validator.isEmail(_entity.email)) throw new ValidationError('Please specify the email');
+            if(validator.isEmpty(_entity.first_name)) throw new ValidationError('Please specify the first name');
+            if(validator.isEmpty(_entity.last_name)) throw new ValidationError('Please specify the last name');
+            //if(validator.isEmpty(_entity.phone_number.toString())) throw new ValidationError('Please specify the last name');
+            return _entity;
+        },
+        defaults: () => {
+            return _defaults;
+        },
+        getFormData: () => {
+            const _formShift = {
+                //foo: _entity.bar
+            };
+            return _formShift;
+        },
+        filters: () => {
+            const _filters = {
+                positions: _entity.positions.map( item => item.value ),
+                badges: _entity.badges.map( item => item.value )
+            };
+            for(let key in _entity) if(typeof _entity[key] == 'function') delete _entity[key];
+            return Object.assign(_entity, _filters);
+        }
+    };
+};
+
+/**
+ * AddShift
+ */
+export const SearchShiftToInviteTalent = (props) => {
+
+    const [ shifts, setShifts ] = useState([]);
+    useEffect(() => {
+        searchMe('shifts', `?upcoming=true&amp;employee_not=${props.formData.employees.join(',')}&amp;employee_not=${props.formData.employees.join(',')}`)
+            .then(data => setShifts(data.map(item => ({ value: Shift(item).defaults().unserialize(), label: '' }))));
+    }, []);
+
+    return (&lt;form>
+        &lt;div className="row">
+            &lt;div className="col-12">
+                &lt;label>Pick your shifts:&lt;/label>
+                &lt;Select isMulti className="select-shifts"
+                    value={props.formData.shifts}
+                    components={{ Option: ShiftOption, MultiValue: ShiftOptionSelected({ multi: true }) }}
+                    onChange={(selectedOption)=>props.onChange({ shifts: selectedOption })}
+                    options={shifts}
+                >
+                &lt;/Select>
+            &lt;/div>
+        &lt;/div>
+        &lt;p>Click on invite to invite the talent to your selected shifts&lt;/p>
+        &lt;div className="btn-bar">
+            &lt;Button color="primary" onClick={() => props.onSave()}>Send Invite&lt;/Button>
+        &lt;/div>
+    &lt;/form>);
+};
+SearchShiftToInviteTalent.propTypes = {
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  formData: PropTypes.object,
+  catalog: PropTypes.object //contains the data needed for the form to load
+};
+
+/**
+ * Invite Talent To Shift
+ */
+export const SearchTalentToInviteToShift = ({ formData, onSave, onChange }) => {
+    return (&lt;Theme.Consumer>
+        {({bar}) => (&lt;form>
+            &lt;div className="row">
+                &lt;div className="col-12">
+                    &lt;label>Seach the JobCore Database:&lt;/label>
+                    &lt;SearchCatalogSelect
+                        isMulti={true}
+                        value={formData.pending_invites}
+                        onChange={(selections)=> {
+                            const invite = selections.find(opt => opt.value == 'invite_talent_to_jobcore');
+                            if(invite) bar.show({
+                                allowLevels: true,
+                                slug: "invite_talent_to_jobcore",
+                                onSave: (emp) => onChange({ pending_jobcore_invites: formData.pending_jobcore_invites.concat(emp) })
+                            });
+                            else onChange({ pending_invites: selections, employees: selections.map(opt => opt.value) });
+                        }}
+                        searchFunction={(search) => new Promise((resolve, reject) =>
+                            GET('catalog/employees?full_name='+search)
+                                .then(talents => resolve([
+                                    { label: `${(talents.length==0) ? 'No one found: ':''}Invite "${search}" to jobcore`, value: 'invite_talent_to_jobcore' }
+                                ].concat(talents)))
+                                .catch(error => reject(error))
+                        )}
+                    />
+                &lt;/div>
+            &lt;/div>
+            &lt;p>Click on invite to invite the talent to your selected shifts&lt;/p>
+            &lt;div className="btn-bar">
+                &lt;Button color="primary" onClick={() => onSave()}>Send Invite&lt;/Button>
+            &lt;/div>
+        &lt;/form>)}
+    &lt;/Theme.Consumer>);
+};
+SearchTalentToInviteToShift.propTypes = {
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  formData: PropTypes.object,
+  catalog: PropTypes.object //contains the data needed for the form to load
+};
+
+/**
+ * ShiftDetails
+ */
+export const InviteTalentToJobcore = ({ onSave, onCancel, onChange, catalog, formData }) => (&lt;Theme.Consumer>
+    {({bar}) => (
+        &lt;form id="invite_talent_jobcore">
+            &lt;div className="row">
+                &lt;div className="col-12">
+                    &lt;p>
+                        &lt;span>Invite someone into yor talent pool or &lt;/span>
+                        &lt;span className="anchor"
+                            onClick={() => bar.show({ slug: "show_pending_jobcore_invites", allowLevels: true })}
+                        >review previous invites&lt;/span>:
+                    &lt;/p>
+                &lt;/div>
+            &lt;/div>
+            &lt;div className="row">
+                &lt;div className="col-12">
+                    &lt;label>Talent First Name&lt;/label>
+                    &lt;input type="text" className="form-control"
+                        onChange={(e)=>onChange({first_name: e.target.value})}
+                    />
+                &lt;/div>
+                &lt;div className="col-12">
+                    &lt;label>Talent Last Name&lt;/label>
+                    &lt;input type="text" className="form-control"
+                        onChange={(e)=>onChange({last_name: e.target.value})}
+                    />
+                &lt;/div>
+                &lt;div className="col-12">
+                    &lt;label>Talent email&lt;/label>
+                    &lt;input type="email" className="form-control"
+                        onChange={(e)=>onChange({email: e.target.value})}
+                    />
+                &lt;/div>
+                &lt;div className="col-12">
+                    &lt;label>Talent Phone&lt;/label>
+                    &lt;input type="tel" className="form-control"
+                        onChange={(e)=>onChange({phone_number: e.target.value})}
+                    />
+                    &lt;div className="form-group text-left">
+                        &lt;input type="checkbox" className="mr-1"
+                            onChange={(e) => onChange({ include_sms: !formData.include_sms })} checked={formData.include_sms}
+                        />
+                        Send invite throught SMS as well.
+                    &lt;/div>
+                &lt;/div>
+            &lt;/div>
+            &lt;div className="btn-bar">
+                &lt;Button color="success" onClick={() => onSave()}>Send Invite&lt;/Button>
+                &lt;Button color="secondary" onClick={() => onCancel()}>Cancel&lt;/Button>
+            &lt;/div>
+        &lt;/form>
+    )}
+&lt;/Theme.Consumer>);
+InviteTalentToJobcore.propTypes = {
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  width: PropTypes.number,
+  formData: PropTypes.object,
+  catalog: PropTypes.object //contains the data needed for the form to load
+};
+
+
+/**
+ * ShiftDetails
+ */
+export const PendingJobcoreInvites = ({ catalog, formData }) => (&lt;div>
+    &lt;div className="row">
+        &lt;div className="col">
+            &lt;h2>These are your pending invites&lt;/h2>
+            &lt;ul className="li-white">
+                { (catalog.jcInvites.length > 0) ?
+                    catalog.jcInvites.map((inv, i) =>{
+                        if(inv.status == "PENDING" || inv.status == "COMPANY"){
+                            return(&lt;li key={i}>
+                                &lt;button
+                                    className="btn btn-primary float-right mt-2 btn-sm"
+                                    onClick={() => update('jobcore-invites', inv)}
+                                >Resend&lt;/button>
+                                &lt;p className="p-0 m-0">
+                                    &lt;span>{inv.first_name} {inv.last_name} {inv.employer &amp;&amp; " (company)"} &lt;/span>
+                                &lt;/p>
+                                &lt;span className="badge">{moment(inv.updated_at).fromNow()}&lt;/span>
+                                &lt;small>{inv.email}&lt;/small>
+                            &lt;/li>);
+                        }
+                    }
+                    ):
+                    &lt;p className="text-center">No pending invites&lt;/p>
+                }
+            &lt;/ul>
+        &lt;/div>
+    &lt;/div>
+&lt;/div>);
+PendingJobcoreInvites.propTypes = {
+  width: PropTypes.number,
+  formData: PropTypes.object,
+  catalog: PropTypes.object //contains the data needed for the form to load
+};
+
+/**
+ * ShiftDetails
+ */
+export const PendingInvites = ({ catalog, formData }) => {
+    return (&lt;div>
+        &lt;div className="row">
+            &lt;div className="col">
+                &lt;h2>Pending invites for {formData.talent.user.first_name}&lt;/h2>
+                &lt;ul className="li-white mx-1">
+                    { (catalog.invites.length > 0) ?
+                        catalog.invites.map((inv, i) =>
+                            (&lt;ShiftCard key={i} shift={inv.shift} showStatus={false} hoverEffect={false} />)
+                        ):
+                        &lt;p className="text-center">No pending invites&lt;/p>
+                    }
+                &lt;/ul>
+            &lt;/div>
+        &lt;/div>
+    &lt;/div>);
+};
+PendingInvites.propTypes = {
+  formData: PropTypes.object,
+  catalog: PropTypes.object //contains the data needed for the form to load
+};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">JSDoc Home</a></h2><h3>Classes</h3><ul><li><a href="MakePayment.html">MakePayment</a></li><li><a href="Metrics.html">Metrics</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AddFavlistsToTalent">AddFavlistsToTalent</a></li><li><a href="global.html#ApplicantExtendedCard">ApplicantExtendedCard</a></li><li><a href="global.html#ApplicationDetails">ApplicationDetails</a></li><li><a href="global.html#BarChart">BarChart</a></li><li><a href="global.html#ClockInsDataGenerator">ClockInsDataGenerator</a></li><li><a href="global.html#ClockOutsDataGenerator">ClockOutsDataGenerator</a></li><li><a href="global.html#CreateDeduction">CreateDeduction</a></li><li><a href="global.html#createMapOptions">createMapOptions</a></li><li><a href="global.html#EditOrAddExpiredShift">EditOrAddExpiredShift</a></li><li><a href="global.html#EditOrAddShift">EditOrAddShift</a></li><li><a href="global.html#FeatureIndicator">FeatureIndicator</a></li><li><a href="global.html#fetchAllIfNull">fetchAllIfNull</a></li><li><a href="global.html#fetchPeyrollPeriodPayments">fetchPeyrollPeriodPayments</a></li><li><a href="global.html#FilterApplications">FilterApplications</a></li><li><a href="global.html#filterClockins">filterClockins</a></li><li><a href="global.html#FilterLocations">FilterLocations</a></li><li><a href="global.html#FilterShifts">FilterShifts</a></li><li><a href="global.html#FilterTalents">FilterTalents</a></li><li><a href="global.html#GeneralStats">GeneralStats</a></li><li><a href="global.html#GET">GET</a></li><li><a href="global.html#getDeductionsReport">getDeductionsReport</a></li><li><a href="global.html#getPaymentsReport">getPaymentsReport</a></li><li><a href="global.html#Hours">Hours</a></li><li><a href="global.html#HoursDataGenerator">HoursDataGenerator</a></li><li><a href="global.html#InviteTalentToJobcore">InviteTalentToJobcore</a></li><li><a href="global.html#InviteUserToCompanyJobcore">InviteUserToCompanyJobcore</a></li><li><a href="global.html#JobSeekers">JobSeekers</a></li><li><a href="global.html#JobSeekersDataGenerator">JobSeekersDataGenerator</a></li><li><a href="global.html#makeEmployeePayment">makeEmployeePayment</a></li><li><a href="global.html#NewJobSeekersDataGenerator">NewJobSeekersDataGenerator</a></li><li><a href="global.html#PendingInvites">PendingInvites</a></li><li><a href="global.html#PendingJobcoreInvites">PendingJobcoreInvites</a></li><li><a href="global.html#PendingRatings">PendingRatings</a></li><li><a href="global.html#PieChart">PieChart</a></li><li><a href="global.html#Punctuality">Punctuality</a></li><li><a href="global.html#Queue">Queue</a></li><li><a href="global.html#QueueData">QueueData</a></li><li><a href="global.html#RateShift">RateShift</a></li><li><a href="global.html#RatingDetails">RatingDetails</a></li><li><a href="global.html#RatingEmployees">RatingEmployees</a></li><li><a href="global.html#Ratings">Ratings</a></li><li><a href="global.html#ReviewTalentAndShift">ReviewTalentAndShift</a></li><li><a href="global.html#SearchShiftToInviteTalent">SearchShiftToInviteTalent</a></li><li><a href="global.html#SearchTalentToInviteToShift">SearchTalentToInviteToShift</a></li><li><a href="global.html#ShiftApplicants">ShiftApplicants</a></li><li><a href="global.html#ShiftDetails">ShiftDetails</a></li><li><a href="global.html#ShiftEmployees">ShiftEmployees</a></li><li><a href="global.html#ShiftInvites">ShiftInvites</a></li><li><a href="global.html#Shifts">Shifts</a></li><li><a href="global.html#ShiftsDataGenerator">ShiftsDataGenerator</a></li><li><a href="global.html#ShiftTalentClockins">ShiftTalentClockins</a></li><li><a href="global.html#TalentDetails">TalentDetails</a></li><li><a href="global.html#UpdateDeduction">UpdateDeduction</a></li><li><a href="global.html#updateProfileImage">updateProfileImage</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Wed Oct 05 2022 17:50:45 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

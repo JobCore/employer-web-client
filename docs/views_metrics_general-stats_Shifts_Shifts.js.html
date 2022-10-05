@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: views/metrics/general-stats/Shifts/Shifts.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: views/metrics/general-stats/Shifts/Shifts.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React from "react";
+import { BarChart } from "../../charts";
+import { ShiftsDataGenerator } from "./ShiftsData";
+
+/**
+ * @function
+ * @description Creates a page with a table and a graph of all the shift statuses.
+ * @since 09.29.22 by Paola Sanchez
+ * @author Paola Sanchez
+ * @requires ShiftsDataGenerator
+ * @requires BarChart
+ * @param {object} props - Contains an array of all the shifts.
+ */
+export const Shifts = (props) => {
+
+    // Setting up main data source
+    let ShiftsData = ShiftsDataGenerator(props.shifts)
+
+    // Data for bar chart -------------------------------------------------------------------------------------
+
+    // Colors
+    const purple = "#5c00b8";
+    const lightTeal = "#00ebeb";
+    const darkTeal = "#009e9e";
+    const lightPink = "#eb00eb";
+    const darkPink = "#b200b2";
+
+    // Taking out the "Totals" from the chart view
+    let barData = ShiftsData.filter((item) => { return item.description !== "Total Shifts Posted " }) // Taking out the "Totals" from the chart view
+
+    // Preparing data to be passed to the chart component
+    const shiftsData = {
+        labels: barData.map((data) => data.description),
+        datasets: [{
+            label: "Shifts",
+            data: barData.map((data) => data.qty),
+            backgroundColor: [
+                purple, darkPink, lightPink, lightTeal, darkTeal
+            ],
+        }]
+    }
+
+    // Return ----------------------------------------------------------------------------------------------------
+
+    return (
+        &lt;div className="row d-flex d-inline-flex justify-content-between" style={{ width: "100%" }}>
+            {/* Left Column Starts */}
+            &lt;div className="col">
+                &lt;div className="row d-flex flex-column justify-content-between">
+                    {/* Shifts Table Starts */}
+                    &lt;div className="col text-center">
+                        &lt;h2 className="mb-4">Shifts Table&lt;/h2>
+
+                        &lt;table className="table table-bordered text-center">
+                            &lt;thead className="thead-dark">
+                                {/* Table columns */}
+                                &lt;tr>
+                                    &lt;th scope="col">&lt;h3 className="m-0">Description&lt;/h3>&lt;/th>
+                                    &lt;th scope="col">&lt;h3 className="m-0">Quantity&lt;/h3>&lt;/th>
+                                    &lt;th scope="col">&lt;h3 className="m-0">Percentages&lt;/h3>&lt;/th>
+                                &lt;/tr>
+                            &lt;/thead>
+
+                            &lt;tbody>
+                                {/* Mapping the data to diplay it as table rows */}
+                                {ShiftsData.map((item, i) => {
+                                    return item.description === "Total Shifts Posted" ? (
+                                        &lt;tr key={i} style={{ background: "rgba(107, 107, 107, 0.35)" }}>
+                                            &lt;th scope="row">&lt;h3 className="m-0">{item.description}&lt;/h3>&lt;/th>
+                                            &lt;td>&lt;h3 className="m-0">{item.qty}&lt;/h3>&lt;/td>
+                                            &lt;td>&lt;h3 className="m-0">{`${item.pct}%`}&lt;/h3>&lt;/td>
+                                        &lt;/tr>
+                                    ) : (
+                                        &lt;tr key={i}>
+                                            &lt;th scope="row">&lt;h3 className="m-0">{item.description}&lt;/h3>&lt;/th>
+                                            &lt;td>&lt;h3 className="m-0">{item.qty}&lt;/h3>&lt;/td>
+                                            &lt;td>&lt;h3 className="m-0">{`${item.pct}%`}&lt;/h3>&lt;/td>
+                                        &lt;/tr>
+                                    )
+                                })}
+                            &lt;/tbody>
+                        &lt;/table>
+                    &lt;/div>
+                    {/* Shifts Table Ends */}
+                &lt;/div>
+            &lt;/div>
+            {/* Left Column Ends */}
+
+            {/* Right Column Starts */}
+            &lt;div className="col">
+                &lt;div className="row">
+                    {/* Shifts Chart Starts*/}
+                    &lt;div className="col text-center">
+                        &lt;h2 className="mb-3">Shifts Chart&lt;/h2>
+
+                        &lt;div style={{ height: '20rem' }}>
+                            &lt;BarChart barData={shiftsData} />
+                        &lt;/div>
+                    &lt;/div>
+                    {/* Shifts Chart Ends*/}
+                &lt;/div>
+            &lt;/div>
+            {/* Right Column Ends */}
+        &lt;/div>
+    )
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">JSDoc Home</a></h2><h3>Classes</h3><ul><li><a href="MakePayment.html">MakePayment</a></li><li><a href="Metrics.html">Metrics</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AddFavlistsToTalent">AddFavlistsToTalent</a></li><li><a href="global.html#ApplicantExtendedCard">ApplicantExtendedCard</a></li><li><a href="global.html#ApplicationDetails">ApplicationDetails</a></li><li><a href="global.html#BarChart">BarChart</a></li><li><a href="global.html#ClockInsDataGenerator">ClockInsDataGenerator</a></li><li><a href="global.html#ClockOutsDataGenerator">ClockOutsDataGenerator</a></li><li><a href="global.html#CreateDeduction">CreateDeduction</a></li><li><a href="global.html#createMapOptions">createMapOptions</a></li><li><a href="global.html#EditOrAddExpiredShift">EditOrAddExpiredShift</a></li><li><a href="global.html#EditOrAddShift">EditOrAddShift</a></li><li><a href="global.html#FeatureIndicator">FeatureIndicator</a></li><li><a href="global.html#fetchAllIfNull">fetchAllIfNull</a></li><li><a href="global.html#fetchPeyrollPeriodPayments">fetchPeyrollPeriodPayments</a></li><li><a href="global.html#FilterApplications">FilterApplications</a></li><li><a href="global.html#filterClockins">filterClockins</a></li><li><a href="global.html#FilterLocations">FilterLocations</a></li><li><a href="global.html#FilterShifts">FilterShifts</a></li><li><a href="global.html#FilterTalents">FilterTalents</a></li><li><a href="global.html#GeneralStats">GeneralStats</a></li><li><a href="global.html#GET">GET</a></li><li><a href="global.html#getDeductionsReport">getDeductionsReport</a></li><li><a href="global.html#getPaymentsReport">getPaymentsReport</a></li><li><a href="global.html#Hours">Hours</a></li><li><a href="global.html#HoursDataGenerator">HoursDataGenerator</a></li><li><a href="global.html#InviteTalentToJobcore">InviteTalentToJobcore</a></li><li><a href="global.html#InviteUserToCompanyJobcore">InviteUserToCompanyJobcore</a></li><li><a href="global.html#JobSeekers">JobSeekers</a></li><li><a href="global.html#JobSeekersDataGenerator">JobSeekersDataGenerator</a></li><li><a href="global.html#makeEmployeePayment">makeEmployeePayment</a></li><li><a href="global.html#NewJobSeekersDataGenerator">NewJobSeekersDataGenerator</a></li><li><a href="global.html#PendingInvites">PendingInvites</a></li><li><a href="global.html#PendingJobcoreInvites">PendingJobcoreInvites</a></li><li><a href="global.html#PendingRatings">PendingRatings</a></li><li><a href="global.html#PieChart">PieChart</a></li><li><a href="global.html#Punctuality">Punctuality</a></li><li><a href="global.html#Queue">Queue</a></li><li><a href="global.html#QueueData">QueueData</a></li><li><a href="global.html#RateShift">RateShift</a></li><li><a href="global.html#RatingDetails">RatingDetails</a></li><li><a href="global.html#RatingEmployees">RatingEmployees</a></li><li><a href="global.html#Ratings">Ratings</a></li><li><a href="global.html#ReviewTalentAndShift">ReviewTalentAndShift</a></li><li><a href="global.html#SearchShiftToInviteTalent">SearchShiftToInviteTalent</a></li><li><a href="global.html#SearchTalentToInviteToShift">SearchTalentToInviteToShift</a></li><li><a href="global.html#ShiftApplicants">ShiftApplicants</a></li><li><a href="global.html#ShiftDetails">ShiftDetails</a></li><li><a href="global.html#ShiftEmployees">ShiftEmployees</a></li><li><a href="global.html#ShiftInvites">ShiftInvites</a></li><li><a href="global.html#Shifts">Shifts</a></li><li><a href="global.html#ShiftsDataGenerator">ShiftsDataGenerator</a></li><li><a href="global.html#ShiftTalentClockins">ShiftTalentClockins</a></li><li><a href="global.html#TalentDetails">TalentDetails</a></li><li><a href="global.html#UpdateDeduction">UpdateDeduction</a></li><li><a href="global.html#updateProfileImage">updateProfileImage</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Wed Oct 05 2022 17:50:45 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

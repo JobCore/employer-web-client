@@ -1,28 +1,32 @@
-import { DummyDataShifts } from "./DummyDataShifts"
 import moment from "moment";
 
 // Clock-Ins Data ------------------------------------------------------------------
 
 /**
  * @function
- * @description Takes in list a of shifts and generates data of clock-in trends for Punctuality.js.
+ * @description Generates array of objects with clock-in trends for Punctuality.js.
  * @since 09.29.22 by Paola Sanchez
  * @author Paola Sanchez
  * @requires moment
- * @requires DummyDataShifts
- * @returns Array of objects
+ * @param {object} props - Contains an array of all the shifts.
  */
-const ClockInsDataGenerator = () => {
-    // Clock-ins array
+export const ClockInsDataGenerator = (props) => {
+
+    // Assigning props to variables
+    let shifts = props
+
+    // Array for the clock-ins
     let clockIns = [];
-    let totalPunches = [];
 
     // Sorting the shifts
-    DummyDataShifts.forEach((shift) => {
+    shifts.forEach((shift) => {
         shift.clockin.forEach((clockIn) => {
-            totalPunches.push(clockIn);
+            // Keeping all clockins array with at
+            // least one object inside
             if (shift.clockin.length > 0) {
-                // Gathering the clock-ins
+                // Formatting each object to keep
+                // both the scheduled clock-in and 
+                // the actual "registered" clock-in.
                 clockIns.push({
                     starting_at: shift.starting_at,
                     started_at: clockIn.started_at
@@ -36,7 +40,7 @@ const ClockInsDataGenerator = () => {
     let lateClockins = 0;
     let onTimeClockins = 0;
 
-    // Increasing clock-in counters
+    // Increasing counters based on clock-in times
     clockIns.forEach((shift) => {
         let start1 = moment(shift.starting_at);
         let start2 = moment(shift.started_at);
@@ -103,29 +107,34 @@ const ClockInsDataGenerator = () => {
     return pctClockIns;
 };
 
-// Exporting clock-ins array
-export const ClockInsData = ClockInsDataGenerator();
-
 // Clock-Outs Data -----------------------------------------------------------------
 
 /**
  * @function
- * @description Takes in list a of shifts and generates data of clock-out trends for Punctuality.js.
+ * @description Generates array of objects with clock-out trends for Punctuality.js.
  * @since 09.29.22 by Paola Sanchez
  * @author Paola Sanchez
  * @requires moment
- * @requires DummyDataShifts
- * @returns Array of objects
+ * @param {object} props - Contains an array of all the shifts.
  */
-const ClockOutsDataGenerator = () => {
-    // Clock-outs array
+export const ClockOutsDataGenerator = (props) => {
+
+    // Assigning props to variables
+    let shifts = props
+
+    // Array for the clock-outs
     let clockOuts = [];
 
     // Sorting the shifts
-    DummyDataShifts.forEach((shift) => {
+    shifts.forEach((shift) => {
         shift.clockin.forEach((clockIn) => {
+            // Keeping all clockins array with at
+            // least one object inside
             if (shift.clockin.length > 0) {
-                // Gathering the clock-outs
+                // Formatting each object to keep
+                // both the scheduled clock-out, the 
+                // actual "registered" clock-out, and
+                // whether it closed automatically or not.
                 clockOuts.push({
                     ending_at: shift.ending_at,
                     ended_at: clockIn.ended_at,
@@ -141,7 +150,7 @@ const ClockOutsDataGenerator = () => {
     let onTimeClockouts = 0;
     let forgotClockOut = 0;
 
-    // Increasing clock-out counters
+    // Increasing counters based on clock-out times
     clockOuts.forEach((shift) => {
         let end1 = moment(shift.ending_at);
         let end2 = moment(shift.ended_at);
@@ -157,8 +166,10 @@ const ClockOutsDataGenerator = () => {
         }
     });
 
-    // Increasing forgotClockOut counter
+    // Increasing the "forgotClockOut" counter only
     clockOuts.forEach((shift) => {
+        // Note: When a shif get automatically closed, it means
+        // that the worker forgot to clock-out.
         if (shift.automatically_closed === true) {
             forgotClockOut++;
         }
@@ -219,6 +230,3 @@ const ClockOutsDataGenerator = () => {
     // Returning clock-outs array
     return pctClockOuts;
 };
-
-// Exporting clock-outs array
-export const ClockOutsData = ClockOutsDataGenerator();  

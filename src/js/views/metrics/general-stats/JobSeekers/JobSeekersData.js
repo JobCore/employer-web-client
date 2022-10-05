@@ -1,5 +1,3 @@
-import { DummyDataShifts } from "./DummyDataShifts"
-import { DummyDataWorkers, DummyDataNewWorkers } from "./DummyDataWorkers"
 import moment from "moment";
 
 // Today
@@ -7,7 +5,6 @@ const now = moment().format("YYYY-MM-DD")
 
 // Today, four weeks in the past
 const fourWeeksBack = moment().subtract(4, 'weeks').format("YYYY-MM-DD")
-
 
 // Job Seekers Data ------------------------------------------------------------------
 
@@ -17,25 +14,29 @@ const fourWeeksBack = moment().subtract(4, 'weeks').format("YYYY-MM-DD")
  * @since 09.29.22 by Paola Sanchez
  * @author Paola Sanchez
  * @requires moment
- * @requires DummyDataShifts
- * @requires DummyDataWorkers
- * @returns Array of objects
+ * @param {object} props - Contains an array of all the shifts, and also an array of all the workers.
  */
-const JobSeekersDataGenerator = () => {
+export const JobSeekersDataGenerator = (shiftsProp, workersProp) => {
+
+    // Assigning props to variables
+    let shifts = shiftsProp
+    let workers = workersProp
 
     // Array for all clock-ins
     let clockInsList = []
 
     // Gathering the clock-ins of all the shifts
-    DummyDataShifts.forEach((shift) => {
+    shifts.forEach((shift) => {
         shift.clockin.forEach((clockIn) => {
+            // Keeping all clockins array with at
+            // least one object inside
             if (shift.clockin.length > 0) {
                 clockInsList.push(clockIn);
             }
         })
     })
 
-    // Array for all clock-ins
+    // Array for all recent clock-ins
     let recentClockIns = []
 
     // Filtering out clock-ins that happened longer than 4 weeks ago
@@ -50,7 +51,7 @@ const JobSeekersDataGenerator = () => {
     // Array for worker ids
     let workerIDs = []
 
-    // Gethering worker ids from recent clock-ins
+    // Gethering all worker ids from recent clock-ins
     recentClockIns.forEach((clockIn) => {
         workerIDs.push(clockIn.employee)
     })
@@ -59,7 +60,7 @@ const JobSeekersDataGenerator = () => {
     let filteredWorkerIDs = [...new Set(workerIDs)];
 
     // Calculating total, active, and inactive workers
-    let totalWorkers = DummyDataWorkers.length
+    let totalWorkers = workers.length
     let totalActiveWorkers = filteredWorkerIDs.length
     let totalInactiveWorkers = totalWorkers - totalActiveWorkers
 
@@ -105,10 +106,7 @@ const JobSeekersDataGenerator = () => {
     return finalList
 }
 
-// Exporting the final array
-export const JobSeekersData = JobSeekersDataGenerator()
-
-// Job Seekers Data ------------------------------------------------------------------
+// New Job Seekers Data ------------------------------------------------------------------
 
 /**
  * @function
@@ -116,16 +114,19 @@ export const JobSeekersData = JobSeekersDataGenerator()
  * @since 09.29.22 by Paola Sanchez
  * @author Paola Sanchez
  * @requires moment
- * @requires DummyDataNewWorkers
- * @returns Array of objects
+ * @param {object} props - Contains an array of all the shifts, and also an array of all the workers.
  */
-const NewJobSeekersDataGenerator = () => {
+export const NewJobSeekersDataGenerator = (props) => {
+
+    // Assigning props to variable
+    // Here we only need the array of workers
+    let workers = props
 
     // Array for new workers
     let newWorkersList = []
 
-    // Adding workers to 'newWorkersList'
-    DummyDataNewWorkers.forEach((worker) => {
+    // Adding workers to 'newWorkersList' based on their creation date
+    workers.forEach((worker) => {
         let creation_date = moment(worker.created_at).format("YYYY-MM-DD");
 
         if (creation_date > fourWeeksBack && creation_date < now) {
@@ -133,7 +134,8 @@ const NewJobSeekersDataGenerator = () => {
         }
     })
 
-    let totalWorkers = DummyDataNewWorkers.length
+    // Setting up some variables for the objects
+    let totalWorkers = workers.length
     let totalNewWorkers = newWorkersList.length
 
     // Setting up objects for the semi-final array
@@ -171,6 +173,3 @@ const NewJobSeekersDataGenerator = () => {
     // Returning the final array
     return finalList
 }
-
-// Exporting the final array
-export const NewJobSeekersData = NewJobSeekersDataGenerator()

@@ -15,16 +15,26 @@ const allowLevels = window.location.search != "";
  * @requires Avatar
  * @requires Button
  * @requires Theme
+ * @param {object} props - Contains an array of all shifts, and an object with information of a single worker, previously mapped in Queue.js
  */
 export const QueueData = (props) => {
 
-    // Setting up my variables --------------------------------
+    //Assigning props to variables ----------------------------
+
+    // This is a single worker brought from the mapping
+    // of all workers back in Queue.js
     const worker = props.worker;
+
+    // These are all the shifts, with different workers
     const shifts = props.shifts;
 
     // Worker Shifts ------------------------------------------
+
+    // Array to hold shifts from the single worker
     const workerShifts = [];
 
+    // Keeping the shifts whose worker id matches
+    // the id of the single worker
     shifts.forEach((shift) => {
         shift.employees.forEach((employee) => {
             if (employee === worker.id) {
@@ -34,8 +44,12 @@ export const QueueData = (props) => {
     });
 
     // Worker Clock-ins ---------------------------------------
+
+    // Array to hold clock-ins from the single worker
     let workerClockIns = [];
 
+    // Keeping the clock-ins whose worker id matches
+    // the id of the single worker
     workerShifts.forEach((shift) => {
         shift.clockin.forEach((clockIn) => {
             if (clockIn.employee === worker.id) {
@@ -45,8 +59,12 @@ export const QueueData = (props) => {
     });
 
     // Scheduled Hours ---------------------------------------
+
+    // Array to hold scheduled hours from the single worker
     let scheduledHours = [];
 
+    // Calculating the scheduled hours of each shift and
+    // passing that data as an object to "scheduledHours"
     workerShifts.forEach((shift) => {
         let start = moment(shift.starting_at);
         let end = moment(shift.ending_at);
@@ -59,15 +77,21 @@ export const QueueData = (props) => {
         });
     });
 
-    let totalScheduledHours = scheduledHours.reduce((acc, obj) => {
-        return acc + obj.scheduled_hours;
+    // Adding all the scheduled hours to form a total
+    let totalScheduledHours = scheduledHours.reduce((accumulator, shift) => {
+        return accumulator + shift.scheduled_hours;
     }, 0);
 
+    // Formatting the total to 2 decimal places
     let totalScheduledHoursF = totalScheduledHours.toFixed(2)
 
     // Worked Hours ----------------------------------------
+
+    // Array to hold worked hours from the single worker
     let workedHours = [];
 
+    // Calculating the worked hours of each shift and
+    // passing that data as an object to "workedHours"
     workerClockIns.forEach((shift) => {
         let start = moment(shift.started_at);
         let end = moment(shift.ended_at);
@@ -80,10 +104,12 @@ export const QueueData = (props) => {
         });
     });
 
-    let totalWorkedHours = workedHours.reduce((acc, obj) => {
-        return acc + obj.worked_hours;
+    // Adding all the worked hours to form a total
+    let totalWorkedHours = workedHours.reduce((accumulator, shift) => {
+        return accumulator + shift.worked_hours;
     }, 0);
 
+    // Formatting the total to 2 decimal places
     let totalWorkedHoursF = totalWorkedHours.toFixed(2)
 
     // Return ------------------------------------------------------------------------------------------------------

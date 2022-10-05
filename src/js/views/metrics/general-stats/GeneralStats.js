@@ -11,9 +11,14 @@ import { Shifts } from "./Shifts/Shifts";
  * @requires Hours
  * @requires Shifts
  * @requires JobSeekers
+ * @param {object} props - Contains an array of all shifts, and an array of all the workers.
  */
-export const GeneralStats = () => {
+export const GeneralStats = (props) => {
 
+    // Setting up main data sources
+    let workers = props.workers
+    let shifts = props.shifts
+    
     // Return ----------------------------------------------------------------------------------------------------
 
     return (
@@ -36,19 +41,19 @@ export const GeneralStats = () => {
                     >
                         {/* Shifts Tab Starts */}
                         <div className="tab-pane fade show active" id="nav-shifts" role="tabpanel" aria-labelledby="nav-shifts-tab">
-                            <Shifts />
+                            <Shifts shifts={shifts} />
                         </div>
                         {/* Shifts Tab Ends */}
 
                         {/* Hours Tab Starts */}
                         <div className="tab-pane fade" id="nav-hours" role="tabpanel" aria-labelledby="nav-hours-tab">
-                            <Hours />
+                            <Hours shifts={shifts} />
                         </div>
                         {/* Hours Tab Ends */}
 
                         {/* Job Seekers Tab Starts */}
                         <div className="tab-pane fade" id="nav-job-seekers" role="tabpanel" aria-labelledby="nav-job-seekers-tab">
-                            <JobSeekers />
+                            <JobSeekers shifts={shifts} workers={workers} />
                         </div>
                         {/* Job Seekers Tab Ends */}
                     </div>

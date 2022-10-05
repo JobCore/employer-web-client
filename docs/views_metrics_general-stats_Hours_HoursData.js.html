@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: views/metrics/general-stats/Hours/HoursData.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: views/metrics/general-stats/Hours/HoursData.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import moment from "moment";
+
+/**
+ * @function
+ * @description Takes in list a of shifts and generates data of all the hours trends for Hours.js.
+ * @since 09.29.22 by Paola Sanchez
+ * @author Paola Sanchez
+ * @requires moment
+ * @param {object} props - Contains an array of all the shifts.
+ */
+export const HoursDataGenerator = (props) => {
+
+  // Assigning props to variable
+  let shifts = props
+  
+  // 1st - Separation of shifts ----------------------------------------------------------
+
+  // Array for shifts with multiple clock-ins
+  let multipleClockIns = [];
+
+  // Array for single clock-ins made by single workers
+  let singleClockInSingleWorker = [];
+
+  // Gathering both clock-ins and clock-outs in a formatted 
+  // way to keep at the useful data handy at all times.
+  shifts.forEach((shift) => {
+    if (shift.clockin.length > 1) {
+      multipleClockIns.push({
+        starting_at: shift.starting_at,
+        ending_at: shift.ending_at,
+        clockin: shift.clockin,
+        id: shift.id,
+        employees: shift.employees
+      });
+    } else if (shift.clockin.length === 1) {
+      shift.clockin.forEach((clockIn) => {
+        singleClockInSingleWorker.push({
+          id: shift.id,
+          starting_at: shift.starting_at,
+          ending_at: shift.ending_at,
+          started_at: clockIn.started_at,
+          ended_at: clockIn.ended_at
+        });
+      });
+    }
+  });
+
+  // Setting up arrays for shifts with multiple
+  // clock-ins but different amount of workers
+  let multipleClockInsMultipleWorkers = [];
+  let multipleClockInsSingleWorker = [];
+
+  // Separating shifts based on the number of workers present
+  multipleClockIns.forEach((shift) => {
+    if (shift.employees.length > 1) {
+      // Adding shifts to 'multipleClockInsMultipleWorkers'
+      multipleClockInsMultipleWorkers.push(shift.clockin);
+    } else if (shift.employees.length === 1) {
+      // Adding shifts to 'multipleClockInsSingleWorker'
+      multipleClockInsSingleWorker.push(shift.clockin);
+    }
+  });
+
+  // Array of multiple clock-ins with multiple workers, but organized
+  let MCIMWOrganized = [];
+
+  // Adding shifts to 'MCIMWOrganized'
+  multipleClockInsMultipleWorkers.forEach((shift) => {
+    // Unifying shifts that have the same worker
+    let newObj = shift.reduce((obj, value) => {
+      let key = value.employee;
+      if (obj[key] == null) obj[key] = [];
+
+      obj[key].push(value);
+      return obj;
+    }, []);
+
+    newObj.forEach((shift) => {
+      MCIMWOrganized.push(shift);
+    });
+  });
+
+  // Array for the polished version of 'multipleClockInsMultipleWorkers'
+  let MCIMWPolished = [];
+
+  // Array for single clock-ins made by single workers
+  // inside shifts with multiple workers present
+  let singleClockinsMultipleWorkers = [];
+
+  // Separating shifts of multiple workers based on
+  // how many clock-ins each worker has
+  MCIMWOrganized.forEach((shift) => {
+    if (shift.length === 1) {
+      shift.forEach((clockIn) => {
+        singleClockinsMultipleWorkers.push(clockIn);
+      });
+    } else if (shift.length > 1) {
+      MCIMWPolished.push(shift);
+    }
+  });
+
+  // Array for polished version of 'singleClockinsMultipleWorkers'
+  let SCIMWPolished = [];
+
+  // Adding shifts to 'SCIMWPolished' in a formatted 
+  // way to keep at the useful data handy at all times.
+  shifts.forEach((originalShift) => {
+    singleClockinsMultipleWorkers.forEach((filteredShift) => {
+      if (originalShift.id === filteredShift.shift) {
+        SCIMWPolished.push({
+          id: originalShift.id,
+          started_at: filteredShift.started_at,
+          ended_at: filteredShift.ended_at,
+          starting_at: originalShift.starting_at,
+          ending_at: originalShift.ending_at
+        });
+      }
+    });
+  });
+
+  // Combining all shifts with single clock-ins. These will not have break times.
+  let singleClockInsCombined = [...singleClockInSingleWorker, ...SCIMWPolished];
+
+  // Combining all shifts with multiple clock-ins. These will have break times.
+  let multipleClockInsCombined = [
+    ...multipleClockInsSingleWorker,
+    ...MCIMWPolished
+  ];
+
+  // 2nd - Calculation of Hours and Minutes ----------------------------------------------
+
+  // Calculating scheduled hours of all single clock-in shifts ---------------------------
+
+  let SCICScheduledHours = singleClockInsCombined.reduce(
+    (total, { starting_at, ending_at }) =>
+      total +
+      moment.duration(moment(ending_at).diff(moment(starting_at))).asHours(),
+    0
+  );
+
+  // Total scheduled hours
+  let SCICScheduledHoursF = parseInt(
+    (Math.round(SCICScheduledHours * 4) / 4).toFixed(0),
+    10
+  );
+
+  // Calculating worked hours of all single clock-in shifts ------------------------------
+
+  let SCICWorkedHours = singleClockInsCombined.reduce(
+    (total, { started_at, ended_at }) =>
+      total +
+      moment.duration(moment(ended_at).diff(moment(started_at))).asHours(),
+    0
+  );
+
+  // Total worked hours
+  let SCICWorkedHoursF = parseInt(
+    (Math.round(SCICWorkedHours * 4) / 4).toFixed(0),
+    10
+  );
+
+  // Extra worked hours
+  let extraWorkedHoursSingleClockIns = SCICWorkedHoursF - SCICScheduledHoursF;
+
+  // Calculating scheduled hours of all multiple clock-in shifts -------------------------
+
+  // Array for scheduled minutes
+  let MCICScheduledMinutes = [];
+
+  // Adding shifts to 'MCICScheduledMinutes'
+  multipleClockInsCombined.forEach((shift) => {
+    let shiftStart = moment(shift[0].started_at);
+    let shiftEnd = moment(shift[shift.length - 1].ended_at);
+    let id = shift[0].shift;
+    let diff = moment.duration(shiftEnd.diff(shiftStart)).asMinutes();
+
+    MCICScheduledMinutes.push({
+      id: id,
+      employee: shift[0].employee,
+      scheduled_mins: diff
+    });
+  });
+
+  // Total scheduled minutes
+  let TotalMCICScheduledMinutes = MCICScheduledMinutes.reduce((acc, obj) => {
+    return acc + obj.scheduled_mins;
+  }, 0);
+
+  // Total scheduled hours
+  let MCICScheduledHours =
+    Math.floor(TotalMCICScheduledMinutes / 60) + SCICScheduledHoursF;
+
+  // Calculating worked hours of all multiple clock-in shifts ----------------------------
+
+  // Array for worked minutes
+  let MCICWorkedMinutes = [];
+
+  // Adding shifts to 'MCICWorkedMinutes'
+  multipleClockInsCombined.forEach((shift) => {
+    shift.forEach((clockIn) => {
+      let start = moment(clockIn.started_at);
+      let end = moment(clockIn.ended_at);
+      let id = clockIn.shift;
+
+      let diff = moment.duration(end.diff(start)).asMinutes();
+
+      MCICWorkedMinutes.push({
+        id: id,
+        employee: clockIn.employee,
+        worked_mins: diff
+      });
+    });
+  });
+
+  // Polished version of 'MCICWorkedMinutes'
+  let MCICWorkedMinutesPolished = MCICWorkedMinutes.reduce(
+    (result, { id, employee, worked_mins }) => {
+      let temp = result.find((o) => {
+        return o.id === id &amp;&amp; o.employee === employee;
+      });
+      if (!temp) {
+        result.push({ id, employee, worked_mins });
+      } else {
+        temp.worked_mins += worked_mins;
+      }
+      return result;
+    },
+    []
+  );
+
+  // Total worked minutes
+  let TotalMCICWorkedMinutes = MCICWorkedMinutesPolished.reduce((acc, obj) => {
+    return acc + obj.worked_mins;
+  }, 0);
+
+  // Total worked hours
+  let MCICWorkedHours =
+    Math.floor(TotalMCICWorkedMinutes / 60) + SCICWorkedHoursF;
+
+  // Extra worked hours
+  let extraWorkedHoursMultipleClockIns = MCICWorkedHours - MCICScheduledHours;
+
+  // Extra calculations -----------------------------------------------------------------
+
+  // Array for the break times
+  let breakTimes = [];
+
+  // Calculating break times of every shift
+  MCICScheduledMinutes.forEach((scheduledShift) => {
+    MCICWorkedMinutesPolished.forEach((workedShift) => {
+      if (
+        scheduledShift.id === workedShift.id &amp;&amp;
+        scheduledShift.employee === workedShift.employee
+      ) {
+        let scheduled = scheduledShift.scheduled_mins;
+        let worked = workedShift.worked_mins;
+
+        let diff = scheduled - worked;
+
+        breakTimes.push({
+          id: scheduledShift.id,
+          break_mins: diff
+        });
+      }
+    });
+  });
+
+  // Array for long breaks
+  let longBreaks = [];
+
+  // Adding shifts to 'longBreaks'
+  breakTimes.forEach((shift) => {
+    if (shift.break_mins > 30) {
+      longBreaks.push(shift);
+    }
+  });
+
+  // Calculating worked hours
+  let workedHours = MCICWorkedHours + SCICWorkedHoursF;
+
+  // Calculating scheduled hours
+  let scheduledHours = MCICScheduledHours + SCICScheduledHoursF;
+
+  // Calculating extra worked hours
+  let extraWorkedHours =
+    extraWorkedHoursSingleClockIns + extraWorkedHoursMultipleClockIns;
+
+  // Setting up conditional rendering of extra worked hours
+  let qtyOfExtraWorkedHours = () => {
+    if (extraWorkedHours > 0) {
+      return extraWorkedHours;
+    } else {
+      return 0;
+    }
+  };
+
+  // 3rd - Setting up objects -----------------------------------------------------------
+
+  // THIS IS A PLACEHOLDER, this number should be
+  // the total hours available of all employees
+  let availableHours = 300;
+
+  // Creating object for scheduled hours
+  let scheduledHoursObj = {
+    description: "Scheduled Hours",
+    qty: scheduledHours
+  };
+
+  // Creating object for worked hours
+  let workedHoursObj = {
+    description: "Worked Hours",
+    qty: workedHours
+  };
+
+  // Creating object for extra worked hours
+  let extraWorkedHoursObj = {
+    description: "Extra Worked Hours",
+    qty: qtyOfExtraWorkedHours()
+  };
+
+  // Creating object for long breaks
+  let longBreaksObj = {
+    description: "Long Breaks",
+    qty: `${longBreaks.length}`
+  };
+
+  // Generate semi-final list
+  let semiFinalList = [];
+
+  // Adding objects to semi-final list
+  semiFinalList.push(scheduledHoursObj);
+  semiFinalList.push(workedHoursObj);
+  semiFinalList.push(extraWorkedHoursObj);
+  semiFinalList.push(longBreaksObj);
+
+  // Generating final array with percentages as new properties
+  let finalList = semiFinalList.map(({ description, qty }) => ({
+    description,
+    qty,
+    pct: ((qty * 100) / availableHours).toFixed(0)
+  }));
+
+  // Generating object of available hours
+  let availableHoursObj = {
+    description: "Available Hours",
+    qty: availableHours,
+    pct: "100"
+  };
+
+  // Adding object of available hours to final list
+  finalList.push(availableHoursObj);
+
+  // Adding IDs to each object in the array
+  finalList.forEach((item, i) => {
+    item.id = i + 1;
+  });
+
+  // Returning the final array
+  return finalList;
+};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">JSDoc Home</a></h2><h3>Classes</h3><ul><li><a href="MakePayment.html">MakePayment</a></li><li><a href="Metrics.html">Metrics</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AddFavlistsToTalent">AddFavlistsToTalent</a></li><li><a href="global.html#ApplicantExtendedCard">ApplicantExtendedCard</a></li><li><a href="global.html#ApplicationDetails">ApplicationDetails</a></li><li><a href="global.html#BarChart">BarChart</a></li><li><a href="global.html#ClockInsDataGenerator">ClockInsDataGenerator</a></li><li><a href="global.html#ClockOutsDataGenerator">ClockOutsDataGenerator</a></li><li><a href="global.html#CreateDeduction">CreateDeduction</a></li><li><a href="global.html#createMapOptions">createMapOptions</a></li><li><a href="global.html#EditOrAddExpiredShift">EditOrAddExpiredShift</a></li><li><a href="global.html#EditOrAddShift">EditOrAddShift</a></li><li><a href="global.html#FeatureIndicator">FeatureIndicator</a></li><li><a href="global.html#fetchAllIfNull">fetchAllIfNull</a></li><li><a href="global.html#fetchPeyrollPeriodPayments">fetchPeyrollPeriodPayments</a></li><li><a href="global.html#FilterApplications">FilterApplications</a></li><li><a href="global.html#filterClockins">filterClockins</a></li><li><a href="global.html#FilterLocations">FilterLocations</a></li><li><a href="global.html#FilterShifts">FilterShifts</a></li><li><a href="global.html#FilterTalents">FilterTalents</a></li><li><a href="global.html#GeneralStats">GeneralStats</a></li><li><a href="global.html#GET">GET</a></li><li><a href="global.html#getDeductionsReport">getDeductionsReport</a></li><li><a href="global.html#getPaymentsReport">getPaymentsReport</a></li><li><a href="global.html#Hours">Hours</a></li><li><a href="global.html#HoursDataGenerator">HoursDataGenerator</a></li><li><a href="global.html#InviteTalentToJobcore">InviteTalentToJobcore</a></li><li><a href="global.html#InviteUserToCompanyJobcore">InviteUserToCompanyJobcore</a></li><li><a href="global.html#JobSeekers">JobSeekers</a></li><li><a href="global.html#JobSeekersDataGenerator">JobSeekersDataGenerator</a></li><li><a href="global.html#makeEmployeePayment">makeEmployeePayment</a></li><li><a href="global.html#NewJobSeekersDataGenerator">NewJobSeekersDataGenerator</a></li><li><a href="global.html#PendingInvites">PendingInvites</a></li><li><a href="global.html#PendingJobcoreInvites">PendingJobcoreInvites</a></li><li><a href="global.html#PendingRatings">PendingRatings</a></li><li><a href="global.html#PieChart">PieChart</a></li><li><a href="global.html#Punctuality">Punctuality</a></li><li><a href="global.html#Queue">Queue</a></li><li><a href="global.html#QueueData">QueueData</a></li><li><a href="global.html#RateShift">RateShift</a></li><li><a href="global.html#RatingDetails">RatingDetails</a></li><li><a href="global.html#RatingEmployees">RatingEmployees</a></li><li><a href="global.html#Ratings">Ratings</a></li><li><a href="global.html#ReviewTalentAndShift">ReviewTalentAndShift</a></li><li><a href="global.html#SearchShiftToInviteTalent">SearchShiftToInviteTalent</a></li><li><a href="global.html#SearchTalentToInviteToShift">SearchTalentToInviteToShift</a></li><li><a href="global.html#ShiftApplicants">ShiftApplicants</a></li><li><a href="global.html#ShiftDetails">ShiftDetails</a></li><li><a href="global.html#ShiftEmployees">ShiftEmployees</a></li><li><a href="global.html#ShiftInvites">ShiftInvites</a></li><li><a href="global.html#Shifts">Shifts</a></li><li><a href="global.html#ShiftsDataGenerator">ShiftsDataGenerator</a></li><li><a href="global.html#ShiftTalentClockins">ShiftTalentClockins</a></li><li><a href="global.html#TalentDetails">TalentDetails</a></li><li><a href="global.html#UpdateDeduction">UpdateDeduction</a></li><li><a href="global.html#updateProfileImage">updateProfileImage</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Wed Oct 05 2022 17:50:45 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
