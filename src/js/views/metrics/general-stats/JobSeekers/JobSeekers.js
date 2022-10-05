@@ -47,6 +47,12 @@ export const JobSeekers = (props) => {
         // Setting up main data sources
         let JobSeekersData = JobSeekersDataGenerator(shifsList, workersList)
         let NewJobSeekersData = NewJobSeekersDataGenerator(workersList)
+        
+        // Colors
+        const purple = "#5c00b8";
+        const lightPink = "#eb00eb";
+        const darkTeal = "#009e9e";
+        const green = "#06ff05";
 
         // Data for pie chart -------------------------------------------------------------------------------------
 
@@ -66,12 +72,6 @@ export const JobSeekers = (props) => {
         }
 
         // Data for bar chart -------------------------------------------------------------------------------------
-
-        // Colors
-        const purple = "#5c00b8";
-        const lightPink = "#eb00eb";
-        const darkTeal = "#009e9e";
-        const green = "#06ff05";
 
         // Preparing data to be passed to the chart component
         const newJobSeekersData = {
