@@ -92,18 +92,19 @@ export const Queue = (props) => {
       {/* Top Column Starts */}
       <div className="col d-flex d-inline-flex justify-content-center my-4 p-3 px-4" style={{ background: "rgba(107, 107, 107, 0.15)" }}>
         {/* Controls for the Week Starts */}
-        {/* Col 1 */}
-        <div className="col-4 p-0 pt-2">
+
+        {/* Week Announcer*/}
+        <div className="col-12 col-md-6 p-0 pt-2">
           <h3 className="m-0">{`Week of ${start} - ${end}`}</h3>
         </div>
 
-        {/* Col 2 */}
-        <div className="col-4 p-0 pt-2 d-flex d-inline-flex justify-content-center">
+        {/* Week Selector Tex */}
+        <div className="col-12 col-md-6 p-0 pt-2 d-flex d-inline-flex justify-content-center">
           <div className="mr-3">
             <h3 className="m-0">Select a day of the desired week: </h3>
           </div>
 
-          {/* Calendar/DatePicker */}
+          {/* Week Selector Tool */}
           <div>
             <DatePicker
               selected={selectedDate}
@@ -112,20 +113,6 @@ export const Queue = (props) => {
           </div>
         </div>
 
-        {/* Col 3 */}
-        <div className="col-4 p-0 d-flex justify-content-end">
-          <div>
-            <Button className="btn btn-dark bg-dark mr-3" onClick={() => alert("No functionality yet")}>
-              <h6 className="m-0">Placeholder 1</h6>
-            </Button>
-          </div>
-
-          <div>
-            <Button className="btn btn-dark bg-dark" onClick={() => alert("No functionality yet")}>
-              <h6 className="m-0">Placeholder 2</h6>
-            </Button>
-          </div>
-        </div>
         {/* Controls for the Week Ends */}
       </div>
       {/* Top Column Ends */}

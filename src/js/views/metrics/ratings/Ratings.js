@@ -145,7 +145,7 @@ export const Ratings = (props) => {
                         <div className="col text-center">
                             <h2 className="mb-4">Employee Ratings Table</h2>
 
-                            <table className="table table-bordered text-center">
+                            <table className="table table-bordered border-dark text-center">
                                 <thead className="thead-dark">
                                     {/* Table columns */}
                                     <tr>

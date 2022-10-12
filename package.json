@@ -132,6 +132,7 @@
     "react-dropzone": "^10.1.5",
     "react-joyride": "^2.2.1",
     "react-loader-spinner": "^3.1.14",
+    "react-multi-date-picker": "^3.3.1",
     "react-pdf": "^5.3.2",
     "react-places-autocomplete": "^7.2.0",
     "react-plaid-link": "^1.5.0",

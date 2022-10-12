@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { PieChart, BarChart } from '../../charts';
 import { JobSeekersDataGenerator, NewJobSeekersDataGenerator } from "./JobSeekersData";
+import "react-datepicker/dist/react-datepicker.css";
+import DatePicker from "react-datepicker";
+import moment from "moment";
 
 /**
  * @function
@@ -42,19 +45,81 @@ export const JobSeekers = (props) => {
         handleProps()
     }, [props])
 
+    // DatePicker -------------------------------------------------------------------------------------------------
+
+    // Date selected through the DatePicker
+    const [selectedDate, setSelectedDate] = useState(new Date());
+
+    // Monday of X week (default: current week)
+    const [start, setStart] = useState(
+        moment().startOf("isoWeek").format("YYYY-MM-DD")
+    );
+
+    // Sunday of X week (default: current week)
+    const [end, setEnd] = useState(
+        moment().endOf("isoWeek").format("YYYY-MM-DD")
+    );
+
+    // Function that filters shifts based on the Monday and Sunday of the selected date --------------------------
+    const filterShifts = () => {
+
+        // Array for filtered shifts
+        let filteredShifts = [];
+
+        // Keeping shifts that exist within the selected dates
+        shifsList?.forEach((shift) => {
+            let shiftStart = moment(shift.starting_at).format("YYYY-MM-DD");
+            let shiftEnd = moment(shift.ending_at).format("YYYY-MM-DD");
+
+            if (
+                shiftStart >= start &&
+                shiftStart <= end &&
+                shiftEnd >= start &&
+                shiftEnd <= end
+            ) {
+                filteredShifts.push(shift);
+            }
+        });
+
+        // Returning filtered shifts
+        return filteredShifts;
+    };
+
+    // UseEffect to update Mondays and Sundays when a new date is selected --------------------------------------
+
+    useEffect(() => {
+
+        // Setting up the new Monday
+        let formattedStart = moment(selectedDate)
+            .startOf("isoWeek")
+            .format("YYYY-MM-DD");
+
+        setStart(formattedStart);
+
+        // Setting up the new Sunday
+        let formattedEnd = moment(selectedDate)
+            .endOf("isoWeek")
+            .format("YYYY-MM-DD");
+
+        setEnd(formattedEnd);
+
+    }, [selectedDate]);
+
     if (workersList.length > 0) {
 
+        let specialShifts = filterShifts()
+
         // Setting up main data sources
-        let JobSeekersData = JobSeekersDataGenerator(shifsList, workersList)
+        let JobSeekersData = JobSeekersDataGenerator(specialShifts, workersList)
         let NewJobSeekersData = NewJobSeekersDataGenerator(workersList)
-        
+
+        // Data for pie chart -------------------------------------------------------------------------------------
+
         // Colors
         const purple = "#5c00b8";
         const lightPink = "#eb00eb";
         const darkTeal = "#009e9e";
         const green = "#06ff05";
-
-        // Data for pie chart -------------------------------------------------------------------------------------
 
         // Taking out the "Totals" from the chart view
         let pieData = JobSeekersData.filter((item) => { return item.description !== "Total Job Seekers" }) // Taking out the "Totals" from the chart view
@@ -88,116 +153,136 @@ export const JobSeekers = (props) => {
         // Return ----------------------------------------------------------------------------------------------------
 
         return (
-            <div className="row d-flex d-inline-flex justify-content-between w-100">
-                {/* Left Column Starts */}
-                <div className="col">
-                    <div className="row d-flex flex-column justify-content-between mb-5">
-                        {/* Job Seekers Table Starts */}
-                        <div className="col text-center">
-                            <h2 className="mb-4">Job Seekers Table</h2>
+            <div className="p-0 m-0 d-flex flex-column">
+                <div className="row mx-3 mb-4">
+                    <div className="col p-0 pt-2 d-flex d-inline-flex justify-content-start">
+                        <div className="mr-3">
+                            <h3 className="m-0">Select a day of the desired week: </h3>
+                        </div>
 
-                            <table className="table table-bordered text-center">
-                                <thead className="thead-dark">
-                                    {/* Table columns */}
-                                    <tr>
-                                        <th scope="col"><h3 className="m-0">Description</h3></th>
-                                        <th scope="col"><h3 className="m-0">Quantity</h3></th>
-                                        <th scope="col"><h3 className="m-0">Percentages</h3></th>
-                                    </tr>
-                                </thead>
+                        {/* Calendar/DatePicker */}
+                        <div>
+                            <DatePicker
+                                selected={selectedDate}
+                                onChange={(date) => setSelectedDate(date)}
+                            />
+                        </div>
+                    </div>
+                </div>
 
-                                <tbody>
-                                    {/* Mapping the data to diplay it as table rows */}
-                                    {JobSeekersData.map((item, i) => {
-                                        return item.description === "Total Job Seekers" ? (
-                                            <tr key={i} style={{ background: "rgba(107, 107, 107, 0.35)" }}>
-                                                <th scope="row"><h3 className="m-0">{item.description}</h3></th>
-                                                <td><h3 className="m-0">{item.qty}</h3></td>
-                                                <td><h3 className="m-0">{`${item.pct}%`}</h3></td>
-                                            </tr>
-                                        ) :
-                                            (
-                                                <tr key={i}>
+                <div className="row d-flex d-inline-flex justify-content-between w-100">
+
+                    {/* Left Column Starts */}
+                    <div className="col">
+                        <div className="row d-flex flex-column justify-content-between mb-5">
+
+                            {/* Job Seekers Table Starts */}
+                            <div className="col text-center">
+                                <h2 className="mb-4">Job Seekers Table</h2>
+
+                                <table className="table table-bordered border-dark text-center">
+                                    <thead className="thead-dark">
+                                        {/* Table columns */}
+                                        <tr>
+                                            <th scope="col"><h3 className="m-0">Description</h3></th>
+                                            <th scope="col"><h3 className="m-0">Quantity</h3></th>
+                                            <th scope="col"><h3 className="m-0">Percentages</h3></th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        {/* Mapping the data to diplay it as table rows */}
+                                        {JobSeekersData.map((item, i) => {
+                                            return item.description === "Total Job Seekers" ? (
+                                                <tr key={i} style={{ background: "rgba(107, 107, 107, 0.35)" }}>
                                                     <th scope="row"><h3 className="m-0">{item.description}</h3></th>
                                                     <td><h3 className="m-0">{item.qty}</h3></td>
                                                     <td><h3 className="m-0">{`${item.pct}%`}</h3></td>
                                                 </tr>
-                                            )
-                                    })}
-                                </tbody>
-                            </table>
+                                            ) :
+                                                (
+                                                    <tr key={i}>
+                                                        <th scope="row"><h3 className="m-0">{item.description}</h3></th>
+                                                        <td><h3 className="m-0">{item.qty}</h3></td>
+                                                        <td><h3 className="m-0">{`${item.pct}%`}</h3></td>
+                                                    </tr>
+                                                )
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {/* Job Seekers Table Ends */}
                         </div>
-                        {/* Job Seekers Table Ends */}
-                    </div>
 
-                    <div className="row d-flex flex-column justify-content-between mb-5">
-                        {/* New Job Seekers Table Starts */}
-                        <div className="col text-center">
-                            <h2 className="mb-4">New Job Seekers Table</h2>
+                        <div className="row d-flex flex-column justify-content-between mb-5">
+                            {/* New Job Seekers Table Starts */}
+                            <div className="col text-center">
+                                <h2 className="mb-4">New Job Seekers Table</h2>
 
-                            <table className="table table-bordered text-center">
-                                <thead className="thead-dark">
-                                    {/* Table columns */}
-                                    <tr>
-                                        <th scope="col"><h3 className="m-0">Description</h3></th>
-                                        <th scope="col"><h3 className="m-0">Quantity</h3></th>
-                                        <th scope="col"><h3 className="m-0">Percentages</h3></th>
-                                    </tr>
-                                </thead>
+                                <table className="table table-bordered border-dark text-center">
+                                    <thead className="thead-dark">
+                                        {/* Table columns */}
+                                        <tr>
+                                            <th scope="col"><h3 className="m-0">Description</h3></th>
+                                            <th scope="col"><h3 className="m-0">Quantity</h3></th>
+                                            <th scope="col"><h3 className="m-0">Percentages</h3></th>
+                                        </tr>
+                                    </thead>
 
-                                <tbody>
-                                    {/* Mapping the data to diplay it as table rows */}
-                                    {NewJobSeekersData.map((item, i) => {
-                                        return item.description === "Total Job Seekers" ? (
-                                            <tr key={i} style={{ background: "rgba(107, 107, 107, 0.35)" }}>
-                                                <th scope="row"><h3 className="m-0">{item.description}</h3></th>
-                                                <td><h3 className="m-0">{item.qty}</h3></td>
-                                                <td><h3 className="m-0">{`${item.pct}%`}</h3></td>
-                                            </tr>
-                                        ) :
-                                            (
-                                                <tr key={i}>
+                                    <tbody>
+                                        {/* Mapping the data to diplay it as table rows */}
+                                        {NewJobSeekersData.map((item, i) => {
+                                            return item.description === "Total Job Seekers" ? (
+                                                <tr key={i} style={{ background: "rgba(107, 107, 107, 0.35)" }}>
                                                     <th scope="row"><h3 className="m-0">{item.description}</h3></th>
                                                     <td><h3 className="m-0">{item.qty}</h3></td>
                                                     <td><h3 className="m-0">{`${item.pct}%`}</h3></td>
                                                 </tr>
-                                            )
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                        {/* New Job Seekers Table Ends */}
-                    </div>
-                </div>
-                {/* Left Column Ends */}
-
-                {/* Right Column Starts */}
-                <div className="col">
-                    <div className="row">
-                        {/* Job Seekers Chart Starts*/}
-                        <div className="col text-center mb-5">
-                            <h2 className="mb-3">Job Seekers Chart</h2>
-
-                            <div style={{ height: '13.90rem' }} className="mx-auto">
-                                <PieChart pieData={jobSeekersData} />
+                                            ) :
+                                                (
+                                                    <tr key={i}>
+                                                        <th scope="row"><h3 className="m-0">{item.description}</h3></th>
+                                                        <td><h3 className="m-0">{item.qty}</h3></td>
+                                                        <td><h3 className="m-0">{`${item.pct}%`}</h3></td>
+                                                    </tr>
+                                                )
+                                        })}
+                                    </tbody>
+                                </table>
                             </div>
+                            {/* New Job Seekers Table Ends */}
                         </div>
-                        {/* Job Seekers Chart Ends*/}
                     </div>
+                    {/* Left Column Ends */}
 
-                    <div className="row">
-                        {/* New Job Seekers Chart Starts*/}
-                        <div className="col text-center">
-                            <h2 className="mb-3">New Job Seekers Chart</h2>
+                    {/* Right Column Starts */}
+                    <div className="col">
+                        <div className="row">
+                            {/* Job Seekers Chart Starts*/}
+                            <div className="col text-center mb-5">
+                                <h2 className="mb-3">Job Seekers Chart</h2>
 
-                            <div style={{ height: '13.90rem' }} className="mx-auto">
-                                <BarChart barData={newJobSeekersData} />
+                                <div style={{ height: '13.90rem' }} className="mx-auto">
+                                    <PieChart pieData={jobSeekersData} />
+                                </div>
                             </div>
+                            {/* Job Seekers Chart Ends*/}
                         </div>
-                        {/* New Job Seekers Chart Ends*/}
+
+                        <div className="row">
+                            {/* New Job Seekers Chart Starts*/}
+                            <div className="col text-center">
+                                <h2 className="mb-3">New Job Seekers Chart</h2>
+
+                                <div style={{ height: '13.90rem' }} className="mx-auto">
+                                    <BarChart barData={newJobSeekersData} />
+                                </div>
+                            </div>
+                            {/* New Job Seekers Chart Ends*/}
+                        </div>
                     </div>
+                    {/* Right Column Ends */}
                 </div>
-                {/* Right Column Ends */}
             </div>
         )
     } else {
