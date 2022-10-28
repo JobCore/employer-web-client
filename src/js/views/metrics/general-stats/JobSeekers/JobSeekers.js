@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { PieChart, BarChart } from '../../charts';
 import { JobSeekersDataGenerator, NewJobSeekersDataGenerator } from "./JobSeekersData";
-import "react-datepicker/dist/react-datepicker.css";
-import DatePicker from "react-datepicker";
-import moment from "moment";
 
 /**
  * @function
@@ -18,17 +15,19 @@ import moment from "moment";
  */
 export const JobSeekers = (props) => {
 
-    // Use state to hold list of workers and list of shifts
+    /* Variables ---------------------------------------------------  */
+
+    /* Use state to hold list of workers and list of shifts */
     const [workersList, setWorkersList] = useState([])
     const [shifsList, setShiftsList] = useState([])
 
-    // Receiving the props that contain the lists we need
+    /* Receiving the props that contain the lists we need */
     const handleProps = async () => {
 
-        // Catching the props when they arrive
+        /* Catching the props when they arrive */
         let propsObj = await props
 
-        // Checking length of lists before save them
+        /* Checking length of lists before save them */
         if (propsObj.workers.length > 0) {
             // Saving list of workers
             setWorkersList(propsObj.workers)
@@ -40,77 +39,15 @@ export const JobSeekers = (props) => {
         }
     }
 
-    // Triggering handleProps when props change/arrive
+    /* Triggering handleProps when props change/arrive */
     useEffect(() => {
         handleProps()
     }, [props])
-
-    // DatePicker -------------------------------------------------------------------------------------------------
-
-    // Date selected through the DatePicker
-    const [selectedDate, setSelectedDate] = useState(new Date());
-
-    // Monday of X week (default: current week)
-    const [start, setStart] = useState(
-        moment().startOf("isoWeek").format("YYYY-MM-DD")
-    );
-
-    // Sunday of X week (default: current week)
-    const [end, setEnd] = useState(
-        moment().endOf("isoWeek").format("YYYY-MM-DD")
-    );
-
-    // Function that filters shifts based on the Monday and Sunday of the selected date --------------------------
-    const filterShifts = () => {
-
-        // Array for filtered shifts
-        let filteredShifts = [];
-
-        // Keeping shifts that exist within the selected dates
-        shifsList?.forEach((shift) => {
-            let shiftStart = moment(shift.starting_at).format("YYYY-MM-DD");
-            let shiftEnd = moment(shift.ending_at).format("YYYY-MM-DD");
-
-            if (
-                shiftStart >= start &&
-                shiftStart <= end &&
-                shiftEnd >= start &&
-                shiftEnd <= end
-            ) {
-                filteredShifts.push(shift);
-            }
-        });
-
-        // Returning filtered shifts
-        return filteredShifts;
-    };
-
-    // UseEffect to update Mondays and Sundays when a new date is selected --------------------------------------
-
-    useEffect(() => {
-
-        // Setting up the new Monday
-        let formattedStart = moment(selectedDate)
-            .startOf("isoWeek")
-            .format("YYYY-MM-DD");
-
-        setStart(formattedStart);
-
-        // Setting up the new Sunday
-        let formattedEnd = moment(selectedDate)
-            .endOf("isoWeek")
-            .format("YYYY-MM-DD");
-
-        setEnd(formattedEnd);
-
-    }, [selectedDate]);
-
+    
     if (workersList.length > 0) {
 
-        let specialShifts = filterShifts()
-
         // Setting up main data sources
-        let JobSeekersData = JobSeekersDataGenerator(specialShifts, workersList)
+        let JobSeekersData = JobSeekersDataGenerator(shifsList, workersList)
         let NewJobSeekersData = NewJobSeekersDataGenerator(workersList)
 
         // Data for pie chart -------------------------------------------------------------------------------------
@@ -155,23 +92,15 @@ export const JobSeekers = (props) => {
         return (
             <div className="p-0 m-0 d-flex flex-column">
                 <div className="row mx-3 mb-4">
-                    <div className="col p-0 pt-2 d-flex d-inline-flex justify-content-start">
-                        <div className="mr-3">
-                            <h3 className="m-0">Select a day of the desired week: </h3>
-                        </div>
-
-                        {/* Calendar/DatePicker */}
-                        <div>
-                            <DatePicker
-                                selected={selectedDate}
-                                onChange={(date) => setSelectedDate(date)}
-                            />
-                        </div>
+                    <div className="col p-0 d-flex d-inline-flex justify-content-between">
+                        
                     </div>
                 </div>
 
-                <div className="row d-flex d-inline-flex justify-content-between w-100">
-
+                <div
+                    className="row d-flex d-inline-flex justify-content-between"
+                    style={{ width: "100%" }}
+                >
                     {/* Left Column Starts */}
                     <div className="col">
                         <div className="row d-flex flex-column justify-content-between mb-5">

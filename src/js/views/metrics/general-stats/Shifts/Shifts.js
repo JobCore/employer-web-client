@@ -8,13 +8,14 @@ import moment from "moment";
 /**
  * @function
  * @description Creates a page with a table and a graph of all the shift statuses.
- * @since 09.29.22 by Paola Sanchez
+ * @since 10.28.22 by Paola Sanchez
  * @author Paola Sanchez
- * @requires ShiftsDataGenerator
  * @requires BarChart
+ * @requires ShiftsDataGenerator
  * @param {object} props - Contains an array of all the shifts.
  */
 export const Shifts = (props) => {
+
     /* Variables ---------------------------------------------------  */
 
     /* Putting props into variable */
@@ -22,6 +23,7 @@ export const Shifts = (props) => {
 
     /* Start of given time period */
     const [start, setStart] = useState(moment().format("MM-DD-YYYY"));
+
     /* End of given time period */
     const [end, setEnd] = useState(moment().format("MM-DD-YYYY"));
 
@@ -42,9 +44,11 @@ export const Shifts = (props) => {
     const [defaultWeek, setDefaultWeek] = useState(
         new Date().toLocaleDateString()
     );
+
     const [defaultMonth, setDefaultMonth] = useState(
         new Date().toLocaleDateString("en-us", { month: "long", year: "numeric" })
     );
+
     const [defaultYear, setDefaultYear] = useState(new Date().getFullYear());
 
     /* Handlers ---------------------------------------------------  */
@@ -165,16 +169,15 @@ export const Shifts = (props) => {
     /* Calculate start and end of year */
     const startEndOfYear = () => {
         // Transforming year value into string
-        let yearAsString = defaultYear.toString();
+        let yearAsString = defaultYear.toString()
 
-        // Setting up start
-        let startOfYear = `${yearAsString}-01-01`
-        let startOfYearF = moment(startOfYear).startOf("year").format("MM-DD-YYYY");
-        setStart(startOfYearF)
-       
-        // Setting up end
-        let endOfYearF = moment(startOfYearF).endOf("year").format("MM-DD-YYYY");
-        setEnd(endOfYearF)
+        // Calculating start and end
+        let startOfYear = moment(`01-01-${yearAsString}`).format("MM-DD-YYYY")
+        let endOfYear = moment(`12-31-${yearAsString}`).format("MM-DD-YYYY")
+
+        // Setting up start and end
+        setStart(startOfYear)
+        setEnd(endOfYear)
     };
 
     /* 
@@ -255,13 +258,18 @@ export const Shifts = (props) => {
             let shiftStart = moment(shift.starting_at).format("MM-DD-YYYY");
             let shiftEnd = moment(shift.ending_at).format("MM-DD-YYYY");
 
-            if (
-                shiftStart >= start &&
-                shiftStart <= end &&
-                shiftEnd >= start &&
-                shiftEnd <= end
-            ) {
-                filteredShifts.push(shift);
+            let shiftYear = shiftStart.slice(-4);
+            let startAndEndYear = start.slice(-4);
+
+            if (shiftYear === startAndEndYear) {
+                if (
+                    shiftStart >= start &&
+                    shiftStart <= end &&
+                    shiftEnd >= start &&
+                    shiftEnd <= end
+                ) {
+                    filteredShifts.push(shift);
+                }
             }
         });
 

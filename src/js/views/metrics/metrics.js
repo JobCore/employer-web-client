@@ -9,8 +9,8 @@ import { GeneralStats } from "./general-stats/GeneralStats";
 
 import { store, search } from "../../actions";
 
-import {WorkersData} from "./dummy-data/WorkersData";
-import {ShiftsData} from "./dummy-data/ShiftsData";
+// import {WorkersData} from "./dummy-data/WorkersData";
+// import {ShiftsData} from "./dummy-data/ShiftsData";
 
 /**
  * @description Creates the view for Metrics page, which renders 4 tabs with different components being called inside each one.
@@ -113,9 +113,8 @@ export class Metrics extends Flux.DashView {
         let listOfShifts = this.state.allShifts;
 
         // Temporal dummy data
-
-        let dummyShifts = ShiftsData
-        let dummyWorkers = WorkersData
+        // let dummyShifts = ShiftsData
+        // let dummyWorkers = WorkersData
 
         // ---------------------------------------------
         // Filtering expired shifts
@@ -156,25 +155,25 @@ export class Metrics extends Flux.DashView {
                     >
                         {/* General Stats Tab Starts */}
                         <div className="tab-pane fade show active" id="nav-general-stats" role="tabpanel" aria-labelledby="nav-general-stats-tab">
-                            <GeneralStats workers={dummyWorkers} shifts={dummyShifts} />
+                            <GeneralStats workers={verifiedEmpList} shifts={listOfShifts} />
                         </div>
                         {/* General Stats Tab Ends */}
 
                         {/* Punctuality Tab Starts */}
                         <div className="tab-pane fade" id="nav-punctuality" role="tabpanel" aria-labelledby="nav-punctuality-tab">
-                            <Punctuality shifts={dummyShifts} />
+                            <Punctuality shifts={listOfShifts} />
                         </div>
                         {/* Punctuality Tab Ends */}
 
                         {/* Ratings Tab Starts */}
                         <div className="tab-pane fade" id="nav-ratings" role="tabpanel" aria-labelledby="nav-ratings-tab">
-                            <Ratings workers={dummyWorkers} />
+                            <Ratings workers={verifiedEmpList} />
                         </div>
                         {/* Ratings Tab Ends */}
 
                         {/* Queue Tab Starts */}
                         <div className="tab-pane fade" id="nav-queue" role="tabpanel" aria-labelledby="nav-queue-tab">
-                            <Queue workers={dummyWorkers} shifts={dummyShifts} />
+                            <Queue workers={verifiedEmpList} shifts={listOfShifts} />
                         </div>
                         {/* Queue Tab Ends */}
                     </div>

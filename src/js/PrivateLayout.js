@@ -796,17 +796,12 @@ class PrivateLayout extends Flux.DashView {
                 </NavLink>
               </li>
               <li>
-                {/* {showHideHR && (
+                {showHideHR && (
                   <NavLink to="/metrics" id="metricslink">
                     <i className="icon icon-metrics"></i>
                     <span style={{ fontSize: 16, fontWeight: 500 }}>Metrics</span>
                   </NavLink>
-                )} */}
-
-                <NavLink to="/metrics" id="metricslink">
-                  <i className="icon icon-metrics"></i>
-                  <span style={{ fontSize: 16, fontWeight: 500 }}>Metrics</span>
-                </NavLink>
+                )}
               </li>
               <li>
                 <a
@@ -1248,7 +1243,7 @@ class PrivateLayout extends Flux.DashView {
   }
   hideComponent(admin) {
     if (admin === "a@jobcore.co") {
-      // this.setState({ showHideHR: false }); // uncommenting makes tap talent search is visible only to JC-HR@admin.co
+      // this.setState({ showHideHR: false }); // When this is uncommented, it makes both "talent search" and "metrics" visible only to JC-HR@admin.co
       console.log("showHideHR###", this.state.showHideHR)
       console.log("admin###", admin)
     }
