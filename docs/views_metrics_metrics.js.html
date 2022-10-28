@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: views/metrics/metrics.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: views/metrics/metrics.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React from "react";
+import Flux from "@4geeksacademy/react-flux-dash";
+import { Session } from "bc-react-session";
+
+import { Queue } from "./queue/Queue";
+import { Punctuality } from "./punctuality/Punctuality";
+import { Ratings } from "./ratings/Ratings";
+import { GeneralStats } from "./general-stats/GeneralStats";
+
+import { store, search } from "../../actions";
+
+/**
+ * @description Creates the view for Metrics page, which renders 4 tabs with different components being called inside each one.
+ * @since 09.28.22 by Paola Sanchez
+ * @author Paola Sanchez
+ * @requires Punctuality
+ * @requires Ratings
+ * @requires GeneralStats
+ * @requires Queue
+ * @requires store
+ * @requires search
+ * @requires Session
+ * @requries Flux
+ */
+export class Metrics extends Flux.DashView {
+
+    constructor() {
+        super();
+        this.state = {
+            // Queue Data ----------------------------------------------------------------------------------------------------------------------------
+
+            // Variables for the Workers' List
+            employees: [], // This will hold all the shifts.
+            DocStatus: "", //This is needed to check the verification status of employees.
+            empStatus: "unverified", //This is needed to filter out unverified employees.
+
+            // Variables for the Shifts' List
+            allShifts: [], // This will hold all the shifts.
+            session: Session.get(), // This is needed to crate a user/employer session.
+            calendarLoading: true, // This is needed to fill up the list of shifts, not sure how.
+        };
+
+        // This updates the state values
+        this.handleStatusChange = this.handleStatusChange.bind(this);
+    }
+
+    // Generating the list of shifts and the list of employees ---------------------------------------------------------------------------------------
+
+    componentDidMount() {
+        // Processes for the Shifts' List (Not sure how they work)
+        const shifts = store.getState("shifts");
+
+        this.subscribe(store, "shifts", (_shifts) => {
+            this.setState({ allShifts: _shifts, calendarLoading: false });
+        });
+
+        // Processes for the Workers' List (Not sure how they work)
+        this.filter();
+
+        this.subscribe(store, "employees", (employees) => {
+            if (Array.isArray(employees) &amp;&amp; employees.length !== 0)
+                this.setState({ employees });
+        });
+
+        this.handleStatusChange
+    }
+
+    // Processes for the Workers' List (Not sure how they work)
+    componentWillUnmount() {
+        this.handleStatusChange
+    }
+
+    handleStatusChange() {
+        this.setState({ DocStatus: props.catalog.employee.employment_verification_status });
+    }
+
+    filter(url) {
+        let queries = window.location.search;
+
+        if (queries) queries = "&amp;" + queries.substring(1);
+
+        if (url &amp;&amp; url.length > 50) {
+            const page = url.split("employees")[1];
+
+            if (page) {
+                search(`employees`, `${page + queries}`).then((data) => {
+                    this.setState({
+                        employees: data.results,
+                    });
+                });
+
+            } else null;
+
+        } else {
+            search(`employees`, `?envelope=true&amp;limit=50${queries}`).then((data) => {
+                this.setState({
+                    employees: data.results,
+                });
+            });
+        }
+    }
+
+    // Render ---------------------------------------------------------------------------------------------------------------------------------------
+
+    render() {
+        // List of workers with verified documents
+        let verifiedEmpList = this.state.employees.filter((employees) => employees.employment_verification_status === "APPROVED")
+
+        // List of all shifts
+        let listOfShifts = this.state.allShifts;
+
+        // ---------------------------------------------
+        // Filtering expired shifts
+        // let listOfShifts =
+        //     (Array.isArray(shifts) &amp;&amp;
+        //         shifts.length > 0 &amp;&amp;
+        //         shifts.filter(
+        //             (e) => e.status !== "EXPIRED"
+        //         )) ||
+        //     [];
+        // ---------------------------------------------
+
+        // Return -----------------------------------------------------------------------------------------------------------------------------------
+
+        return (
+            &lt;div>
+                {/* Title of the Page*/}
+                &lt;div className="mx-3 mb-3">
+                    &lt;h1>Metrics&lt;/h1>
+                &lt;/div>
+
+                &lt;div className="row d-flex flex-column mx-3">
+                    {/* Tabs Controller Starts */}
+                    &lt;nav>
+                        &lt;div className="nav nav-tabs nav-fill" id="nav-tab" role="tablist">
+                            &lt;a className="nav-item nav-link active" id="nav-general-stats-tab" data-toggle="tab" href="#nav-general-stats" role="tab" aria-controls="nav-general-stats" aria-selected="true">&lt;h2>General Stats&lt;/h2>&lt;/a>
+                            &lt;a className="nav-item nav-link" id="nav-punctuality-tab" data-toggle="tab" href="#nav-punctuality" role="tab" aria-controls="nav-punctuality" aria-selected="false">&lt;h2>Punctuality&lt;/h2>&lt;/a>
+                            &lt;a className="nav-item nav-link" id="nav-ratings-tab" data-toggle="tab" href="#nav-ratings" role="tab" aria-controls="nav-ratings" aria-selected="false">&lt;h2>Ratings&lt;/h2>&lt;/a>
+                            &lt;a className="nav-item nav-link" id="nav-queue-tab" data-toggle="tab" href="#nav-queue" role="tab" aria-controls="nav-queue" aria-selected="false">&lt;h2>Queue&lt;/h2>&lt;/a>
+                        &lt;/div>
+                    &lt;/nav>
+                    {/* Tabs Controller Ends */}
+
+                    {/* Tabs Content Starts */}
+                    &lt;div
+                        className="tab-content mt-5"
+                        id="nav-tabContent"
+                    >
+                        {/* General Stats Tab Starts */}
+                        &lt;div className="tab-pane fade show active" id="nav-general-stats" role="tabpanel" aria-labelledby="nav-general-stats-tab">
+                            &lt;GeneralStats workers={verifiedEmpList} shifts={listOfShifts} />
+                        &lt;/div>
+                        {/* General Stats Tab Ends */}
+
+                        {/* Punctuality Tab Starts */}
+                        &lt;div className="tab-pane fade" id="nav-punctuality" role="tabpanel" aria-labelledby="nav-punctuality-tab">
+                            &lt;Punctuality shifts={listOfShifts} />
+                        &lt;/div>
+                        {/* Punctuality Tab Ends */}
+
+                        {/* Ratings Tab Starts */}
+                        &lt;div className="tab-pane fade" id="nav-ratings" role="tabpanel" aria-labelledby="nav-ratings-tab">
+                            &lt;Ratings workers={verifiedEmpList} />
+                        &lt;/div>
+                        {/* Ratings Tab Ends */}
+
+                        {/* Queue Tab Starts */}
+                        &lt;div className="tab-pane fade" id="nav-queue" role="tabpanel" aria-labelledby="nav-queue-tab">
+                            &lt;Queue workers={verifiedEmpList} shifts={listOfShifts} />
+                        &lt;/div>
+                        {/* Queue Tab Ends */}
+                    &lt;/div>
+                    {/* Tabs Content Ends */}
+                &lt;/div>
+            &lt;/div>
+        );
+    }
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">JSDoc of employer-web-client</a></h2><h3>Classes</h3><ul><li><a href="MakePayment.html">MakePayment</a></li><li><a href="Metrics.html">Metrics</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AddFavlistsToTalent">AddFavlistsToTalent</a></li><li><a href="global.html#ApplicantExtendedCard">ApplicantExtendedCard</a></li><li><a href="global.html#ApplicationDetails">ApplicationDetails</a></li><li><a href="global.html#BarChart">BarChart</a></li><li><a href="global.html#ClockInsDataGenerator">ClockInsDataGenerator</a></li><li><a href="global.html#ClockOutsDataGenerator">ClockOutsDataGenerator</a></li><li><a href="global.html#CreateDeduction">CreateDeduction</a></li><li><a href="global.html#createMapOptions">createMapOptions</a></li><li><a href="global.html#EditOrAddExpiredShift">EditOrAddExpiredShift</a></li><li><a href="global.html#EditOrAddShift">EditOrAddShift</a></li><li><a href="global.html#FeatureIndicator">FeatureIndicator</a></li><li><a href="global.html#fetchAllIfNull">fetchAllIfNull</a></li><li><a href="global.html#fetchPeyrollPeriodPayments">fetchPeyrollPeriodPayments</a></li><li><a href="global.html#FilterApplications">FilterApplications</a></li><li><a href="global.html#filterClockins">filterClockins</a></li><li><a href="global.html#FilterLocations">FilterLocations</a></li><li><a href="global.html#FilterShifts">FilterShifts</a></li><li><a href="global.html#FilterTalents">FilterTalents</a></li><li><a href="global.html#GeneralStats">GeneralStats</a></li><li><a href="global.html#GET">GET</a></li><li><a href="global.html#getDeductionsReport">getDeductionsReport</a></li><li><a href="global.html#getPaymentsReport">getPaymentsReport</a></li><li><a href="global.html#Hours">Hours</a></li><li><a href="global.html#HoursDataGenerator">HoursDataGenerator</a></li><li><a href="global.html#InviteTalentToJobcore">InviteTalentToJobcore</a></li><li><a href="global.html#InviteUserToCompanyJobcore">InviteUserToCompanyJobcore</a></li><li><a href="global.html#JobSeekers">JobSeekers</a></li><li><a href="global.html#JobSeekersDataGenerator">JobSeekersDataGenerator</a></li><li><a href="global.html#makeEmployeePayment">makeEmployeePayment</a></li><li><a href="global.html#NewJobSeekersDataGenerator">NewJobSeekersDataGenerator</a></li><li><a href="global.html#PendingInvites">PendingInvites</a></li><li><a href="global.html#PendingJobcoreInvites">PendingJobcoreInvites</a></li><li><a href="global.html#PendingRatings">PendingRatings</a></li><li><a href="global.html#PieChart">PieChart</a></li><li><a href="global.html#Punctuality">Punctuality</a></li><li><a href="global.html#Queue">Queue</a></li><li><a href="global.html#QueueData">QueueData</a></li><li><a href="global.html#RateShift">RateShift</a></li><li><a href="global.html#RatingDetails">RatingDetails</a></li><li><a href="global.html#RatingEmployees">RatingEmployees</a></li><li><a href="global.html#Ratings">Ratings</a></li><li><a href="global.html#ReviewTalentAndShift">ReviewTalentAndShift</a></li><li><a href="global.html#SearchShiftToInviteTalent">SearchShiftToInviteTalent</a></li><li><a href="global.html#SearchTalentToInviteToShift">SearchTalentToInviteToShift</a></li><li><a href="global.html#ShiftApplicants">ShiftApplicants</a></li><li><a href="global.html#ShiftDetails">ShiftDetails</a></li><li><a href="global.html#ShiftEmployees">ShiftEmployees</a></li><li><a href="global.html#ShiftInvites">ShiftInvites</a></li><li><a href="global.html#Shifts">Shifts</a></li><li><a href="global.html#ShiftsDataGenerator">ShiftsDataGenerator</a></li><li><a href="global.html#ShiftTalentClockins">ShiftTalentClockins</a></li><li><a href="global.html#TalentDetails">TalentDetails</a></li><li><a href="global.html#UpdateDeduction">UpdateDeduction</a></li><li><a href="global.html#updateProfileImage">updateProfileImage</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Wed Oct 05 2022 17:57:01 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

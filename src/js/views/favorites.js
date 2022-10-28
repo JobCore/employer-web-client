@@ -175,8 +175,6 @@ export const AddFavlistsToTalent = ({
   onCancel,
   catalog,
 }) => {
-  console.log(formData);
-  console.log(catalog);
   return (
     <Theme.Consumer>
       {({ bar }) => (

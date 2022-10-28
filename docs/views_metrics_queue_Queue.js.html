@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: views/metrics/queue/Queue.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: views/metrics/queue/Queue.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useState, useEffect } from "react";
+import "react-datepicker/dist/react-datepicker.css";
+import DatePicker from "react-datepicker";
+import moment from "moment";
+
+import { QueueData } from "./QueueData";
+import { Button } from "../../../components/index";
+
+/**
+ * @function
+ * @description Creates a page with a DatePicker and table of all employees with their worked/scheduled hours.
+ * @since 09.29.22 by Paola Sanchez
+ * @author Paola Sanchez
+ * @requires moment
+ * @requires DatePicker
+ * @requires QueueData
+ * @requires Button
+ * @param {object} props - Contains an array of all shifts, and an array of all workers.
+ */
+export const Queue = (props) => {
+
+  // Setting up my variables ---------------------------------------------------------------------------------
+
+  // Setting up main data source
+  let allShifts = props.shifts;
+  let workers = props.workers;
+
+  // Date selected through the DatePicker
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  // Monday of X week (default: current week)
+  const [start, setStart] = useState(
+    moment().startOf("isoWeek").format("YYYY-MM-DD")
+  );
+
+  // Sunday of X week (default: current week)
+  const [end, setEnd] = useState(
+    moment().endOf("isoWeek").format("YYYY-MM-DD")
+  );
+
+  // Function that filters shifts based on the Monday and Sunday of the selected date --------------------------
+
+  const filterShifts = () => {
+
+    // Array for filtered shifts
+    let filteredShifts = [];
+
+    // Keeping shifts that exist within the selected dates
+    allShifts.forEach((shift) => {
+      let shiftStart = moment(shift.starting_at).format("YYYY-MM-DD");
+      let shiftEnd = moment(shift.ending_at).format("YYYY-MM-DD");
+
+      if (
+        shiftStart >= start &amp;&amp;
+        shiftStart &lt;= end &amp;&amp;
+        shiftEnd >= start &amp;&amp;
+        shiftEnd &lt;= end
+      ) {
+        filteredShifts.push(shift);
+      }
+    });
+
+    // Returning filtered shifts
+    return filteredShifts;
+  };
+
+  // UseEffect to update Mondays and Sundays when a new date is selected --------------------------------------
+
+  useEffect(() => {
+
+    // Setting up the new Monday
+    let formattedStart = moment(selectedDate)
+      .startOf("isoWeek")
+      .format("YYYY-MM-DD");
+
+    setStart(formattedStart);
+
+    // Setting up the new Sunday
+    let formattedEnd = moment(selectedDate)
+      .endOf("isoWeek")
+      .format("YYYY-MM-DD");
+
+    setEnd(formattedEnd);
+
+  }, [selectedDate]);
+
+  // Return ----------------------------------------------------------------------------------------------------
+
+  return (
+    &lt;div className="row d-flex flex-column justify-content-center mx-auto w-100">
+      &lt;h2 className="mx-auto">Table of Employee Hours&lt;/h2>
+      {/* Top Column Starts */}
+      &lt;div className="col d-flex d-inline-flex justify-content-center my-4 p-3 px-4" style={{ background: "rgba(107, 107, 107, 0.15)" }}>
+        {/* Controls for the Week Starts */}
+        {/* Col 1 */}
+        &lt;div className="col-4 p-0 pt-2">
+          &lt;h3 className="m-0">{`Week of ${start} - ${end}`}&lt;/h3>
+        &lt;/div>
+
+        {/* Col 2 */}
+        &lt;div className="col-4 p-0 pt-2 d-flex d-inline-flex justify-content-center">
+          &lt;div className="mr-3">
+            &lt;h3 className="m-0">Select a day of the desired week: &lt;/h3>
+          &lt;/div>
+
+          {/* Calendar/DatePicker */}
+          &lt;div>
+            &lt;DatePicker
+              selected={selectedDate}
+              onChange={(date) => setSelectedDate(date)}
+            />
+          &lt;/div>
+        &lt;/div>
+
+        {/* Col 3 */}
+        &lt;div className="col-4 p-0 d-flex justify-content-end">
+          &lt;div>
+            &lt;Button className="btn btn-dark bg-dark mr-3" onClick={() => alert("No functionality yet")}>
+              &lt;h6 className="m-0">Placeholder 1&lt;/h6>
+            &lt;/Button>
+          &lt;/div>
+
+          &lt;div>
+            &lt;Button className="btn btn-dark bg-dark" onClick={() => alert("No functionality yet")}>
+              &lt;h6 className="m-0">Placeholder 2&lt;/h6>
+            &lt;/Button>
+          &lt;/div>
+        &lt;/div>
+        {/* Controls for the Week Ends */}
+      &lt;/div>
+      {/* Top Column Ends */}
+
+      {/* Bottom Column Starts */}
+      {/* Table of Employees Starts */}
+      &lt;div className="col rounded mt-2 m-0 p-0 text-center mx-auto">
+        {workers?.map((singleWorker, i) => {
+          return (
+            &lt;QueueData
+              key={i}
+              worker={singleWorker}
+              shifts={filterShifts()}
+            />)
+        })}
+      &lt;/div>
+      {/* Table of Employees Ends */}
+      {/* Bottom Column Ends */}
+    &lt;/div>
+  );
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">JSDoc of employer-web-client</a></h2><h3>Classes</h3><ul><li><a href="MakePayment.html">MakePayment</a></li><li><a href="Metrics.html">Metrics</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AddFavlistsToTalent">AddFavlistsToTalent</a></li><li><a href="global.html#ApplicantExtendedCard">ApplicantExtendedCard</a></li><li><a href="global.html#ApplicationDetails">ApplicationDetails</a></li><li><a href="global.html#BarChart">BarChart</a></li><li><a href="global.html#ClockInsDataGenerator">ClockInsDataGenerator</a></li><li><a href="global.html#ClockOutsDataGenerator">ClockOutsDataGenerator</a></li><li><a href="global.html#CreateDeduction">CreateDeduction</a></li><li><a href="global.html#createMapOptions">createMapOptions</a></li><li><a href="global.html#EditOrAddExpiredShift">EditOrAddExpiredShift</a></li><li><a href="global.html#EditOrAddShift">EditOrAddShift</a></li><li><a href="global.html#FeatureIndicator">FeatureIndicator</a></li><li><a href="global.html#fetchAllIfNull">fetchAllIfNull</a></li><li><a href="global.html#fetchPeyrollPeriodPayments">fetchPeyrollPeriodPayments</a></li><li><a href="global.html#FilterApplications">FilterApplications</a></li><li><a href="global.html#filterClockins">filterClockins</a></li><li><a href="global.html#FilterLocations">FilterLocations</a></li><li><a href="global.html#FilterShifts">FilterShifts</a></li><li><a href="global.html#FilterTalents">FilterTalents</a></li><li><a href="global.html#GeneralStats">GeneralStats</a></li><li><a href="global.html#GET">GET</a></li><li><a href="global.html#getDeductionsReport">getDeductionsReport</a></li><li><a href="global.html#getPaymentsReport">getPaymentsReport</a></li><li><a href="global.html#Hours">Hours</a></li><li><a href="global.html#HoursDataGenerator">HoursDataGenerator</a></li><li><a href="global.html#InviteTalentToJobcore">InviteTalentToJobcore</a></li><li><a href="global.html#InviteUserToCompanyJobcore">InviteUserToCompanyJobcore</a></li><li><a href="global.html#JobSeekers">JobSeekers</a></li><li><a href="global.html#JobSeekersDataGenerator">JobSeekersDataGenerator</a></li><li><a href="global.html#makeEmployeePayment">makeEmployeePayment</a></li><li><a href="global.html#NewJobSeekersDataGenerator">NewJobSeekersDataGenerator</a></li><li><a href="global.html#PendingInvites">PendingInvites</a></li><li><a href="global.html#PendingJobcoreInvites">PendingJobcoreInvites</a></li><li><a href="global.html#PendingRatings">PendingRatings</a></li><li><a href="global.html#PieChart">PieChart</a></li><li><a href="global.html#Punctuality">Punctuality</a></li><li><a href="global.html#Queue">Queue</a></li><li><a href="global.html#QueueData">QueueData</a></li><li><a href="global.html#RateShift">RateShift</a></li><li><a href="global.html#RatingDetails">RatingDetails</a></li><li><a href="global.html#RatingEmployees">RatingEmployees</a></li><li><a href="global.html#Ratings">Ratings</a></li><li><a href="global.html#ReviewTalentAndShift">ReviewTalentAndShift</a></li><li><a href="global.html#SearchShiftToInviteTalent">SearchShiftToInviteTalent</a></li><li><a href="global.html#SearchTalentToInviteToShift">SearchTalentToInviteToShift</a></li><li><a href="global.html#ShiftApplicants">ShiftApplicants</a></li><li><a href="global.html#ShiftDetails">ShiftDetails</a></li><li><a href="global.html#ShiftEmployees">ShiftEmployees</a></li><li><a href="global.html#ShiftInvites">ShiftInvites</a></li><li><a href="global.html#Shifts">Shifts</a></li><li><a href="global.html#ShiftsDataGenerator">ShiftsDataGenerator</a></li><li><a href="global.html#ShiftTalentClockins">ShiftTalentClockins</a></li><li><a href="global.html#TalentDetails">TalentDetails</a></li><li><a href="global.html#UpdateDeduction">UpdateDeduction</a></li><li><a href="global.html#updateProfileImage">updateProfileImage</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Wed Oct 05 2022 17:57:01 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

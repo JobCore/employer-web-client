@@ -4464,7 +4464,7 @@ export class PayrollReport extends Flux.DashView {
 
       return (
         <table
-          className="table table-sm table-bordered"
+          className="table table-sm table-bordered border-dark"
           style={{ fontSize: "12px", border: "1px solid black" }}
         >
           <thead style={{ background: "transparent" }}>

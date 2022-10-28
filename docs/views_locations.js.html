@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: views/locations.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: views/locations.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React from "react";
+import Flux from "@4geeksacademy/react-flux-dash";
+import PropTypes from 'prop-types';
+import {store, searchMe, remove,updateProfileMe} from '../actions.js';
+import { GenericCard, Theme, Button,Wizard } from '../components/index';
+import Select from 'react-select';
+import queryString from 'query-string';
+import {hasTutorial } from '../utils/tutorial';
+import {Link} from "react-router-dom";
+import { Session } from 'bc-react-session';
+
+import {validator, ValidationError} from '../utils/validation';
+
+import {Notify} from 'bc-react-notifier';
+
+import GoogleMapReact from 'google-map-react';
+import markerURL from '../../img/marker.png';
+import PlacesAutocomplete, {geocodeByAddress, getLatLng} from 'react-places-autocomplete';
+
+const ENTITIY_NAME = 'venues';
+
+//gets the querystring and creats a formData object to be used when opening the rightbar
+export const getTalentInitialFilters = (catalog) => {
+    let query = queryString.parse(window.location.search);
+    if(typeof query == 'undefined') return {};
+    if(!Array.isArray(query.positions)) query.positions = (typeof query.positions == 'undefined') ? [] : [query.positions];
+    if(!Array.isArray(query.badges)) query.badges = (typeof query.badges == 'undefined') ? [] : [query.badges];
+    return {
+        positions: query.positions.map(pId => catalog.positions.find(pos => pos.value == pId)),
+        badges: query.badges.map(bId => catalog.badges.find(b => b.value == bId)),
+        rating: catalog.stars.find(rate => rate.value == query.rating)
+    };
+};
+
+export const Location = (data) => {
+
+    const _defaults = {
+        id: '',
+        title: '',
+        street_address: '',
+        country: '',
+        latitude: 25.7617,
+        longitude: 80.1918,
+        state: '',
+        zip_code: '',
+        serialize: function(){
+
+            const newLocation = {
+                latitude: this.latitude.toFixed(6),
+                longitude: this.longitude.toFixed(6)
+//                status: (this.status == 'UNDEFINED') ? 'DRAFT' : this.status,
+            };
+
+            return Object.assign(this, newLocation);
+        }
+    };
+
+    let _location = Object.assign(_defaults, data);
+    return {
+        validate: () => {
+            if(validator.isEmpty(_location.title)) throw new ValidationError('The location title cannot be empty');
+            if(validator.isEmpty(_location.street_address)) throw new ValidationError('The location address cannot be empty');
+            if(validator.isEmpty(_location.country)) throw new ValidationError('The location country cannot be empty');
+            if(validator.isEmpty(_location.state)) throw new ValidationError('The location state cannot be empty');
+            if(validator.isEmpty(_location.zip_code)) throw new ValidationError('The location zip_code cannot be empty');
+            return _location;
+        },
+        defaults: () => {
+            return _defaults;
+        },
+        getFormData: () => {
+            const _formShift = {
+                id: _location.id.toString(),
+                title: _location.title,
+                street_address: _location.street_address,
+                latitude: parseFloat(_location.latitude),
+                longitude: parseFloat(_location.longitude),
+                country: _location.country,
+                state: _location.state,
+                date: _location.zip_code
+            };
+            return _formShift;
+        }
+    };
+};
+
+export class ManageLocations extends Flux.DashView {
+
+    constructor(){
+        super();
+        this.state = {
+            locations: [],
+            currentUser: Session.getPayload().user.profile,
+            runTutorial: hasTutorial(),
+            steps: [
+                {
+                    content: &lt;div>&lt;h2>Location page&lt;/h2>&lt;p>Here you will find all your company locations. You always can add new locations later.&lt;/p>&lt;/div>,
+                    placement: "center",   
+                    disableBeacon: true,
+
+                    styles: {
+                        options: {
+                            zIndex: 10000
+                        },
+                        buttonClose: {
+                            display: "none"
+                        }
+                    },
+                    locale: { skip: "Skip tutorial" },
+                    target: "body",
+                    disableCloseOnEsc: true,
+                    spotlightClicks: true
+                    },
+                {
+                    target: '#create_location',
+                    content: "Let's start by creating your new location",
+                    placement: 'right',
+                    styles: {
+                        buttonClose: {
+                            display: "none"
+                        },
+                        buttonNext: {
+                            display: 'none'
+                        }
+                    },
+                    spotlightClicks: true
+
+                },
+                {
+                    target: '#payroll',
+                    content: 'Set up the company payroll',
+                    placement: 'right',
+                    styles: {
+                        buttonClose: {
+                            display: "none"
+                        },
+                        buttonNext: {
+                            display: 'none'
+                        }
+                    },
+                    spotlightClicks: true
+                }
+            ]
+        };
+    }
+
+    componentDidMount(){
+
+        this.filter();
+        this.subscribe(store, ENTITIY_NAME, (locations) => {
+            this.setState({ locations });
+        });
+
+        this.props.history.listen(() => {
+            this.filter();
+            this.setState({ firstSearch: false });
+        });
+    }
+
+    filter(locations=null){
+        searchMe(ENTITIY_NAME, window.location.search);
+    }
+
+    render() {
+        if(this.state.firstSearch) return &lt;p>Search for any location&lt;/p>;
+        const allowLevels = (window.location.search != '');
+        console.log(this.state);
+        return (&lt;div className="p-1 listcontents">
+            &lt;Theme.Consumer>
+                {({bar}) => (&lt;span>
+                    &lt;Wizard continuous
+                            steps={this.state.steps}
+                            run={this.state.runTutorial}
+                            callback={callback}
+                            allowClicksThruHole= {true}
+                            disableOverlay= {true}
+                            spotlightClicks= {true}
+                            styles={{
+                                options: {
+                                  primaryColor: '#000'
+                                }
+                              }}
+                        />
+                    &lt;h1>&lt;span id="talent_search_header">Location Search&lt;/span>&lt;/h1>
+                    {this.state.locations.map((l,i) => (
+                        &lt;GenericCard key={i} hover={true} onClick={() => bar.show({ slug: "update_location", data: l, allowLevels })}>
+                            &lt;div className="btn-group">
+                                &lt;Button  icon="pencil" onClick={() => bar.show({ slug: "update_location", data: l, allowLevels })}>&lt;/Button>
+                                &lt;Button  icon="trash" onClick={() => {
+                                    const noti = Notify.info("Are you sure you want to delete this location?",(answer) => {
+                                        if(answer) remove('venues', l);
+                                        noti.remove();
+                                    });
+                                }}>&lt;/Button>
+                            &lt;/div>
+                            &lt;p className="mt-2">{l.title}&lt;/p>
+                        &lt;/GenericCard>
+                    ))}
+                &lt;/span>)}
+            &lt;/Theme.Consumer>
+        &lt;/div>);
+    }
+}
+
+/**
+ * AddShift
+ */
+export const FilterLocations = (props) => {
+    return (&lt;form>
+        &lt;div className="row">
+            &lt;div className="col-6">
+                &lt;label>First Name:&lt;/label>
+                &lt;input className="form-control"
+                    value={props.formData.first_name}
+                    onChange={(e)=>props.onChange({ first_name: e.target.value })}
+                />
+            &lt;/div>
+            &lt;div className="col-6">
+                &lt;label>Last Name:&lt;/label>
+                &lt;input className="form-control"
+                    value={props.formData.last_name}
+                    onChange={(e)=>props.onChange({ last_name: e.target.value })}
+                />
+            &lt;/div>
+        &lt;/div>
+        &lt;div className="row">
+            &lt;div className="col-12">
+                &lt;label>Experience in past positions:&lt;/label>
+                &lt;Select isMulti
+                    value={props.formData.positions}
+                    onChange={(selectedOption)=>props.onChange({positions: selectedOption})}
+                    options={props.catalog.positions}
+                />
+            &lt;/div>
+        &lt;/div>
+        &lt;div className="row">
+            &lt;div className="col-12">
+                &lt;label>Badges:&lt;/label>
+                &lt;Select isMulti
+                    value={props.formData.badges}
+                    onChange={(selectedOption)=>props.onChange({badges: selectedOption})}
+                    options={props.catalog.badges}
+                />
+            &lt;/div>
+        &lt;/div>
+        &lt;div className="row">
+            &lt;div className="col-12">
+                &lt;label>Minimum start rating&lt;/label>
+                &lt;Select
+                    value={props.formData.rating}
+                    onChange={(opt)=>props.onChange({rating: opt})}
+                    options={props.catalog.stars}
+                />
+            &lt;/div>
+        &lt;/div>
+        &lt;div className="btn-bar">
+            &lt;Button color="primary" onClick={() => props.onSave()}>Apply Filters&lt;/Button>
+            &lt;Button color="secondary" onClick={() => props.onSave(false)}>Clear Filters&lt;/Button>
+        &lt;/div>
+    &lt;/form>);
+};
+FilterLocations.propTypes = {
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  formData: PropTypes.object,
+  catalog: PropTypes.object //contains the data needed for the form to load
+};
+
+function callback (data) {
+    console.log('DATA', data);
+ 
+    // if(data.action == 'next' &amp;&amp; data.index == 0){
+    //     this.props.history.push("/payroll");
+
+    // }
+    // if(data.type == 'tour:end'){
+    //     const session = Session.get();
+    //     updateProfileMe({show_tutorial: false});
+        
+    //     const profile = Object.assign(session.payload.user.profile, { show_tutorial: false });
+    //     const user = Object.assign(session.payload.user, { profile });
+    //     Session.setPayload({ user });
+    // }
+    if(data.action == 'skip'){
+        const session = Session.get();
+        updateProfileMe({show_tutorial: false});
+        
+        const profile = Object.assign(session.payload.user.profile, { show_tutorial: false });
+        const user = Object.assign(session.payload.user, { profile });
+        Session.setPayload({ user });
+    }
+}
+/**
+ * Add a Location
+ */
+function createMapOptions(maps) {
+  // next props are exposed at maps
+  // "Animation", "ControlPosition", "MapTypeControlStyle", "MapTypeId",
+  // "NavigationControlStyle", "ScaleControlStyle", "StrokePosition", "SymbolPath", "ZoomControlStyle",
+  // "DirectionsStatus", "DirectionsTravelMode", "DirectionsUnitSystem", "DistanceMatrixStatus",
+  // "DistanceMatrixElementStatus", "ElevationStatus", "GeocoderLocationType", "GeocoderStatus", "KmlLayerStatus",
+  // "MaxZoomStatus", "StreetViewStatus", "TransitMode", "TransitRoutePreference", "TravelMode", "UnitSystem"
+  return {
+    zoomControlOptions: {
+      position: maps.ControlPosition.RIGHT_CENTER,
+      style: maps.ZoomControlStyle.SMALL
+    },
+    zoomControl: true,
+    scaleControl: false,
+    fullscreenControl: false,
+    mapTypeControl: false
+  };
+}
+const Marker = ({ text }) => (&lt;div>&lt;img style={{maxWidth: "25px"}} src={markerURL} />&lt;/div>);
+Marker.propTypes = {
+    text: PropTypes.string
+};
+export const AddOrEditLocation = ({onSave, onCancel, onChange, catalog, formData}) => (&lt;Theme.Consumer>
+    {({bar}) => (&lt;div>
+  
+        &lt;div className="row">
+            &lt;Wizard continuous
+                            steps={ [
+                                {
+                                    target: '#address',
+                                    content: 'Start by entering your first address here. This is where your employee will report to work. Note employees will be able to clock in/out within a certain radius of this location.',
+                                    placement: 'left',
+                                    disableBeacon: true,
+                                    styles: {
+                                        options: {
+                                            zIndex: 10000
+                                        },
+                                        buttonClose: {
+                                            display: "none"
+                                        }
+                                    },
+                                    spotlightClicks: true
+
+                                },
+                                {
+                                    target: '#location_nickname',
+                                    content: 'Add a nickname for your location. Note this only for your reference employee will not see the nickname.',
+                                    placement: 'left',
+                                    styles: {
+                                        options: {
+                                            zIndex: 10000
+                                        },
+                                        buttonClose: {
+                                            display: "none"
+                                        }
+                                    },
+                                    spotlightClicks: true
+                                },
+                                {
+                                    target: '#location_details',
+                                    content: 'Finalize location details',
+                                    placement: 'left',
+                                    styles: {
+                                        options: {
+                                            zIndex: 10000
+                                        },
+                                        buttonClose: {
+                                            display: "none"
+                                        }
+                                    },
+                                    spotlightClicks: true
+                                },
+                                {
+                                    target: '#button_save',
+                                    content: "Save your location information",
+                                    placement: 'left',
+                                    styles: {
+                                        options: {
+                                            zIndex: 10000
+                                        },
+                                        buttonClose: {
+                                            display: "none"
+                                        },
+                                        buttonNext: {
+                                            display: 'none'
+                                        }
+                                    },
+                                     spotlightClicks: true
+                                }
+                            ]}
+                            run={hasTutorial()}
+                            callback={callback}
+                            spotlightClicks={true}
+                            styles={{
+                                options: {
+                                  primaryColor: '#000'
+                                }
+                              }}
+
+                        />  
+            &lt;div className="col-12" id="address">
+                &lt;label>Address&lt;/label>
+                &lt;PlacesAutocomplete
+                    value={formData.street_address || ''}
+                    onChange={(value)=>onChange({ street_address: value })}
+                    onSelect={(address) => {
+                        onChange({ street_address: address });
+                        geocodeByAddress(address)
+                          .then(results => {
+                                const title = address.split(',')[0];
+                                const pieces = results[0].address_components;
+                                const getPiece = (name) => pieces.find((comp) => typeof comp.types.find(type => type == name) != 'undefined');
+                                const country = getPiece('country');
+                                const state = getPiece('administrative_area_level_1');
+                                const zipcode = getPiece('postal_code');
+                                onChange({ title, country: country.long_name, state: state.long_name, zip_code: zipcode.long_name });
+                                return getLatLng(results[0]);
+                          })
+                          .then(coord => onChange({ latitude: coord.lat, longitude: coord.lng }))
+                          .catch(error => Notify.error('There was an error obtaining the location coordinates'));
+                    }}
+                >
+                    {({ getInputProps, getSuggestionItemProps, suggestions, loading }) => (
+                        &lt;div className="autocomplete-root">
+                            &lt;input {...getInputProps()} className="form-control" autoComplete="new-jobcore-location-employer"/>
+                            &lt;div className="autocomplete-dropdown-container bg-white">
+                                {loading &amp;&amp; &lt;div>Loading...&lt;/div>}
+                                {suggestions.map((suggestion,i) => (
+                                    &lt;div key={i} {...getSuggestionItemProps(suggestion)} className="p-2">
+                                        &lt;span>{suggestion.description}&lt;/span>
+                                    &lt;/div>
+                                ))}
+                            &lt;/div>
+                        &lt;/div>
+                    )}
+                &lt;/PlacesAutocomplete>
+            &lt;/div>
+        &lt;/div>
+        &lt;div className="row">
+            &lt;div className="col-12" id="location_nickname">
+                &lt;label>Location nickname&lt;/label>
+                &lt;input type="text" className="form-control"
+                    value={formData.title}
+                    onChange={(e)=>onChange({title: e.target.value})}
+                />
+            &lt;/div>
+        &lt;/div>
+        &lt;div className="row">
+            &lt;div className="col-6 pr-0">
+                &lt;label>Location&lt;/label>
+                &lt;div className="location-map">
+                    &lt;GoogleMapReact
+                        bootstrapURLKeys={{ key: process.env.GOOGLE_MAPS_WEB_KEY }}
+                        defaultCenter={{
+                          lat: 25.7617,
+                          lng: -80.1918
+                        }}
+                        width="100%"
+                        height="100%"
+                        center={{
+                          lat: formData.latitude,
+                          lng: formData.longitude
+                        }}
+                        options={createMapOptions}
+                        defaultZoom={12}
+                    >
+                        &lt;Marker
+                            lat={formData.latitude}
+                            lng={formData.longitude}
+                            text={'Jobcore'}
+                        />
+                    &lt;/GoogleMapReact>
+                &lt;/div>
+            &lt;/div>
+            &lt;div className="col-6" id="location_details">
+                &lt;label>Country&lt;/label>
+                &lt;input type="text" className="form-control"
+                    value={formData.country}
+                    onChange={(e)=>onChange({country: e.target.value})}
+                />
+                &lt;label>State&lt;/label>
+                &lt;input type="text" className="form-control"
+                    value={formData.state}
+                    onChange={(e)=>onChange({state: e.target.value})}
+                />
+                &lt;label>Zip&lt;/label>
+                &lt;input type="number" className="form-control"
+                    value={formData.zip_code}
+                    onChange={(e)=>onChange({zip_code: e.target.value})}
+                />
+            &lt;/div>
+        &lt;/div>
+        &lt;div className="row">
+            &lt;div className="col-12">
+                &lt;div className="btn-bar">
+                    {hasTutorial() == true ? (
+                        &lt;Link to ="/payroll/settings" onClick={()=> onSave()}>
+                            &lt;button id="button_save"type="button" className="btn btn-success">Save&lt;/button>
+                        &lt;/Link>
+                    ): (&lt;button id="button_save"type="button" className="btn btn-success" onClick={() => onSave()}>Save&lt;/button>)}
+                    &lt;button type="button" className="btn btn-default" onClick={() => bar.close()}>Cancel&lt;/button>
+                &lt;/div>
+            &lt;/div>
+        &lt;/div>
+    &lt;/div>)}
+&lt;/Theme.Consumer>);
+AddOrEditLocation.propTypes = {
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  formData: PropTypes.object,
+  catalog: PropTypes.object //contains the data needed for the form to load
+};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">JSDoc of employer-web-client</a></h2><h3>Classes</h3><ul><li><a href="MakePayment.html">MakePayment</a></li><li><a href="Metrics.html">Metrics</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AddFavlistsToTalent">AddFavlistsToTalent</a></li><li><a href="global.html#ApplicantExtendedCard">ApplicantExtendedCard</a></li><li><a href="global.html#ApplicationDetails">ApplicationDetails</a></li><li><a href="global.html#BarChart">BarChart</a></li><li><a href="global.html#ClockInsDataGenerator">ClockInsDataGenerator</a></li><li><a href="global.html#ClockOutsDataGenerator">ClockOutsDataGenerator</a></li><li><a href="global.html#CreateDeduction">CreateDeduction</a></li><li><a href="global.html#createMapOptions">createMapOptions</a></li><li><a href="global.html#EditOrAddExpiredShift">EditOrAddExpiredShift</a></li><li><a href="global.html#EditOrAddShift">EditOrAddShift</a></li><li><a href="global.html#FeatureIndicator">FeatureIndicator</a></li><li><a href="global.html#fetchAllIfNull">fetchAllIfNull</a></li><li><a href="global.html#fetchPeyrollPeriodPayments">fetchPeyrollPeriodPayments</a></li><li><a href="global.html#FilterApplications">FilterApplications</a></li><li><a href="global.html#filterClockins">filterClockins</a></li><li><a href="global.html#FilterLocations">FilterLocations</a></li><li><a href="global.html#FilterShifts">FilterShifts</a></li><li><a href="global.html#FilterTalents">FilterTalents</a></li><li><a href="global.html#GeneralStats">GeneralStats</a></li><li><a href="global.html#GET">GET</a></li><li><a href="global.html#getDeductionsReport">getDeductionsReport</a></li><li><a href="global.html#getPaymentsReport">getPaymentsReport</a></li><li><a href="global.html#Hours">Hours</a></li><li><a href="global.html#HoursDataGenerator">HoursDataGenerator</a></li><li><a href="global.html#InviteTalentToJobcore">InviteTalentToJobcore</a></li><li><a href="global.html#InviteUserToCompanyJobcore">InviteUserToCompanyJobcore</a></li><li><a href="global.html#JobSeekers">JobSeekers</a></li><li><a href="global.html#JobSeekersDataGenerator">JobSeekersDataGenerator</a></li><li><a href="global.html#makeEmployeePayment">makeEmployeePayment</a></li><li><a href="global.html#NewJobSeekersDataGenerator">NewJobSeekersDataGenerator</a></li><li><a href="global.html#PendingInvites">PendingInvites</a></li><li><a href="global.html#PendingJobcoreInvites">PendingJobcoreInvites</a></li><li><a href="global.html#PendingRatings">PendingRatings</a></li><li><a href="global.html#PieChart">PieChart</a></li><li><a href="global.html#Punctuality">Punctuality</a></li><li><a href="global.html#Queue">Queue</a></li><li><a href="global.html#QueueData">QueueData</a></li><li><a href="global.html#RateShift">RateShift</a></li><li><a href="global.html#RatingDetails">RatingDetails</a></li><li><a href="global.html#RatingEmployees">RatingEmployees</a></li><li><a href="global.html#Ratings">Ratings</a></li><li><a href="global.html#ReviewTalentAndShift">ReviewTalentAndShift</a></li><li><a href="global.html#SearchShiftToInviteTalent">SearchShiftToInviteTalent</a></li><li><a href="global.html#SearchTalentToInviteToShift">SearchTalentToInviteToShift</a></li><li><a href="global.html#ShiftApplicants">ShiftApplicants</a></li><li><a href="global.html#ShiftDetails">ShiftDetails</a></li><li><a href="global.html#ShiftEmployees">ShiftEmployees</a></li><li><a href="global.html#ShiftInvites">ShiftInvites</a></li><li><a href="global.html#Shifts">Shifts</a></li><li><a href="global.html#ShiftsDataGenerator">ShiftsDataGenerator</a></li><li><a href="global.html#ShiftTalentClockins">ShiftTalentClockins</a></li><li><a href="global.html#TalentDetails">TalentDetails</a></li><li><a href="global.html#UpdateDeduction">UpdateDeduction</a></li><li><a href="global.html#updateProfileImage">updateProfileImage</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Wed Oct 05 2022 17:57:01 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

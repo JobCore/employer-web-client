@@ -447,7 +447,7 @@ const EmployeeExtendedCard = (props) => {
             </div>
             <div className="mt-2" 
               onMouseEnter={(e) => {
-                console.log("button hovered");
+                //console.log("button hovered");
                 props.defineEmployee()
               }}
             >
@@ -461,8 +461,8 @@ const EmployeeExtendedCard = (props) => {
                 data-target="#exampleModalCenter"
                 onClick={(e) => {
                   e.stopPropagation();
-                  console.log("button clicked");
-                  console.log("props dentro", props);
+                  //console.log("button clicked");
+                  //console.log("props dentro", props);
                   // Notify.info("Press ESC to close this window")
                   // if (!props.formLoading) getEmployeeDocumet(props, "w4");
                   bar.show({

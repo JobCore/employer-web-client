@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: views/metrics/general-stats/JobSeekers/JobSeekersData.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: views/metrics/general-stats/JobSeekers/JobSeekersData.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import moment from "moment";
+
+// Today
+const now = moment().format("YYYY-MM-DD")
+
+// Today, four weeks in the past
+const fourWeeksBack = moment().subtract(4, 'weeks').format("YYYY-MM-DD")
+
+// Job Seekers Data ------------------------------------------------------------------
+
+/**
+ * @function
+ * @description Takes in list a of shifts and job seekers and generates data of inactive/active job seekers for JobSeekers.js.
+ * @since 09.29.22 by Paola Sanchez
+ * @author Paola Sanchez
+ * @requires moment
+ * @param {object} props - Contains an array of all the shifts, and also an array of all the workers.
+ */
+export const JobSeekersDataGenerator = (shiftsProp, workersProp) => {
+
+    // Assigning props to variables
+    let shifts = shiftsProp
+    let workers = workersProp
+
+    // Array for all clock-ins
+    let clockInsList = []
+
+    // Gathering the clock-ins of all the shifts
+    shifts.forEach((shift) => {
+        shift.clockin.forEach((clockIn) => {
+            // Keeping all clockins array with at
+            // least one object inside
+            if (shift.clockin.length > 0) {
+                clockInsList.push(clockIn);
+            }
+        })
+    })
+
+    // Array for all recent clock-ins
+    let recentClockIns = []
+
+    // Filtering out clock-ins that happened longer than 4 weeks ago
+    clockInsList.forEach((clockIn) => {
+        let clockInStart = moment(clockIn.started_at).format("YYYY-MM-DD");
+
+        if (clockInStart > fourWeeksBack &amp;&amp; clockInStart &lt; now) {
+            recentClockIns.push(clockIn)
+        }
+    })
+
+    // Array for worker ids
+    let workerIDs = []
+
+    // Gethering all worker ids from recent clock-ins
+    recentClockIns.forEach((clockIn) => {
+        workerIDs.push(clockIn.employee)
+    })
+
+    // Filtering out repeated worker ids
+    let filteredWorkerIDs = [...new Set(workerIDs)];
+
+    // Calculating total, active, and inactive workers
+    let totalWorkers = workers.length
+    let totalActiveWorkers = filteredWorkerIDs.length
+    let totalInactiveWorkers = totalWorkers - totalActiveWorkers
+
+    // Setting up objects for the semi-final array
+    let activeWorkers = {
+        id: 1,
+        description: "Active Job Seekers",
+        qty: totalActiveWorkers
+    }
+    let inactiveWorkers = {
+        id: 2,
+        description: "Inactive Job Seekers",
+        qty: totalInactiveWorkers
+    }
+
+    // Creating the semi-final array
+    let semiFinalList = []
+
+    // Adding objects to the semi-final array
+    semiFinalList.push(activeWorkers)
+    semiFinalList.push(inactiveWorkers)
+
+    // Generating final array with percentages as new properties
+    let finalList = semiFinalList.map(({ id, description, qty }) => ({
+        id,
+        description,
+        qty,
+        pct: ((qty * 100) / totalWorkers).toFixed(0)
+    }));
+
+    // Generating the object of total workers
+    let totalJobSeekers = {
+        id: 3,
+        description: "Total Job Seekers",
+        qty: totalWorkers,
+        pct: "100"
+    }
+
+    // Adding the object of total workers to the final array
+    finalList.push(totalJobSeekers)
+
+    // Returning the final array
+    return finalList
+}
+
+// New Job Seekers Data ------------------------------------------------------------------
+
+/**
+ * @function
+ * @description Takes in list a of job seekers and generates data of new job seekers for JobSeekers.js.
+ * @since 09.29.22 by Paola Sanchez
+ * @author Paola Sanchez
+ * @requires moment
+ * @param {object} props - Contains an array of all the shifts, and also an array of all the workers.
+ */
+export const NewJobSeekersDataGenerator = (props) => {
+
+    // Assigning props to variable
+    // Here we only need the array of workers
+    let workers = props
+
+    // Array for new workers
+    let newWorkersList = []
+
+    // Adding workers to 'newWorkersList' based on their creation date
+    workers.forEach((worker) => {
+        let creation_date = moment(worker.created_at).format("YYYY-MM-DD");
+
+        if (creation_date > fourWeeksBack &amp;&amp; creation_date &lt; now) {
+            newWorkersList.push(worker)
+        }
+    })
+
+    // Setting up some variables for the objects
+    let totalWorkers = workers.length
+    let totalNewWorkers = newWorkersList.length
+
+    // Setting up objects for the semi-final array
+    let newWorkers = {
+        id: 0,
+        description: "New Job Seekers",
+        qty: totalNewWorkers
+    }
+
+    // Creating the semi-final array
+    let semiFinalList = []
+
+    // Adding objects to the semi-final array
+    semiFinalList.push(newWorkers)
+
+    // Generating final array with percentages as new properties
+    let finalList = semiFinalList.map(({ id, description, qty }) => ({
+        id,
+        description,
+        qty,
+        pct: ((qty * 100) / totalWorkers).toFixed(0)
+    }));
+
+    // Generating the object of total workers
+    let totalJobSeekers = {
+        id: 1,
+        description: "Total Job Seekers",
+        qty: totalWorkers,
+        pct: "100"
+    }
+
+    // Adding the object of total workers to the final array
+    finalList.push(totalJobSeekers)
+
+    // Returning the final array
+    return finalList
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">JSDoc of employer-web-client</a></h2><h3>Classes</h3><ul><li><a href="MakePayment.html">MakePayment</a></li><li><a href="Metrics.html">Metrics</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AddFavlistsToTalent">AddFavlistsToTalent</a></li><li><a href="global.html#ApplicantExtendedCard">ApplicantExtendedCard</a></li><li><a href="global.html#ApplicationDetails">ApplicationDetails</a></li><li><a href="global.html#BarChart">BarChart</a></li><li><a href="global.html#ClockInsDataGenerator">ClockInsDataGenerator</a></li><li><a href="global.html#ClockOutsDataGenerator">ClockOutsDataGenerator</a></li><li><a href="global.html#CreateDeduction">CreateDeduction</a></li><li><a href="global.html#createMapOptions">createMapOptions</a></li><li><a href="global.html#EditOrAddExpiredShift">EditOrAddExpiredShift</a></li><li><a href="global.html#EditOrAddShift">EditOrAddShift</a></li><li><a href="global.html#FeatureIndicator">FeatureIndicator</a></li><li><a href="global.html#fetchAllIfNull">fetchAllIfNull</a></li><li><a href="global.html#fetchPeyrollPeriodPayments">fetchPeyrollPeriodPayments</a></li><li><a href="global.html#FilterApplications">FilterApplications</a></li><li><a href="global.html#filterClockins">filterClockins</a></li><li><a href="global.html#FilterLocations">FilterLocations</a></li><li><a href="global.html#FilterShifts">FilterShifts</a></li><li><a href="global.html#FilterTalents">FilterTalents</a></li><li><a href="global.html#GeneralStats">GeneralStats</a></li><li><a href="global.html#GET">GET</a></li><li><a href="global.html#getDeductionsReport">getDeductionsReport</a></li><li><a href="global.html#getPaymentsReport">getPaymentsReport</a></li><li><a href="global.html#Hours">Hours</a></li><li><a href="global.html#HoursDataGenerator">HoursDataGenerator</a></li><li><a href="global.html#InviteTalentToJobcore">InviteTalentToJobcore</a></li><li><a href="global.html#InviteUserToCompanyJobcore">InviteUserToCompanyJobcore</a></li><li><a href="global.html#JobSeekers">JobSeekers</a></li><li><a href="global.html#JobSeekersDataGenerator">JobSeekersDataGenerator</a></li><li><a href="global.html#makeEmployeePayment">makeEmployeePayment</a></li><li><a href="global.html#NewJobSeekersDataGenerator">NewJobSeekersDataGenerator</a></li><li><a href="global.html#PendingInvites">PendingInvites</a></li><li><a href="global.html#PendingJobcoreInvites">PendingJobcoreInvites</a></li><li><a href="global.html#PendingRatings">PendingRatings</a></li><li><a href="global.html#PieChart">PieChart</a></li><li><a href="global.html#Punctuality">Punctuality</a></li><li><a href="global.html#Queue">Queue</a></li><li><a href="global.html#QueueData">QueueData</a></li><li><a href="global.html#RateShift">RateShift</a></li><li><a href="global.html#RatingDetails">RatingDetails</a></li><li><a href="global.html#RatingEmployees">RatingEmployees</a></li><li><a href="global.html#Ratings">Ratings</a></li><li><a href="global.html#ReviewTalentAndShift">ReviewTalentAndShift</a></li><li><a href="global.html#SearchShiftToInviteTalent">SearchShiftToInviteTalent</a></li><li><a href="global.html#SearchTalentToInviteToShift">SearchTalentToInviteToShift</a></li><li><a href="global.html#ShiftApplicants">ShiftApplicants</a></li><li><a href="global.html#ShiftDetails">ShiftDetails</a></li><li><a href="global.html#ShiftEmployees">ShiftEmployees</a></li><li><a href="global.html#ShiftInvites">ShiftInvites</a></li><li><a href="global.html#Shifts">Shifts</a></li><li><a href="global.html#ShiftsDataGenerator">ShiftsDataGenerator</a></li><li><a href="global.html#ShiftTalentClockins">ShiftTalentClockins</a></li><li><a href="global.html#TalentDetails">TalentDetails</a></li><li><a href="global.html#UpdateDeduction">UpdateDeduction</a></li><li><a href="global.html#updateProfileImage">updateProfileImage</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Wed Oct 05 2022 17:57:01 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: views/metrics/general-stats/Shifts/ShiftsData.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: views/metrics/general-stats/Shifts/ShiftsData.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @function
+ * @description Takes in list a of shifts and generates data of shift statuses for Shifts.js.
+ * @since 09.29.22 by Paola Sanchez
+ * @author Paola Sanchez
+ * @param {object} props - Contains a list of all shifts.
+ */
+export const ShiftsDataGenerator = (props) => {
+
+    // Assigning props to variable
+    let shifts = props
+
+    // First array
+    let shiftsList = [];
+
+    // Gathering all the existing shifts
+    shifts.forEach((shift) => {
+        shiftsList.push({
+            status: shift.status,
+            clockin: shift.clockin,
+            employees: shift.employees
+        });
+    });
+
+    // Setting up counters
+    let open = 0
+    let filled = 0
+    let completed = 0
+    let rejected = 0
+    let total = shiftsList.length
+
+    // Adding values to each counter based on certain shift conditions
+    shiftsList.forEach((item) => {
+        if (item.status === "EXPIRED" &amp;&amp; item.clockin.length === 0 &amp;&amp; item.employees.length === 0) {
+            rejected++
+        } else if (item.status === "FILLED") {
+            filled++
+        } else if (item.status === "COMPLETED") {
+            completed++
+        } else if (item.status === "OPEN") {
+            open++
+        }
+    })
+
+    // Creating shift objects
+    let openShifts = {
+        description: "Open Shifts",
+        qty: open
+    }
+    let filledShifts = {
+        description: "Filled Shifts",
+        qty: filled
+    }
+    let workedShifts = {
+        description: "Worked Shifts",
+        qty: completed
+    }
+    let rejectedShifts = {
+        description: "Rejected Shifts",
+        qty: rejected
+    }
+
+    // Setting up base array for all shift objects
+    let cleanedArray = []
+
+    // Pushing shift objects to base array
+    cleanedArray.push(openShifts)
+    cleanedArray.push(filledShifts)
+    cleanedArray.push(workedShifts)
+    cleanedArray.push(rejectedShifts)
+
+    // Generating final array with percentages as new properties
+    let percentagesArray = cleanedArray.map(({ description, qty }) => ({
+        description,
+        qty,
+        pct: ((qty * 100) / total).toFixed(0)
+    }));
+
+    // Generating the object of total shifts
+    let totalShifs = {
+        description: "Total Shifts Posted",
+        qty: total,
+        pct: "100"
+    }
+
+    // Adding the object of total shifts to the final array
+    percentagesArray.push(totalShifs)
+
+    // Adding id's to each object in the final array
+    percentagesArray.forEach((item, i) => {
+        item.id = i + 1;
+    });
+
+    // Returning the final array
+    return percentagesArray
+};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">JSDoc of employer-web-client</a></h2><h3>Classes</h3><ul><li><a href="MakePayment.html">MakePayment</a></li><li><a href="Metrics.html">Metrics</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AddFavlistsToTalent">AddFavlistsToTalent</a></li><li><a href="global.html#ApplicantExtendedCard">ApplicantExtendedCard</a></li><li><a href="global.html#ApplicationDetails">ApplicationDetails</a></li><li><a href="global.html#BarChart">BarChart</a></li><li><a href="global.html#ClockInsDataGenerator">ClockInsDataGenerator</a></li><li><a href="global.html#ClockOutsDataGenerator">ClockOutsDataGenerator</a></li><li><a href="global.html#CreateDeduction">CreateDeduction</a></li><li><a href="global.html#createMapOptions">createMapOptions</a></li><li><a href="global.html#EditOrAddExpiredShift">EditOrAddExpiredShift</a></li><li><a href="global.html#EditOrAddShift">EditOrAddShift</a></li><li><a href="global.html#FeatureIndicator">FeatureIndicator</a></li><li><a href="global.html#fetchAllIfNull">fetchAllIfNull</a></li><li><a href="global.html#fetchPeyrollPeriodPayments">fetchPeyrollPeriodPayments</a></li><li><a href="global.html#FilterApplications">FilterApplications</a></li><li><a href="global.html#filterClockins">filterClockins</a></li><li><a href="global.html#FilterLocations">FilterLocations</a></li><li><a href="global.html#FilterShifts">FilterShifts</a></li><li><a href="global.html#FilterTalents">FilterTalents</a></li><li><a href="global.html#GeneralStats">GeneralStats</a></li><li><a href="global.html#GET">GET</a></li><li><a href="global.html#getDeductionsReport">getDeductionsReport</a></li><li><a href="global.html#getPaymentsReport">getPaymentsReport</a></li><li><a href="global.html#Hours">Hours</a></li><li><a href="global.html#HoursDataGenerator">HoursDataGenerator</a></li><li><a href="global.html#InviteTalentToJobcore">InviteTalentToJobcore</a></li><li><a href="global.html#InviteUserToCompanyJobcore">InviteUserToCompanyJobcore</a></li><li><a href="global.html#JobSeekers">JobSeekers</a></li><li><a href="global.html#JobSeekersDataGenerator">JobSeekersDataGenerator</a></li><li><a href="global.html#makeEmployeePayment">makeEmployeePayment</a></li><li><a href="global.html#NewJobSeekersDataGenerator">NewJobSeekersDataGenerator</a></li><li><a href="global.html#PendingInvites">PendingInvites</a></li><li><a href="global.html#PendingJobcoreInvites">PendingJobcoreInvites</a></li><li><a href="global.html#PendingRatings">PendingRatings</a></li><li><a href="global.html#PieChart">PieChart</a></li><li><a href="global.html#Punctuality">Punctuality</a></li><li><a href="global.html#Queue">Queue</a></li><li><a href="global.html#QueueData">QueueData</a></li><li><a href="global.html#RateShift">RateShift</a></li><li><a href="global.html#RatingDetails">RatingDetails</a></li><li><a href="global.html#RatingEmployees">RatingEmployees</a></li><li><a href="global.html#Ratings">Ratings</a></li><li><a href="global.html#ReviewTalentAndShift">ReviewTalentAndShift</a></li><li><a href="global.html#SearchShiftToInviteTalent">SearchShiftToInviteTalent</a></li><li><a href="global.html#SearchTalentToInviteToShift">SearchTalentToInviteToShift</a></li><li><a href="global.html#ShiftApplicants">ShiftApplicants</a></li><li><a href="global.html#ShiftDetails">ShiftDetails</a></li><li><a href="global.html#ShiftEmployees">ShiftEmployees</a></li><li><a href="global.html#ShiftInvites">ShiftInvites</a></li><li><a href="global.html#Shifts">Shifts</a></li><li><a href="global.html#ShiftsDataGenerator">ShiftsDataGenerator</a></li><li><a href="global.html#ShiftTalentClockins">ShiftTalentClockins</a></li><li><a href="global.html#TalentDetails">TalentDetails</a></li><li><a href="global.html#UpdateDeduction">UpdateDeduction</a></li><li><a href="global.html#updateProfileImage">updateProfileImage</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Wed Oct 05 2022 17:57:01 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

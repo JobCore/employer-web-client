@@ -85,6 +85,7 @@ import {
 } from "./views/ratings.js";
 import { PaymentsReport } from "./views/payments-report";
 import { DeductionsReport } from "./views/deductions-report";
+import { Metrics } from "./views/metrics/metrics";
 import {
   Profile,
   ManageUsers,
@@ -109,7 +110,6 @@ import "jquery/dist/jquery.min.js";
 import "bootstrap/dist/js/bootstrap.min.js";
 import { CheckEmployeeDocuments2 } from "./views/check-documents2";
 import Gleap from 'gleap';
-
 
 class PrivateLayout extends Flux.DashView {
   constructor() {
@@ -394,7 +394,7 @@ class PrivateLayout extends Flux.DashView {
             case "add_talent_to_favlist":
               option.title = "Search for the talent";
               this.showRightBar(AddTalentToFavlist, option, {
-                formData: Favlist(option.data).getFormData(), 
+                formData: Favlist(option.data).getFormData(),
               });
               break;
             case "show_single_rating":
@@ -644,8 +644,8 @@ class PrivateLayout extends Flux.DashView {
       level == "all"
         ? 0
         : level == "last"
-        ? this.state.sideBarLevels.length - 1
-        : parseInt(level, 10);
+          ? this.state.sideBarLevels.length - 1
+          : parseInt(level, 10);
     // const lastLevel = this.state.sideBarLevels[this.state.sideBarLevels.length-1];
     // if(Array.isArray(lastLevel.watchers)) lastLevel.watchers.forEach((w) => w.unsubscribe());
     const newLevels = this.state.sideBarLevels.filter((e, i) => i < level);
@@ -739,7 +739,7 @@ class PrivateLayout extends Flux.DashView {
         style={{ backgroundImage: `url(${logoURL})` }}
       />
     );
-    
+
     return (
       <Theme.Provider value={{ bar: this.state.bar }}>
         <LoadBar
@@ -796,6 +796,14 @@ class PrivateLayout extends Flux.DashView {
                 </NavLink>
               </li>
               <li>
+                {showHideHR && (
+                  <NavLink to="/metrics" id="metricslink">
+                    <i className="icon icon-metrics"></i>
+                    <span style={{ fontSize: 16, fontWeight: 500 }}>Metrics</span>
+                  </NavLink>
+                )}
+              </li>
+              <li>
                 <a
                   href="#"
                   onClick={() => {
@@ -819,17 +827,17 @@ class PrivateLayout extends Flux.DashView {
               <a href="https://jobcore.co/contact" 
               target="_blank" rel="noopener noreferrer">
               <i className="fas fa-question" style={{fontSize: "40px", color:"black"}}></i><br/>Help</a></li> */}
-              <li> 
-              <button
-                // href="https://c5q5lw7ly6i.typeform.com/to/hCgUTpnJ"
-                onClick={ () => Gleap.open()}  
-                id="FeedbackDashboard"
-                className="p-1"
-                style={{ fontSize: 14 }}
-              >
-                Report an issue here
-			        </button>
-                
+              <li>
+                <button
+                  // href="https://c5q5lw7ly6i.typeform.com/to/hCgUTpnJ"
+                  onClick={() => Gleap.open()}
+                  id="FeedbackDashboard"
+                  className="p-1"
+                  style={{ fontSize: 14 }}
+                >
+                  Report an issue here
+                </button>
+
               </li>
             </ul>
           </div>
@@ -961,8 +969,8 @@ class PrivateLayout extends Flux.DashView {
                               b.updated_at < a.updated_at
                                 ? -1
                                 : b.updated_at > a.updated_at
-                                ? 1
-                                : 0
+                                  ? 1
+                                  : 0
                             )
                             .map((emp, i) => {
                               return (
@@ -1021,13 +1029,13 @@ class PrivateLayout extends Flux.DashView {
                                             <b>
                                               {emp.ended_at
                                                 ? "clocked out at " +
-                                                  moment(emp.ended_at).format(
-                                                    "MM/DD/YYYY, hh:mm A"
-                                                  )
+                                                moment(emp.ended_at).format(
+                                                  "MM/DD/YYYY, hh:mm A"
+                                                )
                                                 : "clocked in at " +
-                                                  moment(emp.started_at).format(
-                                                    "MM/DD/YYYY, hh:mm A"
-                                                  )}
+                                                moment(emp.started_at).format(
+                                                  "MM/DD/YYYY, hh:mm A"
+                                                )}
                                             </b>{" "}
                                             to shift{" "}
                                             <span style={{ color: "#B3519E" }}>
@@ -1046,7 +1054,7 @@ class PrivateLayout extends Flux.DashView {
                                               "LT"
                                             )}{" "}
                                             {typeof emp.shift.price ==
-                                            "string" ? (
+                                              "string" ? (
                                               <span className="shift-price">
                                                 {" "}
                                                 ${emp.shift.price}
@@ -1084,7 +1092,7 @@ class PrivateLayout extends Flux.DashView {
                                               "LT"
                                             )}{" "}
                                             {typeof emp.shift.price ==
-                                            "string" ? (
+                                              "string" ? (
                                               <span className="shift-price">
                                                 {" "}
                                                 ${emp.shift.price}
@@ -1148,7 +1156,7 @@ class PrivateLayout extends Flux.DashView {
               />
               <Route exact path="/shifts" component={ManageShifts} />
               <Route exact path="/applicants" component={ManageApplicantions} />
-              <Route exact path="/talents" component={ManageTalents} /> 
+              <Route exact path="/talents" component={ManageTalents} />
               <Route exact path="/favorites" component={ManageFavorites} />
               <Route exact path="/payrates" component={ManagePayrates} />
               <Route
@@ -1157,6 +1165,7 @@ class PrivateLayout extends Flux.DashView {
                 component={PayrollSettings}
               />
               <Route exact path="/profile" component={Profile} />
+              <Route exact path="/metrics" component={Metrics} />
               <Route
                 exact
                 path="/profile/subscription"
@@ -1185,7 +1194,7 @@ class PrivateLayout extends Flux.DashView {
                 path="/payroll/period/:period_id"
                 component={PayrollPeriodDetails}
               />
-               <Route
+              <Route
                 exact
                 path="/CheckEmployeeDocuments"
                 component={CheckEmployeeDocuments}
@@ -1214,7 +1223,7 @@ class PrivateLayout extends Flux.DashView {
               <Route exact path="/home" component={Dashboard} />
               <Route exact path="/" component={Dashboard} />
             </Switch>
-           
+
           </div>
           <EngineComponent />
           <ButtonBar onClick={(option) => this.state.bar.show(option)} />
@@ -1233,11 +1242,11 @@ class PrivateLayout extends Flux.DashView {
     );
   }
   hideComponent(admin) {
-    if (admin==="a@jobcore.co") {
-      // this.setState({ showHideHR: false }); // uncommenting makes tap talent search is visible only to JC-HR@admin.co
+    if (admin === "a@jobcore.co") {
+      // this.setState({ showHideHR: false }); // When this is uncommented, it makes both "talent search" and "metrics" visible only to JC-HR@admin.co
       console.log("showHideHR###", this.state.showHideHR)
       console.log("admin###", admin)
-    } 
+    }
   }
 }
 export default PrivateLayout;

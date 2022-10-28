@@ -258,7 +258,6 @@ export class Profile extends Flux.DashView {
     this.cropper = cropper;
   }
   callback = (data) => {
-    console.log("DATA", data);
 
     // if(data.action == 'next' && data.index == 0){
     //     this.props.history.push("/payroll");

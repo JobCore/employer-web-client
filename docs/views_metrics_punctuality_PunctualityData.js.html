@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: views/metrics/punctuality/PunctualityData.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: views/metrics/punctuality/PunctualityData.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import moment from "moment";
+
+// Clock-Ins Data ------------------------------------------------------------------
+
+/**
+ * @function
+ * @description Generates array of objects with clock-in trends for Punctuality.js.
+ * @since 09.29.22 by Paola Sanchez
+ * @author Paola Sanchez
+ * @requires moment
+ * @param {object} props - Contains an array of all the shifts.
+ */
+export const ClockInsDataGenerator = (props) => {
+
+    // Assigning props to variables
+    let shifts = props
+
+    // Array for the clock-ins
+    let clockIns = [];
+
+    // Sorting the shifts
+    shifts.forEach((shift) => {
+        shift.clockin.forEach((clockIn) => {
+            // Keeping all clockins array with at
+            // least one object inside
+            if (shift.clockin.length > 0) {
+                // Formatting each object to keep
+                // both the scheduled clock-in and 
+                // the actual "registered" clock-in.
+                clockIns.push({
+                    starting_at: shift.starting_at,
+                    started_at: clockIn.started_at
+                });
+            }
+        });
+    });
+
+    // Setting up counters
+    let earlyClockins = 0;
+    let lateClockins = 0;
+    let onTimeClockins = 0;
+
+    // Increasing counters based on clock-in times
+    clockIns.forEach((shift) => {
+        let start1 = moment(shift.starting_at);
+        let start2 = moment(shift.started_at);
+
+        let startDiff = moment.duration(start2.diff(start1)).asMinutes();
+
+        if (startDiff >= 15) {
+            lateClockins++;
+        } else if (startDiff &lt;= -30) {
+            earlyClockins++;
+        } else {
+            onTimeClockins++;
+        }
+    });
+
+    // Creating clock-in objects
+    let earlyClockinsObj = {
+        description: "Early Clock-Ins",
+        qty: earlyClockins
+    };
+    let lateClockinsObj = {
+        description: "Late Clock-Ins",
+        qty: lateClockins
+    };
+    let onTimeClockinsObj = {
+        description: "On Time Clock-Ins",
+        qty: onTimeClockins
+    };
+
+    // Setting up base array for all objects
+    let cleanedClockIns = [];
+
+    // Pushing objects to base array
+    cleanedClockIns.push(earlyClockinsObj);
+    cleanedClockIns.push(lateClockinsObj);
+    cleanedClockIns.push(onTimeClockinsObj);
+
+    // Setting up totals
+    let totalClockIns = clockIns.length;
+
+    // Generating percentages as new properties
+    let pctClockIns = cleanedClockIns.map(({ description, qty }) => ({
+        description,
+        qty,
+        pct: ((qty * 100) / totalClockIns).toFixed(0)
+    }));
+
+    // Setting up object for totals
+    let totalClockInsObj = {
+        description: "Total Clock-Ins",
+        qty: totalClockIns,
+        pct: "100"
+    };
+
+    // Adding totals to the array with percentages
+    pctClockIns.push(totalClockInsObj);
+
+    // Addind IDs to each object
+    pctClockIns.forEach((item, i) => {
+        item.id = i + 1;
+    });
+
+    // Returning clock-ins array
+    return pctClockIns;
+};
+
+// Clock-Outs Data -----------------------------------------------------------------
+
+/**
+ * @function
+ * @description Generates array of objects with clock-out trends for Punctuality.js.
+ * @since 09.29.22 by Paola Sanchez
+ * @author Paola Sanchez
+ * @requires moment
+ * @param {object} props - Contains an array of all the shifts.
+ */
+export const ClockOutsDataGenerator = (props) => {
+
+    // Assigning props to variables
+    let shifts = props
+
+    // Array for the clock-outs
+    let clockOuts = [];
+
+    // Sorting the shifts
+    shifts.forEach((shift) => {
+        shift.clockin.forEach((clockIn) => {
+            // Keeping all clockins array with at
+            // least one object inside
+            if (shift.clockin.length > 0) {
+                // Formatting each object to keep
+                // both the scheduled clock-out, the 
+                // actual "registered" clock-out, and
+                // whether it closed automatically or not.
+                clockOuts.push({
+                    ending_at: shift.ending_at,
+                    ended_at: clockIn.ended_at,
+                    automatically_closed: clockIn.automatically_closed
+                });
+            }
+        });
+    });
+
+    // Setting up counters
+    let earlyClockouts = 0;
+    let lateClockouts = 0;
+    let onTimeClockouts = 0;
+    let forgotClockOut = 0;
+
+    // Increasing counters based on clock-out times
+    clockOuts.forEach((shift) => {
+        let end1 = moment(shift.ending_at);
+        let end2 = moment(shift.ended_at);
+
+        let endDiff = moment.duration(end2.diff(end1)).asMinutes();
+
+        if (endDiff >= 30) {
+            lateClockouts++;
+        } else if (endDiff &lt;= -30) {
+            earlyClockouts++;
+        } else {
+            onTimeClockouts++;
+        }
+    });
+
+    // Increasing the "forgotClockOut" counter only
+    clockOuts.forEach((shift) => {
+        // Note: When a shif get automatically closed, it means
+        // that the worker forgot to clock-out.
+        if (shift.automatically_closed === true) {
+            forgotClockOut++;
+        }
+    });
+
+    // Creating clock-out objects
+    let earlyClockoutsObj = {
+        description: "Early Clock-Outs",
+        qty: earlyClockouts
+    };
+    let lateClockoutsObj = {
+        description: "Late Clock-Outs",
+        qty: lateClockouts
+    };
+    let onTimeClockoutsObj = {
+        description: "On Time Clock-Outs",
+        qty: onTimeClockouts
+    };
+    let forgotClockOutObj = {
+        description: "Forgotten Clock-Outs",
+        qty: forgotClockOut
+    };
+
+    // Setting up base array for all objects
+    let cleanedClockOuts = [];
+
+    // Pushing objects to base array
+    cleanedClockOuts.push(earlyClockoutsObj);
+    cleanedClockOuts.push(lateClockoutsObj);
+    cleanedClockOuts.push(onTimeClockoutsObj);
+    cleanedClockOuts.push(forgotClockOutObj);
+
+    // Setting up totals
+    let totalClockOuts = clockOuts.length;
+
+    // Generating percentages as new properties
+    let pctClockOuts = cleanedClockOuts.map(({ description, qty }) => ({
+        description,
+        qty,
+        pct: ((qty * 100) / totalClockOuts).toFixed(0)
+    }));
+
+    // Setting up object for totals
+    let totalClockOutsObj = {
+        description: "Total Clock-Outs",
+        qty: totalClockOuts,
+        pct: "100"
+    };
+
+    // Adding totals to the array with percentages
+    pctClockOuts.push(totalClockOutsObj);
+
+    // Addind IDs to each object
+    pctClockOuts.forEach((item, i) => {
+        item.id = i + 1;
+    });
+
+    // Returning clock-outs array
+    return pctClockOuts;
+};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">JSDoc of employer-web-client</a></h2><h3>Classes</h3><ul><li><a href="MakePayment.html">MakePayment</a></li><li><a href="Metrics.html">Metrics</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AddFavlistsToTalent">AddFavlistsToTalent</a></li><li><a href="global.html#ApplicantExtendedCard">ApplicantExtendedCard</a></li><li><a href="global.html#ApplicationDetails">ApplicationDetails</a></li><li><a href="global.html#BarChart">BarChart</a></li><li><a href="global.html#ClockInsDataGenerator">ClockInsDataGenerator</a></li><li><a href="global.html#ClockOutsDataGenerator">ClockOutsDataGenerator</a></li><li><a href="global.html#CreateDeduction">CreateDeduction</a></li><li><a href="global.html#createMapOptions">createMapOptions</a></li><li><a href="global.html#EditOrAddExpiredShift">EditOrAddExpiredShift</a></li><li><a href="global.html#EditOrAddShift">EditOrAddShift</a></li><li><a href="global.html#FeatureIndicator">FeatureIndicator</a></li><li><a href="global.html#fetchAllIfNull">fetchAllIfNull</a></li><li><a href="global.html#fetchPeyrollPeriodPayments">fetchPeyrollPeriodPayments</a></li><li><a href="global.html#FilterApplications">FilterApplications</a></li><li><a href="global.html#filterClockins">filterClockins</a></li><li><a href="global.html#FilterLocations">FilterLocations</a></li><li><a href="global.html#FilterShifts">FilterShifts</a></li><li><a href="global.html#FilterTalents">FilterTalents</a></li><li><a href="global.html#GeneralStats">GeneralStats</a></li><li><a href="global.html#GET">GET</a></li><li><a href="global.html#getDeductionsReport">getDeductionsReport</a></li><li><a href="global.html#getPaymentsReport">getPaymentsReport</a></li><li><a href="global.html#Hours">Hours</a></li><li><a href="global.html#HoursDataGenerator">HoursDataGenerator</a></li><li><a href="global.html#InviteTalentToJobcore">InviteTalentToJobcore</a></li><li><a href="global.html#InviteUserToCompanyJobcore">InviteUserToCompanyJobcore</a></li><li><a href="global.html#JobSeekers">JobSeekers</a></li><li><a href="global.html#JobSeekersDataGenerator">JobSeekersDataGenerator</a></li><li><a href="global.html#makeEmployeePayment">makeEmployeePayment</a></li><li><a href="global.html#NewJobSeekersDataGenerator">NewJobSeekersDataGenerator</a></li><li><a href="global.html#PendingInvites">PendingInvites</a></li><li><a href="global.html#PendingJobcoreInvites">PendingJobcoreInvites</a></li><li><a href="global.html#PendingRatings">PendingRatings</a></li><li><a href="global.html#PieChart">PieChart</a></li><li><a href="global.html#Punctuality">Punctuality</a></li><li><a href="global.html#Queue">Queue</a></li><li><a href="global.html#QueueData">QueueData</a></li><li><a href="global.html#RateShift">RateShift</a></li><li><a href="global.html#RatingDetails">RatingDetails</a></li><li><a href="global.html#RatingEmployees">RatingEmployees</a></li><li><a href="global.html#Ratings">Ratings</a></li><li><a href="global.html#ReviewTalentAndShift">ReviewTalentAndShift</a></li><li><a href="global.html#SearchShiftToInviteTalent">SearchShiftToInviteTalent</a></li><li><a href="global.html#SearchTalentToInviteToShift">SearchTalentToInviteToShift</a></li><li><a href="global.html#ShiftApplicants">ShiftApplicants</a></li><li><a href="global.html#ShiftDetails">ShiftDetails</a></li><li><a href="global.html#ShiftEmployees">ShiftEmployees</a></li><li><a href="global.html#ShiftInvites">ShiftInvites</a></li><li><a href="global.html#Shifts">Shifts</a></li><li><a href="global.html#ShiftsDataGenerator">ShiftsDataGenerator</a></li><li><a href="global.html#ShiftTalentClockins">ShiftTalentClockins</a></li><li><a href="global.html#TalentDetails">TalentDetails</a></li><li><a href="global.html#UpdateDeduction">UpdateDeduction</a></li><li><a href="global.html#updateProfileImage">updateProfileImage</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Wed Oct 05 2022 17:57:01 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

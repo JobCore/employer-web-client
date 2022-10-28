@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: views/profile.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: views/profile.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useState, useContext, useEffect } from "react";
+import Flux from "@4geeksacademy/react-flux-dash";
+import {
+  store,
+  fetchTemporal,
+  update,
+  updateProfileImage,
+  searchMe,
+  remove,
+  updateUser,
+  removeUser,
+  updateProfileMe,
+  sendCompanyInvitation,
+} from "../actions.js";
+import {
+  TIME_FORMAT,
+  DATETIME_FORMAT,
+  DATE_FORMAT,
+  TODAY,
+} from "../components/utils.js";
+import {
+  Button,
+  Theme,
+  GenericCard,
+  Avatar,
+  SearchCatalogSelect,
+  Wizard,
+} from "../components/index";
+import { Notify } from "bc-react-notifier";
+import { Session } from "bc-react-session";
+import { validator, ValidationError } from "../utils/validation";
+import Dropzone from "react-dropzone";
+import DateTime from "react-datetime";
+import moment from "moment";
+import PropTypes from "prop-types";
+import Select from "react-select";
+import { GET } from "../utils/api_wrapper";
+import { hasTutorial } from "../utils/tutorial";
+import Cropper from "react-cropper";
+import "cropperjs/dist/cropper.css";
+
+import Tooltip from "rc-tooltip";
+import "rc-tooltip/assets/bootstrap_white.css";
+import { select } from "underscore";
+
+export const Employer = (data = {}) => {
+  const _defaults = {
+    title: undefined,
+    website: undefined,
+    payroll_period_starting_time: TODAY(),
+    maximum_clockout_delay_minutes: 0,
+    bio: undefined,
+    uploadCompanyLogo: null,
+    editingImage: false,
+    response_time: undefined,
+    rating: undefined,
+    retroactive: undefined,
+    serialize: function () {
+      const newShift = {
+        //                status: (this.status == 'UNDEFINED') ? 'DRAFT' : this.status,
+      };
+
+      return Object.assign(this, newShift);
+    },
+  };
+
+  let _employer = Object.assign(_defaults, data);
+  return {
+    validate: () => {
+      if (_employer.bio &amp;&amp; validator.isEmpty(_employer.bio))
+        throw new ValidationError("The company bio cannot be empty");
+      if (_employer.title &amp;&amp; validator.isEmpty(_employer.title))
+        throw new ValidationError("The company name cannot be empty");
+      if (_employer.website &amp;&amp; validator.isEmpty(_employer.website))
+        throw new ValidationError("The company website cannot be empty");
+      return _employer;
+    },
+    defaults: () => {
+      return _defaults;
+    },
+  };
+};
+
+export class Profile extends Flux.DashView {
+  constructor() {
+    super();
+    this.state = {
+      employer: Employer().defaults(),
+      currentUser: Session.getPayload().user.profile,
+      runTutorial: hasTutorial(),
+      stepIndex: 0,
+      steps: [
+        {
+          content: (
+            &lt;div className="text-left">
+              &lt;h1>Your Profile&lt;/h1>
+              &lt;p>
+                Here you will edit your company information. You can also manage
+                subscription and view your company rating
+              &lt;/p>
+            &lt;/div>
+          ),
+          placement: "center",
+
+          styles: {
+            options: {
+              zIndex: 10000,
+            },
+            buttonClose: {
+              display: "none",
+            },
+          },
+          locale: { skip: "Skip tutorial" },
+          target: "body",
+        },
+        {
+          target: "#company-logo-circle",
+          content: "Click here to upload your company logo",
+          placement: "right",
+          styles: {
+            buttonClose: {
+              display: "none",
+            },
+            buttonNext: {
+              display: "none",
+            },
+          },
+          spotlightClicks: true,
+        },
+        {
+          target: "#company-logo-dropzone",
+          content: "Click the on the rectangle to upload a company logo",
+          placement: "right",
+          styles: {
+            buttonClose: {
+              display: "none",
+            },
+            buttonNext: {
+              display: "none",
+            },
+          },
+          spotlightClicks: true,
+        },
+        {
+          target: "#company-logo-save",
+          content: "Click save to update your logo",
+          placement: "right",
+          styles: {
+            buttonClose: {
+              display: "none",
+            },
+            buttonNext: {
+              display: "none",
+            },
+          },
+          spotlightClicks: true,
+        },
+        {
+          target: "#company_title",
+          content: "Edit company name",
+          placement: "right",
+          styles: {
+            buttonClose: {
+              display: "none",
+            },
+          },
+          spotlightClicks: true,
+        },
+        {
+          target: "#company_website",
+          content: "Edit company website",
+          placement: "right",
+          styles: {
+            buttonClose: {
+              display: "none",
+            },
+          },
+          spotlightClicks: true,
+        },
+        {
+          target: "#company_bio",
+          content: "Tell future employees about your business",
+          placement: "right",
+          styles: {
+            buttonClose: {
+              display: "none",
+            },
+          },
+          spotlightClicks: true,
+        },
+        {
+          target: "#button_save",
+          content: "Save all your progress",
+          placement: "right",
+          styles: {
+            buttonClose: {
+              display: "none",
+            },
+            buttonNext: {
+              display: "none",
+            },
+          },
+          spotlightClicks: true,
+        },
+
+        {
+          target: "#manage_locations",
+          content:
+            "Edit your company locations. This is how your employee will know where to report. You will need at least one company address in order to send shifts to future employees",
+          placement: "right",
+          styles: {
+            buttonClose: {
+              display: "none",
+            },
+            buttonNext: {
+              display: "none",
+            },
+          },
+          spotlightClicks: true,
+        },
+      ],
+    };
+  }
+
+  setEmployer(newEmployer) {
+    const employer = Object.assign(this.state.employer, newEmployer);
+    this.setState({ employer });
+  }
+
+  componentDidMount() {
+    const users = store.getState("users");
+    this.subscribe(store, "users", (_users) => {
+      const user = _users.filter(
+        (e) => e.profile.id == Session.getPayload().user.profile.id
+      )[0];
+      this.setState({ user: user });
+    });
+    if (users) {
+      const user = users.filter(
+        (e) => e.profile.id == Session.getPayload().user.profile.id
+      )[0];
+      this.setState({ user: user });
+    } else searchMe("users");
+
+    let employer = store.getState("current_employer");
+    if (employer) this.setState({ employer });
+    this.subscribe(store, "current_employer", (employer) => {
+      this.setState({ employer });
+    });
+  }
+
+  _crop() {
+    // image in dataUrl
+    console.log(this.cropper.getCroppedCanvas().toDataURL());
+  }
+
+  onCropperInit(cropper) {
+    this.cropper = cropper;
+  }
+  callback = (data) => {
+
+    // if(data.action == 'next' &amp;&amp; data.index == 0){
+    //     this.props.history.push("/payroll");
+
+    // }
+    if (data.action == "next" &amp;&amp; data.index == 0) {
+      this.setState({ stepIndex: 1 });
+    } else if (
+      data.action == "next" &amp;&amp;
+      data.index == 4 &amp;&amp;
+      data.lifecycle == "complete" &amp;&amp;
+      data.step.target == "#company_title"
+    ) {
+      this.setState({ stepIndex: 5 });
+    } else if (
+      data.action == "next" &amp;&amp;
+      data.index == 5 &amp;&amp;
+      data.lifecycle == "complete" &amp;&amp;
+      data.step.target == "#company_website"
+    ) {
+      this.setState({ stepIndex: 6 });
+    } else if (
+      data.action == "next" &amp;&amp;
+      data.index == 6 &amp;&amp;
+      data.lifecycle == "complete" &amp;&amp;
+      data.step.target == "#company_bio"
+    ) {
+      this.setState({ stepIndex: 7 });
+    }
+
+    if (data.action == "skip") {
+      const session = Session.get();
+      updateProfileMe({ show_tutorial: false });
+
+      const profile = Object.assign(session.payload.user.profile, {
+        show_tutorial: false,
+      });
+      const user = Object.assign(session.payload.user, { profile });
+      Session.setPayload({ user });
+      this.setState({ runTutorial: false });
+      document.getElementById("profilelink").style.backgroundColor = "";
+    }
+  };
+
+  render() {
+    return (
+      &lt;div className="p-1 listcontents company-profile">
+        &lt;Wizard
+          continuous
+          steps={this.state.steps}
+          run={this.state.runTutorial}
+          callback={(data) => this.callback(data)}
+          stepIndex={this.state.stepIndex}
+          allowClicksThruHole={true}
+          disableOverlay={true}
+          spotlightClicks={true}
+          styles={{
+            options: {
+              width: 600,
+              primaryColor: "#000",
+              zIndex: 1000,
+            },
+          }}
+        />
+        &lt;h1>
+          &lt;span id="company_details">User Details&lt;/span>
+        &lt;/h1>
+        &lt;form>
+          &lt;div className="row mt-2">
+            &lt;div className="col-6">
+              &lt;label>Name&lt;/label>
+              &lt;p>
+                {this.state.user &amp;&amp;
+                  this.state.user.first_name + " " + this.state.user.last_name}
+              &lt;/p>
+            &lt;/div>
+            &lt;div className="col-6">
+              &lt;label>Email&lt;/label>
+              &lt;p>{this.state.user &amp;&amp; this.state.user.email}&lt;/p>
+            &lt;/div>
+          &lt;/div>
+        &lt;/form>
+        &lt;h1>
+          &lt;span id="company_details">Company Details&lt;/span>
+        &lt;/h1>
+        &lt;form>
+          &lt;div className="row mt-2">
+            &lt;div className="col-6">
+              &lt;label>Response Time&lt;/label>
+              &lt;p>
+                You answer applications within{" "}
+                &lt;span className="text-success">
+                  {this.state.employer.response_time} min.
+                &lt;/span>
+              &lt;/p>
+            &lt;/div>
+            &lt;div className="col-6">
+              &lt;label>Rating&lt;/label>
+              &lt;p>
+                Talents rated you with{" "}
+                &lt;span className="text-success">
+                  {this.state.employer.rating} points.
+                &lt;/span>
+              &lt;/p>
+            &lt;/div>
+          &lt;/div>
+          &lt;div className="row">
+            &lt;div className="col-12">
+              &lt;label>Subscription&lt;/label>
+              &lt;p>
+                {this.state.employer.active_subscription
+                  ? this.state.employer.active_subscription.title
+                  : "No active subscription"}
+                &lt;Button
+                  className="ml-2"
+                  onClick={() =>
+                    this.props.history.push("/profile/subscription")
+                  }
+                  size="small"
+                >
+                  update
+                &lt;/Button>
+              &lt;/p>
+            &lt;/div>
+          &lt;/div>
+          &lt;div className="row" id="company-logo-dropzone">
+            &lt;div className="col-12">
+              &lt;label>Company Logo&lt;/label>
+
+              {!this.state.editingImage ? (
+                &lt;div
+                  id="company-logo-circle"
+                  className="company-logo"
+                  style={{
+                    backgroundImage: `url(${this.state.employer.picture})`,
+                  }}
+                >
+                  &lt;Button
+                    color="primary"
+                    size="small"
+                    onClick={() =>
+                      this.setState({ editingImage: true, stepIndex: 2 })
+                    }
+                    icon="pencil"
+                  />
+                &lt;/div>
+              ) : (
+                &lt;div>
+                  {this.state.uploadCompanyLogo ? (
+                    &lt;div
+                      className="company-logo"
+                      style={{
+                        backgroundImage: `url(${URL.createObjectURL(
+                          this.state.uploadCompanyLogo
+                        )})`,
+                      }}
+                    >
+                      {" "}
+                      &lt;Button
+                        color="primary"
+                        size="small"
+                        onClick={() =>
+                          this.setState({
+                            editingImage: false,
+                            uploadCompanyLogo: null,
+                          })
+                        }
+                        icon="times"
+                      />
+                    &lt;/div>
+                  ) : (
+                    &lt;div>
+                      &lt;Dropzone
+                        onDrop={(acceptedFiles) =>
+                          this.setState({
+                            uploadCompanyLogo: acceptedFiles[0],
+                            stepIndex: 3,
+                          })
+                        }
+                      >
+                        {({ getRootProps, getInputProps }) => {
+                          return (
+                            &lt;section className="upload-zone">
+                              &lt;div {...getRootProps()}>
+                                &lt;input {...getInputProps()} />
+                                &lt;strong
+                                  style={{
+                                    textDecoration: "underline",
+                                    cursor: "pointer",
+                                    fontSize: "20px",
+                                  }}
+                                >
+                                  Drop your company logo here, or click here to
+                                  open the file browser
+                                &lt;/strong>
+                              &lt;/div>
+                            &lt;/section>
+                          );
+                        }}
+                      &lt;/Dropzone>
+                    &lt;/div>
+                  )}
+
+                  &lt;br />
+
+                  &lt;Button
+                    className="mr-2"
+                    onClick={() =>
+                      this.setState({
+                        editingImage: false,
+                        uploadCompanyLogo: null,
+                      })
+                    }
+                    color="secondary"
+                  >
+                    Cancel
+                  &lt;/Button>
+                  &lt;Button
+                    id="company-logo-save"
+                    onClick={() => {
+                      updateProfileImage(this.state.uploadCompanyLogo).then(
+                        (picture) => {
+                          this.setState((prevState) => {
+                            let employer = Object.assign(
+                              {},
+                              prevState.employer
+                            );
+                            employer.picture = picture;
+                            return {
+                              employer,
+                              editingImage: false,
+                              uploadCompanyLogo: null,
+                              stepIndex: 4,
+                            };
+                          });
+                        }
+                      );
+                    }}
+                    color="success"
+                  >
+                    Save
+                  &lt;/Button>
+                &lt;/div>
+              )}
+            &lt;/div>
+          &lt;/div>
+          &lt;div className="row" id="company_title">
+            &lt;div className="col-12">
+              &lt;label>Company Name&lt;/label>
+              &lt;input
+                type="text"
+                className="form-control"
+                value={this.state.employer.title}
+                onChange={(e) => this.setEmployer({ title: e.target.value })}
+              />
+            &lt;/div>
+          &lt;/div>
+          &lt;div className="row mt-2" id="company_website">
+            &lt;div className="col-12">
+              &lt;label>Website&lt;/label>
+              &lt;input
+                type="text"
+                className="form-control"
+                value={this.state.employer.website}
+                onChange={(e) => this.setEmployer({ website: e.target.value })}
+              />
+            &lt;/div>
+          &lt;/div>
+          &lt;div className="row mt-2" id="company_bio">
+            &lt;div className="col-12">
+              &lt;label>Bio&lt;/label>
+              &lt;input
+                type="text"
+                className="form-control"
+                value={this.state.employer.bio}
+                onChange={(e) => this.setEmployer({ bio: e.target.value })}
+              />
+            &lt;/div>
+          &lt;/div>
+          &lt;div className="mt-4 text-right">
+            &lt;button
+              type="button"
+              id="button_save"
+              className="btn btn-primary"
+              onClick={() => {
+                update(
+                  { path: "employers/me", event_name: "current_employer" },
+                  Employer(this.state.employer).validate().serialize()
+                ).catch((e) => Notify.error(e.message || e));
+                this.setState({ stepIndex: 8 });
+              }}
+            >
+              Save
+            &lt;/button>
+          &lt;/div>
+        &lt;/form>
+      &lt;/div>
+    );
+  }
+}
+Profile.propTypes = {
+  history: PropTypes.object,
+};
+
+export class ManageUsers extends Flux.DashView {
+  constructor() {
+    super();
+    this.state = {
+      companyUsers: [],
+      currentUser: Session.getPayload().user.profile,
+    };
+  }
+
+  componentDidMount() {
+    const users = store.getState("users");
+    this.subscribe(store, "users", (_users) => {
+      this.setState({
+        companyUsers: _users,
+        currentUser: Session.getPayload().user.profile,
+      });
+    });
+    if (users)
+      this.setState({
+        companyUsers: users,
+        currentUser: Session.getPayload().user.profile,
+      });
+    else searchMe("users");
+
+    this.props.history.listen(() => {
+      this.filter();
+      this.setState({ firstSearch: false });
+    });
+  }
+
+  filter(users = null) {
+    searchMe("users", window.location.search);
+  }
+
+  showRole(profile) {
+    if (profile.employer.id === this.state.currentUser.employer.id) {
+      return profile.employer_role;
+    } else if (profile.employer.id != this.state.currentUser.employer.id) {
+      const role = profile.other_employers.find(
+        (emp) => emp.employer == this.state.currentUser.employer
+      );
+      if (role) return role.employer_role;
+      else return "";
+    } else return "";
+  }
+  render() {
+    const allowLevels = window.location.search != "";
+    return (
+      &lt;div className="p-1 listcontents">
+        &lt;Theme.Consumer>
+          {({ bar }) => (
+            &lt;span>
+              &lt;p className="text-right">
+                &lt;h1 className="float-left">Company Users&lt;/h1>
+                &lt;Button
+                  onClick={() =>
+                    bar.show({
+                      slug: "invite_user_to_employer",
+                      allowLevels: true,
+                    })
+                  }
+                >
+                  Invite new user
+                &lt;/Button>
+              &lt;/p>
+
+              {this.state.companyUsers.map((u, i) => (
+                &lt;GenericCard key={i} hover={true}>
+                  &lt;Avatar url={u.profile.picture} />
+                  &lt;div className="btn-group">
+                    &lt;Tooltip
+                      placement="bottom"
+                      trigger={["hover"]}
+                      overlay={
+                        &lt;small>
+                          Admin can create shifts, make payroll payments and
+                          change employers role.
+                        &lt;/small>
+                      }
+                    >
+                      &lt;Button
+                        color="primary"
+                        style={{ background: "white", color: "black" }}
+                        onClick={() => {
+                          if (this.state.currentUser.id === u.profile.id)
+                            Notify.error("You cannot make yourself an admin");
+                          else if (
+                            this.state.currentUser.employer_role != "ADMIN"
+                          ) {
+                            Notify.error(
+                              "You cannot change role if you are not ADMIN"
+                            );
+                          } else {
+                            const noti = Notify.info(
+                              "Are you sure you want to make this person Admin?",
+                              (answer) => {
+                                if (answer)
+                                  updateUser({
+                                    id: u.profile.id,
+                                    employer_id:
+                                      this.state.currentUser.employer.id,
+                                    employer_role: "ADMIN",
+                                  });
+                                noti.remove();
+                              }
+                            );
+                          }
+                        }}
+                      >
+                        Make Admin
+                      &lt;/Button>
+                    &lt;/Tooltip>
+
+                    &lt;Tooltip
+                      placement="bottom"
+                      trigger={["hover"]}
+                      overlay={
+                        &lt;small>
+                          Manager can create shifts and make payroll payments.
+                        &lt;/small>
+                      }
+                    >
+                      &lt;Button
+                        style={{ background: "white", color: "black" }}
+                        onClick={() => {
+                          if (this.state.currentUser.id === u.profile.id)
+                            Notify.error("You cannot make yourself an manager");
+                          else if (
+                            this.state.currentUser.employer_role != "ADMIN"
+                          ) {
+                            Notify.error(
+                              "You cannot change role if you are not ADMIN"
+                            );
+                          } else {
+                            const noti = Notify.info(
+                              "Are you sure you want to make this person Manager?",
+                              (answer) => {
+                                if (answer)
+                                  updateUser({
+                                    id: u.profile.id,
+                                    employer_id:
+                                      this.state.currentUser.employer.id,
+                                    employer_role: "MANAGER",
+                                  });
+                                noti.remove();
+                              }
+                            );
+                          }
+                        }}
+                      >
+                        Make manager
+                      &lt;/Button>
+                    &lt;/Tooltip>
+
+                    &lt;Tooltip
+                      placement="bottom"
+                      trigger={["hover"]}
+                      overlay={
+                        &lt;small>
+                          Supervisor can create shifts and invite employees to
+                          work.
+                        &lt;/small>
+                      }
+                    >
+                      &lt;Button
+                        style={{ background: "white", color: "black" }}
+                        onClick={() => {
+                          if (this.state.currentUser.id === u.profile.id)
+                            Notify.error(
+                              "You cannot make yourself an supervisor"
+                            );
+                          else if (
+                            this.state.currentUser.employer_role != "ADMIN"
+                          ) {
+                            Notify.error(
+                              "You cannot change role if you are not ADMIN"
+                            );
+                          } else {
+                            const noti = Notify.info(
+                              "Are you sure you want to make this person Supervisor?",
+                              (answer) => {
+                                if (answer)
+                                  updateUser({
+                                    id: u.profile.id,
+                                    employer_id:
+                                      this.state.currentUser.employer.id,
+                                    employer_role: "SUPERVISOR",
+                                  });
+                                noti.remove();
+                              }
+                            );
+                          }
+                        }}
+                      >
+                        Make Supervisor
+                      &lt;/Button>
+                    &lt;/Tooltip>
+                    &lt;Button
+                      icon="trash"
+                      style={{ background: "white", color: "red" }}
+                      onClick={() => {
+                        if (this.state.currentUser.id === u.profile.id)
+                          Notify.error("You cannot delete yourself");
+                        else if (
+                          this.state.currentUser.employer_role != "ADMIN"
+                        ) {
+                          Notify.error(
+                            "You cannot delete if you are not ADMIN"
+                          );
+                        } else {
+                          const noti = Notify.info(
+                            "Are you sure you want to delete this user?",
+                            (answer) => {
+                              if (answer) removeUser(u);
+                              noti.remove();
+                            }
+                          );
+                        }
+                      }}
+                    >&lt;/Button>
+                  &lt;/div>
+                  &lt;p className="mt-2">
+                    {u.first_name} {u.last_name} ({this.showRole(u.profile)})
+                  &lt;/p>
+                &lt;/GenericCard>
+              ))}
+            &lt;/span>
+          )}
+        &lt;/Theme.Consumer>
+      &lt;/div>
+    );
+  }
+}
+
+/**
+ * Invite a new user to the company
+ */
+export const InviteUserToCompanyJobcore = ({
+  onSave,
+  onCancel,
+  onChange,
+  catalog,
+  formData,
+}) => {
+  const { bar } = useContext(Theme.Context);
+  const [isNew, setIsNew] = useState(true);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [employer, setEmployer] = useState(Session.getPayload().user.profile);
+  if (selectedUser) formData.user = selectedUser.value;
+
+  return (
+    &lt;form>
+      &lt;div className="row">
+        &lt;div className="col-12">
+          &lt;p>
+            &lt;span>Invite someone into your company &lt;/span>
+            &lt;span
+              className="anchor"
+              onClick={() =>
+                bar.show({
+                  slug: "show_pending_jobcore_invites",
+                  allowLevels: true,
+                })
+              }
+            >
+              review previous invites
+            &lt;/span>
+            :
+          &lt;/p>
+        &lt;/div>
+      &lt;/div>
+      &lt;div className="row">
+        &lt;div className="col-12 align-content-center justify-content-center text-center mb-4">
+          &lt;div className="btn-group btn-group-toggle" data-toggle="buttons">
+            &lt;label className={"btn btn-secondary " + (isNew ? "active" : "")}>
+              &lt;input
+                type="radio"
+                name="options"
+                id="option1"
+                autoComplete="off"
+                onClick={() => setIsNew(true)}
+                checked={isNew}
+              />{" "}
+              New User
+            &lt;/label>
+            &lt;label className={"btn btn-secondary " + (!isNew ? "active" : "")}>
+              &lt;input
+                type="radio"
+                name="options"
+                id="option2"
+                autoComplete="off"
+                onClick={() => setIsNew(false)}
+                checked={!isNew}
+              />{" "}
+              Existing User
+            &lt;/label>
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+      {isNew ? (
+        &lt;div>
+          &lt;div className="row">
+            &lt;div className="col-12">
+              &lt;label>First Name&lt;/label>
+              &lt;input
+                type="text"
+                className="form-control"
+                onChange={(e) => onChange({ first_name: e.target.value })}
+              />
+            &lt;/div>
+            &lt;div className="col-12">
+              &lt;label>Last Name&lt;/label>
+              &lt;input
+                type="text"
+                className="form-control"
+                onChange={(e) => onChange({ last_name: e.target.value })}
+              />
+            &lt;/div>
+            &lt;div className="col-12">
+              &lt;label>Email&lt;/label>
+              &lt;input
+                type="email"
+                className="form-control"
+                onChange={(e) => onChange({ email: e.target.value })}
+              />
+            &lt;/div>
+            &lt;div className="col-12">
+              &lt;label>Company Role&lt;/label>
+              &lt;Select
+                value={catalog.employer_role.find(
+                  (a) => a.value == formData.employer_role
+                )}
+                onChange={(selection) =>
+                  onChange({ employer_role: selection.value.toString() })
+                }
+                options={catalog.employer_role}
+              />
+            &lt;/div>
+          &lt;/div>
+          &lt;div className="btn-bar">
+            &lt;Button color="success" onClick={() => onSave()}>
+              Send Invite
+            &lt;/Button>
+            &lt;Button color="secondary" onClick={() => onCancel()}>
+              Cancel
+            &lt;/Button>
+          &lt;/div>
+        &lt;/div>
+      ) : (
+        &lt;div>
+          &lt;div className="row">
+            &lt;div className="col-12">
+              &lt;label>Search people in JobCore:&lt;/label>
+              &lt;SearchCatalogSelect
+                isMulti={false}
+                value={selectedUser}
+                onChange={(selection) => {
+                  setSelectedUser({
+                    label: selection.label,
+                    value: selection.value,
+                  });
+                }}
+                searchFunction={(search) =>
+                  new Promise((resolve, reject) =>
+                    GET("catalog/profiles?full_name=" + search)
+                      .then((talents) =>
+                        resolve(
+                          [
+                            {
+                              label: `${
+                                talents.length == 0 ? "No one found: " : ""
+                              }Invite "${search}" to Company?`,
+                              value: "invite_talent_to_jobcore",
+                            },
+                          ].concat(talents)
+                        )
+                      )
+                      .catch((error) => reject(error))
+                  )
+                }
+              />
+            &lt;/div>
+
+            &lt;div className="col-12">
+              &lt;label>Company Role&lt;/label>
+              &lt;Select
+                value={catalog.employer_role.find(
+                  (a) => a.value == formData.employer_role
+                )}
+                onChange={(selection) =>
+                  onChange({ employer_role: selection.value.toString() })
+                }
+                options={catalog.employer_role}
+              />
+            &lt;/div>
+          &lt;/div>
+          &lt;div className="btn-bar">
+            &lt;Button
+              color="success"
+              onClick={() => {
+                GET(`employers/me/users/${formData.user}`).then((user) =>
+                  sendCompanyInvitation(
+                    user.email,
+                    employer.employer,
+                    formData.employer_role,
+                    employer.id
+                  )
+                );
+              }}
+            >
+              Send Invite
+            &lt;/Button>
+            &lt;Button color="secondary" onClick={() => onCancel()}>
+              Cancel
+            &lt;/Button>
+          &lt;/div>
+        &lt;/div>
+      )}
+    &lt;/form>
+  );
+};
+InviteUserToCompanyJobcore.propTypes = {
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  formData: PropTypes.object,
+  catalog: PropTypes.object, //contains the data needed for the form to load
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">JSDoc of employer-web-client</a></h2><h3>Classes</h3><ul><li><a href="MakePayment.html">MakePayment</a></li><li><a href="Metrics.html">Metrics</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AddFavlistsToTalent">AddFavlistsToTalent</a></li><li><a href="global.html#ApplicantExtendedCard">ApplicantExtendedCard</a></li><li><a href="global.html#ApplicationDetails">ApplicationDetails</a></li><li><a href="global.html#BarChart">BarChart</a></li><li><a href="global.html#ClockInsDataGenerator">ClockInsDataGenerator</a></li><li><a href="global.html#ClockOutsDataGenerator">ClockOutsDataGenerator</a></li><li><a href="global.html#CreateDeduction">CreateDeduction</a></li><li><a href="global.html#createMapOptions">createMapOptions</a></li><li><a href="global.html#EditOrAddExpiredShift">EditOrAddExpiredShift</a></li><li><a href="global.html#EditOrAddShift">EditOrAddShift</a></li><li><a href="global.html#FeatureIndicator">FeatureIndicator</a></li><li><a href="global.html#fetchAllIfNull">fetchAllIfNull</a></li><li><a href="global.html#fetchPeyrollPeriodPayments">fetchPeyrollPeriodPayments</a></li><li><a href="global.html#FilterApplications">FilterApplications</a></li><li><a href="global.html#filterClockins">filterClockins</a></li><li><a href="global.html#FilterLocations">FilterLocations</a></li><li><a href="global.html#FilterShifts">FilterShifts</a></li><li><a href="global.html#FilterTalents">FilterTalents</a></li><li><a href="global.html#GeneralStats">GeneralStats</a></li><li><a href="global.html#GET">GET</a></li><li><a href="global.html#getDeductionsReport">getDeductionsReport</a></li><li><a href="global.html#getPaymentsReport">getPaymentsReport</a></li><li><a href="global.html#Hours">Hours</a></li><li><a href="global.html#HoursDataGenerator">HoursDataGenerator</a></li><li><a href="global.html#InviteTalentToJobcore">InviteTalentToJobcore</a></li><li><a href="global.html#InviteUserToCompanyJobcore">InviteUserToCompanyJobcore</a></li><li><a href="global.html#JobSeekers">JobSeekers</a></li><li><a href="global.html#JobSeekersDataGenerator">JobSeekersDataGenerator</a></li><li><a href="global.html#makeEmployeePayment">makeEmployeePayment</a></li><li><a href="global.html#NewJobSeekersDataGenerator">NewJobSeekersDataGenerator</a></li><li><a href="global.html#PendingInvites">PendingInvites</a></li><li><a href="global.html#PendingJobcoreInvites">PendingJobcoreInvites</a></li><li><a href="global.html#PendingRatings">PendingRatings</a></li><li><a href="global.html#PieChart">PieChart</a></li><li><a href="global.html#Punctuality">Punctuality</a></li><li><a href="global.html#Queue">Queue</a></li><li><a href="global.html#QueueData">QueueData</a></li><li><a href="global.html#RateShift">RateShift</a></li><li><a href="global.html#RatingDetails">RatingDetails</a></li><li><a href="global.html#RatingEmployees">RatingEmployees</a></li><li><a href="global.html#Ratings">Ratings</a></li><li><a href="global.html#ReviewTalentAndShift">ReviewTalentAndShift</a></li><li><a href="global.html#SearchShiftToInviteTalent">SearchShiftToInviteTalent</a></li><li><a href="global.html#SearchTalentToInviteToShift">SearchTalentToInviteToShift</a></li><li><a href="global.html#ShiftApplicants">ShiftApplicants</a></li><li><a href="global.html#ShiftDetails">ShiftDetails</a></li><li><a href="global.html#ShiftEmployees">ShiftEmployees</a></li><li><a href="global.html#ShiftInvites">ShiftInvites</a></li><li><a href="global.html#Shifts">Shifts</a></li><li><a href="global.html#ShiftsDataGenerator">ShiftsDataGenerator</a></li><li><a href="global.html#ShiftTalentClockins">ShiftTalentClockins</a></li><li><a href="global.html#TalentDetails">TalentDetails</a></li><li><a href="global.html#UpdateDeduction">UpdateDeduction</a></li><li><a href="global.html#updateProfileImage">updateProfileImage</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Wed Oct 05 2022 17:57:01 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

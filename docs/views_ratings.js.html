@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: views/ratings.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: views/ratings.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useContext, useState, useEffect } from "react";
+import Flux from "@4geeksacademy/react-flux-dash";
+import PropTypes from 'prop-types';
+import { store, search, fetchTemporal, create, GET, searchMe } from '../actions.js';
+import { callback, hasTutorial } from '../utils/tutorial';
+import { GenericCard, Avatar, Stars, Theme, Button, Wizard, StarRating, SearchCatalogSelect, ShiftOption, ShiftOptionSelected, EmployeeExtendedCard } from '../components/index';
+import Select from 'react-select';
+import queryString from 'query-string';
+import { Session } from 'bc-react-session';
+import moment from 'moment';
+import { Notify } from 'bc-react-notifier';
+import { NOW } from "../components/utils.js";
+import { Talent } from '../views/talents.js';
+
+//gets the querystring and creats a formData object to be used when opening the rightbar
+export const getRatingInitialFilters = (catalog) => {
+    let query = queryString.parse(window.location.search);
+    if (typeof query == 'undefined') return {};
+    if (!Array.isArray(query.positions)) query.positions = (typeof query.positions == 'undefined') ? [] : [query.positions];
+    if (!Array.isArray(query.badges)) query.badges = (typeof query.badges == 'undefined') ? [] : [query.badges];
+    return {
+        positions: query.positions.map(pId => catalog.positions.find(pos => pos.value == pId)),
+        badges: query.badges.map(bId => catalog.badges.find(b => b.value == bId)),
+        rating: catalog.stars.find(rate => rate.value == query.rating)
+    };
+};
+
+export const Rating = (data) => {
+
+    const session = Session.getPayload();
+    const _defaults = {
+        //foo: 'bar',
+        serialize: function () {
+
+            const newRating = {
+                comments: '',
+                rating: 5,
+                sender: null,
+                shift: null,
+                created_at: NOW()
+            };
+
+            return Object.assign(this, newRating);
+        },
+        unserialize: function () {
+            //this.fullName = function() { return (this.user.first_name.length>0) ? this.user.first_name + ' ' + this.user.last_name : 'No name specified'; };
+            let shift = null;
+            if (this.shift) {
+                shift = {
+                    ...this.shift,
+                    starting_at: moment(this.shift.starting_at),
+                    ending_at: moment(this.shift.ending_at)
+                };
+            }
+
+            return { ...this, shift };
+        }
+
+    };
+
+    let _entity = Object.assign(_defaults, data);
+    return {
+        validate: () => {
+
+            return _entity;
+        },
+        defaults: () => {
+            return _defaults;
+        },
+        getFormData: () => {
+            const _formRating = {
+                id: _entity.id,
+                comments: _entity.comments,
+                rating: _entity.rating,
+                employee: _entity.employee,
+
+                // if more than one employee will be rated for the same shift
+                employees_to_rate: _entity ? _entity.employees : [],
+
+                sender: _entity.sender,
+                shift: _entity.shift ?
+                    {
+                        ..._entity.shift,
+                        starting_at: moment(_entity.shift.starting_at),
+                        ending_at: moment(_entity.shift.ending_at)
+                    }
+                    : null,
+                created_at: (moment.isMoment(_entity.created_at)) ? _entity.created_at : moment(_entity.created_at)
+            };
+            return _formRating;
+        },
+        filters: () => {
+            const _filters = {
+                //positions: _entity.positions.map( item => item.value ),
+            };
+            for (let key in _entity) if (typeof _entity[key] == 'function') delete _entity[key];
+            return Object.assign(_entity, _filters);
+        }
+    };
+};
+
+export class ManageRating extends Flux.DashView {
+
+    constructor() {
+        super();
+        this.state = {
+            ratings: [],
+            runTutorial: hasTutorial(),
+            steps: [],
+            employer: null
+        };
+    }
+
+    componentDidMount() {
+
+
+        // this.filter();
+   
+        this.props.history.listen(() => {
+            this.filter();
+            this.setState({ firstSearch: false });
+        });
+        this.setState({ runTutorial: true });
+
+        fetchTemporal('employers/me', 'current_employer');
+        this.subscribe(store, 'current_employer', (employer) => {
+            searchMe(`ratings`, `?employer=${employer.id}`);
+            this.setState({ employer });
+        });
+
+        const ratings = store.getState('ratings');
+        this.subscribe(store, 'ratings', (_ratings) => {
+            this.setState({ ratings:_ratings });
+        });
+    }
+
+    filter(ratings = null) {
+        search('ratings', `?employer=${this.state.employer.id}`);
+    }
+
+    render() {
+        console.log('state',this.state);
+        return (&lt;div className="p-1 listcontents">
+            &lt;Theme.Consumer>
+                {({ bar }) => (&lt;span>
+                    &lt;Wizard continuous
+                        steps={this.state.steps}
+                        run={this.state.runTutorial}
+                        callback={callback}
+                    />
+                    &lt;h2>Company Ratings&lt;/h2>
+                    &lt;div className="row mt-2">
+                        &lt;div className="col-6">
+                            &lt;label>Total Ratings&lt;/label>
+                            &lt;p>You have been rated &lt;span className="text-success">{this.state.ratings.length} times.&lt;/span>&lt;/p>
+                        &lt;/div>
+                        &lt;div className="col-6">
+                            &lt;label>Rating&lt;/label>
+                            &lt;p>Talents rated you with &lt;span className="text-success">{this.state.employer ? this.state.employer.rating : 0} points avg.&lt;/span>&lt;/p>
+                        &lt;/div>
+                    &lt;/div>
+                    &lt;div className="row">
+                        &lt;div className="col-12">
+                            &lt;h3>Recent Ratings&lt;/h3>
+                            {this.state.ratings.filter(emp => !emp.employee &amp;&amp; emp.shift).map((rate, i) => (
+                                &lt;GenericCard key={i} hover={true} onClick={() => bar.show({ slug: "show_single_rating", data: rate, allowLevels: false })}>
+                                    &lt;Avatar url={rate.sender.picture} />
+                                    &lt;Stars className="float-left" rating={Number(rate.rating)} />
+                                    &lt;span className="pl-1">{`on ${rate.created_at.substring(0, 10)}`}&lt;/span>
+                                    &lt;p className="mt-0">{rate.comments !== '' ? `"${rate.comments}"` : `The talent didn't provide any comments for this rating.`}&lt;/p>
+                                &lt;/GenericCard>
+                            ))}
+                        &lt;/div>
+                    &lt;/div>
+                &lt;/span>)}
+            &lt;/Theme.Consumer>
+        &lt;/div>);
+    }
+}
+
+
+/**
+ * Talent Details
+ */
+export const RatingDetails = (props) => {
+    const { formData } = props;
+    const { shift } = formData;
+   
+    return (&lt;Theme.Consumer>
+        {({ bar }) =>
+            (&lt;li className="aplication-details">
+                &lt;Avatar url={formData.sender.picture} />
+                &lt;p>{formData.sender.user.first_name + ' ' + formData.sender.user.last_name}&lt;/p>
+                &lt;div>
+                    &lt;Stars rating={Number(formData.rating)} />
+                &lt;/div>
+                &lt;h5 className="mt-3">
+                    {formData.comments !== '' ? `"${formData.comments}"` : `${formData.sender.user.first_name} didn't provide any comments for this rating.`}
+                &lt;/h5>
+                {!shift || typeof shift.position === 'undefined' ?
+                    'Loading shift information...' :
+                    &lt;div>
+                        &lt;a href="#" className="shift-position">{shift.position.title}&lt;/a> @
+                        &lt;a href="#" className="shift-location"> {shift.venue.title}&lt;/a>
+                        &lt;span className="shift-date"> {shift.starting_at.format('ll')} from {shift.starting_at.format('LT')} to {shift.ending_at.format('LT')} &lt;/span>
+                    &lt;/div>
+                }
+                &lt;Button color="primary" onClick={() => bar.show({ slug: "review_single_talent", data: formData, allowLevels: false })}>Rate talent back&lt;/Button>
+            &lt;/li>)}
+    &lt;/Theme.Consumer>);
+};
+RatingDetails.propTypes = {
+    catalog: PropTypes.object.isRequired,
+    formData: PropTypes.object
+};
+
+
+/**
+ * Talent Details
+ */
+export const PendingRatings = (props) => {
+    return (&lt;Theme.Consumer>
+        {({ bar }) =>
+            (&lt;li className="aplication-details">
+            &lt;/li>)}
+    &lt;/Theme.Consumer>);
+};
+PendingRatings.propTypes = {
+    catalog: PropTypes.object.isRequired,
+    formData: PropTypes.object
+};
+
+
+/**
+ * Revire Talent for a specific shift
+ */
+export const ReviewTalentAndShift = (props) => {
+    const shift = props.formData.shift;
+    const employee = props.formData.employee;
+    const startDate = shift.starting_at.format('ll');
+    const startTime = shift.starting_at.format('LT');
+    const endTime = shift.ending_at.format('LT');
+    return (&lt;Theme.Consumer>
+        {({ bar }) =>
+            (&lt;li className="aplication-details">
+                &lt;h4>How satisfied are you with {employee.user.first_name}{"'"}s performance during this shift?&lt;/h4>
+                &lt;p className="mb-3">
+                    &lt;Avatar url={employee.user.profile.picture} />
+                &lt;/p>
+                &lt;a href="#" className="shift-position">{shift.position.title}&lt;/a> @
+                &lt;a href="#" className="shift-location"> {shift.venue.title}&lt;/a>
+                &lt;span className="shift-date"> {startDate} from {startTime} to {endTime} &lt;/span>
+                {
+                    (typeof shift.price == 'string') ?
+                        &lt;span className="shift-price"> ${shift.price}&lt;/span>
+                        :
+                        &lt;span className="shift-price"> {shift.price.currencySymbol}{shift.price.amount}&lt;/span>
+                }
+                &lt;StarRating
+                    placeholderRating={Number(employee.rating ? employee.rating : 1)}
+                    emptySymbol="fa fa-star-o fa-2x"
+                    fullSymbol="fa fa-star fa-2x"
+                    placeholderSymbol={"fa fa-star fa-2x"}
+                />
+                &lt;textarea className="form-control mt-3" placeholder={`Please describe further your experiences with ${employee.user.first_name}`}>
+                &lt;/textarea>
+                &lt;div className="btn-bar">
+                    &lt;Button color="secondary" onClick={() => bar.close()}>Cancel&lt;/Button>
+                    &lt;Button color="primary" onClick={() => null}>Send&lt;/Button>
+                &lt;/div>
+            &lt;/li>)}
+    &lt;/Theme.Consumer>);
+};
+ReviewTalentAndShift.propTypes = {
+    catalog: PropTypes.object.isRequired,
+    formData: PropTypes.object
+};
+
+
+/**
+ * Review Talent in general
+ */
+export const RatingEmployees = (props) => {
+
+    const { onCancel, onSave, catalog, formData } = props;
+
+    const shiftEmployees = formData.shift.employees.map((e) => {
+        if (formData.ratings.find(rated => rated.employee == e.id)) {
+            var ratedEmployee = Object.assign({}, e);
+            ratedEmployee.rating = formData.ratings.find(rated => rated.employee == e.id).rating;
+            ratedEmployee.created_at = formData.ratings.find(rated => rated.employee == e.id).created_at;
+            return ratedEmployee;
+        } else {
+            return e;
+        }
+    });
+
+    return (&lt;Theme.Consumer>
+        {({ bar }) => (&lt;div className="sidebar-applicants">
+            {shiftEmployees.find(e => !e.rating) ? (
+                &lt;div className="top-bar">
+                    &lt;button type="button" className="btn btn-primary btn-sm"
+                        onClick={() => bar.show({ slug: "review_talent", data: { shift: formData.shift, employees: shiftEmployees.filter(e => !e.rating) }, allowLevels: true })}
+
+                    >
+                        Rate employee
+                    &lt;/button>
+                &lt;/div>
+            ) : (
+                    null
+                )}
+
+
+            &lt;h3>Shift Ratings:&lt;/h3>
+            &lt;ul style={{ overflowY: "auto", maxHeight: "75vh" }}>
+                {
+                    shiftEmployees.length > 0 ?
+                        shiftEmployees.map((tal, i) => (
+                            &lt;GenericCard key={i} hover={true}>
+                                &lt;Avatar url={tal.user.profile.picture} />
+                                &lt;a href="#">&lt;b>{tal.user.first_name + ' ' + tal.user.last_name}&lt;/b>&lt;/a>
+
+                                &lt;Stars rating={Number(tal.rating)} noRatingLabel="Not yet rated for this shift" />
+                                {
+                                    tal.rating ? null : (
+                                        &lt;div className="btn-group" role="group" aria-label="Basic example">
+                                            &lt;Button
+                                                className="mt-0 text-white" label="Rate"
+                                                notePosition="left" note="Rate Employee"
+                                                onClick={() => bar.show({ slug: "review_talent", data: { shift: formData.shift, employees: [tal] }, allowLevels: true })}
+                                            >
+                                                Rate
+                                            &lt;/Button>
+
+                                        &lt;/div>
+
+                                    )
+                                }
+                            &lt;/GenericCard>
+
+                        ))
+                        :
+                        &lt;li>No ratings were found for this shift&lt;/li>
+                }
+            &lt;/ul>
+        &lt;/div>)}
+    &lt;/Theme.Consumer>);
+};
+RatingEmployees.propTypes = {
+    onSave: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    catalog: PropTypes.object, //contains the data needed for the form to load
+    formData: PropTypes.object, //contains the data needed for the form to load
+    context: PropTypes.object //contact any additional data for context purposes
+};
+export const UnratingEmployees = (props) => {
+
+    const { onCancel, onSave, catalog, formData } = props;
+    const unrated_employees = formData.employees.filter(e => !e.rating);
+    return (&lt;Theme.Consumer>
+        {({ bar }) => (&lt;div className="sidebar-applicants">
+
+            &lt;div className="top-bar">
+                &lt;button type="button" className="btn btn-primary btn-sm"
+                    onClick={() => bar.show({ slug: "review_talent", data: catalog.shift, allowLevels: true })}
+
+                >
+                    Rate employee
+                &lt;/button>
+            &lt;/div>
+
+            &lt;h3>Shift Ratings:&lt;/h3>
+            &lt;ul style={{ overflowY: "auto", maxHeight: "75vh" }}>
+                {
+                    unrated_employees.length > 0 ?
+                        unrated_employees.map((tal, i) => (
+                            &lt;EmployeeExtendedCard
+                                key={i}
+                                employee={tal}
+                                hover={false}
+                                showFavlist={false}
+                            >
+
+                            &lt;/EmployeeExtendedCard>)
+                        )
+                        :
+                        &lt;li>No ratings were found for this shift&lt;/li>
+                }
+            &lt;/ul>
+        &lt;/div>)}
+    &lt;/Theme.Consumer>);
+};
+UnratingEmployees.propTypes = {
+    onSave: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    catalog: PropTypes.object, //contains the data needed for the form to load
+    formData: PropTypes.object, //contains the data needed for the form to load
+    context: PropTypes.object //contact any additional data for context purposes
+};
+
+
+export const ReviewTalent = ({ onSave, onCancel, onChange, catalog, formData, error }) => {
+
+    console.log(formData);
+
+    const [shifts, setShifts] = useState([]);
+    const [rating, setRating] = useState(0);
+    const [comments, setComments] = useState('');
+    const [employeesToRate, setEmployeesToRate] = useState(formData.employees_to_rate.map(e => (
+        {
+            label: e.user.first_name + " " + e.user.last_name,
+            value: e.id
+        }
+    )));
+ 
+    return (&lt;Theme.Consumer>
+        {({ bar }) => (
+            &lt; form >
+                &lt;div className="row">
+                    &lt;div className="col-12">
+                        &lt;label>Who worked on this shift?&lt;/label>
+
+                        &lt;Select
+                            isMulti
+                            value={employeesToRate}
+                            onChange={(employees) => setEmployeesToRate(employees)}
+                            options={formData.employees_to_rate.map(e => ({
+                                label: e.user.first_name + " " + e.user.last_name,
+                                value: e.id
+                            }))}
+
+                        />
+
+                    &lt;/div>
+                &lt;/div>
+                {/* &lt;div className="row">
+                    &lt;div className="col-12">
+
+                        &lt;label>What shift was it working?&lt;/label>
+                        &lt;Select
+                            value={{ value: formData.shift }}
+                            components={{ Option: ShiftOption, SingleValue: ShiftOptionSelected({ multi: false }) }}
+                            onChange={(selection) => onChange({ shift: selection.value.toString() })}
+                            options={[]}
+                        />
+                    &lt;/div>
+                &lt;/div> */}
+                &lt;div className="row">
+                    &lt;div className="col-12">
+                        &lt;label>How was his performance during the shift&lt;/label>
+                        &lt;StarRating
+                            onClick={(e) =>
+                                setRating(e)
+                            }
+                            onHover={() => null}
+                            direction="right"
+                            fractions={2}
+                            quiet={false}
+                            readonly={false}
+                            totalSymbols={5}
+                            value={rating}
+                            placeholderValue={0}
+                            placeholderRating={Number(0)}
+                            emptySymbol="far fa-star md"
+                            fullSymbol="fas fa-star"
+                            placeholderSymbol={"fas fa-star"}
+                        />
+                    &lt;/div>
+                &lt;/div>
+                &lt;div className="row">
+                    &lt;div className="col-12">
+                        &lt;label>Any comments?&lt;/label>
+                        &lt;textarea className="form-control" onChange={e => setComments(e.target.value)}>&lt;/textarea>
+                    &lt;/div>
+                &lt;/div>
+                &lt;div className="btn-bar">
+                    &lt;Button color="success"
+                        onClick={() => create('ratings',
+                            // {
+                            //     employee: formData.employees_to_rate.map(e => e.id),
+                            //     shifts: formData.shift.id,
+                            //     rating: rating,
+                            //     comments: comments
+                            // }
+                            formData.employees_to_rate.map(e => ({
+                                employee: e.id,
+                                shift: formData.shift.id,
+                                rating: rating,
+                                comments: comments
+                            }))
+                        ).then((res) => bar.close("last"))
+                            .catch(e => Notify.error(e.message || e))}>Send Review&lt;/Button>
+                &lt;/div>
+            &lt;/form>
+        )}
+    &lt;/Theme.Consumer>
+    );
+};
+ReviewTalent.propTypes = {
+    error: PropTypes.string,
+    bar: PropTypes.object,
+    onSave: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    onChange: PropTypes.func.isRequired,
+    formData: PropTypes.object,
+    catalog: PropTypes.object //contains the data needed for the form to load
+};
+ReviewTalent.defaultProps = {
+    oldShift: null
+};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">JSDoc of employer-web-client</a></h2><h3>Classes</h3><ul><li><a href="MakePayment.html">MakePayment</a></li><li><a href="Metrics.html">Metrics</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AddFavlistsToTalent">AddFavlistsToTalent</a></li><li><a href="global.html#ApplicantExtendedCard">ApplicantExtendedCard</a></li><li><a href="global.html#ApplicationDetails">ApplicationDetails</a></li><li><a href="global.html#BarChart">BarChart</a></li><li><a href="global.html#ClockInsDataGenerator">ClockInsDataGenerator</a></li><li><a href="global.html#ClockOutsDataGenerator">ClockOutsDataGenerator</a></li><li><a href="global.html#CreateDeduction">CreateDeduction</a></li><li><a href="global.html#createMapOptions">createMapOptions</a></li><li><a href="global.html#EditOrAddExpiredShift">EditOrAddExpiredShift</a></li><li><a href="global.html#EditOrAddShift">EditOrAddShift</a></li><li><a href="global.html#FeatureIndicator">FeatureIndicator</a></li><li><a href="global.html#fetchAllIfNull">fetchAllIfNull</a></li><li><a href="global.html#fetchPeyrollPeriodPayments">fetchPeyrollPeriodPayments</a></li><li><a href="global.html#FilterApplications">FilterApplications</a></li><li><a href="global.html#filterClockins">filterClockins</a></li><li><a href="global.html#FilterLocations">FilterLocations</a></li><li><a href="global.html#FilterShifts">FilterShifts</a></li><li><a href="global.html#FilterTalents">FilterTalents</a></li><li><a href="global.html#GeneralStats">GeneralStats</a></li><li><a href="global.html#GET">GET</a></li><li><a href="global.html#getDeductionsReport">getDeductionsReport</a></li><li><a href="global.html#getPaymentsReport">getPaymentsReport</a></li><li><a href="global.html#Hours">Hours</a></li><li><a href="global.html#HoursDataGenerator">HoursDataGenerator</a></li><li><a href="global.html#InviteTalentToJobcore">InviteTalentToJobcore</a></li><li><a href="global.html#InviteUserToCompanyJobcore">InviteUserToCompanyJobcore</a></li><li><a href="global.html#JobSeekers">JobSeekers</a></li><li><a href="global.html#JobSeekersDataGenerator">JobSeekersDataGenerator</a></li><li><a href="global.html#makeEmployeePayment">makeEmployeePayment</a></li><li><a href="global.html#NewJobSeekersDataGenerator">NewJobSeekersDataGenerator</a></li><li><a href="global.html#PendingInvites">PendingInvites</a></li><li><a href="global.html#PendingJobcoreInvites">PendingJobcoreInvites</a></li><li><a href="global.html#PendingRatings">PendingRatings</a></li><li><a href="global.html#PieChart">PieChart</a></li><li><a href="global.html#Punctuality">Punctuality</a></li><li><a href="global.html#Queue">Queue</a></li><li><a href="global.html#QueueData">QueueData</a></li><li><a href="global.html#RateShift">RateShift</a></li><li><a href="global.html#RatingDetails">RatingDetails</a></li><li><a href="global.html#RatingEmployees">RatingEmployees</a></li><li><a href="global.html#Ratings">Ratings</a></li><li><a href="global.html#ReviewTalentAndShift">ReviewTalentAndShift</a></li><li><a href="global.html#SearchShiftToInviteTalent">SearchShiftToInviteTalent</a></li><li><a href="global.html#SearchTalentToInviteToShift">SearchTalentToInviteToShift</a></li><li><a href="global.html#ShiftApplicants">ShiftApplicants</a></li><li><a href="global.html#ShiftDetails">ShiftDetails</a></li><li><a href="global.html#ShiftEmployees">ShiftEmployees</a></li><li><a href="global.html#ShiftInvites">ShiftInvites</a></li><li><a href="global.html#Shifts">Shifts</a></li><li><a href="global.html#ShiftsDataGenerator">ShiftsDataGenerator</a></li><li><a href="global.html#ShiftTalentClockins">ShiftTalentClockins</a></li><li><a href="global.html#TalentDetails">TalentDetails</a></li><li><a href="global.html#UpdateDeduction">UpdateDeduction</a></li><li><a href="global.html#updateProfileImage">updateProfileImage</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.11</a> on Wed Oct 05 2022 17:57:01 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

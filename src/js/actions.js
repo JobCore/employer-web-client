@@ -15,6 +15,7 @@ import log from "./utils/log";
 import WEngine from "./utils/write_engine.js";
 import qs from "query-string";
 import { normalizeToSnakeCase } from "./utils/validation";
+
 const Models = {
   shifts: Shift,
   ratings: Rating,
@@ -55,23 +56,23 @@ export const autoLogin = (token = "") => {
         Notify.error(error.message || error);
         log.error(error);
       })
-  ); 
+  );
 };
 export const stripeStatus = (email, password, keep, history, id) => {
-  GET('subscription_auth/'+ email).then(
-    function(value) {
-    Notify.success("Welcome!")
-    
-    }, 
-    function(reason) {
-    history.push("/subscribe")
-    Notify.error("Your subscription is not active, please get a new one")
+  GET('subscription_auth/' + email).then(
+    function (value) {
+      Notify.success("Welcome!")
+
+    },
+    function (reason) {
+      history.push("/subscribe")
+      Notify.error("Your subscription is not active, please get a new one")
     }
-    )
-    
-} 
+  )
+
+}
 export const login = (email, password, keep, history, id) => {
-new Promise((resolve, reject) =>
+  new Promise((resolve, reject) =>
     POST("login", {
       username_or_email: email,
       password: password,
@@ -79,9 +80,9 @@ new Promise((resolve, reject) =>
       exp_days: keep ? 30 : 1,
     })
       .then(
-        setTimeout(() => {stripeStatus(email, password, keep, history, id)}, 1000)
-           )
-      .then(function (data) { 
+        setTimeout(() => { stripeStatus(email, password, keep, history, id) }, 1000)
+      )
+      .then(function (data) {
         // if (Number(data.user.profile.employer) != Number(id)) {
         //     let company = data.user.profile.other_employers.find(emp => emp.employer == Number(id) );
         //     updateCompanyUser({id: company.profile_id, employer: company.employer, employer_role: company.employer_role}, { 'Authorization': 'JWT ' + data.token });
@@ -119,7 +120,7 @@ new Promise((resolve, reject) =>
         reject(error.message || error);
         Notify.error(error.message || error);
         log.error(error);
-        
+
       })
   );
 }
@@ -144,7 +145,7 @@ export const signup = (formData, history) =>
     })
       .then(function (data) {
         Notify.success("You have signed up successfully! You are being redirected to the login screen");
-        setTimeout(() => {history.push(`/login?type=${formData.account_type}`)}, 2500)
+        setTimeout(() => { history.push(`/login?type=${formData.account_type}`) }, 2500)
         resolve();
       })
       .catch(function (error) {
@@ -152,7 +153,7 @@ export const signup = (formData, history) =>
         Notify.error(error.message || error);
         log.error(error);
       })
-    });
+  });
 
 export const remind = (email) =>
   new Promise((resolve, reject) =>
@@ -227,13 +228,13 @@ export const sendCompanyInvitation = (email, employer, employer_role, sender) =>
   new Promise((resolve, reject) =>
     POST(
       "user/email/company/send/" +
-        email +
-        "/" +
-        sender +
-        "/" +
-        employer +
-        "/" +
-        employer_role,
+      email +
+      "/" +
+      sender +
+      "/" +
+      employer +
+      "/" +
+      employer_role,
       {
         email: email,
         sender: sender,
@@ -447,7 +448,7 @@ export const search = (entity, queryString = null) =>
   new Promise((accept, reject) =>
     GET(entity, queryString)
       .then(function (list) {
-        console.log("list", list);
+        //console.log("list", list);
         if (typeof entity.callback == "function") entity.callback();
         Flux.dispatchEvent(entity.slug || entity, list);
         accept(list);
@@ -482,7 +483,7 @@ export const create = (entity, data, status = WEngine.modes.LIVE) =>
   new Promise((resolve, reject) => {
     POST("employers/me/" + (entity.url || entity), data)
       .then(function (incoming) {
-        console.log("incoming", incoming);
+        //console.log("incoming", incoming);
         if (
           typeof entity.url === "string" &&
           typeof entity.slug === "undefined"
@@ -511,19 +512,19 @@ export const create = (entity, data, status = WEngine.modes.LIVE) =>
               Object.assign({ ...data, id: inc.id })
             );
           }
-          console.log("slug", entity.slug);
-          console.log("entity", entity);
-          console.log("entities", entities);
-          console.log("newShifts", newShifts);
+          //console.log("slug", entity.slug);
+          //console.log("entity", entity);
+          //console.log("entities", entities);
+          //console.log("newShifts", newShifts);
           Flux.dispatchEvent(entity.slug || entity, entities.concat(newShifts));
         }
         Notify.success(
           "The " +
-            (entity.slug || entity).substring(
-              0,
-              (entity.slug || entity).length - 1
-            ) +
-            " was created successfully"
+          (entity.slug || entity).substring(
+            0,
+            (entity.slug || entity).length - 1
+          ) +
+          " was created successfully"
         );
         resolve(incoming);
       })
@@ -579,8 +580,8 @@ export const remove = (entity, data) => {
       const name = path.split("/");
       Notify.success(
         "The " +
-          name[0].substring(0, name[0].length - 1) +
-          " was deleted successfully"
+        name[0].substring(0, name[0].length - 1) +
+        " was deleted successfully"
       );
     })
     .catch(function (error) {
@@ -633,69 +634,69 @@ export const updateProfileMe = (data) => {
 };
 
 export const updateEmployability = (data) => {
-  PUT(`employee/employability_expired_at/update/${data.catalog.employee.id}`, 
-      data)
-      .then()
+  PUT(`employee/employability_expired_at/update/${data.catalog.employee.id}`,
+    data)
+    .then()
 }
 export const updateDocs = (data) => {
-  PUT(`employee/employment_verification_status/update/${data.catalog.employee.id}`, 
-      data)
-      .then(response => response.json())
-      .then(data => console.log(data))
+  PUT(`employee/employment_verification_status/update/${data.catalog.employee.id}`,
+    data)
+    .then(response => response.json())
+    .then(data => console.log(data))
 }
 export const createSubscription = (data, history) => {
   const employer = store.getState("current_employer");
-  
-    POST(`employers/me/subscription`, data)
-      .then(function (active_subscription) {
-        
-        Flux.dispatchEvent("current_employer", {
-          ...employer,
-          active_subscription,
-        });
-        Notify.success("The subscription was created successfully");
-      
-       
-      }).then(
-        setTimeout(() => {history.push("/welcome")}, 4000)
-        
-        )
-      .catch(function (error) {
-        console.log("ERROR", error);
-        Notify.error(error.message || error);
-        log.error(error);
-      })
-  
+
+  POST(`employers/me/subscription`, data)
+    .then(function (active_subscription) {
+
+      Flux.dispatchEvent("current_employer", {
+        ...employer,
+        active_subscription,
+      });
+      Notify.success("The subscription was created successfully");
+
+
+    }).then(
+      setTimeout(() => { history.push("/welcome") }, 4000)
+
+    )
+    .catch(function (error) {
+      console.log("ERROR", error);
+      Notify.error(error.message || error);
+      log.error(error);
+    })
+
 };
 
 export const createStripePayment2 = async () => {
   const response = await POSTcsrf2('create-payment-single-emp')
-      .then( 
-          Notify.success("The payment was received successfully")
-        )
-      .catch(function (error) {
-        console.log("ERROR", error);
-        Notify.error(error.message || error);
-        log.error(error);
-      })
+    .then(
+      Notify.success("The payment was received successfully")
+    )
+    .catch(function (error) {
+      console.log("ERROR", error);
+      Notify.error(error.message || error);
+      log.error(error);
+    })
 
-    return response
-      
+  return response
+
 };
 
 export const createStripePayment = async (stripeToken) => {
   const response = await POSTcsrf('create-payment-intent', stripeToken)
-      .then( 
-          Notify.success("The payment was received successfully")
-        )
-      .catch(function (error) {
-        console.log("ERROR", error);
-        Notify.error(error.message || error);
-        log.error(error);
-      })
+    .then(
+      Notify.success("The payment was received successfully")
+    )
+    .catch(function (error) {
+      console.log("ERROR", error);
+      Notify.error(error.message || error);
+      log.error(error);
+    })
 
-    return response
-      
+  return response
+
 };
 
 export const updateSubscription = (data, history) => {
@@ -951,8 +952,7 @@ export const updateTalentList = (action, employee, listId) => {
             })
           );
           Notify.success(
-            `The talent was successfully ${
-              action == "add" ? "added" : "removed"
+            `The talent was successfully ${action == "add" ? "added" : "removed"
             }`
           );
           resolve(updatedFavlist);
@@ -1037,9 +1037,9 @@ export const makeEmployeePayment = (
         paymentType === "CHECK"
           ? {}
           : {
-              employer_bank_account_id: employer_bank_account_id,
-              employee_bank_account_id: employee_bank_account_id,
-            },
+            employer_bank_account_id: employer_bank_account_id,
+            employee_bank_account_id: employee_bank_account_id,
+          },
       deductions_list: deductions_list,
       deductions: deductions,
     };
@@ -1183,10 +1183,10 @@ class _Store extends Flux.DashStore {
       !Array.isArray(clockins)
         ? []
         : clockins.map((c) => ({
-            ...c,
-            started_at: moment(c.starting_at),
-            ended_at: moment(c.ended_at),
-          }))
+          ...c,
+          started_at: moment(c.starting_at),
+          ended_at: moment(c.ended_at),
+        }))
     );
     this.addEvent("jobcore-invites");
     this.addEvent("ratings", (_ratings) =>
@@ -1216,26 +1216,26 @@ class _Store extends Flux.DashStore {
           applicants.constructor === Object)
         ? []
         : applicants.map((app) => {
-            app.shift = Shift(app.shift).defaults().unserialize();
-            return app;
-          });
+          app.shift = Shift(app.shift).defaults().unserialize();
+          return app;
+        });
     });
     this.addEvent("shifts", (shifts) => {
       shifts = Array.isArray(shifts.results)
         ? shifts.results
         : Array.isArray(shifts)
-        ? shifts
-        : null;
+          ? shifts
+          : null;
       let newShifts =
         !shifts ||
-        (Object.keys(shifts).length === 0 && shifts.constructor === Object)
+          (Object.keys(shifts).length === 0 && shifts.constructor === Object)
           ? []
           : shifts
-              .filter((s) => s.status !== "CANCELLED")
-              .map((shift) => {
-                //already transformed
-                return Shift(shift).defaults().unserialize();
-              });
+            .filter((s) => s.status !== "CANCELLED")
+            .map((shift) => {
+              //already transformed
+              return Shift(shift).defaults().unserialize();
+            });
 
       const applicants = this.getState("applications");
       if (!applicants && Session.get().isValid) fetchAllMe(["applications"]);
@@ -1267,8 +1267,8 @@ class _Store extends Flux.DashStore {
       )
         ? employer.payroll_period_starting_time
         : employer.payroll_period_starting_time
-        ? moment(employer.payroll_period_starting_time)
-        : moment(employer.created_at).startOf("isoWeek");
+          ? moment(employer.payroll_period_starting_time)
+          : moment(employer.created_at).startOf("isoWeek");
       return employer;
     });
     this.addEvent("single_payroll_detail", (payroll) => {
@@ -1277,17 +1277,17 @@ class _Store extends Flux.DashStore {
       let paid = true;
       payroll.clockins =
         !clockins ||
-        (Object.keys(clockins).length === 0 && clockins.constructor === Object)
+          (Object.keys(clockins).length === 0 && clockins.constructor === Object)
           ? []
           : clockins.map((clockin) => {
-              //already transformed
-              if (clockin.status == "PENDING") {
-                approved = false;
-                paid = false;
-              } else if (clockin.status != "PAID") paid = false;
+            //already transformed
+            if (clockin.status == "PENDING") {
+              approved = false;
+              paid = false;
+            } else if (clockin.status != "PAID") paid = false;
 
-              return Clockin(clockin).defaults().unserialize();
-            });
+            return Clockin(clockin).defaults().unserialize();
+          });
 
       if (typeof payroll.talent != "undefined")
         payroll.talent.paymentsApproved = approved;

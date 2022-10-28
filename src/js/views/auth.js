@@ -158,9 +158,9 @@ export class Login extends React.Component {
               onClick={() => { 
                 // this.toggleInverted
                 this.setState({hidePassword: !this.state.hidePassword})
-                console.log("dentro del onClick#######")
+                //console.log("dentro del onClick#######")
                 
-                console.log("this.state.shown#######", this.state.hidePassword)
+                //console.log("this.state.shown#######", this.state.hidePassword)
               }}></i>
               <input
                 required
@@ -280,7 +280,7 @@ const Subscribe = (props) => {
         /> */}
       {/* </div> */} 
       
-      <StripeProvider apiKey="pk_live_JtS6WO3mL4HuI72Ay8wpjcFe003vJqDL6x">
+      <StripeProvider apiKey={process.env.REACT_APP_STRIPE_KEY}>
         <Elements >           
           <Billing history={props.history} />
         </Elements>
@@ -543,9 +543,9 @@ export class Signup extends React.Component {
                       onClick={() => { 
                         // this.toggleInverted
                         this.setState({hidePassword: !this.state.hidePassword})
-                        console.log("dentro del onClick#######")
+                        //console.log("dentro del onClick#######")
                         
-                        console.log("this.state.shown#######", this.state.hidePassword)
+                        //console.log("this.state.shown#######", this.state.hidePassword)
                   }}></i>
                 </div>
               </div>

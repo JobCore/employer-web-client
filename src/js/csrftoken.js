@@ -39,7 +39,7 @@ const CSRFToken = () => {
         // CSRFToken()
         
         setcsrftoken(Cookies.get('csrftoken'));
-        console.log("este es el useeffect")
+        //console.log("este es el useeffect")
     }, []);
     
 
